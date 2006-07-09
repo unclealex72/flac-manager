@@ -38,7 +38,7 @@ public class CopyTo {
 			String path = file.getAbsolutePath();
 			File target = new File(targetDir + path.substring(sourceLength));
 			System.out.printf(
-					"%d of %d (3.2%f%%), %s -> %s", current, total, 100 * current / (double) total,
+					"%d of %d (%3.2f%%), %s -> %s", current, total, 100 * current / (double) total,
 					file.getAbsolutePath(), target.getAbsolutePath());
 			System.out.println();
 			current++;
