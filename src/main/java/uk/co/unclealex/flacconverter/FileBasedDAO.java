@@ -6,10 +6,12 @@ package uk.co.unclealex.flacconverter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Formatter;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+
 
 /**
  * @author alex
@@ -19,6 +21,7 @@ public class FileBasedDAO implements FormatDAO {
 
 	private File i_baseDirectory;
 	private FileCodec i_fileCodec;
+	public static char[] INVALID_CHARACTERS = "/\\:".toCharArray();
 	
 	/**
 	 * @param baseDirectory
@@ -62,6 +65,19 @@ public class FileBasedDAO implements FormatDAO {
 		return getFileCodec().processTagCommandOutput(file, output);
 	}
 	
+	public File getFile(Track track) {
+		File dir =
+			new File(
+					new File(getBaseDirectory(), sanitise(track.getArtist())),
+							sanitise(track.getAlbum()));
+		dir.mkdirs();
+		Formatter formatter = new Formatter();
+		formatter.format(
+				"%02d - %s.%s", track.getTrackNumber(),
+				sanitise(track.getTitle()), getFileCodec().getExtension());
+		return new File(dir, formatter.toString());
+	}
+
 	/**
 	 * @return Returns the baseDirectory.
 	 */
@@ -81,5 +97,17 @@ public class FileBasedDAO implements FormatDAO {
 	 */
 	public String getExtension() {
 		return getFileCodec().getExtension();
+	}
+
+	/**
+	 * @param title
+	 * @param str TODO
+	 * @return
+	 */
+	public String sanitise(String str) {
+		for (char c : FileBasedDAO.INVALID_CHARACTERS) {
+			str = str.replace(c, '_');
+		}
+		return str;
 	}
 }

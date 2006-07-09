@@ -12,7 +12,7 @@
 	<param name="Threshold" value="INFO"/>
 	<param name="File" value="/mnt/multimedia/logs/flacConverter.ogg.log"/>
 	<param name="Append" value="true"/>
-	<param name="" value="'.'yyyy-MM-dd"/>
+	<param name="DatePattern" value="'.'yyyy-MM-dd"/>
 	<layout class="org.apache.log4j.PatternLayout">
 	  <param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p %m%n"/>
 	</layout>
@@ -22,7 +22,7 @@
 	<param name="Threshold" value="INFO"/>
 	<param name="File" value="/mnt/multimedia/logs/flacConverter.mp3.log"/>
 	<param name="Append" value="true"/>
-	<param name="" value="'.'yyyy-MM-dd"/>
+	<param name="DatePattern" value="'.'yyyy-MM-dd"/>
 	<layout class="org.apache.log4j.PatternLayout">
 	  <param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p %m%n"/>
 	</layout>
@@ -32,7 +32,7 @@
 	<param name="Threshold" value="INFO"/>
 	<param name="File" value="/mnt/multimedia/logs/flacConverter.log"/>
 	<param name="Append" value="true"/>
-	<param name="" value="'.'yyyy-MM-dd"/>
+	<param name="DatePattern" value="'.'yyyy-MM-dd"/>
 	<layout class="org.apache.log4j.PatternLayout">
 	  <param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p %m%n"/>
 	</layout>

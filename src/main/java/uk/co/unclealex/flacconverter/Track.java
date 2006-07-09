@@ -27,8 +27,9 @@ public class Track implements Comparable<Track>{
 	
 	private Track(File file) {
 		i_file = file;
-		i_lastModified = file.lastModified();
-
+		if (file.exists()) {
+			i_lastModified = file.lastModified();
+		}
 	}
 
 	public Track(File file, Exception e) {

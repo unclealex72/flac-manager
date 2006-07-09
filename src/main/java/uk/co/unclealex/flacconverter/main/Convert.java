@@ -35,8 +35,6 @@ import uk.co.unclealex.flacconverter.Track;
 public class Convert implements Runnable {
 
 	private static FileCodec[] CODECS = new FileCodec[] { new OggFileCodec(), new Mp3FileCodec() };
-	private static char[] INVALID_CHARACTERS = "/\\:".toCharArray();
-	
 	private SortedSet<Track> i_flacTracks;
 	private FileCodec i_codec;
 	private Logger i_log;
@@ -151,7 +149,7 @@ public class Convert implements Runnable {
 			String owner = entry.getKey();
 			File dir = new File(getBaseDir(), owner);
 			for (String artist : entry.getValue()) {
-				artist = sanitise(artist);
+				artist = getFileBasedDAO().sanitise(artist);
 				dir.mkdirs();
 				String fname = new File(dir, artist).getAbsolutePath();
 				try {
@@ -170,33 +168,14 @@ public class Convert implements Runnable {
 		}
 	}
 	private String encode(Track track) throws IOException {
-		File dir =
-			new File(
-					new File(
-							getFileBasedDAO().getBaseDirectory(), sanitise(track.getArtist())),
-							sanitise(track.getAlbum()));
-		dir.mkdirs();
-		File target =
-			new File(
-					dir,
-					format("%02d - %s.%s", track.getTrackNumber(), sanitise(track.getTitle()), getCodec().getExtension()));
+		File target = getFileBasedDAO().getFile(track);
+		target.getParentFile().mkdirs();
 		InputStream in = IOUtils.runCommand(getCodec().generateEncodeCommand(track, target), getLog());
 		String output = IOUtils.toString(in);
 		in.close();
 		return output;
 	}
 	
-	/**
-	 * @param title
-	 * @return
-	 */
-	private String sanitise(String str) {
-		for (char c : INVALID_CHARACTERS) {
-			str = str.replace(c, '_');
-		}
-		return str;
-	}
-
 	private String pluralise(String singular, String plural, int scalar) {
 		return scalar==1?singular:plural;
 	}
