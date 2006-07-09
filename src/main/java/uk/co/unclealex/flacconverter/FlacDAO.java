@@ -33,8 +33,7 @@ public class FlacDAO implements FormatDAO {
 	private static String SQL_FLAC =
 		"SELECT t.url as url, t.title as title, t.tracknum as trackNumber, t.year as year, a.title as album, c.name as artist, g.name as genre " +
 		"FROM tracks t, albums a, contributors c, genre_track gt, genres g " +
-		"WHERE t.album = a.id and a.contributor = c.id and t.id = gt.track and g.id = gt.genre and tracknum is not null and ct = 'flc'" +
-		" and c.name = 'Blondie'";
+		"WHERE t.album = a.id and a.contributor = c.id and t.id = gt.track and g.id = gt.genre and tracknum is not null and ct = 'flc'";
 	
 	private static String SQL_ARTIST =
 		"SELECT t.url, min( length( t.url ) ) AS len, a.name FROM tracks t, contributors a " +
