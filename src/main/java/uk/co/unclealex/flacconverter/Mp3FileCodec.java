@@ -49,4 +49,12 @@ public class Mp3FileCodec extends AbstractFileCodec {
 	public String getYearPattern() {
 		return "TYER (Year): (.*)";
 	}
+	
+	public File getArtistDirectory(File dir, String artist) {
+		artist = IOUtils.sanitise(artist);
+		return
+			new File(
+				new File(dir, artist.substring(0, 1).toUpperCase()),
+				artist);
+	}
 }

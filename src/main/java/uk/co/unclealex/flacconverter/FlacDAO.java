@@ -4,6 +4,7 @@
 package uk.co.unclealex.flacconverter;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -28,11 +29,12 @@ public class FlacDAO implements FormatDAO {
 
 	private static String FILE_PREFIX = "file://";
 	private static int FILE_PREFIX_LENGTH = FILE_PREFIX.length();
-	
+	private static String ENCODING = "ISO8859-15";
 	private static String SQL_FLAC =
 		"SELECT t.url as url, t.title as title, t.tracknum as trackNumber, t.year as year, a.title as album, c.name as artist, g.name as genre " +
 		"FROM tracks t, albums a, contributors c, genre_track gt, genres g " +
-		"WHERE t.album = a.id and a.contributor = c.id and t.id = gt.track and g.id = gt.genre and tracknum is not null and ct = 'flc'";
+		"WHERE t.album = a.id and a.contributor = c.id and t.id = gt.track and g.id = gt.genre and tracknum is not null and ct = 'flc'" +
+		" and c.name = 'Blondie'";
 	
 	private static String SQL_ARTIST =
 		"SELECT t.url, min( length( t.url ) ) AS len, a.name FROM tracks t, contributors a " +
@@ -88,15 +90,20 @@ public class FlacDAO implements FormatDAO {
 	
 	private class TrackHandler implements ResultSetHandler {
 		public Object handle(ResultSet rs) throws SQLException {
-			SortedSet<Track> tracks = new TreeSet<Track>();
-			while (rs.next()) {
-				String fileName = rs.getString("url");
-				fileName = fileName.substring(FILE_PREFIX_LENGTH, fileName.length());
-				tracks.add(new Track(
-						new File(fileName),rs.getString("artist"), rs.getString("album"), rs.getString("title"),
-						rs.getInt("trackNumber"), rs.getInt("year"), rs.getString("genre")));
+			try {
+				SortedSet<Track> tracks = new TreeSet<Track>();
+				while (rs.next()) {
+					String fileName = rs.getString("url");
+					fileName = fileName.substring(FILE_PREFIX_LENGTH, fileName.length());
+					tracks.add(new Track(
+							new File(fileName),
+							new String(rs.getBytes("artist"), ENCODING), rs.getString("album"), rs.getString("title"),
+							rs.getInt("trackNumber"), rs.getInt("year"), rs.getString("genre")));
+				}
+				return tracks;
+			} catch (UnsupportedEncodingException e) {
+				return null;
 			}
-			return tracks;
 		}
 	}
 	

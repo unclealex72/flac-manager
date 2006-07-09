@@ -4,6 +4,7 @@
 package uk.co.unclealex.flacconverter;
 
 import java.io.File;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,15 @@ public abstract class AbstractFileCodec implements FileCodec {
 	
 	public String[] generateEncodeCommand(Track track, File out) {
 		return new String[] { "flac2" + getExtension(), track.getFile().getAbsolutePath(), out.getAbsolutePath() };
+	}
+
+	public File getFile(File baseDirectory, Track track) {
+		File artistDirectory = getArtistDirectory(baseDirectory, track.getArtist());
+		Formatter formatter = new Formatter();
+		formatter.format(
+				"%02d - %s.%s", track.getTrackNumber(),
+				IOUtils.sanitise(track.getTitle()), getExtension());
+		return new File(new File(artistDirectory, IOUtils.sanitise(track.getAlbum())), formatter.toString());		
 	}
 	
 	public abstract String getTitlePattern();

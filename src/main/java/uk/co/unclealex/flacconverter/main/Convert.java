@@ -4,7 +4,6 @@
 package uk.co.unclealex.flacconverter.main;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -120,55 +119,42 @@ public class Convert implements Runnable {
 		trackIdx = 1;
 		for (Track track : deletedTracks) {
 			log.info("Deleting " + progress(trackIdx++, countDeletedTracks, track));
-			deleteFile(track.getFile());
+			IOUtils.deleteFile(track.getFile(), log);
 		}
 		
 		log.info("Pruning empty directories.");
-		FileFilter emptyDirectoryFilter = new FileFilter() {
-			public boolean accept(File file) {
-				return file.isDirectory() && file.list().length == 0;
-			}
-		};
-		for (File emptyDirectory : IOUtils.getAllFiles(getFileBasedDAO().getBaseDirectory(), emptyDirectoryFilter)) {
-			log.debug("Deleting " + emptyDirectory.getAbsolutePath());
-			deleteFile(emptyDirectory);
-		}
-		
+		IOUtils.pruneDirectories(getFileBasedDAO().getBaseDirectory(), getLog());
+
 		log.info("Removing personal directories.");
 		for (File personalDirectory : getBaseDir().listFiles(s_personalFileFilter)) {
 			for (File artistLink : personalDirectory.listFiles()) {
 				log.debug("Deleting " + artistLink.getAbsolutePath());
-				deleteFile(artistLink);
+				IOUtils.deleteFile(artistLink, log);
 			}
 			log.debug("Deleting " + personalDirectory.getAbsolutePath());
-			deleteFile(personalDirectory);
+			IOUtils.deleteFile(personalDirectory, log);
 		}
 		
 		log.info("Recreating personal directories.");
 		for (Map.Entry<String, SortedSet<String>> entry : getOwnedArtists().entrySet()) {
 			String owner = entry.getKey();
-			File dir = new File(getBaseDir(), owner);
+			File ownerDir = new File(getBaseDir(), owner);
 			for (String artist : entry.getValue()) {
-				artist = getFileBasedDAO().sanitise(artist);
-				dir.mkdirs();
-				String fname = new File(dir, artist).getAbsolutePath();
+				File targetDir = getCodec().getArtistDirectory(getFileBasedDAO().getBaseDirectory(), artist);
+				File sourceDir = getCodec().getArtistDirectory(ownerDir, artist); 
+				sourceDir.getParentFile().mkdirs();
 				try {
-					IOUtils.runCommand(new String[] { "ln", "-s", "../"+ Constants.RAW_DIR + "/" + artist, fname }, getLog());
+					IOUtils.runCommand(new String[] { "ln", "-s", targetDir.getAbsolutePath(), sourceDir.getAbsolutePath()}, getLog());
 				} catch (IOException e) {
-					log.warn("Could not link artist " + artist + " from " + fname);
+					log.warn("Could not link artist " + artist + " from " + sourceDir.getAbsolutePath());
 				}
 			}
 		}
 		log.info("Finished");
 	}
 
-	private void deleteFile(File file) {
-		if (!file.delete()) {
-			getLog().warn("Could not delete " + file.getAbsolutePath());
-		}
-	}
 	private String encode(Track track) throws IOException {
-		File target = getFileBasedDAO().getFile(track);
+		File target = getCodec().getFile(getFileBasedDAO().getBaseDirectory(), track);
 		target.getParentFile().mkdirs();
 		InputStream in = IOUtils.runCommand(getCodec().generateEncodeCommand(track, target), getLog());
 		String output = IOUtils.toString(in);

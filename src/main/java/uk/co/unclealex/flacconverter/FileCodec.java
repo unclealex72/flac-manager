@@ -19,4 +19,8 @@ public interface FileCodec {
 	public Track processTagCommandOutput(File file, List<String> output);
 
 	public String[] generateEncodeCommand(Track track, File out);
+
+	public File getArtistDirectory(File baseDirectory, String artist);
+	
+	public File getFile(File baseDirectory, Track track);
 }

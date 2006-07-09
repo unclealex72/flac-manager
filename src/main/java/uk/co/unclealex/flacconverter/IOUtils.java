@@ -148,4 +148,37 @@ public class IOUtils {
 			bOut.write(by);
 		}
 	}
+	
+	/**
+	 * @param title
+	 * @param str TODO
+	 * @return
+	 */
+	public static String sanitise(String str) {
+		for (char c : FileBasedDAO.INVALID_CHARACTERS) {
+			str = str.replace(c, '_');
+		}
+		return str;
+	}
+
+	/**
+	 * @param baseDirectory
+	 */
+	public static void pruneDirectories(File baseDirectory, Logger log) {
+		FileFilter emptyDirectoryFilter = new FileFilter() {
+			public boolean accept(File file) {
+				return file.isDirectory() && file.list().length == 0;
+			}
+		};
+		for (File emptyDirectory : IOUtils.getAllFiles(baseDirectory, emptyDirectoryFilter)) {
+			log.debug("Deleting " + emptyDirectory.getAbsolutePath());
+			deleteFile(emptyDirectory, log);
+		}
+	}
+	
+	public static void deleteFile(File file, Logger log) {
+		if (!file.delete()) {
+			log.warn("Could not delete " + file.getAbsolutePath());
+		}
+	}
 }
