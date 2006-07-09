@@ -5,9 +5,9 @@
 CLASS=$1
 shift
 
-for $JAR in /home/java/flacconverter/libs/*.jar
+for JAR in /home/java/flacconverter/libs/*.jar
 do
-  CLASSPATH=$CLASSPATH;$JAR
+  CLASSPATH=$CLASSPATH:$JAR
 done
 
-java uk.co.unclealex.flacconverter.$CLASS $@
+java -cp $CLASSPATH uk.co.unclealex.flacconverter.main.$CLASS $@
