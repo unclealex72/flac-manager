@@ -40,6 +40,7 @@ public class CopyTo {
 			System.out.printf(
 					"%d of %d (3.2%f%%), %s -> %s", current, total, 100 * current / (double) total,
 					file.getAbsolutePath(), target.getAbsolutePath());
+			System.out.println();
 			current++;
 			target.getParentFile().mkdirs();
 			try {
