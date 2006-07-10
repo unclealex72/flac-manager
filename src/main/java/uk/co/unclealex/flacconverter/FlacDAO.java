@@ -29,15 +29,18 @@ public class FlacDAO implements FormatDAO {
 
 	private static String FILE_PREFIX = "file://";
 	private static int FILE_PREFIX_LENGTH = FILE_PREFIX.length();
-	private static String ENCODING = "ISO8859-15";
+	private static String ENCODING = "UTF-8";
 	private static String SQL_FLAC =
 		"SELECT t.url as url, t.title as title, t.tracknum as trackNumber, t.year as year, a.title as album, c.name as artist, g.name as genre " +
 		"FROM tracks t, albums a, contributors c, genre_track gt, genres g " +
 		"WHERE t.album = a.id and a.contributor = c.id and t.id = gt.track and g.id = gt.genre and tracknum is not null and ct = 'flc'";
 	
+	private static String SQL_BASE_DIR = "select t.url from tracks t where length(t.url) = (SELECT min( length( t.url ) ) AS len from tracks t)";
 	private static String SQL_ARTIST =
-		"SELECT t.url, min( length( t.url ) ) AS len, a.name FROM tracks t, contributors a " +
-		"WHERE t.ct = 'dir' AND t.titlesearch = a.namesearch GROUP BY a.name";
+		"SELECT t.url, min( t.id ) AS id, c.name " +
+		"FROM tracks t, albums a, contributors c, contributor_album ca " +
+		"WHERE t.album = a.id and a.id = ca.album and c.id = ca.contributor " +
+		"GROUP BY c.name";
 	
 	private static SQLException s_driverException = null;
 	static {
@@ -76,7 +79,8 @@ public class FlacDAO implements FormatDAO {
 		try {
 			conn = getConnection();
 			QueryRunner runner = new QueryRunner();
-			Map<File,String> artists = (Map<File,String>) runner.query(conn, SQL_ARTIST, new ArtistHandler());
+			String baseUrl = (String) runner.query(conn, SQL_BASE_DIR, new BaseDirHandler());
+			Map<File,String> artists = (Map<File,String>) runner.query(conn, SQL_ARTIST, new ArtistHandler(baseUrl));
 			return artists;
 		}
 		catch (SQLException e) {
@@ -96,8 +100,11 @@ public class FlacDAO implements FormatDAO {
 					fileName = fileName.substring(FILE_PREFIX_LENGTH, fileName.length());
 					tracks.add(new Track(
 							new File(fileName),
-							new String(rs.getBytes("artist"), ENCODING), rs.getString("album"), rs.getString("title"),
-							rs.getInt("trackNumber"), rs.getInt("year"), rs.getString("genre")));
+							new String(rs.getBytes("artist"), ENCODING), 
+							new String(rs.getBytes("album"), ENCODING),
+							new String(rs.getBytes("title"), ENCODING), 
+							rs.getInt("trackNumber"), rs.getInt("year"),
+							new String(rs.getBytes("genre"), ENCODING)));
 				}
 				return tracks;
 			} catch (UnsupportedEncodingException e) {
@@ -106,13 +113,30 @@ public class FlacDAO implements FormatDAO {
 		}
 	}
 	
+	private class BaseDirHandler implements ResultSetHandler {
+		public Object handle(ResultSet rs) throws SQLException {
+			rs.next();
+			return rs.getString("url");
+		}
+	}
 	private class ArtistHandler implements ResultSetHandler {
+		private String i_baseUrl;
+		
+		public ArtistHandler(String baseUrl) {
+			i_baseUrl = baseUrl;
+		}
+		
 		public Object handle(ResultSet rs) throws SQLException {
 			Map<File,String> artists = new TreeMap<File, String>();
+			int startpos = i_baseUrl.length();
+			File baseDir = new File(i_baseUrl.substring(FILE_PREFIX_LENGTH, i_baseUrl.length()));
 			while (rs.next()) {
-				String fileName = rs.getString("url");
-				fileName = fileName.substring(FILE_PREFIX_LENGTH, fileName.length());
-				artists.put(new File(fileName), rs.getString("name"));
+				String fileName = rs.getString("url").substring(startpos);
+				if (fileName.charAt(0) == '/') {
+					fileName = fileName.substring(1);
+				}
+				String artistDir = fileName.substring(0, fileName.indexOf('/'));
+				artists.put(new File(baseDir, artistDir), rs.getString("name"));
 			}
 			return artists;
 		}
