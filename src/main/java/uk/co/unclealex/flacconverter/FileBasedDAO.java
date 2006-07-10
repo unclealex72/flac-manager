@@ -20,7 +20,7 @@ public class FileBasedDAO implements FormatDAO {
 
 	private File i_baseDirectory;
 	private FileCodec i_fileCodec;
-	public static char[] INVALID_CHARACTERS = "/\\:".toCharArray();
+	public static char[] INVALID_CHARACTERS = "/\\:\"?*<>|".toCharArray();
 	
 	/**
 	 * @param baseDirectory
