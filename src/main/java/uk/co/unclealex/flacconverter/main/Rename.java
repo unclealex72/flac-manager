@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 
 import uk.co.unclealex.flacconverter.FileBasedDAO;
 import uk.co.unclealex.flacconverter.FileCodec;
+import uk.co.unclealex.flacconverter.IOUtils;
 import uk.co.unclealex.flacconverter.IterableIterator;
 import uk.co.unclealex.flacconverter.Mp3FileCodec;
 import uk.co.unclealex.flacconverter.OggFileCodec;
@@ -35,6 +36,7 @@ public class Rename {
 					source.renameTo(target);
 				}
 			}
+			IOUtils.pruneDirectories(dao.getBaseDirectory(), log);
 		}
 	}
 }

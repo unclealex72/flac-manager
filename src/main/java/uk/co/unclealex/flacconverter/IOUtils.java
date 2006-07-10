@@ -165,15 +165,20 @@ public class IOUtils {
 	 * @param baseDirectory
 	 */
 	public static void pruneDirectories(File baseDirectory, Logger log) {
-		FileFilter emptyDirectoryFilter = new FileFilter() {
-			public boolean accept(File file) {
-				return file.isDirectory() && file.list().length == 0;
+		boolean again;
+		do {
+			again = false;
+			FileFilter emptyDirectoryFilter = new FileFilter() {
+				public boolean accept(File file) {
+					return file.isDirectory() && file.list().length == 0;
+				}
+			};
+			for (File emptyDirectory : IOUtils.getAllFiles(baseDirectory, emptyDirectoryFilter)) {
+				log.debug("Deleting " + emptyDirectory.getAbsolutePath());
+				deleteFile(emptyDirectory, log);
+				again = true;
 			}
-		};
-		for (File emptyDirectory : IOUtils.getAllFiles(baseDirectory, emptyDirectoryFilter)) {
-			log.debug("Deleting " + emptyDirectory.getAbsolutePath());
-			deleteFile(emptyDirectory, log);
-		}
+		} while (again);
 	}
 	
 	public static void deleteFile(File file, Logger log) {

@@ -33,6 +33,7 @@ import uk.co.unclealex.flacconverter.Track;
  */
 public class Convert implements Runnable {
 
+	private static File LOCK_FILE = new File("/tmp/flacconvert.lock");
 	private static FileCodec[] CODECS = new FileCodec[] { new OggFileCodec(), new Mp3FileCodec() };
 	private SortedSet<Track> i_flacTracks;
 	private FileCodec i_codec;
@@ -225,6 +226,17 @@ public class Convert implements Runnable {
 	public static void main(String[] args) {
 		Logger log = Logger.getLogger("flac");
 		try {
+			if (LOCK_FILE.exists()) {
+				log.fatal("Another instance of the flac converter is already running. Exiting now.");
+				System.exit(1);
+			}
+			try {
+				if (LOCK_FILE.createNewFile()) {
+					LOCK_FILE.deleteOnExit();
+				}
+			} catch (IOException e) {
+				log.warn("Could not create the lock file.", e);
+			}
 			List<FileCodec> codecs = findCodecs(args); 
 
 			log.info("Scanning flac tracks");
