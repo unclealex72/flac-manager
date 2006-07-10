@@ -31,10 +31,10 @@ public class FlacDAO implements FormatDAO {
 	private static int FILE_PREFIX_LENGTH = FILE_PREFIX.length();
 	private static String ENCODING = "UTF-8";
 	private static String SQL_FLAC =
-		"SELECT t.url as url, t.title as title, t.tracknum as trackNumber, t.year as year, a.title as album, c.name as artist, g.name as genre " +
-		"FROM tracks t, albums a, contributors c, genre_track gt, genres g " +
-		"WHERE t.album = a.id and a.contributor = c.id and t.id = gt.track and g.id = gt.genre and tracknum is not null and ct = 'flc'";
-	
+		"SELECT distinct t.url as url, t.title as title, t.tracknum as trackNumber, t.year as year, a.title as album, c.name as artist, g.name as genre " +
+		"FROM tracks t, albums a, contributors c, contributor_album ca, contributor_track ct, genre_track gt, genres g " +
+		"WHERE t.album = a.id and a.id = ca.album and ca.contributor = c.id and t.id = ct.track and ct.contributor = c.id " +
+			"and t.id = gt.track and g.id = gt.genre and tracknum is not null and ct = 'flc'";	
 	private static String SQL_BASE_DIR = "select t.url from tracks t where length(t.url) = (SELECT min( length( t.url ) ) AS len from tracks t)";
 	private static String SQL_ARTIST =
 		"SELECT t.url, min( t.id ) AS id, c.name " +
@@ -63,7 +63,7 @@ public class FlacDAO implements FormatDAO {
 		try {
 			conn = getConnection();
 			QueryRunner runner = new QueryRunner();
-			SortedSet<Track> tracks = (SortedSet<Track>) runner.query(conn, SQL_FLAC, new TrackHandler());
+			SortedSet<Track> tracks = (SortedSet<Track>) runner.query(conn, SQL_FLAC, new TrackHandler(log));
 			return new IterableIterator<Track>(tracks.iterator());
 		}
 		catch (SQLException e) {
@@ -92,19 +92,28 @@ public class FlacDAO implements FormatDAO {
 	}
 	
 	private class TrackHandler implements ResultSetHandler {
+		private Logger i_log;
+		public TrackHandler(Logger log) {
+			i_log = log;
+		}
+		
 		public Object handle(ResultSet rs) throws SQLException {
 			try {
 				SortedSet<Track> tracks = new TreeSet<Track>();
 				while (rs.next()) {
 					String fileName = rs.getString("url");
 					fileName = fileName.substring(FILE_PREFIX_LENGTH, fileName.length());
-					tracks.add(new Track(
-							new File(fileName),
-							new String(rs.getBytes("artist"), ENCODING), 
-							new String(rs.getBytes("album"), ENCODING),
-							new String(rs.getBytes("title"), ENCODING), 
-							rs.getInt("trackNumber"), rs.getInt("year"),
-							new String(rs.getBytes("genre"), ENCODING)));
+					try {
+						tracks.add(new Track(
+								new File(fileName),
+								new String(rs.getBytes("artist"), ENCODING), 
+								new String(rs.getBytes("album"), ENCODING),
+								new String(rs.getBytes("title"), ENCODING), 
+								rs.getInt("trackNumber"), rs.getInt("year"),
+								new String(rs.getBytes("genre"), ENCODING)));
+					} catch (InvalidTrackException e) {
+						i_log.warn(e);
+					}
 				}
 				return tracks;
 			} catch (UnsupportedEncodingException e) {

@@ -24,7 +24,7 @@ public abstract class AbstractFileCodec implements FileCodec {
 	private static String YEAR = "year";
 	private static String GENRE = "genre";
 	
-	public Track processTagCommandOutput(File file, List<String> output) {
+	public Track processTagCommandOutput(File file, List<String> output) throws InvalidTrackException {
 		Map<String,Pattern> patterns = new HashMap<String, Pattern>();
 		patterns.put(TITLE, Pattern.compile(getTitlePattern()));
 		patterns.put(ARTIST, Pattern.compile(getArtistPattern()));

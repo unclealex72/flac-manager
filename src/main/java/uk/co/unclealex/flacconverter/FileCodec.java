@@ -16,7 +16,7 @@ public interface FileCodec {
 	
 	public String[] generateTagCommand(File file);
 	
-	public Track processTagCommandOutput(File file, List<String> output);
+	public Track processTagCommandOutput(File file, List<String> output) throws InvalidTrackException;
 
 	public String[] generateEncodeCommand(Track track, File out);
 

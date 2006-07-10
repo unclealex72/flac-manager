@@ -58,12 +58,7 @@ public class Convert implements Runnable {
 		SortedSet<Track> tracks = new TreeSet<Track>();
 		
 		for (Track track : getFileBasedDAO().findAllTracks(log)) {
-			if (track.getException() == null) {
-				tracks.add(track);
-			}
-			else {
-				log.warn("Could not scan " + track.getFile().getAbsolutePath(), track.getException());
-			}
+			tracks.add(track);
 		}
 
 		SortedSet<Track> newTracks = new TreeSet<Track>();

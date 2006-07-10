@@ -44,8 +44,14 @@ public class FileBasedDAO implements FormatDAO {
 				File file = foundFiles.next();
 				try {
 					return loadTrack(file, log);
-				} catch (IOException e) {
-					return new Track(file, e);
+				}
+				catch (IOException e) {
+					log.warn("Could not load track " + file, e);
+					return next();
+				}
+				catch (InvalidTrackException e) {
+					log.warn("Could not load track " + file, e);
+					return next();
 				}
 			}
 
@@ -57,7 +63,7 @@ public class FileBasedDAO implements FormatDAO {
 		return new IterableIterator<Track>(iterator);
 	}
 
-	protected Track loadTrack(File file, Logger log) throws IOException {
+	protected Track loadTrack(File file, Logger log) throws IOException, InvalidTrackException {
 		InputStream in = IOUtils.runCommand(getFileCodec().generateTagCommand(file), log);
 		List<String> output = IOUtils.readLines(in);
 		in.close();

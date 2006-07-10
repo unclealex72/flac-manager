@@ -23,7 +23,6 @@ public class Track implements Comparable<Track>{
 	private int i_year;
 	private String i_genre = "";
 	private long i_lastModified;
-	private Exception i_exception;
 	
 	private Track(File file) {
 		i_file = file;
@@ -32,21 +31,24 @@ public class Track implements Comparable<Track>{
 		}
 	}
 
-	public Track(File file, Exception e) {
+	public Track(File file, String artist, String album, String title, int trackNumber, int year, String genre)
+	throws InvalidTrackException {
 		this(file);
-		i_exception = e;
-	}
-	
-	public Track(File file, String artist, String album, String title, int trackNumber, int year, String genre) {
-		this(file);
-		i_artist = artist;
-		i_album = album;
-		i_title = title;
+		i_artist = checkNotNull("artist", artist);
+		i_album = checkNotNull("album", album);
+		i_title = checkNotNull("title", title);
 		i_trackNumber = trackNumber;
 		i_year = year;
-		i_genre = genre;
+		i_genre = checkNotNull("genre", genre);
 	}
 
+	private String checkNotNull(String name, String value) throws InvalidTrackException {
+		if (value == null) {
+			throw new InvalidTrackException("null " + name + " for track " + i_file.getAbsolutePath());
+		}
+		return value;
+	}
+	
 	public String generateUniqueKey() {
 		return getArtist() + getTrackNumber() + getAlbum();
 	}
@@ -154,20 +156,6 @@ public class Track implements Comparable<Track>{
 	 */
 	public void setArtist(String artist) {
 		i_artist = artist;
-	}
-
-	/**
-	 * @return the exception
-	 */
-	public Exception getException() {
-		return i_exception;
-	}
-
-	/**
-	 * @param exception the exception to set
-	 */
-	public void setException(Exception exception) {
-		i_exception = exception;
 	}
 
 	/**
