@@ -120,15 +120,20 @@ public class Convert implements Runnable {
 		
 		log.info("Pruning empty directories.");
 		IOUtils.pruneDirectories(getFileBasedDAO().getBaseDirectory(), getLog());
-
+	
 		log.info("Removing personal directories.");
 		for (File personalDirectory : getBaseDir().listFiles(s_personalFileFilter)) {
-			for (File artistLink : personalDirectory.listFiles()) {
-				log.debug("Deleting " + artistLink.getAbsolutePath());
-				IOUtils.deleteFile(artistLink, log);
+			try {
+				IOUtils.runCommand(
+						new String[] {
+								"find", "-L", personalDirectory.getAbsolutePath(), "-depth",
+								"-xtype", "l", "-exec", "rm", "{}", ";"
+						},
+						log);
+			} catch (IOException e) {
+				log.warn("Could not delete the " + personalDirectory.getAbsolutePath() + " personal directory.", e);
 			}
-			log.debug("Deleting " + personalDirectory.getAbsolutePath());
-			IOUtils.deleteFile(personalDirectory, log);
+			IOUtils.pruneDirectories(personalDirectory, log);
 		}
 		
 		log.info("Recreating personal directories.");
@@ -151,6 +156,9 @@ public class Convert implements Runnable {
 
 	private String encode(Track track) throws IOException {
 		File target = getCodec().getFile(getFileBasedDAO().getBaseDirectory(), track);
+		if (target.exists()) {
+			target.delete();
+		}
 		target.getParentFile().mkdirs();
 		InputStream in = IOUtils.runCommand(getCodec().generateEncodeCommand(track, target), getLog());
 		String output = IOUtils.toString(in);
