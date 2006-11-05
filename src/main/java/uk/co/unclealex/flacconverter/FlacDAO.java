@@ -29,13 +29,15 @@ public class FlacDAO implements FormatDAO {
 
 	private static String FILE_PREFIX = "file://";
 	private static int FILE_PREFIX_LENGTH = FILE_PREFIX.length();
+	private static String BASE_URL = "file:///mnt/multimedia/flac/";
+	private static int BASE_URL_LENGTH = BASE_URL.length();
+	
 	private static String ENCODING = "UTF-8";
 	private static String SQL_FLAC =
 		"SELECT distinct t.url as url, t.title as title, t.tracknum as trackNumber, t.year as year, a.title as album, c.name as artist, g.name as genre " +
 		"FROM tracks t, albums a, contributors c, contributor_album ca, contributor_track ct, genre_track gt, genres g " +
 		"WHERE t.album = a.id and a.id = ca.album and ca.contributor = c.id and t.id = ct.track and ct.contributor = c.id " +
-			"and t.id = gt.track and g.id = gt.genre and tracknum is not null and ct = 'flc'";	
-	private static String SQL_BASE_DIR = "select t.url from tracks t where length(t.url) = (SELECT min( length( t.url ) ) AS len from tracks t)";
+			"and t.id = gt.track and g.id = gt.genre and tracknum is not null and t.content_type = 'flc'";	
 	private static String SQL_ARTIST =
 		"SELECT t.url, min( t.id ) AS id, c.name " +
 		"FROM tracks t, albums a, contributors c, contributor_album ca " +
@@ -79,8 +81,7 @@ public class FlacDAO implements FormatDAO {
 		try {
 			conn = getConnection();
 			QueryRunner runner = new QueryRunner();
-			String baseUrl = (String) runner.query(conn, SQL_BASE_DIR, new BaseDirHandler());
-			Map<File,String> artists = (Map<File,String>) runner.query(conn, SQL_ARTIST, new ArtistHandler(baseUrl));
+			Map<File,String> artists = (Map<File,String>) runner.query(conn, SQL_ARTIST, new ArtistHandler());
 			return artists;
 		}
 		catch (SQLException e) {
@@ -122,30 +123,27 @@ public class FlacDAO implements FormatDAO {
 		}
 	}
 	
-	private class BaseDirHandler implements ResultSetHandler {
-		public Object handle(ResultSet rs) throws SQLException {
-			rs.next();
-			return rs.getString("url");
-		}
-	}
 	private class ArtistHandler implements ResultSetHandler {
-		private String i_baseUrl;
 		
-		public ArtistHandler(String baseUrl) {
-			i_baseUrl = baseUrl;
+		public ArtistHandler() {
 		}
 		
 		public Object handle(ResultSet rs) throws SQLException {
 			Map<File,String> artists = new TreeMap<File, String>();
-			int startpos = i_baseUrl.length();
-			File baseDir = new File(i_baseUrl.substring(FILE_PREFIX_LENGTH, i_baseUrl.length()));
-			while (rs.next()) {
-				String fileName = rs.getString("url").substring(startpos);
-				if (fileName.charAt(0) == '/') {
-					fileName = fileName.substring(1);
+			File baseDir = new File(BASE_URL.substring(FILE_PREFIX_LENGTH, BASE_URL_LENGTH));
+			try {
+				while (rs.next()) {
+					String fileName = rs.getString("url");
+					fileName = fileName.substring(BASE_URL_LENGTH);
+					if (fileName.charAt(0) == '/') {
+						fileName = fileName.substring(1);
+					}
+					String artistDir = fileName.substring(0, fileName.indexOf('/'));
+					String name = new String(rs.getBytes("name"), ENCODING);
+					artists.put(new File(baseDir, artistDir), name);
 				}
-				String artistDir = fileName.substring(0, fileName.indexOf('/'));
-				artists.put(new File(baseDir, artistDir), rs.getString("name"));
+			} catch (UnsupportedEncodingException e) {
+				return null;
 			}
 			return artists;
 		}
