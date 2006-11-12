@@ -66,4 +66,12 @@ public abstract class AbstractFileCodec implements FileCodec {
 	public abstract String getTrackPattern();
 	public abstract String getYearPattern();
 	public abstract String getGenrePattern();
+
+	public File getArtistDirectory(File dir, String artist) {
+		artist = IOUtils.sanitise(artist);
+		return
+			new File(
+				new File(dir, artist.substring(0, 1).toUpperCase()),
+				artist);
+	}
 }

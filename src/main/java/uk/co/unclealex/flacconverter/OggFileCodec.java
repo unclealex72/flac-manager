@@ -49,10 +49,4 @@ public class OggFileCodec extends AbstractFileCodec {
 	public String getYearPattern() {
 		return "DATE=(.*)";
 	}	
-
-	public File getArtistDirectory(File dir, String artist) {
-		artist = IOUtils.sanitise(artist);
-		return new File(dir, artist);
-	}
-
 }
