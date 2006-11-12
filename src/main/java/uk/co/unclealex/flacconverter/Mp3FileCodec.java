@@ -4,6 +4,7 @@
 package uk.co.unclealex.flacconverter;
 
 import java.io.File;
+import java.util.Collection;
 
 
 /**
@@ -11,6 +12,13 @@ import java.io.File;
  *
  */
 public class Mp3FileCodec extends AbstractFileCodec {
+
+	/**
+	 * @param definiteArticles
+	 */
+	public Mp3FileCodec(Collection<String> definiteArticles) {
+		super(definiteArticles);
+	}
 
 	public String getExtension() {
 		return "mp3";

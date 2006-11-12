@@ -19,10 +19,6 @@ import com.mysql.jdbc.Driver;
  */
 public class EncodingTest {
 
-	private static String FILE_PREFIX = "file://";
-	private static int FILE_PREFIX_LENGTH = FILE_PREFIX.length();
-	private static String ENCODING = "ISO8859-15";
-
 	private static String SQL_ARTIST =
 		"SELECT name from contributors where name like 'Mot%'";
 	

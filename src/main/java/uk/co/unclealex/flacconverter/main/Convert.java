@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Formatter;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -25,6 +27,7 @@ import uk.co.unclealex.flacconverter.FlacDAO;
 import uk.co.unclealex.flacconverter.IOUtils;
 import uk.co.unclealex.flacconverter.Mp3FileCodec;
 import uk.co.unclealex.flacconverter.OggFileCodec;
+import uk.co.unclealex.flacconverter.SlimServerConfig;
 import uk.co.unclealex.flacconverter.Track;
 
 /**
@@ -34,7 +37,6 @@ import uk.co.unclealex.flacconverter.Track;
 public class Convert implements Runnable {
 
 	private static File LOCK_FILE = new File("/tmp/flacconvert.lock");
-	private static FileCodec[] CODECS = new FileCodec[] { new OggFileCodec(), new Mp3FileCodec() };
 	private SortedSet<Track> i_flacTracks;
 	private FileCodec i_codec;
 	private Logger i_log;
@@ -228,6 +230,10 @@ public class Convert implements Runnable {
 	 */
 	public static void main(String[] args) {
 		Logger log = Logger.getLogger("flac");
+		if (args.length != 1) {
+			log.fatal("You must supply a configuration file");
+			System.exit(1);
+		}
 		try {
 			if (LOCK_FILE.exists()) {
 				log.fatal("Another instance of the flac converter is already running. Exiting now.");
@@ -240,7 +246,18 @@ public class Convert implements Runnable {
 			} catch (IOException e) {
 				log.warn("Could not create the lock file.", e);
 			}
-			List<FileCodec> codecs = findCodecs(args); 
+			SlimServerConfig config = new SlimServerConfig();
+			try {
+				config.initialise(new File(args[0]));
+			} catch (IOException e) {
+				log.fatal("Cannot open the config file", e);
+				System.exit(1);
+			}
+			
+			List<String> extensions = new LinkedList<String>();
+			extensions.addAll(Arrays.asList(args));
+			extensions.remove(0);
+			List<FileCodec> codecs = findCodecs(extensions, config.getDefiniteArticles()); 
 
 			log.info("Scanning flac tracks");
 			SortedSet<Track> flacTracks = new TreeSet<Track>();
@@ -310,19 +327,21 @@ public class Convert implements Runnable {
 	 * @param args
 	 * @return
 	 */
-	private static List<FileCodec> findCodecs(String[] extensions) {
-		if (extensions.length == 0) {
-			return Arrays.asList(CODECS);
+	private static List<FileCodec> findCodecs(Collection<String> extensions, Collection<String> definiteArticles) {
+		FileCodec[] codecs = new FileCodec[] { new OggFileCodec(definiteArticles), new Mp3FileCodec(definiteArticles) };
+
+		if (extensions == null || extensions.size() == 0) {
+			return Arrays.asList(codecs);
 		}
-		List<FileCodec> codecs = new ArrayList<FileCodec>();
+		List<FileCodec> foundCodecs = new ArrayList<FileCodec>();
 		for (String extension : extensions) {
-			for (FileCodec codec : CODECS) {
+			for (FileCodec codec : codecs) {
 				if (extension.equalsIgnoreCase(codec.getExtension())) {
-					codecs.add(codec);
+					foundCodecs.add(codec);
 				}
 			}
 		}
-		return codecs;
+		return foundCodecs;
 	}
 
 }

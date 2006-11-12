@@ -4,6 +4,7 @@
 package uk.co.unclealex.flacconverter;
 
 import java.io.File;
+import java.util.Collection;
 
 
 /**
@@ -11,6 +12,13 @@ import java.io.File;
  *
  */
 public class OggFileCodec extends AbstractFileCodec {
+
+	/**
+	 * @param definiteArticles
+	 */
+	public OggFileCodec(Collection<String> definiteArticles) {
+		super(definiteArticles);
+	}
 
 	public String getExtension() {
 		return "ogg";

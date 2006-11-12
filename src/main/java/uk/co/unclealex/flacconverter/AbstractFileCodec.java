@@ -4,6 +4,7 @@
 package uk.co.unclealex.flacconverter;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,16 @@ public abstract class AbstractFileCodec implements FileCodec {
 	private static String YEAR = "year";
 	private static String GENRE = "genre";
 	
+	private Collection<String> i_definiteArticles;
+	
+	/**
+	 * @param definiteArticles
+	 */
+	public AbstractFileCodec(Collection<String> definiteArticles) {
+		super();
+		i_definiteArticles = definiteArticles;
+	}
+
 	public Track processTagCommandOutput(File file, List<String> output) throws InvalidTrackException {
 		Map<String,Pattern> patterns = new HashMap<String, Pattern>();
 		patterns.put(TITLE, Pattern.compile(getTitlePattern()));
@@ -69,9 +80,36 @@ public abstract class AbstractFileCodec implements FileCodec {
 
 	public File getArtistDirectory(File dir, String artist) {
 		artist = IOUtils.sanitise(artist);
+		String artistWithoutDefiniteArticle = removeDefiniteArticle(artist);
 		return
 			new File(
-				new File(dir, artist.substring(0, 1).toUpperCase()),
-				artist);
+				new File(dir, artistWithoutDefiniteArticle.substring(0, 1).toUpperCase()),
+				artistWithoutDefiniteArticle);
+	}
+
+	protected String removeDefiniteArticle(String artist) {
+		if (getDefiniteArticles() == null) {
+			return artist;
+		}
+		for (String article : getDefiniteArticles()) {
+			int toRemove = article.length() + 1;
+			if (artist.startsWith(article) && artist.length() > toRemove) {
+				return artist.substring(toRemove).trim();
+			}
+		}
+		return artist;
+	}
+	/**
+	 * @return the definiteArticles
+	 */
+	public Collection<String> getDefiniteArticles() {
+		return i_definiteArticles;
+	}
+
+	/**
+	 * @param definiteArticles the definiteArticles to set
+	 */
+	public void setDefiniteArticles(Collection<String> definiteArticles) {
+		i_definiteArticles = definiteArticles;
 	}
 }
