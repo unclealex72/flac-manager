@@ -13,13 +13,21 @@ import junit.framework.TestCase;
  */
 public class CodecTest extends TestCase {
 
-	public void testArticles() {
+	public void testArtist(String artist, String expected) {
 		Mp3FileCodec codec = new Mp3FileCodec(Arrays.asList(new String[] { "The" }));
-		String theWho = codec.removeDefiniteArticle("The Who");
-		assertEquals("Who", theWho);
-		String the = codec.removeDefiniteArticle("The");
-		assertEquals("The", the);
-		String theloniusMonk = codec.removeDefiniteArticle("Thelonious Monk");
-		assertEquals("Thelonious Monk", theloniusMonk);
+		artist = codec.removeDefiniteArticle(artist);
+		assertEquals(expected, artist);
+	}
+	
+	public void testTheWho() {
+		testArtist("The Who", "Who");
+	}
+	
+	public void testThe() {
+		testArtist("The", "The");
+	}
+
+	public void testTheloniousMonk() {
+		testArtist("Thelonious Monk", "Thelonious Monk");
 	}
 }
