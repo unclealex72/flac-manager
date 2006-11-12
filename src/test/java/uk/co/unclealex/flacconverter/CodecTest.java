@@ -19,5 +19,7 @@ public class CodecTest extends TestCase {
 		assertEquals("Who", theWho);
 		String the = codec.removeDefiniteArticle("The");
 		assertEquals("The", the);
+		String theloniusMonk = codec.removeDefiniteArticle("Thelonious Monk");
+		assertEquals("Thelonious Monk", theloniusMonk);
 	}
 }

@@ -92,8 +92,9 @@ public abstract class AbstractFileCodec implements FileCodec {
 			return artist;
 		}
 		for (String article : getDefiniteArticles()) {
+			article = article.trim();
 			int toRemove = article.length() + 1;
-			if (artist.startsWith(article) && artist.length() > toRemove) {
+			if (artist.startsWith(article) && artist.length() > toRemove && Character.isWhitespace(artist.charAt(toRemove - 1))) {
 				return artist.substring(toRemove).trim();
 			}
 		}
