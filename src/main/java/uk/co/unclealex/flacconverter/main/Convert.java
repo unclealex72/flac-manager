@@ -225,19 +225,27 @@ public class Convert implements Runnable {
 		return i_ownedArtists;
 	}
 
+	public static void main(String[] args) {
+		int retVal = go(args);
+		if (LOCK_FILE.exists()) {
+			LOCK_FILE.delete();
+		}
+		System.exit(retVal);
+	}
+	
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
+	public static int go(String[] args) {
 		Logger log = Logger.getLogger("flac");
 		if (args.length != 1) {
 			log.fatal("You must supply a configuration file");
-			System.exit(1);
+			return 1;
 		}
 		try {
 			if (LOCK_FILE.exists()) {
 				log.fatal("Another instance of the flac converter is already running. Exiting now.");
-				System.exit(1);
+				return 1;
 			}
 			try {
 				if (LOCK_FILE.createNewFile()) {
@@ -251,7 +259,7 @@ public class Convert implements Runnable {
 				config.initialise(new File(args[0]));
 			} catch (IOException e) {
 				log.fatal("Cannot open the config file", e);
-				System.exit(1);
+				return 1;
 			}
 			
 			List<String> extensions = new LinkedList<String>();
@@ -272,8 +280,9 @@ public class Convert implements Runnable {
 		} catch (RuntimeException e) {
 			e.printStackTrace(System.err);
 			log.fatal("An error has caused the flac converter to stop running.", e);
-			System.exit(1);
+			return 1;
 		}
+		return 0;
 	}
 
 	private static final FilenameFilter s_personalFileFilter = new FilenameFilter() {
