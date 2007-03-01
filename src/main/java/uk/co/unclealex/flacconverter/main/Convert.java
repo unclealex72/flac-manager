@@ -24,7 +24,7 @@ import uk.co.unclealex.flacconverter.Constants;
 import uk.co.unclealex.flacconverter.FileBasedDAO;
 import uk.co.unclealex.flacconverter.FileCodec;
 import uk.co.unclealex.flacconverter.FlacDAO;
-import uk.co.unclealex.flacconverter.IOUtils;
+import uk.co.unclealex.flacconverter.FlacIOUtils;
 import uk.co.unclealex.flacconverter.Mp3FileCodec;
 import uk.co.unclealex.flacconverter.OggFileCodec;
 import uk.co.unclealex.flacconverter.SlimServerConfig;
@@ -117,16 +117,16 @@ public class Convert implements Runnable {
 		trackIdx = 1;
 		for (Track track : deletedTracks) {
 			log.info("Deleting " + progress(trackIdx++, countDeletedTracks, track));
-			IOUtils.deleteFile(track.getFile(), log);
+			FlacIOUtils.deleteFile(track.getFile(), log);
 		}
 		
 		log.info("Pruning empty directories.");
-		IOUtils.pruneDirectories(getFileBasedDAO().getBaseDirectory(), getLog());
+		FlacIOUtils.pruneDirectories(getFileBasedDAO().getBaseDirectory(), getLog());
 	
 		log.info("Removing personal directories.");
 		for (File personalDirectory : getBaseDir().listFiles(s_personalFileFilter)) {
 			try {
-				IOUtils.runCommand(
+				FlacIOUtils.runCommand(
 						new String[] {
 								"find", "-L", personalDirectory.getAbsolutePath(), "-depth",
 								"-xtype", "l", "-exec", "rm", "{}", ";"
@@ -135,7 +135,7 @@ public class Convert implements Runnable {
 			} catch (IOException e) {
 				log.warn("Could not delete the " + personalDirectory.getAbsolutePath() + " personal directory.", e);
 			}
-			IOUtils.pruneDirectories(personalDirectory, log);
+			FlacIOUtils.pruneDirectories(personalDirectory, log);
 		}
 		
 		log.info("Recreating personal directories.");
@@ -143,11 +143,11 @@ public class Convert implements Runnable {
 			String owner = entry.getKey();
 			File ownerDir = new File(getBaseDir(), owner);
 			for (String artist : entry.getValue()) {
-				File targetDir = getCodec().getArtistDirectory(getFileBasedDAO().getBaseDirectory(), artist);
-				File sourceDir = getCodec().getArtistDirectory(ownerDir, artist); 
+				File targetDir = getCodec().getArtistDirectory(getFileBasedDAO().getBaseDirectory(), artist, false);
+				File sourceDir = getCodec().getArtistDirectory(ownerDir, artist, true); 
 				sourceDir.getParentFile().mkdirs();
 				try {
-					IOUtils.runCommand(new String[] { "ln", "-s", targetDir.getAbsolutePath(), sourceDir.getAbsolutePath()}, getLog());
+					FlacIOUtils.runCommand(new String[] { "ln", "-s", targetDir.getAbsolutePath(), sourceDir.getAbsolutePath()}, getLog());
 				} catch (IOException e) {
 					log.warn("Could not link artist " + artist + " from " + sourceDir.getAbsolutePath());
 				}
@@ -157,13 +157,13 @@ public class Convert implements Runnable {
 	}
 
 	private String encode(Track track) throws IOException {
-		File target = getCodec().getFile(getFileBasedDAO().getBaseDirectory(), track);
+		File target = getCodec().getFile(getFileBasedDAO().getBaseDirectory(), track, false);
 		if (target.exists()) {
 			target.delete();
 		}
 		target.getParentFile().mkdirs();
-		InputStream in = IOUtils.runCommand(getCodec().generateEncodeCommand(track, target), getLog());
-		String output = IOUtils.toString(in);
+		InputStream in = FlacIOUtils.runCommand(getCodec().generateEncodeCommand(track, target), getLog());
+		String output = FlacIOUtils.toString(in);
 		in.close();
 		return output;
 	}
@@ -230,7 +230,9 @@ public class Convert implements Runnable {
 		if (LOCK_FILE.exists()) {
 			LOCK_FILE.delete();
 		}
-		System.exit(retVal);
+		if (retVal != 0) { 
+			System.exit(retVal);
+		}
 	}
 	
 	/**

@@ -10,8 +10,10 @@ import java.io.IOException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.commons.io.IOUtils;
+
 import uk.co.unclealex.flacconverter.Constants;
-import uk.co.unclealex.flacconverter.IOUtils;
+import uk.co.unclealex.flacconverter.FlacIOUtils;
 
 /**
  * @author alex
@@ -28,7 +30,7 @@ public class CopyTo {
 		int sourceLength = source.getAbsolutePath().length();
 		
 		SortedSet<File> files = new TreeSet<File>();
-		for (File file : IOUtils.getAllFilesWithExtension(source, extension)) {
+		for (File file : FlacIOUtils.getAllFilesWithExtension(source, extension)) {
 			files.add(file);
 		}
 

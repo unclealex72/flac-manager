@@ -8,7 +8,7 @@ import org.apache.log4j.Logger;
 
 import uk.co.unclealex.flacconverter.FileBasedDAO;
 import uk.co.unclealex.flacconverter.FileCodec;
-import uk.co.unclealex.flacconverter.IOUtils;
+import uk.co.unclealex.flacconverter.FlacIOUtils;
 import uk.co.unclealex.flacconverter.IterableIterator;
 import uk.co.unclealex.flacconverter.Mp3FileCodec;
 import uk.co.unclealex.flacconverter.OggFileCodec;
@@ -40,14 +40,14 @@ public class Rename {
 			IterableIterator<Track> tracks = dao.findAllTracks(log);
 			for (Track track : tracks) {
 				File source = track.getFile();
-				File target = codec.getFile(dao.getBaseDirectory(), track);
+				File target = codec.getFile(dao.getBaseDirectory(), track, true);
 				if (!source.equals(target)) {
 					System.out.println("Moving " + source + " -> " + target);
 					target.getParentFile().mkdirs();
 					source.renameTo(target);
 				}
 			}
-			IOUtils.pruneDirectories(dao.getBaseDirectory(), log);
+			FlacIOUtils.pruneDirectories(dao.getBaseDirectory(), log);
 		}
 	}
 }

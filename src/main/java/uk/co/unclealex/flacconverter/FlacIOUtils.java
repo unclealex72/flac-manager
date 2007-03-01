@@ -3,8 +3,6 @@
  */
 package uk.co.unclealex.flacconverter;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
@@ -12,7 +10,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +20,7 @@ import org.apache.log4j.Logger;
  * @author alex
  *
  */
-public class IOUtils {
+public class FlacIOUtils {
 
 	/**
 	 * @param processIn
@@ -76,7 +73,7 @@ public class IOUtils {
 		}
 		if (exitStatus != 0) {
 			InputStream processErr = process.getErrorStream();
-			String message = "Error status " + exitStatus + ": " + IOUtils.toString(processErr);
+			String message = "Error status " + exitStatus + ": " + FlacIOUtils.toString(processErr);
 			processErr.close();
 			throw new IOException(message);
 		}
@@ -127,7 +124,7 @@ public class IOUtils {
 	 */
 	public static IterableIterator<File> getAllFilesWithExtension(File baseDirectory, String extension) {
 		final String end = "." + extension;
-	return IOUtils.getAllFiles(
+	return FlacIOUtils.getAllFiles(
 			baseDirectory, 
 			new FileFilter() {
 				public boolean accept(File pathname) {
@@ -136,19 +133,6 @@ public class IOUtils {
 			});
 	}
 
-	/**
-	 * @param in
-	 * @param out
-	 */
-	public static void copy(InputStream in, OutputStream out) throws IOException {
-		BufferedInputStream bIn = new BufferedInputStream(in);
-		BufferedOutputStream bOut = new BufferedOutputStream(out);
-		int by;
-		while ((by = bIn.read()) != -1) {
-			bOut.write(by);
-		}
-	}
-	
 	/**
 	 * @param title
 	 * @param str TODO
@@ -173,7 +157,7 @@ public class IOUtils {
 					return file.isDirectory() && file.list().length == 0;
 				}
 			};
-			for (File emptyDirectory : IOUtils.getAllFiles(baseDirectory, emptyDirectoryFilter)) {
+			for (File emptyDirectory : FlacIOUtils.getAllFiles(baseDirectory, emptyDirectoryFilter)) {
 				log.debug("Deleting " + emptyDirectory.getAbsolutePath());
 				deleteFile(emptyDirectory, log);
 				again = true;

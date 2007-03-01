@@ -9,6 +9,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -74,6 +78,24 @@ public class FlacDAO implements FormatDAO {
 		finally {
 			DbUtils.closeQuietly(conn);
 		}
+	}
+	
+	public SortedSet<FlacAlbum> getAllAlbums(Logger log) {
+		Map<List<String>, FlacAlbum> albumsByArtistAndTitle = new HashMap<List<String>, FlacAlbum>();
+		for (Track track : findAllTracks(log)) {
+			List<String> artistAndTitle = new ArrayList<String>(2);
+			artistAndTitle.add(track.getArtist());
+			artistAndTitle.add(track.getAlbum());
+			if (albumsByArtistAndTitle.get(artistAndTitle) == null) {
+				albumsByArtistAndTitle.put(
+						artistAndTitle,
+						new FlacAlbum(artistAndTitle.get(0), artistAndTitle.get(1), new LinkedList<Track>()));
+			}
+			albumsByArtistAndTitle.get(artistAndTitle).getTracks().add(track);
+		}
+		SortedSet<FlacAlbum> albums = new TreeSet<FlacAlbum>();
+		albums.addAll(albumsByArtistAndTitle.values());
+		return albums;
 	}
 	
 	public Map<File,String> getAllArtists() {

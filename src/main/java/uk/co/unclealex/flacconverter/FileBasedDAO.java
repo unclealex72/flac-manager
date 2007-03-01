@@ -33,7 +33,7 @@ public class FileBasedDAO implements FormatDAO {
 	}
 
 	public IterableIterator<Track> findAllTracks(final Logger log) {
-		final Iterator<File> foundFiles = IOUtils.getAllFilesWithExtension(getBaseDirectory(), getExtension());
+		final Iterator<File> foundFiles = FlacIOUtils.getAllFilesWithExtension(getBaseDirectory(), getExtension());
 		Iterator<Track> iterator = new Iterator<Track>() {
 
 			public boolean hasNext() {
@@ -64,8 +64,8 @@ public class FileBasedDAO implements FormatDAO {
 	}
 
 	protected Track loadTrack(File file, Logger log) throws IOException, InvalidTrackException {
-		InputStream in = IOUtils.runCommand(getFileCodec().generateTagCommand(file), log);
-		List<String> output = IOUtils.readLines(in);
+		InputStream in = FlacIOUtils.runCommand(getFileCodec().generateTagCommand(file), log);
+		List<String> output = FlacIOUtils.readLines(in);
 		in.close();
 		return getFileCodec().processTagCommandOutput(file, output);
 	}

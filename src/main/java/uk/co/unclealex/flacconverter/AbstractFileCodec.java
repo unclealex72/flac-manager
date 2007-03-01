@@ -62,13 +62,13 @@ public abstract class AbstractFileCodec implements FileCodec {
 		return new String[] { "flac2" + getExtension(), track.getFile().getAbsolutePath(), out.getAbsolutePath() };
 	}
 
-	public File getFile(File baseDirectory, Track track) {
-		File artistDirectory = getArtistDirectory(baseDirectory, track.getArtist());
+	public File getFile(File baseDirectory, Track track, boolean removeDefiniteArticle) {
+		File artistDirectory = getArtistDirectory(baseDirectory, track.getArtist(), removeDefiniteArticle);
 		Formatter formatter = new Formatter();
 		formatter.format(
 				"%02d - %s.%s", track.getTrackNumber(),
-				IOUtils.sanitise(track.getTitle()), getExtension());
-		return new File(new File(artistDirectory, IOUtils.sanitise(track.getAlbum())), formatter.toString());		
+				FlacIOUtils.sanitise(track.getTitle()), getExtension());
+		return new File(new File(artistDirectory, FlacIOUtils.sanitise(track.getAlbum())), formatter.toString());		
 	}
 	
 	public abstract String getTitlePattern();
@@ -78,13 +78,12 @@ public abstract class AbstractFileCodec implements FileCodec {
 	public abstract String getYearPattern();
 	public abstract String getGenrePattern();
 
-	public File getArtistDirectory(File dir, String artist) {
-		artist = IOUtils.sanitise(artist);
-		String artistWithoutDefiniteArticle = removeDefiniteArticle(artist);
-		return
-			new File(
-				new File(dir, artistWithoutDefiniteArticle.substring(0, 1).toUpperCase()),
-				artistWithoutDefiniteArticle);
+	public File getArtistDirectory(File dir, String artist, boolean removeDefiniteArticle) {
+		artist = FlacIOUtils.sanitise(artist);
+		if (removeDefiniteArticle) {
+			artist = removeDefiniteArticle(artist);
+		}
+		return new File(new File(dir, artist.substring(0, 1).toUpperCase()), artist);
 	}
 
 	protected String removeDefiniteArticle(String artist) {
