@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://xfire.codehaus.org/config/1.0">
+  <service>
+    <serviceClass>com.amazon.webservices.AWSECommerceServiceImpl</serviceClass>
+    <wsdlURL>http://webservices.amazon.com/AWSECommerceService/AWSECommerceService.wsdl?</wsdlURL>
+    <serviceFactory>org.codehaus.xfire.jaxb2.JaxbServiceFactory</serviceFactory>
+  </service>
+</beans>
+
