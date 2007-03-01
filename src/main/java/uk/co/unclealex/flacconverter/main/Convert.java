@@ -143,7 +143,7 @@ public class Convert implements Runnable {
 			String owner = entry.getKey();
 			File ownerDir = new File(getBaseDir(), owner);
 			for (String artist : entry.getValue()) {
-				File targetDir = getCodec().getArtistDirectory(getFileBasedDAO().getBaseDirectory(), artist, false);
+				File targetDir = getCodec().getArtistDirectory(getFileBasedDAO().getBaseDirectory(), artist, true);
 				File sourceDir = getCodec().getArtistDirectory(ownerDir, artist, true); 
 				sourceDir.getParentFile().mkdirs();
 				try {
