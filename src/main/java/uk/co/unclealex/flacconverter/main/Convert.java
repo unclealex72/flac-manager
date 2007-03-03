@@ -143,8 +143,8 @@ public class Convert implements Runnable {
 			String owner = entry.getKey();
 			File ownerDir = new File(getBaseDir(), owner);
 			for (String artist : entry.getValue()) {
-				File targetDir = getCodec().getArtistDirectory(getFileBasedDAO().getBaseDirectory(), artist, true);
-				File sourceDir = getCodec().getArtistDirectory(ownerDir, artist, true); 
+				File targetDir = getCodec().getArtistDirectory(getFileBasedDAO().getBaseDirectory(), artist);
+				File sourceDir = getCodec().getArtistDirectory(ownerDir, artist); 
 				sourceDir.getParentFile().mkdirs();
 				try {
 					FlacIOUtils.runCommand(new String[] { "ln", "-s", targetDir.getAbsolutePath(), sourceDir.getAbsolutePath()}, getLog());
@@ -157,7 +157,7 @@ public class Convert implements Runnable {
 	}
 
 	private String encode(Track track) throws IOException {
-		File target = getCodec().getFile(getFileBasedDAO().getBaseDirectory(), track, false);
+		File target = getCodec().getFile(getFileBasedDAO().getBaseDirectory(), track);
 		if (target.exists()) {
 			target.delete();
 		}

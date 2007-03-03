@@ -40,7 +40,7 @@ public class Rename {
 			IterableIterator<Track> tracks = dao.findAllTracks(log);
 			for (Track track : tracks) {
 				File source = track.getFile();
-				File target = codec.getFile(dao.getBaseDirectory(), track, true);
+				File target = codec.getFile(dao.getBaseDirectory(), track);
 				if (!source.equals(target)) {
 					System.out.println("Moving " + source + " -> " + target);
 					target.getParentFile().mkdirs();

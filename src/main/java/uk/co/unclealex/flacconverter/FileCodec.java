@@ -20,7 +20,7 @@ public interface FileCodec {
 
 	public String[] generateEncodeCommand(Track track, File out);
 
-	public File getArtistDirectory(File baseDirectory, String artist, boolean removeDefiniteArticle);
+	public File getArtistDirectory(File baseDirectory, String artist);
 	
-	public File getFile(File baseDirectory, Track track, boolean removeDefiniteArticle);
+	public File getFile(File baseDirectory, Track track);
 }

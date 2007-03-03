@@ -62,8 +62,8 @@ public abstract class AbstractFileCodec implements FileCodec {
 		return new String[] { "flac2" + getExtension(), track.getFile().getAbsolutePath(), out.getAbsolutePath() };
 	}
 
-	public File getFile(File baseDirectory, Track track, boolean removeDefiniteArticle) {
-		File artistDirectory = getArtistDirectory(baseDirectory, track.getArtist(), removeDefiniteArticle);
+	public File getFile(File baseDirectory, Track track) {
+		File artistDirectory = getArtistDirectory(baseDirectory, track.getArtist());
 		Formatter formatter = new Formatter();
 		formatter.format(
 				"%02d - %s.%s", track.getTrackNumber(),
@@ -78,11 +78,8 @@ public abstract class AbstractFileCodec implements FileCodec {
 	public abstract String getYearPattern();
 	public abstract String getGenrePattern();
 
-	public File getArtistDirectory(File dir, String artist, boolean removeDefiniteArticle) {
-		artist = FlacIOUtils.sanitise(artist);
-		if (removeDefiniteArticle) {
-			artist = removeDefiniteArticle(artist);
-		}
+	public File getArtistDirectory(File dir, String artist) {
+		artist = removeDefiniteArticle(FlacIOUtils.sanitise(artist));
 		return new File(new File(dir, artist.substring(0, 1).toUpperCase()), artist);
 	}
 
