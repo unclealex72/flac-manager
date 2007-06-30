@@ -39,7 +39,7 @@ public class MissingCovers {
 	 * @throws MalformedURLException 
 	 */
 	public static void main(String[] args) throws MalformedURLException, IOException {
-		Set<FlacAlbum> flacAlbums = new FlacDAO().getAllAlbums(log);
+		Set<FlacAlbum> flacAlbums = new FlacDAO().getAllFlacAlbums(log);
 		SearchManager manager = new AmazonSearchManager();
 		
 		for (FlacAlbum flacAlbum : flacAlbums) {

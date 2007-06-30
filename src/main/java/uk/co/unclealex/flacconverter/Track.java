@@ -18,8 +18,7 @@ public class Track implements Comparable<Track>{
 	private File i_file;
 	private String i_title;
 	private int i_trackNumber;
-	private String i_album;
-	private String i_artist;
+	private Album i_album;
 	private int i_year;
 	private String i_genre = "";
 	private long i_lastModified;
@@ -31,11 +30,12 @@ public class Track implements Comparable<Track>{
 		}
 	}
 
-	public Track(File file, String artist, String album, String title, int trackNumber, int year, String genre)
+	public Track(File file, Album album, String title, int trackNumber, int year, String genre)
 	throws InvalidTrackException {
 		this(file);
-		i_artist = checkNotNull("artist", artist);
-		i_album = checkNotNull("album", album);
+		checkNotNull("artist", album.getArtist());
+		checkNotNull("album", album.getAlbum());
+		i_album = album;
 		i_title = checkNotNull("title", title);
 		i_trackNumber = trackNumber;
 		i_year = year;
@@ -50,13 +50,12 @@ public class Track implements Comparable<Track>{
 	}
 	
 	public String generateUniqueKey() {
-		return getArtist() + getTrackNumber() + getAlbum();
+		Album album = getAlbum();
+		return album.getArtist() + getTrackNumber() + album.getAlbum();
 	}
+	
 	public int compareTo(Track o) {
-		int cmp;
-		cmp = getArtist().compareTo(o.getArtist());
-		if (cmp != 0) { return cmp; }
-		cmp = getAlbum().compareTo(o.getAlbum());
+		int cmp = getAlbum().compareTo(o.getAlbum());
 		if (cmp != 0) { return cmp; }
 		cmp = new Integer(getTrackNumber()).compareTo(o.getTrackNumber());
 		return cmp;
@@ -69,21 +68,11 @@ public class Track implements Comparable<Track>{
 	
 	@Override
 	public String toString() {
-		return getArtist() + ", " + getAlbum() + ": " +
+		Album album = getAlbum();
+		return album.getArtist() + ", " + album.getAlbum() + ": " +
 		getTrackNumber() + " - " + getTitle() + " (" + getYear() + ", " + getGenre() + ")";
 	}
-	/**
-	 * @return the album
-	 */
-	public String getAlbum() {
-		return i_album;
-	}
-	/**
-	 * @param album the album to set
-	 */
-	public void setAlbum(String album) {
-		i_album = album;
-	}
+
 	/**
 	 * @return the file
 	 */
@@ -146,19 +135,6 @@ public class Track implements Comparable<Track>{
 	}
 	
 	/**
-	 * @return the artist
-	 */
-	public String getArtist() {
-		return i_artist;
-	}
-	/**
-	 * @param artist the artist to set
-	 */
-	public void setArtist(String artist) {
-		i_artist = artist;
-	}
-
-	/**
 	 * @return the lastModified
 	 */
 	public long getLastModified() {
@@ -178,5 +154,13 @@ public class Track implements Comparable<Track>{
 			map.put(track.generateUniqueKey(), track);
 		}
 		return map;
+	}
+
+	protected Album getAlbum() {
+		return i_album;
+	}
+
+	protected void setAlbum(Album album) {
+		i_album = album;
 	}
 }

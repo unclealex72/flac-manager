@@ -20,6 +20,7 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
+import uk.co.unclealex.flacconverter.Album;
 import uk.co.unclealex.flacconverter.Constants;
 import uk.co.unclealex.flacconverter.FileBasedDAO;
 import uk.co.unclealex.flacconverter.FileCodec;
@@ -42,16 +43,16 @@ public class Convert implements Runnable {
 	private Logger i_log;
 	private FileBasedDAO i_fileBasedDAO;
 	private File i_baseDir;
-	private Map<String, SortedSet<String>> i_ownedArtists;
+	private Map<String, SortedSet<Album>> i_ownedAlbums;
 	
-	private Convert(SortedSet<Track> flacTracks, FileCodec codec, Map<String, SortedSet<String>> ownedArtists) {
+	private Convert(SortedSet<Track> flacTracks, FileCodec codec, Map<String, SortedSet<Album>> ownedAlbums) {
 		i_flacTracks = flacTracks;
 		i_codec = codec;
 		String extension = codec.getExtension();
 		i_log = Logger.getLogger(extension);
 		i_baseDir = new File(Constants.BASE_DIR, extension);
 		i_fileBasedDAO = new FileBasedDAO(new File(i_baseDir, Constants.RAW_DIR), i_codec);
-		i_ownedArtists = ownedArtists;
+		i_ownedAlbums = ownedAlbums;
 	}
 	
 	public void run() {
@@ -139,17 +140,17 @@ public class Convert implements Runnable {
 		}
 		
 		log.info("Recreating personal directories.");
-		for (Map.Entry<String, SortedSet<String>> entry : getOwnedArtists().entrySet()) {
+		for (Map.Entry<String, SortedSet<Album>> entry : getOwnedAlbums().entrySet()) {
 			String owner = entry.getKey();
 			File ownerDir = new File(getBaseDir(), owner);
-			for (String artist : entry.getValue()) {
-				File targetDir = getCodec().getArtistDirectory(getFileBasedDAO().getBaseDirectory(), artist);
-				File sourceDir = getCodec().getArtistDirectory(ownerDir, artist); 
+			for (Album album : entry.getValue()) {
+				File targetDir = getCodec().getAlbumDirectory(getFileBasedDAO().getBaseDirectory(), album);
+				File sourceDir = getCodec().getAlbumDirectory(ownerDir, album);
 				sourceDir.getParentFile().mkdirs();
 				try {
 					FlacIOUtils.runCommand(new String[] { "ln", "-s", targetDir.getAbsolutePath(), sourceDir.getAbsolutePath()}, getLog());
 				} catch (IOException e) {
-					log.warn("Could not link artist " + artist + " from " + sourceDir.getAbsolutePath());
+					log.warn("Could not link artist " + album + " from " + sourceDir.getAbsolutePath());
 				}
 			}
 		}
@@ -221,13 +222,13 @@ public class Convert implements Runnable {
 	/**
 	 * @return the ownedArtists
 	 */
-	public Map<String, SortedSet<String>> getOwnedArtists() {
-		return i_ownedArtists;
+	public Map<String, SortedSet<Album>> getOwnedAlbums() {
+		return i_ownedAlbums;
 	}
 
 	public static void main(String[] args) {
 		int retVal = go(args);
-		if (LOCK_FILE.exists()) {
+		if (LOCK_FILE.exists() && retVal != 2) {
 			LOCK_FILE.delete();
 		}
 		if (retVal != 0) { 
@@ -247,7 +248,7 @@ public class Convert implements Runnable {
 		try {
 			if (LOCK_FILE.exists()) {
 				log.fatal("Another instance of the flac converter is already running. Exiting now.");
-				return 1;
+				return 2;
 			}
 			try {
 				if (LOCK_FILE.createNewFile()) {
@@ -293,45 +294,46 @@ public class Convert implements Runnable {
 		}
 	};
 
-	private static Map<String, SortedSet<String>> analyseOwnership(Logger log) {
+	private static Map<String, SortedSet<Album>> analyseOwnership(Logger log) {
 		log.info("Analysing ownership");
-		TreeMap<String, SortedSet<String>> ownedArtists = new TreeMap<String, SortedSet<String>>();
-		SortedSet<String> unownedArtists = new TreeSet<String>();
-		Map<File,String> artists = new FlacDAO().getAllArtists();
+		TreeMap<String, SortedSet<Album>> ownedAlbums = new TreeMap<String, SortedSet<Album>>();
+		SortedSet<Album> unownedAlbums = new TreeSet<Album>();
+		Map<File,Album> albums = new FlacDAO().getAllAlbums(log);
 		
-		for (Map.Entry<File, String> entry : artists.entrySet()) {
+		for (Map.Entry<File, Album> entry : albums.entrySet()) {
 			File dir = entry.getKey();
-			String artist = entry.getValue();
-			File[] ownerFiles = dir.listFiles(s_personalFileFilter);
-			if (ownerFiles.length == 0) {
-				unownedArtists.add(artist);
+			Album album = entry.getValue();
+			List<File> ownerFiles = new LinkedList<File>(Arrays.asList(dir.listFiles(s_personalFileFilter)));
+			ownerFiles.addAll(Arrays.asList(dir.getParentFile().listFiles(s_personalFileFilter)));
+			if (ownerFiles.size() == 0) {
+				unownedAlbums.add(album);
 			}
 			else {
 				for (File ownerFile : ownerFiles) {
 					String owner = ownerFile.getName();
-					if (ownedArtists.get(owner) == null) {
-						ownedArtists.put(owner, new TreeSet<String>());
+					if (ownedAlbums.get(owner) == null) {
+						ownedAlbums.put(owner, new TreeSet<Album>());
 					}
-					ownedArtists.get(owner).add(artist);					
+					ownedAlbums.get(owner).add(album);
 				}
 			}
 		}
 		
-		for (Map.Entry<String, SortedSet<String>> entry : ownedArtists.entrySet()) {
+		for (Map.Entry<String, SortedSet<Album>> entry : ownedAlbums.entrySet()) {
 			log.info("Found " + entry.getKey());
-			for (String artist : entry.getValue()) {
-				log.debug(artist);
+			for (Album album : entry.getValue()) {
+				log.debug(album);
 			}
 		}
 		
-		if (!unownedArtists.isEmpty()) {
-			StringBuffer message = new StringBuffer("The following artists are owned by no-one:\n");
-			for (String artist : unownedArtists) {
-				message.append(artist).append('\n');
+		if (!unownedAlbums.isEmpty()) {
+			StringBuffer message = new StringBuffer("The following albums are owned by no-one:\n");
+			for (Album album : unownedAlbums) {
+				message.append(album).append('\n');
 			}
 			log.warn(message.toString());
 		}
-		return ownedArtists;
+		return ownedAlbums;
 	}
 
 	/**

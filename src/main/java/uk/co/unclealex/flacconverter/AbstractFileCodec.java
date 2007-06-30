@@ -55,20 +55,21 @@ public abstract class AbstractFileCodec implements FileCodec {
 		}
 		int track = fields.get(TRACK) == null?0:Integer.parseInt(fields.get(TRACK));
 		int year = fields.get(YEAR) == null?0:Integer.parseInt(fields.get(YEAR));
-		return new Track(file, fields.get(ARTIST), fields.get(ALBUM), fields.get(TITLE), track, year, fields.get(GENRE));
+		return new Track(
+				file, new Album(fields.get(ARTIST), fields.get(ALBUM)),
+				fields.get(TITLE), track, year, fields.get(GENRE));
 	}
 	
 	public String[] generateEncodeCommand(Track track, File out) {
-		return new String[] { "flac2" + getExtension(), track.getFile().getAbsolutePath(), out.getAbsolutePath() };
+		return new String[] { "/home/alex/bin/flac2" + getExtension(), track.getFile().getAbsolutePath(), out.getAbsolutePath() };
 	}
 
 	public File getFile(File baseDirectory, Track track) {
-		File artistDirectory = getArtistDirectory(baseDirectory, track.getArtist());
 		Formatter formatter = new Formatter();
 		formatter.format(
 				"%02d - %s.%s", track.getTrackNumber(),
 				FlacIOUtils.sanitise(track.getTitle()), getExtension());
-		return new File(new File(artistDirectory, FlacIOUtils.sanitise(track.getAlbum())), formatter.toString());		
+		return new File(getAlbumDirectory(baseDirectory, track.getAlbum()), formatter.toString());		
 	}
 	
 	public abstract String getTitlePattern();
@@ -78,9 +79,10 @@ public abstract class AbstractFileCodec implements FileCodec {
 	public abstract String getYearPattern();
 	public abstract String getGenrePattern();
 
-	public File getArtistDirectory(File dir, String artist) {
-		artist = removeDefiniteArticle(FlacIOUtils.sanitise(artist));
-		return new File(new File(dir, artist.substring(0, 1).toUpperCase()), artist);
+	public File getAlbumDirectory(File dir, Album album) {
+		String artist = removeDefiniteArticle(FlacIOUtils.sanitise(album.getArtist()));
+		String sanitisedAlbum = FlacIOUtils.sanitise(album.getAlbum());
+		return new File(new File(new File(dir, artist.substring(0, 1).toUpperCase()), artist), sanitisedAlbum);
 	}
 
 	protected String removeDefiniteArticle(String artist) {
