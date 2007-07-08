@@ -63,7 +63,7 @@ public class TestFlacProvider {
 		flacTrackBean.setCode(fileName.toUpperCase());
 		flacTrackBean.setId(nextIndex());
 		flacTrackBean.setTimestamp(new Date().getTime());
-		flacTrackBean.setTitle(title);
+		flacTrackBean.setRawTitle(title.getBytes());
 		flacTrackBean.setTrackNumber(new Integer(trackNumber));
 		flacTrackBean.setType("flc");
 		flacTrackBean.setUrl(url);
@@ -87,7 +87,7 @@ public class TestFlacProvider {
 		flacAlbumBean.setFlacArtistBean(flacArtistBean);
 		flacAlbumBean.setFlacTrackBeans(new TreeSet<FlacTrackBean>());
 		flacAlbumBean.setId(nextIndex());
-		flacAlbumBean.setTitle(albumName);
+		flacAlbumBean.setRawTitle(albumName.getBytes());
 		flacArtistBean.getFlacAlbumBeans().add(flacAlbumBean);
 		getAllFlacAlbumBeans().add(flacAlbumBean);
 		return flacAlbumBean;
@@ -104,7 +104,7 @@ public class TestFlacProvider {
 		flacArtistBean.setCode(code);
 		flacArtistBean.setFlacAlbumBeans(new TreeSet<FlacAlbumBean>());
 		flacArtistBean.setId(nextIndex());
-		flacArtistBean.setName(artistName);
+		flacArtistBean.setRawName(artistName.getBytes());
 		getAllFlacArtistBeans().add(flacArtistBean);
 		return flacArtistBean;
 	}
