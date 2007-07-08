@@ -22,7 +22,7 @@ public class Substitutor {
 		i_text = text;
 	}
 
-	public void substitute(String variableName, final String value) {
+	public Substitutor substitute(String variableName, final String value) {
 		substitute(
 				variableName,
 				new SubsBuilder() {
@@ -33,9 +33,10 @@ public class Substitutor {
 						return value.substring(0, length);
 					}
 				});
+		return this;
 	}
 	
-	public void substitute(String variableName, final int value) {
+	public Substitutor substitute(String variableName, final int value) {
 		substitute(
 				variableName,
 				new SubsBuilder() {
@@ -48,6 +49,7 @@ public class Substitutor {
 						return buf.toString();
 					}
 				});
+		return this;
 	}
 	
 	protected void substitute(String variableName, SubsBuilder subsBuilder) {

@@ -13,12 +13,13 @@ public class SubstitutorTest extends TestCase {
 
 	public void testSubstitutor() {
 		Substitutor substitutor =
-			new Substitutor("Test ${3:one} and ${two} but ${2:three} remembering ${two} but not ${4:one}");
+			new Substitutor("Test ${3:one} and ${two} but ${2:three} remembering ${two} but not ${4:one}, dude${2:four}");
 		substitutor.substitute("one", "cateract");
 		substitutor.substitute("two", "throng");
 		substitutor.substitute("three", "seven");
+		substitutor.substitute("four", 4);
 		assertEquals(
-				"Test cat and throng but se remembering throng but not cate",
+				"Test cat and throng but se remembering throng but not cate, dude04",
 				substitutor.getText());
 	}
 }
