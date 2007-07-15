@@ -19,7 +19,7 @@ public class DeviceServiceManualTest {
 			System.out.print("Please enter the root password: ");
 			password = reader.readLine();
 		}
-		File mountPoint = deviceServiceImpl.getMountPointForFile(device, password);
+		File mountPoint = deviceServiceImpl.getMountPointForFile(device);
 		for (String path : mountPoint.list()) {
 			System.out.println(path);
 		}

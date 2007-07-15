@@ -18,6 +18,7 @@
 	<bean id="flacAlbumDao" class="uk.co.unclealex.flacconverter.flac.dao.TestFlacAlbumDao"/>
 	<bean id="flacArtistDao" class="uk.co.unclealex.flacconverter.flac.dao.TestFlacArtistDao"/>
 
-	<bean id="slimServerInformationDao" class="uk.co.unclealex.flacconverter.flac.dao.TestSlimServerInformationDao"/>
+	<bean id="slimServerInformationDao"
+		class="uk.co.unclealex.flacconverter.flac.dao.TestSlimServerInformationDao"/>
 </beans>
 

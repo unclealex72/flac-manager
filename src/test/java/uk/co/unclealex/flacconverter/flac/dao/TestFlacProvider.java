@@ -14,7 +14,7 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 
-import uk.co.unclealex.flacconverter.flac.model.CodedBean;
+import uk.co.unclealex.flacconverter.flac.model.AbstractFlacBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
@@ -113,10 +113,10 @@ public class TestFlacProvider {
 		return WordUtils.capitalizeFully(parts.get(index).replace('_', ' '));
 	}
 	
-	public Predicate<CodedBean<?>> getCodedPredicate(final String code) {
-		return new Predicate<CodedBean<?>>() {
+	public Predicate<AbstractFlacBean<?>> getCodedPredicate(final String code) {
+		return new Predicate<AbstractFlacBean<?>>() {
 			@Override
-			public boolean evaluate(CodedBean<?> codedBean) {
+			public boolean evaluate(AbstractFlacBean<?> codedBean) {
 				return codedBean.getCode().equals(code);
 			}
 		};

@@ -14,21 +14,21 @@
 			<version>3.1.12</version>
 			<scope>provided</scope>
 		</dependency>
-        <dependency>
-          <groupId>commons-lang</groupId>
-          <artifactId>commons-lang</artifactId>
-          <version>2.2</version>
-        </dependency>
-        <dependency>
-          <groupId>commons-io</groupId>
-          <artifactId>commons-io</artifactId>
-          <version>1.2</version>
-        </dependency>
-	<dependency>
-	<groupId>net.sourceforge.collections</groupId> 
-	<artifactId>collections-generic</artifactId> 
-	<version>4.01</version> 
-	</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.collections</groupId>
+			<artifactId>collections-generic</artifactId>
+			<version>4.01</version>
+		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
@@ -45,54 +45,59 @@
 			<version>1.3.2</version>
 		</dependency>
 		<!--
-    <dependency>
-        <groupId>org.codehaus.xfire</groupId>
-        <artifactId>xfire-spring</artifactId>
-        <version>1.2.3</version>
-    </dependency>
-    <dependency>
-        <groupId>org.codehaus.xfire</groupId>
-        <artifactId>xfire-generator</artifactId>
-        <version>1.2.3</version>
-    </dependency>
-     -->
-    <dependency>
-    	<groupId>org.springframework</groupId>
-    	<artifactId>spring-hibernate3</artifactId>
-    	<version>2.0.6</version>
-    </dependency>
-    <dependency>
-    	<groupId>unclealex</groupId>
-    	<artifactId>acegi-support</artifactId>
-    	<version>1.0.0</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.springframework</groupId>
-    	<artifactId>spring-aop</artifactId>
-    	<version>2.0.6</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.hibernate</groupId>
-    	<artifactId>hibernate-validator</artifactId>
-    	<version>3.0.0.ga</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.hibernate</groupId>
-    	<artifactId>hibernate-annotations</artifactId>
-    	<version>3.3.0.ga</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.hibernate</groupId>
-    	<artifactId>hibernate-commons-annotations</artifactId>
-    	<version>3.3.0.ga</version>
-    </dependency>
+			<dependency>
+			<groupId>org.codehaus.xfire</groupId>
+			<artifactId>xfire-spring</artifactId>
+			<version>1.2.3</version>
+			</dependency>
+			<dependency>
+			<groupId>org.codehaus.xfire</groupId>
+			<artifactId>xfire-generator</artifactId>
+			<version>1.2.3</version>
+			</dependency>
+		-->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-hibernate3</artifactId>
+			<version>2.0.6</version>
+		</dependency>
+		<dependency>
+			<groupId>unclealex</groupId>
+			<artifactId>acegi-support</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+			<version>2.0.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>3.0.0.ga</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-annotations</artifactId>
+			<version>3.3.0.ga</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-commons-annotations</artifactId>
+			<version>3.3.0.ga</version>
+		</dependency>
 
-    <dependency>
-    	<groupId>org.springframework</groupId>
-    	<artifactId>spring-mock</artifactId>
-    	<version>2.0.6</version>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-mock</artifactId>
+			<version>2.0.6</version>
 			<scope>test</scope>
-    </dependency>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>2.0.6</version>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -105,16 +110,56 @@
 			<version>1.8.0.7</version>
 			<scope>test</scope>
 		</dependency>
-  </dependencies>
-  <repositories>
-    <repository>
-      <id>codehaus</id>
-      <name>Codehaus maven repository</name>
-      <url>http://repository.codehaus.org/</url>
-    </repository>
-  </repositories>
+		<dependency>
+			<groupId>org.apache.struts</groupId>
+			<artifactId>struts2-core</artifactId>
+			<version>2.0.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.struts</groupId>
+			<artifactId>struts2-sitemesh-plugin</artifactId>
+			<version>2.0.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.struts</groupId>
+			<artifactId>struts2-spring-plugin</artifactId>
+			<version>2.0.8</version>
+		</dependency>
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>standard</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jsp-api</artifactId>
+			<version>2.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.4</version>
+			<scope>provided</scope>
+		</dependency>
 
-  
+	</dependencies>
+
+	<!-- 
+		<repositories>
+		<repository>
+		<id>codehaus</id>
+		<name>Codehaus maven repository</name>
+		<url>http://repository.codehaus.org/</url>
+		</repository>
+		</repositories>
+	-->
+
 	<build>
 		<plugins>
 			<plugin>

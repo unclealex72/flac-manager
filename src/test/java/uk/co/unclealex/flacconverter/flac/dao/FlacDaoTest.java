@@ -41,7 +41,7 @@ public class FlacDaoTest extends FlacSpringTest {
 	}
 
 	public void testFindAll() throws SQLException {
-		SortedSet<FlacTrackBean> flacTrackBeans = new TreeSet<FlacTrackBean>(getFlacTrackDao().getAllTracks());
+		SortedSet<FlacTrackBean> flacTrackBeans = new TreeSet<FlacTrackBean>(getFlacTrackDao().getAll());
 		SortedSet<String> sqlUrls = new TreeSet<String>();
 		Connection conn = null;
 		Statement stmt = null;
@@ -68,7 +68,7 @@ public class FlacDaoTest extends FlacSpringTest {
 	public void testArtistsMatchTracks() {
 		Transformer<FlacTrackBean, String> urlTransformer = createUrlTransformer();
 		SortedSet<String> trackUrls = new TreeSet<String>();
-		CollectionUtils.collect(getFlacTrackDao().getAllTracks(), urlTransformer, trackUrls);
+		CollectionUtils.collect(getFlacTrackDao().getAll(), urlTransformer, trackUrls);
 		
 		SortedSet<String> artistUrls = new TreeSet<String>();
 		for (FlacArtistBean flacArtistBean : getFlacArtistDao().getAll()) {

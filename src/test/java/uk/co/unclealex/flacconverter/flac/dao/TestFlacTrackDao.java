@@ -14,7 +14,7 @@ public class TestFlacTrackDao implements FlacTrackDao {
 	@Override
 	public FlacTrackBean findByUrl(final String url) {
 		return CollectionUtils.find(
-				getAllTracks(),
+				getAll(),
 				new Predicate<FlacTrackBean>() {
 					@Override
 					public boolean evaluate(FlacTrackBean flacTrackBean) {
@@ -24,10 +24,32 @@ public class TestFlacTrackDao implements FlacTrackDao {
 	}
 
 	@Override
-	public SortedSet<FlacTrackBean> getAllTracks() {
+	public SortedSet<FlacTrackBean> getAll() {
 		return getTestFlacProvider().getAllFlacTrackBeans();
 	}
 
+	@Override
+	public FlacTrackBean findById(final int id) {
+		return CollectionUtils.find(getAll(),
+			new Predicate<FlacTrackBean>() {
+				@Override
+				public boolean evaluate(FlacTrackBean flacTrackBean) {
+					return id == flacTrackBean.getId();
+				}
+			});
+	}
+
+	@Override
+	public void flush() {
+		// Do nothing
+		
+	}
+
+	@Override
+	public void dismiss(FlacTrackBean keyedBean) {
+		// Do nothing
+	}
+	
 	public TestFlacProvider getTestFlacProvider() {
 		return i_testFlacProvider;
 	}
@@ -35,4 +57,6 @@ public class TestFlacTrackDao implements FlacTrackDao {
 	public void setTestFlacProvider(TestFlacProvider testFlacProvider) {
 		i_testFlacProvider = testFlacProvider;
 	}
+
+
 }

@@ -44,7 +44,7 @@ public class EncoderServiceTest extends EncodedSpringTest {
 	
 	public void testEncode() throws IOException {
 		EncoderService encoderService = getEncoderService();
-		File file = getFlacTrackDao().getAllTracks().first().getFile();
+		File file = getFlacTrackDao().getAll().first().getFile();
 		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
 			encoderService.encode(encoderBean, file, new MagicNumberCheckingEncodingClosure(encoderBean));
 		}
@@ -163,7 +163,7 @@ public class EncoderServiceTest extends EncodedSpringTest {
 		SortedSet<EncoderUrlPair> expectedFailures = new TreeSet<EncoderUrlPair>();
 		
 		SortedSet<EncoderBean> allEncoders = getEncoderDao().getAll();
-		SortedSet<FlacTrackBean> allFlacTracks = getFlacTrackDao().getAllTracks();
+		SortedSet<FlacTrackBean> allFlacTracks = getFlacTrackDao().getAll();
 		for (EncoderBean encoderBean : allEncoders) {
 			for (FlacTrackBean flacTrackBean : allFlacTracks) {
 				SortedSet<EncoderUrlPair> set =
@@ -267,20 +267,33 @@ public class EncoderServiceTest extends EncodedSpringTest {
 				expectedBeans.size(), getTrackDataDao().getAll().size());
 	}
 	
-	public void testAbortOnScan() throws AlreadyEncodingException, MultipleEncodingException {
+	public void testAbortOnScan() {
 		Map<String, Long> information = new HashMap<String, Long>();
 		information.put("isScanning", 1L);
-		((TestSlimServerInformationDao) getSlimServerInformationDao()).setInformation(information);
+		TestSlimServerInformationDao slimServerInformationDao = 
+			(TestSlimServerInformationDao) getSlimServerInformationDao();
+		slimServerInformationDao.setInformation(information);
 		try {
-			getEncoderService().encodeAll(SIMULTANEOUS_THREADS);
+			try {
+				getEncoderService().encodeAll(SIMULTANEOUS_THREADS);
+			}
+			catch (AlreadyEncodingException e) {
+				// Ignore
+			}
+			catch (MultipleEncodingException e) {
+				// Ignore
+			}
 			fail("Encoding occurred even though the SlimServer was scanning.");
 		}
 		catch (CurrentlyScanningException e) {
 			// Good!
 		}
+		finally {
+			slimServerInformationDao.setInformation(null);
+		}
 	}
 	protected EncodingCommandBean getFirstEncodingCommandBean() {
-		FlacTrackBean flacTrackBean = getFlacTrackDao().getAllTracks().first();
+		FlacTrackBean flacTrackBean = getFlacTrackDao().getAll().first();
 		EncoderBean encoderBean = getEncoderDao().getAll().first();
 		return new EncodingCommandBean(encoderBean, flacTrackBean);
 	}

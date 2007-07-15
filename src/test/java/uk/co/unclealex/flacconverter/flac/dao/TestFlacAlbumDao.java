@@ -3,6 +3,7 @@ package uk.co.unclealex.flacconverter.flac.dao;
 import java.util.SortedSet;
 
 import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.Predicate;
 
 import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
@@ -33,6 +34,26 @@ public class TestFlacAlbumDao implements FlacAlbumDao {
 		return CollectionUtils.find(getAll(), getTestFlacProvider().getCodedPredicate(code));
 	}
 
+	@Override
+	public FlacAlbumBean findById(final int id) {
+		return CollectionUtils.find(getAll(),
+			new Predicate<FlacAlbumBean>() {
+				@Override
+				public boolean evaluate(FlacAlbumBean flacAlbumBean) {
+					return id == flacAlbumBean.getId();
+				}
+			});
+	}
+	
+	@Override
+	public void dismiss(FlacAlbumBean keyedBean) {
+		// Do nothing
+	}
+	
+	@Override
+	public void flush() {
+		// Do nothing
+	}
 	@Override
 	public SortedSet<FlacAlbumBean> getAll() {
 		return getTestFlacProvider().getAllFlacAlbumBeans();
