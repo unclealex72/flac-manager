@@ -1,12 +1,9 @@
 package uk.co.unclealex.flacconverter.flac.dao;
 
-import java.util.SortedSet;
-
+import uk.co.unclealex.flacconverter.encoded.dao.KeyedDao;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 
-public interface FlacTrackDao {
+public interface FlacTrackDao extends KeyedDao<FlacTrackBean> {
 
-	public SortedSet<FlacTrackBean> getAllTracks();
-	
 	public FlacTrackBean findByUrl(String url);
 }

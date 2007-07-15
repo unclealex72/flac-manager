@@ -3,7 +3,6 @@ package uk.co.unclealex.flacconverter.encoded.service;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -13,9 +12,10 @@ public class WritingListener implements Serializable {
 	
 	private boolean i_finished;
 	private IOException i_exception;
-	private List<String> i_fileNamesWritten;
+	private LinkedList<String> i_fileNamesWritten = new LinkedList<String>();
 	private int i_totalFiles;
 	private int i_filesWrittenCount;
+	private Thread i_thread;
 	
 	public void initialise(int totalFiles) {
 		setFinished(false);
@@ -23,6 +23,7 @@ public class WritingListener implements Serializable {
 		setFileNamesWritten(new LinkedList<String>());
 		setTotalFiles(totalFiles);
 		setFilesWrittenCount(0);
+		setThread(Thread.currentThread());
 	}
 	
 	public void registerFileWrite(String fileName) {
@@ -40,6 +41,10 @@ public class WritingListener implements Serializable {
 		setException(exception);
 	}
 	
+	public void join() throws InterruptedException {
+		getThread().join();
+	}
+	
 	public boolean isFinished() {
 		return i_finished;
 	}
@@ -52,10 +57,12 @@ public class WritingListener implements Serializable {
 	public void setException(IOException exception) {
 		i_exception = exception;
 	}
-	public List<String> getFileNamesWritten() {
+	
+	public LinkedList<String> getFileNamesWritten() {
 		return i_fileNamesWritten;
 	}
-	public void setFileNamesWritten(List<String> fileNamesWritten) {
+	
+	protected void setFileNamesWritten(LinkedList<String> fileNamesWritten) {
 		i_fileNamesWritten = fileNamesWritten;
 	}
 	public int getTotalFiles() {
@@ -69,6 +76,14 @@ public class WritingListener implements Serializable {
 	}
 	public void setFilesWrittenCount(int filesWrittenCount) {
 		i_filesWrittenCount = filesWrittenCount;
+	}
+
+	public Thread getThread() {
+		return i_thread;
+	}
+
+	protected void setThread(Thread thread) {
+		i_thread = thread;
 	}
 
 }

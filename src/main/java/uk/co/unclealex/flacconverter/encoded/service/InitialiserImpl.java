@@ -24,9 +24,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.flacconverter.encoded.dao.DeviceDao;
-import uk.co.unclealex.flacconverter.encoded.dao.EncodedDao;
 import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
 import uk.co.unclealex.flacconverter.encoded.dao.EncoderDao;
+import uk.co.unclealex.flacconverter.encoded.dao.EncodingDao;
 import uk.co.unclealex.flacconverter.encoded.dao.OwnerDao;
 import uk.co.unclealex.flacconverter.encoded.dao.TrackDataDao;
 import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
@@ -230,9 +230,9 @@ public class InitialiserImpl implements Initialiser {
 
 	@SuppressWarnings("unchecked")
 	public void clear() {
-		for (EncodedDao encodedDao : new EncodedDao[] { getEncoderDao(), getDeviceDao(), getOwnerDao() }) {
-			for (Object obj : encodedDao.getAll()) {
-				encodedDao.remove((KeyedBean) obj);
+		for (EncodingDao encodingDao : new EncodingDao[] { getEncoderDao(), getDeviceDao(), getOwnerDao() }) {
+			for (Object obj : encodingDao.getAll()) {
+				encodingDao.remove((KeyedBean) obj);
 			}
 		}
 	}

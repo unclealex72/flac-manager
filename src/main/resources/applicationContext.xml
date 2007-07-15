@@ -1,151 +1,183 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:aop="http://www.springframework.org/schema/aop"
-       xmlns:tx="http://www.springframework.org/schema/tx"
-       xsi:schemaLocation="
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xsi:schemaLocation="
        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+       http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.0.xsd
        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd"
-       default-autowire="byName">
+	default-autowire="byName">
 
-	<bean id="flacDataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
-		<property name="jndiName">
-			<value>java:/comp/env/slimserver</value>
+	<jee:jndi-lookup id="flacDataSource"
+		jndi-name="slimserver" resource-ref="true" proxy-interface="javax.sql.DataSource"/>
+		
+	<bean id="flacSessionFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource" ref="flacDataSource" />
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">
+					org.hibernate.dialect.MySQLInnoDBDialect
+				</prop>
+				<prop key="hibernate.hbm2ddl.auto">none</prop>
+			</props>
+		</property>
+		<property name="annotatedClasses">
+			<list>
+				<value>
+					uk.co.unclealex.flacconverter.flac.model.FlacArtistBean
+				</value>
+				<value>
+					uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean
+				</value>
+				<value>
+					uk.co.unclealex.flacconverter.flac.model.FlacTrackBean
+				</value>
+				<value>
+					uk.co.unclealex.flacconverter.flac.model.SlimServerInformationBean
+				</value>
+			</list>
 		</property>
 	</bean>
-	
-  <bean id="flacSessionFactory"
-    class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
-    <property name="dataSource" ref="flacDataSource"/>
-	  <property name="hibernateProperties">
-  		<props>
-        <prop key="hibernate.dialect">org.hibernate.dialect.MySQLInnoDBDialect</prop>
-        <prop key="hibernate.hbm2ddl.auto">none</prop>
-     </props>
-   </property>
-   <property name="annotatedClasses">
-     <list>
-				<value>uk.co.unclealex.flacconverter.flac.model.FlacArtistBean</value>
-				<value>uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean</value>
-				<value>uk.co.unclealex.flacconverter.flac.model.FlacTrackBean</value>
-				<value>uk.co.unclealex.flacconverter.flac.model.SlimServerInformationBean</value>
-     </list>
-   </property>
-  </bean>
 
-	<bean id="flacTrackDao" class="uk.co.unclealex.flacconverter.flac.dao.HibernateFlacTrackDao">
-		<property name="sessionFactory" ref="flacSessionFactory"/>
-	</bean>
-	
-	<bean id="flacAlbumDao" class="uk.co.unclealex.flacconverter.flac.dao.HibernateFlacAlbumDao">
-		<property name="sessionFactory" ref="flacSessionFactory"/>
+	<bean id="flacTrackDao"
+		class="uk.co.unclealex.flacconverter.flac.dao.HibernateFlacTrackDao">
+		<property name="sessionFactory" ref="flacSessionFactory" />
 	</bean>
 
-	<bean id="flacArtistDao" class="uk.co.unclealex.flacconverter.flac.dao.HibernateFlacArtistDao">
-		<property name="sessionFactory" ref="flacSessionFactory"/>
-	</bean>
-	
-	<bean id="slimServerInformationDao" class="uk.co.unclealex.flacconverter.flac.dao.HibernateSlimServerDao">
-		<property name="sessionFactory" ref="flacSessionFactory"/>
+	<bean id="flacAlbumDao"
+		class="uk.co.unclealex.flacconverter.flac.dao.HibernateFlacAlbumDao">
+		<property name="sessionFactory" ref="flacSessionFactory" />
 	</bean>
 
-	<bean id="slimServerService" class="uk.co.unclealex.flacconverter.flac.service.SlimServerServiceImpl"/>
-	<bean id="slimServerConfig" class="uk.co.unclealex.flacconverter.FileSlimServerConfig"
+	<bean id="flacArtistDao"
+		class="uk.co.unclealex.flacconverter.flac.dao.HibernateFlacArtistDao">
+		<property name="sessionFactory" ref="flacSessionFactory" />
+	</bean>
+
+	<bean id="slimServerInformationDao"
+		class="uk.co.unclealex.flacconverter.flac.dao.HibernateSlimServerDao">
+		<property name="sessionFactory" ref="flacSessionFactory" />
+	</bean>
+
+	<bean id="slimServerService"
+		class="uk.co.unclealex.flacconverter.flac.service.SlimServerServiceImpl" />
+	<bean id="slimServerConfig"
+		class="uk.co.unclealex.flacconverter.FileSlimServerConfig"
 		init-method="initialise">
-		<property name="configFile" value="/etc/slimserver/slimserver.pref"/>
+		<property name="configFile"
+			value="/etc/slimserver/slimserver.pref" />
 	</bean>
-	
-	<bean id="encodedDataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
-		<property name="jndiName">
-			<value>java:/comp/env/encoded</value>
-		</property>
-	</bean>
-	
+
+	<jee:jndi-lookup id="dataSource"
+		jndi-name="music" resource-ref="true" proxy-interface="javax.sql.DataSource"/>
+		
+
 	<tx:annotation-driven/>
 
-	<bean id="encodedHibernateProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+	<bean id="hibernateProperties"
+		class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="properties">
-  		<props>
-        <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
-        <prop key="hibernate.hbm2ddl.auto">update</prop>
-        <prop key="hibernate.show_sql">false</prop>
-     </props>		
+			<props>
+				<prop key="hibernate.dialect">
+					org.hibernate.dialect.MySQLDialect
+				</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.show_sql">false</prop>
+			</props>
 		</property>
 	</bean>
-	
-  <bean id="encodedSessionFactory"
-    class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
-    <property name="dataSource" ref="encodedDataSource"/>
-	  <property name="hibernateProperties" ref="encodedHibernateProperties"/>
-   <property name="annotatedClasses">
-     <list>
-				<value>uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean</value>
-				<value>uk.co.unclealex.flacconverter.encoded.model.TrackDataBean</value>
-				<value>uk.co.unclealex.flacconverter.encoded.model.EncoderBean</value>
-				<value>uk.co.unclealex.flacconverter.encoded.model.OwnedAlbumBean</value>
-				<value>uk.co.unclealex.flacconverter.encoded.model.OwnedArtistBean</value>
-				<value>uk.co.unclealex.flacconverter.encoded.model.OwnerBean</value>
-				<value>uk.co.unclealex.flacconverter.encoded.model.DeviceBean</value>
-     </list>
-   </property>
-  </bean>
 
-  <bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
-  	<property name="sessionFactory" ref="encodedSessionFactory"/>
-  </bean>
-
-	<bean id="encodedTrackDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateEncodedTrackDao">
-		<property name="sessionFactory" ref="encodedSessionFactory"/>
-	</bean>
-	
-	<bean id="trackDataDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateTrackDataDao">
-		<property name="sessionFactory" ref="encodedSessionFactory"/>
-	</bean>
-
-	<bean id="ownerDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateOwnerDao">
-				<property name="sessionFactory" ref="encodedSessionFactory"/>
-			</bean>
-	
-	<bean id="deviceDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateDeviceDao">
-				<property name="sessionFactory" ref="encodedSessionFactory"/>
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="annotatedClasses">
+			<list>
+				<value>
+					uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean
+				</value>
+				<value>
+					uk.co.unclealex.flacconverter.encoded.model.TrackDataBean
+				</value>
+				<value>
+					uk.co.unclealex.flacconverter.encoded.model.EncoderBean
+				</value>
+				<value>
+					uk.co.unclealex.flacconverter.encoded.model.OwnedAlbumBean
+				</value>
+				<value>
+					uk.co.unclealex.flacconverter.encoded.model.OwnedArtistBean
+				</value>
+				<value>
+					uk.co.unclealex.flacconverter.encoded.model.OwnerBean
+				</value>
+				<value>
+					uk.co.unclealex.flacconverter.encoded.model.DeviceBean
+				</value>
+			</list>
+		</property>
 	</bean>
 
-	<bean id="encoderDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateEncoderDao">
-				<property name="sessionFactory" ref="encodedSessionFactory"/>
-			</bean>
+	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager"/>
 
-	<bean id="encoderService" class="uk.co.unclealex.flacconverter.encoded.service.EncoderServiceImpl"/>
-	<bean id="ownerService" class="uk.co.unclealex.flacconverter.encoded.service.OwnerServiceImpl"/>
+	<bean id="encodedTrackDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateEncodedTrackDao"/>
 
-	<bean id="processService" class="uk.co.unclealex.flacconverter.process.service.ProcessServiceImpl"/>
-		
-	<bean id="initialiser" class="uk.co.unclealex.flacconverter.encoded.service.InitialiserImpl"/>
-	
-	<bean id="zipTrackWriter" class="uk.co.unclealex.flacconverter.encoded.writer.ZipTrackWriter" scope="prototype"/>
-	<bean id="fileTrackWriter" class="uk.co.unclealex.flacconverter.encoded.writer.FileTrackWriter" scope="prototype"/>
-	<bean id="trackWriterFactory" class="uk.co.unclealex.flacconverter.encoded.writer.SpringTrackWriterFactory"/>
-	
+	<bean id="trackDataDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateTrackDataDao"/>
+
+	<bean id="ownerDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateOwnerDao"/>
+
+	<bean id="deviceDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateDeviceDao"/>
+
+	<bean id="encoderDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateEncoderDao"/>
+
+	<bean id="encoderService"
+		class="uk.co.unclealex.flacconverter.encoded.service.EncoderServiceImpl" />
+	<bean id="ownerService"
+		class="uk.co.unclealex.flacconverter.encoded.service.OwnerServiceImpl" />
+	<bean id="deviceService"
+		class="uk.co.unclealex.flacconverter.encoded.service.DeviceServiceImpl" />
+
+	<bean id="processService"
+		class="uk.co.unclealex.flacconverter.process.service.ProcessServiceImpl" />
+
+	<bean id="initialiser"
+		class="uk.co.unclealex.flacconverter.encoded.service.InitialiserImpl" />
+
+	<bean id="zipTrackWriter"
+		class="uk.co.unclealex.flacconverter.encoded.writer.ZipTrackWriter"
+		scope="prototype" />
+	<bean id="fileTrackWriter"
+		class="uk.co.unclealex.flacconverter.encoded.writer.FileTrackWriter"
+		scope="prototype" />
+	<bean id="trackWriterFactory"
+		class="uk.co.unclealex.flacconverter.encoded.writer.SpringTrackWriterFactory" />
+
 	<bean id="flacTrackToEncodedTrackTransformer"
 		class="uk.co.unclealex.flacconverter.encoded.transformer.FlacTrackToEncodedTrackTransformer"
-		scope="prototype"/>
+		scope="prototype" />
 	<bean id="flacAlbumToEncodedTracksTransformer"
-		class="uk.co.unclealex.flacconverter.encoded.transformer.FlacAlbumToEncodedTracksTransformer"/>
-	<bean id="ToEncodedTracksTransformerFactory"
-		class="uk.co.unclealex.flacconverter.encoded.transformer.SpringToEncodedTracksTransformerFactory"/>
+		class="uk.co.unclealex.flacconverter.encoded.transformer.FlacAlbumToEncodedTracksTransformer"
+		scope="prototype" />
+	<bean id="toEncodedTracksTransformerFactory"
+		class="uk.co.unclealex.flacconverter.encoded.transformer.SpringToEncodedTracksTransformerFactory" />
 
-	<bean id="userService" class="uk.co.unclealex.flacconverter.security.service.FlacConverterUserService"/>
-  <bean id="webSecurityRules" class="java.lang.String">
-    <constructor-arg>
-      <value>
-        CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
-        PATTERN_TYPE_APACHE_ANT
-        /*=IS_AUTHENTICATED_ANONYMOUSLY
-        /*.html=ROLE_USER
-        /*.zip=ROLE_USER
-      </value>
-    </constructor-arg>
-  </bean>
-
+	<bean id="writingListenerService" class="uk.co.unclealex.flacconverter.encoded.service.WritingListenerServiceImpl"/>
+	
+	<bean id="userService"
+		class="uk.co.unclealex.flacconverter.security.service.FlacConverterUserService" />
+		
+	<bean id="webSecurityRules" class="java.lang.String" autowire-candidate="false">
+		<constructor-arg>
+			<value>
+				CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
+				PATTERN_TYPE_APACHE_ANT
+				/*=IS_AUTHENTICATED_ANONYMOUSLY
+				/*.html=ROLE_USER
+				/*.zip=ROLE_USER
+			</value>
+		</constructor-arg>
+	</bean>
 </beans>
 

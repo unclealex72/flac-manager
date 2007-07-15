@@ -42,6 +42,11 @@ public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
 	}
 	
 	@Override
+	public int compareTo(EncodedTrackBean o) {
+		return getFlacUrl().compareTo(o.getFlacUrl());
+	}
+	
+	@Override
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	public Integer getId() {

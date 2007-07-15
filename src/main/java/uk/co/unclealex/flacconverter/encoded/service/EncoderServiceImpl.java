@@ -119,6 +119,7 @@ public class EncoderServiceImpl implements EncoderService {
 				};
 				encode(encoderBean, flacFile, closure);
 				encodedTrackDao.store(newEncodedTrackBean);
+				encodedTrackDao.flush();
 				if (oldTrackDataBean != null) {
 					trackDataDao.remove(oldTrackDataBean);
 					trackDataDao.dismiss(newTrackDataBean);
@@ -174,7 +175,7 @@ public class EncoderServiceImpl implements EncoderService {
 			};
 			workers[idx].start();
 		}
-		for (FlacTrackBean flacTrackBean : getFlacTrackDao().getAllTracks()) {
+		for (FlacTrackBean flacTrackBean : getFlacTrackDao().getAll()) {
 			for (EncoderBean encoderBean : getEncoderDao().getAll()) {
 				encodingCommandBeans.offer(new EncodingCommandBean(encoderBean, flacTrackBean));
 			}
@@ -203,7 +204,7 @@ public class EncoderServiceImpl implements EncoderService {
 	public int removeDeleted() {
 		final SortedSet<String> urls = new TreeSet<String>();
 		CollectionUtils.collect(
-			getFlacTrackDao().getAllTracks(),
+			getFlacTrackDao().getAll(),
 			new Transformer<FlacTrackBean, String>() {
 				public String transform(FlacTrackBean flacTrackBean) {
 					return flacTrackBean.getUrl();

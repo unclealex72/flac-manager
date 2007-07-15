@@ -5,6 +5,7 @@ import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
+import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
@@ -57,8 +58,8 @@ public class OwnerServiceImpl implements OwnerService {
 		if (ownerBean.isOwnsAll()) {
 			return getEncodedTrackDao().findByEncoderBean(encoderBean);
 		}
-		FlacAlbumToEncodedTracksTransformer transformer =
-			getToEncodedTracksTransformerFactory().createFlacAlbumToEncodedTracksTransformer(encoderBean);
+		ToEncodedTracksTransformerFactory factory = getToEncodedTracksTransformerFactory(); 
+		FlacAlbumToEncodedTracksTransformer transformer = factory.createFlacAlbumToEncodedTracksTransformer(encoderBean);
 		SortedSet<EncodedTrackBean> encodedTrackBeans = new TreeSet<EncodedTrackBean>();
 		for (FlacAlbumBean flacAlbumBean : getOwnedAlbums(ownerBean)) {
 			encodedTrackBeans.addAll(transformer.transform(flacAlbumBean));
@@ -66,6 +67,7 @@ public class OwnerServiceImpl implements OwnerService {
 		return encodedTrackBeans;
 	}
 	
+	@Required
 	public FlacArtistDao getFlacArtistDao() {
 		return i_flacArtistDao;
 	}
@@ -74,6 +76,7 @@ public class OwnerServiceImpl implements OwnerService {
 		i_flacArtistDao = flacArtistDao;
 	}
 
+	@Required
 	public FlacAlbumDao getFlacAlbumDao() {
 		return i_flacAlbumDao;
 	}
@@ -82,6 +85,7 @@ public class OwnerServiceImpl implements OwnerService {
 		i_flacAlbumDao = flacAlbumDao;
 	}
 
+	@Required
 	public EncodedTrackDao getEncodedTrackDao() {
 		return i_encodedTrackDao;
 	}
@@ -90,6 +94,7 @@ public class OwnerServiceImpl implements OwnerService {
 		i_encodedTrackDao = encodedTrackDao;
 	}
 
+	@Required
 	public ToEncodedTracksTransformerFactory getToEncodedTracksTransformerFactory() {
 		return i_toEncodedTracksTransformerFactory;
 	}

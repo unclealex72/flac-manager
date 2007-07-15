@@ -8,7 +8,7 @@ public class HibernateFlacAlbumDao extends HibernateCodeDao<FlacAlbumBean> imple
 
 	@Override
 	public FlacAlbumBean findByArtistAndAlbum(String artistName, String albumName) {
-		FlacAlbumBean example = createBlankExample();
+		FlacAlbumBean example = createExampleBean();
 		example.setCode(albumName);
 		FlacArtistBean flacArtistBean = new FlacArtistBean();
 		flacArtistBean.setCode(artistName);
@@ -17,7 +17,7 @@ public class HibernateFlacAlbumDao extends HibernateCodeDao<FlacAlbumBean> imple
 	}
 
 	@Override
-	protected FlacAlbumBean createBlankExample() {
+	public FlacAlbumBean createExampleBean() {
 		return new FlacAlbumBean();
 	}
 

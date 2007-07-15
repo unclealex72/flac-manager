@@ -2,7 +2,7 @@ package uk.co.unclealex.flacconverter.encoded.dao;
 
 import uk.co.unclealex.flacconverter.encoded.model.OwnerBean;
 
-public class HibernateOwnerDao extends HibernateEncodedDao<OwnerBean>
+public class HibernateOwnerDao extends HibernateEncodingDao<OwnerBean>
 		implements OwnerDao {
 
 	@Override

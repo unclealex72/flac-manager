@@ -37,7 +37,7 @@ public class FileTrackWriter extends AbstractTrackWriter<FileOutputStream> {
 	}
 
 	protected void md(File directory) throws IOException {
-		if (!directory.mkdirs()) {
+		if (!directory.exists() && !directory.mkdirs()) {
 			throw new IOException("Creating directory " + directory.getCanonicalPath() + " failed.");
 		}		
 	}

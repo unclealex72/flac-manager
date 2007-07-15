@@ -9,8 +9,8 @@ import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 
 import uk.co.unclealex.flacconverter.encoded.model.KeyedBean;
 
-public abstract class HibernateEncodedDao<T extends KeyedBean<T>> extends HibernateDaoSupport implements
-		EncodedDao<T> {
+public abstract class HibernateKeyedDao<T extends KeyedBean<T>> extends HibernateDaoSupport implements
+		KeyedDao<T> {
 
 	@SuppressWarnings("unchecked")
 	public T findById(int id) {
@@ -20,7 +20,8 @@ public abstract class HibernateEncodedDao<T extends KeyedBean<T>> extends Hibern
 	@SuppressWarnings("unchecked")
 	public SortedSet<T> getAll() {
 		SortedSet<T> all = new TreeSet<T>();
-		all.addAll(getSession().createCriteria(createExampleBean().getClass()).list());
+		T exampleBean = createExampleBean();
+		all.addAll(getSession().createCriteria(exampleBean.getClass()).add(Example.create(exampleBean)).list());
 		return all;
 	}
 
@@ -40,14 +41,11 @@ public abstract class HibernateEncodedDao<T extends KeyedBean<T>> extends Hibern
 		return getSession().createCriteria(exampleBean.getClass()).add(Example.create(exampleBean));
 	}
 	
-	public void remove(T keyedBean) {
-		getSession().delete(keyedBean);
+	@Override
+	public void flush() {
+		getSession().flush();
 	}
-
-	public void store(T keyedBean) {
-		getSession().saveOrUpdate(keyedBean);
-	}
-
+	
 	@Override
 	public void dismiss(T keyedBean) {
 		getSession().evict(keyedBean);

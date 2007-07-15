@@ -46,8 +46,8 @@ public class DeviceServiceImpl implements DeviceService {
 			String line = findLineContainingString(lines, deviceBean.getIdentifier());
 			if (line != null) {
 				String[] parts = StringUtils.split(line, ' ');
-				String file = parts[parts.length - 1];
-				log.info("Found " + deviceBean + " at location " + file);
+				String file = parts[parts.length - 1] + "1";
+				log.info("Found " + deviceBean.getFullDescription() + " at location " + file);
 				devicesAndFiles.put(deviceBean, file);
 			}
 		}
@@ -55,14 +55,14 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public File getMountPointForFile(String path, String rootPassword) throws IOException {
+	public File getMountPointForFile(String path) throws IOException {
 		ProcessService processService = getProcessService();
 		File mountPoint = findExistingMountPoint(path);
 		if (mountPoint != null) {
 			if (mountPoint.canWrite()) {
 				return mountPoint;
 			}
-			processService.run(new ProcessBuilder("sudo", "-S", "umount", path), new StringReader(rootPassword + "\n"), true);
+			processService.run(new ProcessBuilder("sudo", "umount", path), true);
 		}
 		processService.run(new ProcessBuilder("pmount", path), true);
 		mountPoint = findExistingMountPoint(path);
@@ -74,8 +74,7 @@ public class DeviceServiceImpl implements DeviceService {
 
 	@Override
 	public boolean mountingRequiresPassword(String path) throws IOException {
-		File existingMountPoint = findExistingMountPoint(path);
-		return existingMountPoint != null && !existingMountPoint.canWrite();
+		return false;
 	}
 	
 	protected File findExistingMountPoint(String path) throws IOException {

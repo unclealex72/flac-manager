@@ -10,7 +10,7 @@ import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
 
 public class HibernateEncodedTrackDao extends
-		HibernateEncodedDao<EncodedTrackBean> implements EncodedTrackDao {
+		HibernateEncodingDao<EncodedTrackBean> implements EncodedTrackDao {
 
 	@Override
 	public void store(EncodedTrackBean encodedTrackBean) {

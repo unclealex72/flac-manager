@@ -1,10 +1,11 @@
 package uk.co.unclealex.flacconverter.encoded.model;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 import org.apache.commons.collections15.comparators.NullComparator;
 
-public class KeyedBean<T extends KeyedBean<T>> implements Comparable<T> {
+public class KeyedBean<T extends KeyedBean<T>> implements Comparable<T>, Serializable {
 
 	private Integer i_id;
 

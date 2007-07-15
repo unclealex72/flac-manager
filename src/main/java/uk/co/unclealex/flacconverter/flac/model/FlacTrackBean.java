@@ -14,7 +14,7 @@ import javax.persistence.Transient;
 @Entity
 @org.hibernate.annotations.Entity(mutable=false)
 @Table(name="tracks")
-public class FlacTrackBean extends CodedBean<FlacTrackBean> {
+public class FlacTrackBean extends AbstractFlacBean<FlacTrackBean> {
 
 	private static String s_urlPrefix = "file://";
 	private static int s_urlPrefixLength = s_urlPrefix.length();

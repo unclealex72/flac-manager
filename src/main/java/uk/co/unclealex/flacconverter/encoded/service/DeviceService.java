@@ -10,13 +10,14 @@ public interface DeviceService {
 
 	public SortedMap<DeviceBean, String> findDevicesAndFiles() throws IOException;
 	
-	public File getMountPointForFile(String path, String rootPassword) throws IOException;
+	public File getMountPointForFile(String path) throws IOException;
 	
-	public void safelyRemove(File mountPoint) throws IOException;
-
 	public boolean mountingRequiresPassword(String path) throws IOException;
 	
 	public void removeMusicFolders(DeviceBean deviceBean, File deviceDirectory) throws IOException;
 	
 	public void writeMusic(DeviceBean deviceBean, File deviceDirectory, WritingListener writingListener);
+
+	public void safelyRemove(File mountPoint) throws IOException;
+
 }

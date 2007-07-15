@@ -16,7 +16,7 @@ import org.hibernate.annotations.SortType;
 @Entity
 @org.hibernate.annotations.Entity(mutable=false)
 @Table(name="contributors")
-public class FlacArtistBean extends CodedBean<FlacArtistBean> {
+public class FlacArtistBean extends AbstractFlacBean<FlacArtistBean> {
 
 	private byte[] i_rawName;
 	private SortedSet<FlacAlbumBean> i_flacAlbumBeans;

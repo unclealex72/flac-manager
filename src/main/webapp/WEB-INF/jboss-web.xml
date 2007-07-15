@@ -5,11 +5,16 @@
     
 <jboss-web>
 
-  <context-root>/rokta</context-root>
+  <context-root>/flac</context-root>
 
   <resource-ref>
-    <res-ref-name>rokta</res-ref-name>
-    <jndi-name>java:/rokta</jndi-name>
+    <res-ref-name>music</res-ref-name>
+    <jndi-name>java:/comp/env/music</jndi-name>
+  </resource-ref>
+
+  <resource-ref>
+    <res-ref-name>flac</res-ref-name>
+    <jndi-name>java:/comp/env/flac</jndi-name>
   </resource-ref>
 
 </jboss-web>

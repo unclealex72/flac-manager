@@ -8,6 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 @Entity
 @Table(name="devices")
@@ -26,6 +27,10 @@ public class DeviceBean extends KeyedBean<DeviceBean> {
 		return super.getId();
 	}
 
+	@Transient
+	public String getFullDescription() {
+		return getOwnerBean().getName() + "'s " + getDescription();
+	}
 	@Column(unique=true)
 	public String getIdentifier() {
 		return i_identifier;

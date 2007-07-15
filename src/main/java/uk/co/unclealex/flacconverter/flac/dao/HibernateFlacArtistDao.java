@@ -6,7 +6,7 @@ public class HibernateFlacArtistDao extends HibernateCodeDao<FlacArtistBean> imp
 		FlacArtistDao {
 
 	@Override
-	protected FlacArtistBean createBlankExample() {
+	public FlacArtistBean createExampleBean() {
 		return new FlacArtistBean();
 	}
 
