@@ -15,6 +15,8 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 
+import uk.co.unclealex.flacconverter.flac.visitor.FlacVisitor;
+
 @Entity
 @org.hibernate.annotations.Entity(mutable=false)
 @Table(name="albums")
@@ -23,6 +25,16 @@ public class FlacAlbumBean extends AbstractFlacBean<FlacAlbumBean> {
 	private SortedSet<FlacTrackBean> i_flacTrackBeans;
 	private FlacArtistBean i_flacArtistBean;
 	private byte[] i_rawTitle;
+
+	@Override
+	public void accept(FlacVisitor flacVisitor) {
+		flacVisitor.visit(this);
+	}
+
+	@Override
+	public String toString() {
+		return "[" + getFlacArtistBean().getName() + ": " + getTitle() + "]";
+	}
 
 	@Override
 	@Id

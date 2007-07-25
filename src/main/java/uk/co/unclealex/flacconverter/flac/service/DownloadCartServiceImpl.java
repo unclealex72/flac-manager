@@ -38,15 +38,11 @@ public class DownloadCartServiceImpl implements DownloadCartService {
 				FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
 				FlacArtistBean flacArtistBean = flacAlbumBean.getFlacArtistBean();
 				SortedMap<FlacAlbumBean, SortedSet<FlacTrackBean>> albums = getAlbumsForArtist(flacArtistBean);
-				if (albums != null) {
-					if (albums.containsKey(flacAlbumBean)) {
-						albums.put(flacAlbumBean, new TreeSet<FlacTrackBean>());
-					}
-					SortedSet<FlacTrackBean> tracks = albums.get(flacAlbumBean);
-					if (tracks != null) {
-						tracks.add(flacTrackBean);
-					}
+				if (!albums.containsKey(flacAlbumBean)) {
+					albums.put(flacAlbumBean, new TreeSet<FlacTrackBean>());
 				}
+				SortedSet<FlacTrackBean> tracks = albums.get(flacAlbumBean);
+				tracks.add(flacTrackBean);
 			}
 			
 			protected SortedMap<FlacAlbumBean, SortedSet<FlacTrackBean>> getAlbumsForArtist(FlacArtistBean flacArtistBean) {

@@ -10,11 +10,10 @@ import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
 import uk.co.unclealex.flacconverter.encoded.service.DeviceService;
 import uk.co.unclealex.flacconverter.encoded.service.WritingListenerService;
 
-public abstract class DeviceDownloadAction extends WritingListenersAction {
+public abstract class DeviceDownloadAction extends FlacAction {
 
 	private final Logger log = Logger.getLogger(getClass());
 	
-	private DeviceService i_deviceService;
 	private DeviceBean i_device;
 	private String i_errorMessage;
 	private String i_stackTrace;
@@ -47,14 +46,6 @@ public abstract class DeviceDownloadAction extends WritingListenersAction {
 
 	public void setDevice(DeviceBean device) {
 		i_device = device;
-	}
-
-	public DeviceService getDeviceService() {
-		return i_deviceService;
-	}
-
-	public void setDeviceService(DeviceService deviceService) {
-		i_deviceService = deviceService;
 	}
 
 	public String getErrorMessage() {

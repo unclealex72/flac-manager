@@ -8,7 +8,7 @@ import org.apache.commons.lang.StringUtils;
 
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 
-public class FileTrackWriter extends AbstractTrackWriter<FileOutputStream> {
+public class FileTrackWriterImpl extends AbstractTrackWriter<FileOutputStream> {
 
 	private File i_rootDirectory;
 	

@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.ServletRequestAware;
 
+import uk.co.unclealex.flacconverter.encoded.dao.DeviceDao;
 import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
 import uk.co.unclealex.flacconverter.encoded.service.WritingListener;
 import uk.co.unclealex.flacconverter.encoded.service.WritingListenerService;
@@ -19,15 +20,15 @@ public class MonitorDeviceDownloadAction extends FlacAction implements ServletRe
 	private final Logger log = Logger.getLogger(getClass());
 
 	private DeviceBean i_device;
+	private DeviceDao i_deviceDao;
 	private String i_errorMessage;
 	private String i_stackTrace;
-	private WritingListenerService i_writingListenerService;
 	private WritingListener i_writingListener;
 	private HttpServletRequest i_servletRequest;
 	
 	@Override
 	public String execute() throws IOException, InterruptedException {
-		DeviceBean deviceBean = getDevice();
+		DeviceBean deviceBean = getDeviceDao().findById(getDevice().getId());
 		HttpServletRequest req = getServletRequest();
 		URL u = new URL(
 				req.getScheme(), req.getServerName(), req.getServerPort(), 
@@ -35,6 +36,7 @@ public class MonitorDeviceDownloadAction extends FlacAction implements ServletRe
 		u.openStream();
 		WritingListenerService service = getWritingListenerService();
 		WritingListener writingListener = service.getAllListeners().get(deviceBean);
+		setWritingListener(writingListener);
 		writingListener.join();
 		IOException e = writingListener.getException();
 		if (e == null) {
@@ -74,15 +76,6 @@ public class MonitorDeviceDownloadAction extends FlacAction implements ServletRe
 		i_device = device;
 	}
 
-	public WritingListenerService getWritingListenerService() {
-		return i_writingListenerService;
-	}
-
-	public void setWritingListenerService(
-			WritingListenerService writingListenerService) {
-		i_writingListenerService = writingListenerService;
-	}
-
 	public WritingListener getWritingListener() {
 		return i_writingListener;
 	}
@@ -97,6 +90,14 @@ public class MonitorDeviceDownloadAction extends FlacAction implements ServletRe
 
 	public void setServletRequest(HttpServletRequest servletRequest) {
 		i_servletRequest = servletRequest;
+	}
+
+	public DeviceDao getDeviceDao() {
+		return i_deviceDao;
+	}
+
+	public void setDeviceDao(DeviceDao deviceDao) {
+		i_deviceDao = deviceDao;
 	}
 
 }

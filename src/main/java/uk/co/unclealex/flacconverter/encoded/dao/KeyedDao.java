@@ -13,5 +13,6 @@ public interface KeyedDao<T extends KeyedBean<T>> {
 	public T findById(int id);
 	public void dismiss(T keyedBean);
 	public void flush();
+	public void clear();
 
 }

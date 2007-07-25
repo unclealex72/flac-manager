@@ -51,5 +51,11 @@ public abstract class HibernateKeyedDao<T extends KeyedBean<T>> extends Hibernat
 		getSession().evict(keyedBean);
 	}
 	
+	@Override
+	public void clear() {
+		flush();
+		getSession().clear();
+	}
+	
 	public abstract T createExampleBean();
 }

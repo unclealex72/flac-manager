@@ -11,6 +11,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import uk.co.unclealex.flacconverter.flac.visitor.FlacVisitor;
+
 @Entity
 @org.hibernate.annotations.Entity(mutable=false)
 @Table(name="tracks")
@@ -25,6 +27,17 @@ public class FlacTrackBean extends AbstractFlacBean<FlacTrackBean> {
 	private FlacAlbumBean i_flacAlbumBean;
 	private String i_type;
 	private Integer i_trackNumber;
+	
+	@Override
+	public void accept(FlacVisitor flacVisitor) {
+		flacVisitor.visit(this);
+	}
+
+	@Override
+	public String toString() {
+		FlacAlbumBean flacAlbumBean = getFlacAlbumBean();
+		return "[" + flacAlbumBean.getFlacArtistBean().getName() + ": " + flacAlbumBean.getTitle() + ": " + getTitle() + "]";
+	}
 	
 	@Override
 	public int compareTo(FlacTrackBean o) {
@@ -55,11 +68,6 @@ public class FlacTrackBean extends AbstractFlacBean<FlacTrackBean> {
 	@Lob
 	public String getCode() {
 		return super.getCode();
-	}
-	
-	@Override
-	public String toString() {
-		return getUrl();
 	}
 	
 	@ManyToOne

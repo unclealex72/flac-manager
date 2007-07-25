@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import uk.co.unclealex.flacconverter.encoded.dao.DeviceDao;
+import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
 import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 import uk.co.unclealex.flacconverter.encoded.writer.TrackWriter;
@@ -36,6 +37,7 @@ public class DeviceServiceImpl implements DeviceService {
 	private DeviceDao i_deviceDao;
 	private OwnerService i_ownerService;
 	private TrackWriterFactory i_trackWriterFactory;
+	private EncodedTrackDao i_encodedTrackDao;
 	
 	@Override
 	public SortedMap<DeviceBean, String> findDevicesAndFiles() throws IOException {
@@ -142,6 +144,7 @@ public class DeviceServiceImpl implements DeviceService {
 
 	@Override
 	public void writeMusic(DeviceBean deviceBean, File deviceDirectory, WritingListener writingListener) {
+		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
 		if (writingListener == null) {
 			writingListener = new WritingListener();
 		}
@@ -155,6 +158,7 @@ public class DeviceServiceImpl implements DeviceService {
 			for (EncodedTrackBean encodedTrackBean : encodedTrackBeans) {
 				String fileName = trackWriter.write(encodedTrackBean, titleFormat);
 				writingListener.registerFileWrite(fileName);
+				encodedTrackDao.dismiss(encodedTrackBean);
 			}
 			trackWriter.close();
 			writingListener.finish();
@@ -194,5 +198,13 @@ public class DeviceServiceImpl implements DeviceService {
 
 	public void setTrackWriterFactory(TrackWriterFactory trackWriterFactory) {
 		i_trackWriterFactory = trackWriterFactory;
+	}
+
+	public EncodedTrackDao getEncodedTrackDao() {
+		return i_encodedTrackDao;
+	}
+
+	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
+		i_encodedTrackDao = encodedTrackDao;
 	}
 }

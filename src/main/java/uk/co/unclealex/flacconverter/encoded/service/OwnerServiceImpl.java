@@ -1,5 +1,7 @@
 package uk.co.unclealex.flacconverter.encoded.service;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -13,18 +15,16 @@ import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
 import uk.co.unclealex.flacconverter.encoded.model.OwnedAlbumBean;
 import uk.co.unclealex.flacconverter.encoded.model.OwnedArtistBean;
 import uk.co.unclealex.flacconverter.encoded.model.OwnerBean;
-import uk.co.unclealex.flacconverter.encoded.transformer.FlacAlbumToEncodedTracksTransformer;
-import uk.co.unclealex.flacconverter.encoded.transformer.ToEncodedTracksTransformerFactory;
 import uk.co.unclealex.flacconverter.flac.dao.FlacAlbumDao;
 import uk.co.unclealex.flacconverter.flac.dao.FlacArtistDao;
 import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
+import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 
 public class OwnerServiceImpl implements OwnerService {
 
 	private FlacArtistDao i_flacArtistDao;
 	private FlacAlbumDao i_flacAlbumDao;
 	private EncodedTrackDao i_encodedTrackDao;
-	private ToEncodedTracksTransformerFactory i_toEncodedTracksTransformerFactory;
 	
 	@Override
 	public SortedSet<FlacAlbumBean> getOwnedAlbums(OwnerBean ownerBean) {
@@ -58,13 +58,17 @@ public class OwnerServiceImpl implements OwnerService {
 		if (ownerBean.isOwnsAll()) {
 			return getEncodedTrackDao().findByEncoderBean(encoderBean);
 		}
-		ToEncodedTracksTransformerFactory factory = getToEncodedTracksTransformerFactory(); 
-		FlacAlbumToEncodedTracksTransformer transformer = factory.createFlacAlbumToEncodedTracksTransformer(encoderBean);
-		SortedSet<EncodedTrackBean> encodedTrackBeans = new TreeSet<EncodedTrackBean>();
+		List<String> urls = new LinkedList<String>();
+		Transformer<FlacTrackBean, String> transformer = new Transformer<FlacTrackBean, String>() {
+			@Override
+			public String transform(FlacTrackBean flacTrackBean) {
+				return flacTrackBean.getUrl();
+			}
+		};
 		for (FlacAlbumBean flacAlbumBean : getOwnedAlbums(ownerBean)) {
-			encodedTrackBeans.addAll(transformer.transform(flacAlbumBean));
+			CollectionUtils.collect(flacAlbumBean.getFlacTrackBeans(), transformer, urls);
 		}
-		return encodedTrackBeans;
+		return getEncodedTrackDao().findByUrlsAndEncoderBean(urls, encoderBean);
 	}
 	
 	@Required
@@ -94,13 +98,4 @@ public class OwnerServiceImpl implements OwnerService {
 		i_encodedTrackDao = encodedTrackDao;
 	}
 
-	@Required
-	public ToEncodedTracksTransformerFactory getToEncodedTracksTransformerFactory() {
-		return i_toEncodedTracksTransformerFactory;
-	}
-
-	public void setToEncodedTracksTransformerFactory(
-			ToEncodedTracksTransformerFactory toEncodedTracksTransformerFactory) {
-		i_toEncodedTracksTransformerFactory = toEncodedTracksTransformerFactory;
-	}
 }

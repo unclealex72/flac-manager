@@ -2,13 +2,17 @@ package uk.co.unclealex.flacconverter.encoded.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
+import java.io.StringReader;
 import java.io.StringWriter;
-import java.sql.Blob;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Formatter;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -23,6 +27,7 @@ import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
 import uk.co.unclealex.flacconverter.encoded.dao.EncoderDao;
@@ -36,53 +41,79 @@ import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.flacconverter.flac.service.SlimServerService;
 
-public class EncoderServiceImpl implements EncoderService {
+public class EncoderServiceImpl implements EncoderService, Serializable {
 
-	private static Logger log = Logger.getLogger(EncoderServiceImpl.class);
+	private transient static Logger log = Logger.getLogger(EncoderServiceImpl.class);
 	
-	private EncodedTrackDao i_encodedTrackDao;
-	private EncoderDao i_encoderDao;
-	private FlacTrackDao i_flacTrackDao;
-	private TrackDataDao i_trackDataDao;
+	private transient EncodedTrackDao i_encodedTrackDao;
+	private transient EncoderDao i_encoderDao;
+	private transient FlacTrackDao i_flacTrackDao;
+	private transient TrackDataDao i_trackDataDao;
+	private int i_maximumThreads = 1;
 	
-	private SlimServerService i_slimServerService;
+	private transient SlimServerService i_slimServerService;
 	
 	private AtomicBoolean i_atomicCurrentlyEncoding = new AtomicBoolean(false);
-	
-	public void encode(EncoderBean encoderBean, File flacFile, EncodingClosure closure) throws IOException {
-		String[] command = new String[] { encoderBean.getCommand(), flacFile.getCanonicalPath() };
+
+	@Transactional(rollbackFor=IOException.class)
+	public void encode(
+			EncoderBean encoderBean, File flacFile, EncodingClosure closure, Map<EncoderBean, File> commandCache) 
+	throws IOException {
+		File commandFile = commandCache.get(encoderBean);
+		if (commandFile == null) {
+			commandFile = createCommandFile(encoderBean);
+			commandCache.put(encoderBean, commandFile);
+		}
+		File tempFile = File.createTempFile("encoding", "." + encoderBean.getExtension());
+		tempFile.deleteOnExit();
+		
+		String[] command =
+			new String[] { 
+				commandFile.getCanonicalPath(), flacFile.getCanonicalPath(), tempFile.getCanonicalPath() };
 		if (log.isDebugEnabled()) {
 			log.debug("Running " + StringUtils.join(command, ' '));
 		}
 		ProcessBuilder builder = new ProcessBuilder(command);
 		Process process = builder.start();
-		InputStream in = process.getInputStream();
+		int returnValue;
+		InputStream in = null;
 		try {
-			closure.process(in);
+			try {
+				returnValue = process.waitFor();
+				if (returnValue != 0) {
+					StringWriter error = new StringWriter();
+					IOUtils.copy(process.getErrorStream(), error);
+					throw new IOException(
+							"The process " + StringUtils.join(command, ' ') + " failed with exit code " + returnValue + "\n" + error);
+				}
+				in = new FileInputStream(tempFile);
+				closure.process(in);
+			}
+			catch (InterruptedException e) {
+				throw new IOException(
+						"The process " + StringUtils.join(command, ' ') + " was interrupted.", e);
+			}
 		}
 		finally {
-			in.close();
-		}
-		int returnValue;
-		try {
-			returnValue = process.waitFor();
-		}
-		catch (InterruptedException e) {
-			throw new IOException(
-					"The process " + StringUtils.join(command, ' ') + " was interrupted.", e);
-		}
-		if (returnValue != 0) {
-			StringWriter error = new StringWriter();
-			IOUtils.copy(process.getErrorStream(), error);
-			throw new IOException(
-					"The process " + StringUtils.join(command, ' ') + " failed with exit code " + returnValue + "\n" + error);
+			IOUtils.closeQuietly(in);
+			tempFile.delete();
 		}
 		if (log.isDebugEnabled()) {
 			log.debug("Finished " + StringUtils.join(command, ' '));
 		}
 	}
 	
-	public boolean encode(EncodingCommandBean encodingCommandBean) throws IOException {
+	protected File createCommandFile(EncoderBean encoderBean) throws IOException {
+		File commandFile = File.createTempFile(encoderBean.getExtension(), ".sh");
+		commandFile.deleteOnExit();
+		commandFile.setExecutable(true);
+		FileWriter writer = new FileWriter(commandFile);
+		IOUtils.copy(new StringReader(encoderBean.getCommand()), writer);
+		writer.close();
+		return commandFile;
+	}
+
+	public boolean encode(EncodingCommandBean encodingCommandBean, Map<EncoderBean, File> commandCache) throws IOException {
 		EncoderBean encoderBean = encodingCommandBean.getEncoderBean();
 		FlacTrackBean flacTrackBean = encodingCommandBean.getFlacTrackBean();
 		
@@ -111,13 +142,13 @@ public class EncoderServiceImpl implements EncoderService {
 				EncodingClosure closure = new EncodingClosure() {
 					public void process(InputStream in) throws IOException {
 						ByteArrayOutputStream out = new ByteArrayOutputStream();
-						IOUtils.copy(in, out);
-						Blob blob = trackDataDao.createBlob(out.toByteArray());
-						newTrackDataBean.setTrack(blob);
+						int length = IOUtils.copy(in, out);
+						newTrackDataBean.setTrack(out.toByteArray());
+						newTrackDataBean.setLength(length);
 						newEncodedTrackBean.setTrackDataBean(newTrackDataBean);
 					}
 				};
-				encode(encoderBean, flacFile, closure);
+				encode(encoderBean, flacFile, closure, commandCache);
 				encodedTrackDao.store(newEncodedTrackBean);
 				encodedTrackDao.flush();
 				if (oldTrackDataBean != null) {
@@ -147,7 +178,7 @@ public class EncoderServiceImpl implements EncoderService {
 		}
 		else {
 			if (log.isDebugEnabled()) {
-				log.info(
+				log.debug(
 						formatter.format(
 								"Skipping %s %s, %s: %02d - %s", extension, artistName, albumName, trackNumber, trackName));
 			}
@@ -155,7 +186,14 @@ public class EncoderServiceImpl implements EncoderService {
 		}
 	}
 
-	public int encodeAll(int maximumThreads) throws AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException {
+	@Override
+	public int encodeAll()
+	throws AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException, IOException {
+		return encodeAll(getMaximumThreads());
+	}
+	
+	public int encodeAll(int maximumThreads)
+	throws AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException, IOException {
 		if (getSlimServerService().isScanning()) {
 			throw new CurrentlyScanningException();
 		}
@@ -164,19 +202,24 @@ public class EncoderServiceImpl implements EncoderService {
 		}
 		final SortedMap<EncodingCommandBean, Throwable> errors =
 			Collections.synchronizedSortedMap(new TreeMap<EncodingCommandBean, Throwable>());
+		final SortedMap<EncoderBean, File> commandCache = new TreeMap<EncoderBean, File>();
 		final BlockingQueue<EncodingCommandBean> encodingCommandBeans = new LinkedBlockingQueue<EncodingCommandBean>();
 		EncodingWorker[] workers = new EncodingWorker[maximumThreads];
 		for (int idx = 0; idx < maximumThreads; idx++) {
 			workers[idx] = new EncodingWorker(encodingCommandBeans, errors) {
 				@Override
 				protected void process(EncodingCommandBean encodingCommandBean) throws IOException {
-					encode(encodingCommandBean);
+					encode(encodingCommandBean, commandCache);
 				}
 			};
 			workers[idx].start();
 		}
+		SortedSet<EncoderBean> allEncoderBeans = getEncoderDao().getAll();
+		for (EncoderBean encoderBean : allEncoderBeans) {
+			commandCache.put(encoderBean, createCommandFile(encoderBean));
+		}
 		for (FlacTrackBean flacTrackBean : getFlacTrackDao().getAll()) {
-			for (EncoderBean encoderBean : getEncoderDao().getAll()) {
+			for (EncoderBean encoderBean : allEncoderBeans) {
 				encodingCommandBeans.offer(new EncodingCommandBean(encoderBean, flacTrackBean));
 			}
 		}
@@ -194,6 +237,9 @@ public class EncoderServiceImpl implements EncoderService {
 			totalCount += worker.getCount();
 		}
 		
+		for (File command : commandCache.values()) {
+			command.delete();
+		}
 		getAtomicCurrentlyEncoding().set(false);
 		if (!errors.isEmpty()) {
 			throw new MultipleEncodingException(errors, totalCount);
@@ -280,5 +326,13 @@ public class EncoderServiceImpl implements EncoderService {
 
 	public void setTrackDataDao(TrackDataDao trackDataDao) {
 		i_trackDataDao = trackDataDao;
+	}
+
+	public int getMaximumThreads() {
+		return i_maximumThreads;
+	}
+
+	public void setMaximumThreads(int maximumThreads) {
+		i_maximumThreads = maximumThreads;
 	}
 }

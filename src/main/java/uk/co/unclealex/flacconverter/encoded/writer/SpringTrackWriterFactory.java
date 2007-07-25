@@ -14,8 +14,8 @@ public class SpringTrackWriterFactory implements TrackWriterFactory, Application
 	
 	@Override
 	public TrackWriter createFileTrackWriter(File baseDir) {
-		FileTrackWriter fileTrackWriter = 
-			(FileTrackWriter) getApplicationContext().getBean(getFileTrackWriterId(), FileTrackWriter.class);
+		FileTrackWriterImpl fileTrackWriter = 
+			(FileTrackWriterImpl) getApplicationContext().getBean(getFileTrackWriterId(), FileTrackWriterImpl.class);
 		fileTrackWriter.setRootDirectory(baseDir);
 		return fileTrackWriter;
 	}

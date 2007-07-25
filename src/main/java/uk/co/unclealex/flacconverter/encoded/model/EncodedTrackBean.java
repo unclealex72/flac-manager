@@ -1,9 +1,7 @@
 package uk.co.unclealex.flacconverter.encoded.model;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.sql.Blob;
-import java.sql.SQLException;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -36,14 +34,15 @@ public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
 		super();
 	}
 
-	public EncodedTrackBean(Blob blob) {
+	public EncodedTrackBean(byte[] data) {
 		this();
-		setTrackDataBean(new TrackDataBean(blob));
+		setTrackDataBean(new TrackDataBean(data));
 	}
 	
 	@Override
 	public int compareTo(EncodedTrackBean o) {
-		return getFlacUrl().compareTo(o.getFlacUrl());
+		int cmp = getEncoderBean().compareTo(o.getEncoderBean());
+		return cmp==0?getFlacUrl().compareTo(o.getFlacUrl()):cmp;
 	}
 	
 	@Override
@@ -54,14 +53,9 @@ public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
 	}
 
 	@Transient
-	public InputStream getTrack() throws IOException {
+	public InputStream getTrack() {
 		TrackDataBean trackDataBean = getTrackDataBean();
-		try {
-			return trackDataBean==null?null:trackDataBean.getTrack().getBinaryStream();
-		}
-		catch (SQLException e) {
-			throw new IOException(e);
-		}
+		return trackDataBean==null?null:new ByteArrayInputStream(trackDataBean.getTrack());
 	}
 	
 	@ManyToOne

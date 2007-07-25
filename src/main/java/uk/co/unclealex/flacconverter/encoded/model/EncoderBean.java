@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -47,8 +48,7 @@ public class EncoderBean extends KeyedBean<EncoderBean> {
 		i_encodedTrackBeans = encodedTrackBeans;
 	}
 
-	@NotEmpty(message="You must supply a command.")
-	@Length(max=255,message="Please use a shorter command.")
+	@Lob
 	public String getCommand() {
 		return i_command;
 	}

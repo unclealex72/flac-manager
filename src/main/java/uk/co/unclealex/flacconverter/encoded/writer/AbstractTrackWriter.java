@@ -1,24 +1,22 @@
 package uk.co.unclealex.flacconverter.encoded.writer;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.flacconverter.SlimServerConfig;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
+import uk.co.unclealex.flacconverter.encoded.model.TrackDataBean;
 import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
 import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.flacconverter.substitutor.Substitutor;
-
 
 public abstract class AbstractTrackWriter<T extends OutputStream> implements TrackWriter {
 
@@ -47,9 +45,8 @@ public abstract class AbstractTrackWriter<T extends OutputStream> implements Tra
 		substitutor.substitute("artist", sanitise(removeDefiniteArticle(flacArtistBean.getName())));
 		String title = substitutor.getText() + "." + encodedTrackBean.getEncoderBean().getExtension();
 		T out = createStream(encodedTrackBean, title);
-		InputStream in = encodedTrackBean.getTrack(); 
-		IOUtils.copy(in, out);
-		in.close();
+		TrackDataBean trackDataBean = encodedTrackBean.getTrackDataBean();
+		out.write(trackDataBean.getTrack());
 		closeStream(encodedTrackBean, title, out);
 		return title;
 	}
