@@ -13,7 +13,7 @@ import uk.co.unclealex.flacconverter.encoded.model.EncodingCommandBean;
 @Transactional
 public interface EncoderService extends Serializable {
 
-	public void encode(EncoderBean encoderBean, File flacFile,
+	public int encode(EncoderBean encoderBean, File flacFile,
 			EncodingClosure closure, Map<EncoderBean, File> commandCache) throws IOException;
 
 	public boolean encode(EncodingCommandBean encodingCommandBean, Map<EncoderBean, File> commandCache) throws IOException;

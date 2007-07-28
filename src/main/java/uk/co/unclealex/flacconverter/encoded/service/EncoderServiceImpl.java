@@ -1,17 +1,18 @@
 package uk.co.unclealex.flacconverter.encoded.service;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Formatter;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -35,28 +36,32 @@ import uk.co.unclealex.flacconverter.encoded.dao.TrackDataDao;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
 import uk.co.unclealex.flacconverter.encoded.model.EncodingCommandBean;
-import uk.co.unclealex.flacconverter.encoded.model.TrackDataBean;
 import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
 import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.flacconverter.flac.service.SlimServerService;
+import uk.co.unclealex.flacconverter.io.SequenceOutputStream;
 
+@Transactional
 public class EncoderServiceImpl implements EncoderService, Serializable {
 
-	private transient static Logger log = Logger.getLogger(EncoderServiceImpl.class);
+	private static Logger log = Logger.getLogger(EncoderServiceImpl.class);
 	
-	private transient EncodedTrackDao i_encodedTrackDao;
-	private transient EncoderDao i_encoderDao;
-	private transient FlacTrackDao i_flacTrackDao;
-	private transient TrackDataDao i_trackDataDao;
+	private EncodedTrackDao i_encodedTrackDao;
+	private EncoderDao i_encoderDao;
+	private FlacTrackDao i_flacTrackDao;
+	private TrackDataDao i_trackDataDao;
+	private	TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
+	private EncodingWorkerFactory i_encodingWorkerFactory;
+	
 	private int i_maximumThreads = 1;
 	
-	private transient SlimServerService i_slimServerService;
+	private SlimServerService i_slimServerService;
 	
 	private AtomicBoolean i_atomicCurrentlyEncoding = new AtomicBoolean(false);
 
 	@Transactional(rollbackFor=IOException.class)
-	public void encode(
+	public int encode(
 			EncoderBean encoderBean, File flacFile, EncodingClosure closure, Map<EncoderBean, File> commandCache) 
 	throws IOException {
 		File commandFile = commandCache.get(encoderBean);
@@ -88,6 +93,10 @@ public class EncoderServiceImpl implements EncoderService, Serializable {
 				}
 				in = new FileInputStream(tempFile);
 				closure.process(in);
+				if (log.isDebugEnabled()) {
+					log.debug("Finished " + StringUtils.join(command, ' '));
+				}
+				return (int) tempFile.length();
 			}
 			catch (InterruptedException e) {
 				throw new IOException(
@@ -98,11 +107,9 @@ public class EncoderServiceImpl implements EncoderService, Serializable {
 			IOUtils.closeQuietly(in);
 			tempFile.delete();
 		}
-		if (log.isDebugEnabled()) {
-			log.debug("Finished " + StringUtils.join(command, ' '));
-		}
 	}
-	
+
+	@Transactional(rollbackFor=IOException.class)
 	protected File createCommandFile(EncoderBean encoderBean) throws IOException {
 		File commandFile = File.createTempFile(encoderBean.getExtension(), ".sh");
 		commandFile.deleteOnExit();
@@ -113,11 +120,13 @@ public class EncoderServiceImpl implements EncoderService, Serializable {
 		return commandFile;
 	}
 
+	@Transactional(rollbackFor=IOException.class)
 	public boolean encode(EncodingCommandBean encodingCommandBean, Map<EncoderBean, File> commandCache) throws IOException {
 		EncoderBean encoderBean = encodingCommandBean.getEncoderBean();
 		FlacTrackBean flacTrackBean = encodingCommandBean.getFlacTrackBean();
 		
 		final EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
+		final TrackDataStreamIteratorFactory trackDataStreamIteratorFactory = getTrackDataStreamIteratorFactory();
 		FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
 		final String albumName = flacAlbumBean.getTitle();
 		final String artistName = flacAlbumBean.getFlacArtistBean().getName();
@@ -131,30 +140,26 @@ public class EncoderServiceImpl implements EncoderService, Serializable {
 		EncodedTrackBean encodedTrackBean = encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
 		// We encode if there was no previously encoded track or the encoded track is older than the flac track
 		if (encodedTrackBean == null || encodedTrackBean.getTimestamp() < flacFile.lastModified()) {
-			try {
-				final TrackDataDao trackDataDao = getTrackDataDao();
-				final EncodedTrackBean newEncodedTrackBean = encodedTrackBean==null?new EncodedTrackBean():encodedTrackBean;
-				TrackDataBean oldTrackDataBean = encodedTrackBean==null?null:encodedTrackBean.getTrackDataBean();
-				final TrackDataBean newTrackDataBean = new TrackDataBean();
-				newEncodedTrackBean.setFlacUrl(url);
-				newEncodedTrackBean.setEncoderBean(encoderBean);
-				newEncodedTrackBean.setTimestamp(new Date().getTime());
+			final EncodedTrackBean newEncodedTrackBean = encodedTrackBean==null?new EncodedTrackBean():encodedTrackBean;
+			newEncodedTrackBean.setFlacUrl(url);
+			newEncodedTrackBean.setEncoderBean(encoderBean);
+			newEncodedTrackBean.setTimestamp(new Date().getTime());
+			newEncodedTrackBean.setLength(-1);
+			encodedTrackDao.store(newEncodedTrackBean);
+			try {	
 				EncodingClosure closure = new EncodingClosure() {
 					public void process(InputStream in) throws IOException {
-						ByteArrayOutputStream out = new ByteArrayOutputStream();
+						Iterator<OutputStream> outIterator = 
+							trackDataStreamIteratorFactory.createTrackDataOutputStreamIterator(newEncodedTrackBean);
+						OutputStream out = new SequenceOutputStream(TrackDataDao.MAXIMUM_TRACK_LENGTH, outIterator);
 						int length = IOUtils.copy(in, out);
-						newTrackDataBean.setTrack(out.toByteArray());
-						newTrackDataBean.setLength(length);
-						newEncodedTrackBean.setTrackDataBean(newTrackDataBean);
+						out.close();
+						newEncodedTrackBean.setLength(length);
 					}
 				};
 				encode(encoderBean, flacFile, closure, commandCache);
 				encodedTrackDao.store(newEncodedTrackBean);
 				encodedTrackDao.flush();
-				if (oldTrackDataBean != null) {
-					trackDataDao.remove(oldTrackDataBean);
-					trackDataDao.dismiss(newTrackDataBean);
-				}
 				encodedTrackDao.dismiss(newEncodedTrackBean);
 			}
 			catch (IOException e) {
@@ -209,7 +214,7 @@ public class EncoderServiceImpl implements EncoderService, Serializable {
 			workers[idx] = new EncodingWorker(encodingCommandBeans, errors) {
 				@Override
 				protected void process(EncodingCommandBean encodingCommandBean) throws IOException {
-					encode(encodingCommandBean, commandCache);
+					getEncoderService().encode(encodingCommandBean, commandCache);
 				}
 			};
 			workers[idx].start();
@@ -334,5 +339,22 @@ public class EncoderServiceImpl implements EncoderService, Serializable {
 
 	public void setMaximumThreads(int maximumThreads) {
 		i_maximumThreads = maximumThreads;
+	}
+
+	public TrackDataStreamIteratorFactory getTrackDataStreamIteratorFactory() {
+		return i_trackDataStreamIteratorFactory;
+	}
+
+	public void setTrackDataStreamIteratorFactory(
+			TrackDataStreamIteratorFactory trackDataStreamIteratorFactory) {
+		i_trackDataStreamIteratorFactory = trackDataStreamIteratorFactory;
+	}
+
+	public EncodingWorkerFactory getEncodingWorkerFactory() {
+		return i_encodingWorkerFactory;
+	}
+
+	public void setEncodingWorkerFactory(EncodingWorkerFactory encodingWorkerFactory) {
+		i_encodingWorkerFactory = encodingWorkerFactory;
 	}
 }

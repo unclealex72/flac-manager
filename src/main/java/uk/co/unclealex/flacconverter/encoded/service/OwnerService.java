@@ -14,5 +14,5 @@ public interface OwnerService {
 
 	public SortedSet<FlacAlbumBean> getOwnedAlbums(OwnerBean ownerBean);
 	
-	public SortedSet<EncodedTrackBean> getOwnedEncodedTracks(OwnerBean ownerBean, EncoderBean encoderBean);
+	public KnownSizeIterator<EncodedTrackBean> getOwnedEncodedTracks(OwnerBean ownerBean, EncoderBean encoderBean);
 }

@@ -1,10 +1,12 @@
 package uk.co.unclealex.flacconverter.encoded.service;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.commons.collections15.IteratorUtils;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
 import org.springframework.beans.factory.annotation.Required;
@@ -17,6 +19,7 @@ import uk.co.unclealex.flacconverter.encoded.model.OwnedArtistBean;
 import uk.co.unclealex.flacconverter.encoded.model.OwnerBean;
 import uk.co.unclealex.flacconverter.flac.dao.FlacAlbumDao;
 import uk.co.unclealex.flacconverter.flac.dao.FlacArtistDao;
+import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
 import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 
@@ -24,6 +27,7 @@ public class OwnerServiceImpl implements OwnerService {
 
 	private FlacArtistDao i_flacArtistDao;
 	private FlacAlbumDao i_flacAlbumDao;
+	private FlacTrackDao i_flacTrackDao;
 	private EncodedTrackDao i_encodedTrackDao;
 	
 	@Override
@@ -54,21 +58,35 @@ public class OwnerServiceImpl implements OwnerService {
 	}
 	
 	@Override
-	public SortedSet<EncodedTrackBean> getOwnedEncodedTracks(OwnerBean ownerBean, EncoderBean encoderBean) {
+	public KnownSizeIterator<EncodedTrackBean> getOwnedEncodedTracks(OwnerBean ownerBean, final EncoderBean encoderBean) {
+		SortedSet<FlacTrackBean> flacTrackBeans;
 		if (ownerBean.isOwnsAll()) {
-			return getEncodedTrackDao().findByEncoderBean(encoderBean);
+			flacTrackBeans = getFlacTrackDao().getAll();
 		}
-		List<String> urls = new LinkedList<String>();
-		Transformer<FlacTrackBean, String> transformer = new Transformer<FlacTrackBean, String>() {
+		else {
+			flacTrackBeans = new TreeSet<FlacTrackBean>();
+			for (FlacAlbumBean flacAlbumBean : getOwnedAlbums(ownerBean)) {
+				flacTrackBeans.addAll(flacAlbumBean.getFlacTrackBeans());
+			}
+		}
+		Transformer<FlacTrackBean, String> toUrltransformer = new Transformer<FlacTrackBean, String>() {
 			@Override
 			public String transform(FlacTrackBean flacTrackBean) {
 				return flacTrackBean.getUrl();
 			}
 		};
-		for (FlacAlbumBean flacAlbumBean : getOwnedAlbums(ownerBean)) {
-			CollectionUtils.collect(flacAlbumBean.getFlacTrackBeans(), transformer, urls);
-		}
-		return getEncodedTrackDao().findByUrlsAndEncoderBean(urls, encoderBean);
+		final EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
+		Transformer<String, EncodedTrackBean> toTrackTransformer = new Transformer<String, EncodedTrackBean>() {
+			@Override
+			public EncodedTrackBean transform(String url) {
+				return encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
+			}
+		};
+		int size = flacTrackBeans.size();
+		List<String> urls = new ArrayList<String>(size + 2);
+		CollectionUtils.collect(flacTrackBeans, toUrltransformer, urls);
+		Iterator<EncodedTrackBean> iter = IteratorUtils.transformedIterator(urls.iterator(), toTrackTransformer);
+		return new KnownSizeIterator<EncodedTrackBean>(size, iter);
 	}
 	
 	@Required
@@ -96,6 +114,14 @@ public class OwnerServiceImpl implements OwnerService {
 
 	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
 		i_encodedTrackDao = encodedTrackDao;
+	}
+
+	public FlacTrackDao getFlacTrackDao() {
+		return i_flacTrackDao;
+	}
+
+	public void setFlacTrackDao(FlacTrackDao flacTrackDao) {
+		i_flacTrackDao = flacTrackDao;
 	}
 
 }

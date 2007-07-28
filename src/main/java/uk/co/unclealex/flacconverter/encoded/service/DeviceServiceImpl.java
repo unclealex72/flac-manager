@@ -10,7 +10,6 @@ import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.SortedSet;
 import java.util.TreeMap;
 
 import org.apache.commons.collections15.CollectionUtils;
@@ -149,13 +148,14 @@ public class DeviceServiceImpl implements DeviceService {
 			writingListener = new WritingListener();
 		}
 		String titleFormat = deviceBean.getTitleFormat();
-		SortedSet<EncodedTrackBean> encodedTrackBeans =
+		KnownSizeIterator<EncodedTrackBean> encodedTrackBeansIter =
 			getOwnerService().getOwnedEncodedTracks(deviceBean.getOwnerBean(), deviceBean.getEncoderBean());
-		writingListener.initialise(encodedTrackBeans.size());
+		writingListener.initialise(encodedTrackBeansIter.size());
 		TrackWriter trackWriter = getTrackWriterFactory().createFileTrackWriter(deviceDirectory);
 		try {
 			trackWriter.create();
-			for (EncodedTrackBean encodedTrackBean : encodedTrackBeans) {
+			while (encodedTrackBeansIter.hasNext()) {
+				EncodedTrackBean encodedTrackBean = encodedTrackBeansIter.next();
 				String fileName = trackWriter.write(encodedTrackBean, titleFormat);
 				writingListener.registerFileWrite(fileName);
 				encodedTrackDao.dismiss(encodedTrackBean);
