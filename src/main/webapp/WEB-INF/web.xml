@@ -47,9 +47,9 @@
 		</filter-class>
 	</filter>
 
-	<!-- Hibernate OpenSession Filter -->
+	<!-- Hibernate OpenSession Filters -->
 	<filter>
-		<filter-name>hibernate</filter-name>
+		<filter-name>hibernate-encoded</filter-name>
 		<filter-class>
 			org.springframework.orm.hibernate3.support.OpenSessionInViewFilter
 		</filter-class>
@@ -59,6 +59,25 @@
 		</init-param>
 	</filter>
 
+	<filter>
+		<filter-name>hibernate-flac</filter-name>
+		<filter-class>
+			org.springframework.orm.hibernate3.support.OpenSessionInViewFilter
+		</filter-class>
+		<init-param>
+			<param-name>singleSession</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<init-param>
+			<param-name>sessionFactoryBeanName</param-name>
+			<param-value>flacSessionFactory</param-value>
+		</init-param>
+	</filter>
+
+	<filter>
+		<filter-name>download</filter-name>
+		<filter-class>uk.co.unclealex.flacconverter.encoded.filter.ZipDownloadFilter</filter-class>
+	</filter>
 <!-- 
 	<filter-mapping>
 		<filter-name>gzip</filter-name>
@@ -67,8 +86,18 @@
  -->
  
 	<filter-mapping>
-		<filter-name>hibernate</filter-name>
-		<url-pattern>*.html</url-pattern>
+		<filter-name>hibernate-encoded</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<filter-mapping>
+		<filter-name>hibernate-flac</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<filter-mapping>
+		<filter-name>download</filter-name>
+		<url-pattern>*.zip</url-pattern>
 	</filter-mapping>
 
 	<!--
@@ -85,7 +114,7 @@
 
 	<filter-mapping>
 		<filter-name>sitemesh</filter-name>
-		<url-pattern>*.html</url-pattern>
+		<url-pattern>/html/*</url-pattern>
 	</filter-mapping>
 
 	<filter-mapping>
@@ -116,6 +145,7 @@
 			classpath:applicationContext-web-security.xml
 			classpath:applicationContext.xml
 			classpath:applicationContext-commandline.xml
+			classpath:applicationContext-schedule.xml
 		</param-value>
 	</context-param>
 
@@ -129,14 +159,14 @@
 
 	<resource-ref>
 		<description>Slimserver Database</description>
-		<res-ref-name>flac</res-ref-name>
+		<res-ref-name>jdbc/slimserver</res-ref-name>
 		<res-type>javax.sql.DataSource</res-type>
 		<res-auth>Container</res-auth>
 	</resource-ref>
 
 	<resource-ref>
 		<description>Encoded Music Database</description>
-		<res-ref-name>music</res-ref-name>
+		<res-ref-name>jdbc/music</res-ref-name>
 		<res-type>javax.sql.DataSource</res-type>
 		<res-auth>Container</res-auth>
 	</resource-ref>

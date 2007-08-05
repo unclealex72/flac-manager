@@ -11,7 +11,7 @@
   <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-15" />
-    <c:set var="link"><s:url action="monitor-device-downloading" /></c:set>
+    <c:set var="link"><s:url action="device-downloading" /></c:set>
     <meta http-equiv="refresh" content="10;url=${link}"/>
     <title>Writing Progress</title>
   </head>

@@ -11,28 +11,25 @@
   <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-15" />
-    <title>Connected Devices</title>
+    <title>Download</title>
   </head>
-
+  
   <body>
-  	<s:if test="connectedDevices.empty">
-  		<p>No unused connected devices were found.</p>
-  	</s:if>
-  	<s:else>
-  		<p>Select a device for downloading:</p>
+  	<p>
+  		Please select an encoding to use for the download:
   		<ul>
-  			<s:iterator value="connectedDevices">
+  			<s:iterator value="encoders">
   				<li>
   					<c:set var="link">
-	  					<s:url action="device-download">
-	  						<s:param name="device" value="id"/>
-	  					</s:url>
-	  				</c:set>
-	  				<a href="${link}"><s:property value="fullDescription"/></a>
+  						<s:url value="/music.zip">
+  							<s:param name="encoder" value="id"/>
+  						</s:url>
+  					</c:set>
+  					<a href="${link}"><s:property value="extension"/></a>
   				</li>
   			</s:iterator>
   		</ul>
-  	</s:else>
+  	</p>
   </body>
   </html>
 </jsp:root>
