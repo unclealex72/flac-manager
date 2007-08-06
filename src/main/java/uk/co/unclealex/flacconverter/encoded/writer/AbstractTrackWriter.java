@@ -1,23 +1,30 @@
 package uk.co.unclealex.flacconverter.encoded.writer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.flacconverter.SlimServerConfig;
+import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
+import uk.co.unclealex.flacconverter.encoded.dao.TrackDataDao;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.encoded.model.TrackDataBean;
+import uk.co.unclealex.flacconverter.encoded.service.SingleEncoderService;
+import uk.co.unclealex.flacconverter.encoded.service.TrackDataStreamIteratorFactory;
 import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
 import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.flacconverter.substitutor.Substitutor;
 
+@Transactional(readOnly=true)
 public abstract class AbstractTrackWriter<T extends OutputStream> implements TrackWriter {
 
 	private static String INVALID_CHARACTER_STRING = "/\\?%*:|\"<>";
@@ -32,9 +39,13 @@ public abstract class AbstractTrackWriter<T extends OutputStream> implements Tra
 	
 	private FlacTrackDao i_flacTrackDao;
 	private SlimServerConfig i_slimServerConfig;
+	private TrackDataDao i_trackDataDao;
+	private EncodedTrackDao i_encodedTrackDao;
+	private TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
+	private SingleEncoderService i_singleEncoderService;
 	
 	@Override
-	public final String write(EncodedTrackBean encodedTrackBean, String titleFormat) throws IOException {
+	public String write(EncodedTrackBean encodedTrackBean, String titleFormat) throws IOException {
 		Substitutor substitutor = new Substitutor(titleFormat);
 		FlacTrackBean flacTrackBean = getFlacTrackDao().findByUrl(encodedTrackBean.getFlacUrl());
 		FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
@@ -45,9 +56,10 @@ public abstract class AbstractTrackWriter<T extends OutputStream> implements Tra
 		substitutor.substitute("artist", sanitise(removeDefiniteArticle(flacArtistBean.getName())));
 		String title = substitutor.getText() + "." + encodedTrackBean.getEncoderBean().getExtension();
 		T out = createStream(encodedTrackBean, title);
-		TrackDataBean trackDataBean = encodedTrackBean.getTrackDataBean();
-		out.write(trackDataBean.getTrack());
+		InputStream in = getSingleEncoderService().getTrackInputStream(encodedTrackBean);
+		IOUtils.copy(in, out);
 		closeStream(encodedTrackBean, title, out);
+		in.close();
 		return title;
 	}
 	
@@ -94,5 +106,38 @@ public abstract class AbstractTrackWriter<T extends OutputStream> implements Tra
 
 	public void setSlimServerConfig(SlimServerConfig slimServerConfig) {
 		i_slimServerConfig = slimServerConfig;
+	}
+
+	public TrackDataDao getTrackDataDao() {
+		return i_trackDataDao;
+	}
+
+	public void setTrackDataDao(TrackDataDao trackDataDao) {
+		i_trackDataDao = trackDataDao;
+	}
+
+	public EncodedTrackDao getEncodedTrackDao() {
+		return i_encodedTrackDao;
+	}
+
+	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
+		i_encodedTrackDao = encodedTrackDao;
+	}
+
+	public TrackDataStreamIteratorFactory getTrackDataStreamIteratorFactory() {
+		return i_trackDataStreamIteratorFactory;
+	}
+
+	public void setTrackDataStreamIteratorFactory(
+			TrackDataStreamIteratorFactory trackDataStreamIteratorFactory) {
+		i_trackDataStreamIteratorFactory = trackDataStreamIteratorFactory;
+	}
+
+	public SingleEncoderService getSingleEncoderService() {
+		return i_singleEncoderService;
+	}
+
+	public void setSingleEncoderService(SingleEncoderService singleEncoderService) {
+		i_singleEncoderService = singleEncoderService;
 	}
 }

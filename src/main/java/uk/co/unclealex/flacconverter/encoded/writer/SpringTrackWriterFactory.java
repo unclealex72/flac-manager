@@ -1,6 +1,7 @@
 package uk.co.unclealex.flacconverter.encoded.writer;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.springframework.context.ApplicationContext;
@@ -14,17 +15,17 @@ public class SpringTrackWriterFactory implements TrackWriterFactory, Application
 	
 	@Override
 	public TrackWriter createFileTrackWriter(File baseDir) {
-		FileTrackWriterImpl fileTrackWriter = 
-			(FileTrackWriterImpl) getApplicationContext().getBean(getFileTrackWriterId(), FileTrackWriterImpl.class);
+		FileTrackWriter fileTrackWriter = 
+			(FileTrackWriter) getApplicationContext().getBean(getFileTrackWriterId(), FileTrackWriter.class);
 		fileTrackWriter.setRootDirectory(baseDir);
 		return fileTrackWriter;
 	}
 	
 	@Override
-	public TrackWriter createZipTrackWriter(ZipOutputStream zipOutputStream) {
+	public TrackWriter createZipTrackWriter(OutputStream out) {
 		ZipTrackWriter zipTrackWriter =
 			(ZipTrackWriter) getApplicationContext().getBean(getZipTrackWriterId(), ZipTrackWriter.class);
-		zipTrackWriter.setZipOutputStream(zipOutputStream);
+		zipTrackWriter.setZipOutputStream(new ZipOutputStream(out));
 		return zipTrackWriter;
 	}
 	

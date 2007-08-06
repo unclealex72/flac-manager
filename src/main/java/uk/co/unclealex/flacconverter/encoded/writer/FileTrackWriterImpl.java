@@ -8,7 +8,7 @@ import org.apache.commons.lang.StringUtils;
 
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 
-public class FileTrackWriterImpl extends AbstractTrackWriter<FileOutputStream> {
+public class FileTrackWriterImpl extends AbstractTrackWriter<FileOutputStream> implements FileTrackWriter {
 
 	private File i_rootDirectory;
 	
@@ -46,6 +46,9 @@ public class FileTrackWriterImpl extends AbstractTrackWriter<FileOutputStream> {
 		return i_rootDirectory;
 	}
 
+	/* (non-Javadoc)
+	 * @see uk.co.unclealex.flacconverter.encoded.writer.FileTrackWriter#setRootDirectory(java.io.File)
+	 */
 	public void setRootDirectory(File rootDirectory) {
 		i_rootDirectory = rootDirectory;
 	}
