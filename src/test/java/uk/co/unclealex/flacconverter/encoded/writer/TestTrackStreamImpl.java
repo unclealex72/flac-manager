@@ -5,9 +5,12 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 
-public class TestTrackStream extends AbstractTrackWriter<ByteArrayOutputStream> {
+@Transactional
+public class TestTrackStreamImpl extends AbstractTrackWriter<ByteArrayOutputStream> implements TestTrackWriter {
 
 	private Map<String, Integer> i_fileNamesAndSizes = new LinkedHashMap<String, Integer>();
 
@@ -35,6 +38,9 @@ public class TestTrackStream extends AbstractTrackWriter<ByteArrayOutputStream> 
 		
 	}
 
+	/* (non-Javadoc)
+	 * @see uk.co.unclealex.flacconverter.encoded.writer.TestTrackWriter#getFileNamesAndSizes()
+	 */
 	public Map<String, Integer> getFileNamesAndSizes() {
 		return i_fileNamesAndSizes;
 	}

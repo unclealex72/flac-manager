@@ -26,7 +26,7 @@ public class TrackWriterTest extends EncodedSpringTest {
 		}
 		TestTrackWriter writer = getTestTrackWriter();
 		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
-			writer.write(encodedTrackBean, "${1:artist}/${artist}/${album}/${2:track} - ${title}");
+			writer.write(encodedTrackBean, trackStreams);
 		}
 		Map<String, Integer> fileNamesAndSizes = writer.getFileNamesAndSizes();
 		System.out.println(fileNamesAndSizes);

@@ -18,7 +18,7 @@ public class ZipTrackWriterTest extends TestCase {
 	}
 	
 	public void testDirectoriesCreatedOnlyOnce() {
-		ZipTrackWriter writer = new ZipTrackWriter();
+		ZipTrackWriterImpl writer = new ZipTrackWriterImpl();
 		checkEntries(
 				writer,
 				"Slayer/South Of Heaven/01 - South Of Heaven.mpg",
@@ -30,10 +30,10 @@ public class ZipTrackWriterTest extends TestCase {
 	}
 	
 	public void checkEntries(String title, String[] expectedEntries) {
-		checkEntries(new ZipTrackWriter(), title, expectedEntries);
+		checkEntries(new ZipTrackWriterImpl(), title, expectedEntries);
 	}
 	
-	public void checkEntries(ZipTrackWriter zipFileWriter, String title, String[] expectedEntries) {
+	public void checkEntries(ZipTrackWriterImpl zipFileWriter, String title, String[] expectedEntries) {
 		List<ZipEntry> zipEntries = zipFileWriter.createEntries(title);
 		int lastIndex = zipEntries.size() - 1;
 		for (ListIterator<ZipEntry> iter = zipEntries.listIterator(); iter.hasNext(); ) {
