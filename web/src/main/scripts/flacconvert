@@ -1,0 +1,5 @@
+#!/bin/sh
+
+#usage: flacconvert extension [extension...]
+
+runflac Convert $@
