@@ -6,6 +6,8 @@ package uk.co.unclealex.flacconverter.substitutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatVariable;
+
 /**
  * @author alex
  *
@@ -22,9 +24,9 @@ public class Substitutor {
 		i_text = text;
 	}
 
-	public Substitutor substitute(String variableName, final String value) {
+	public Substitutor substitute(TitleFormatVariable variable, final String value) {
 		substitute(
-				variableName,
+				variable,
 				new SubsBuilder() {
 					public String getObjectAsString(Integer length) {
 						if (length == null || length >= value.length()) {
@@ -36,9 +38,9 @@ public class Substitutor {
 		return this;
 	}
 	
-	public Substitutor substitute(String variableName, final int value) {
+	public Substitutor substitute(TitleFormatVariable variable, final int value) {
 		substitute(
-				variableName,
+				variable,
 				new SubsBuilder() {
 					public String getObjectAsString(Integer length) {
 						StringBuffer buf = new StringBuffer();
@@ -52,8 +54,8 @@ public class Substitutor {
 		return this;
 	}
 	
-	protected void substitute(String variableName, SubsBuilder subsBuilder) {
-		Pattern pattern = Pattern.compile("\\$\\{(?:([0-9]+):)?" + variableName + "\\}");
+	protected void substitute(TitleFormatVariable variable, SubsBuilder subsBuilder) {
+		Pattern pattern = Pattern.compile("\\$\\{(?:([0-9]+):)?" + variable + "\\}");
 		Matcher matcher;
 		while ((matcher = pattern.matcher(getText())).find()) {
 			Integer length = null;

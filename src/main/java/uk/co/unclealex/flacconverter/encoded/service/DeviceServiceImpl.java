@@ -7,8 +7,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -18,26 +23,32 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.flacconverter.encoded.dao.DeviceDao;
 import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
 import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
-import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.encoded.writer.TrackWriter;
+import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
+import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatServiceFactory;
 import uk.co.unclealex.flacconverter.encoded.writer.TrackWriterFactory;
+import uk.co.unclealex.flacconverter.encoded.writer.TrackWritingException;
+import uk.co.unclealex.flacconverter.encoded.writer.WritingListener;
 import uk.co.unclealex.flacconverter.process.service.ProcessResult;
 import uk.co.unclealex.flacconverter.process.service.ProcessService;
 
+@Transactional
 public class DeviceServiceImpl implements DeviceService {
 
 	private static final Logger log = Logger.getLogger(DeviceServiceImpl.class);
 	
 	private ProcessService i_processService;
+	private ProgressWritingListenerService i_progressWritingListenerService;
 	private DeviceDao i_deviceDao;
 	private OwnerService i_ownerService;
 	private TrackWriterFactory i_trackWriterFactory;
 	private EncodedTrackDao i_encodedTrackDao;
-	
+	private TitleFormatServiceFactory i_titleFormatServiceFactory;
+	private DevicesWriterFactory i_devicesWriterFactory;
 	@Override
 	public SortedMap<DeviceBean, String> findDevicesAndFiles() throws IOException {
 		SortedMap<DeviceBean, String> devicesAndFiles = new TreeMap<DeviceBean, String>();
@@ -74,7 +85,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public boolean mountingRequiresPassword(String path) throws IOException {
+	public boolean mountingRequiresPassword(String path) {
 		return false;
 	}
 	
@@ -113,7 +124,9 @@ public class DeviceServiceImpl implements DeviceService {
 
 	@Override
 	public void removeMusicFolders(DeviceBean deviceBean, File deviceDirectory) throws IOException {
-		removeMusicFolders(deviceBean.getEncoderBean().getExtension(), deviceDirectory);
+		if (deviceBean.isDeletingRequired()) {
+			removeMusicFolders(deviceBean.getEncoderBean().getExtension(), deviceDirectory);
+		}
 	}
 	
 	public void removeMusicFolders(String extension, File deviceDirectory) throws IOException {
@@ -142,30 +155,103 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Override
-	public void writeMusic(DeviceBean deviceBean, File deviceDirectory, WritingListener writingListener) {
-		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		if (writingListener == null) {
-			writingListener = new WritingListener();
-		}
-		String titleFormat = deviceBean.getTitleFormat();
-		KnownSizeIterator<EncodedTrackBean> encodedTrackBeansIter =
-			getOwnerService().getOwnedEncodedTracks(deviceBean.getOwnerBean(), deviceBean.getEncoderBean());
-		writingListener.initialise(encodedTrackBeansIter.size());
-		TrackWriter trackWriter = getTrackWriterFactory().createFileTrackWriter(deviceDirectory);
-		try {
-			trackWriter.create();
-			while (encodedTrackBeansIter.hasNext()) {
-				EncodedTrackBean encodedTrackBean = encodedTrackBeansIter.next();
-				String fileName = trackWriter.write(encodedTrackBean, titleFormat);
-				writingListener.registerFileWrite(fileName);
-				encodedTrackDao.dismiss(encodedTrackBean);
+	public void writeMusic(
+			Map<DeviceBean, File> deviceDirectories, Map<DeviceBean, Collection<WritingListener>> writingListeners) throws TrackWritingException {
+		Map<EncoderBean, DevicesWriter> devicesWritersByEncoderBean = new HashMap<EncoderBean, DevicesWriter>();
+		for (Map.Entry<DeviceBean, File> entry : deviceDirectories.entrySet()) {
+			DeviceBean deviceBean = entry.getKey();
+			EncoderBean encoderBean = deviceBean.getEncoderBean();
+			File deviceDirectory = entry.getValue();
+			Collection<WritingListener> deviceWritingListeners = writingListeners.get(deviceBean);
+			DevicesWriter devicesWriter = devicesWritersByEncoderBean.get(encoderBean);
+			if (devicesWriter == null) {
+				devicesWriter = getDevicesWriterFactory().create();
+				devicesWritersByEncoderBean.put(encoderBean, devicesWriter);
 			}
-			trackWriter.close();
-			writingListener.finish();
+			devicesWriter.addDevice(deviceBean, deviceDirectory, deviceWritingListeners);
 		}
-		catch (IOException e) {
-			writingListener.finish(e);
+		
+		final TrackWritingException trackWritingException = new TrackWritingException();
+		List<Thread> threads = new LinkedList<Thread>();
+		for (final DevicesWriter devicesWriter : devicesWritersByEncoderBean.values()) {
+			Thread thread = new Thread() {
+				@Override
+				public void run() {
+					try {
+						devicesWriter.write();
+					}
+					catch (TrackWritingException e) {
+						trackWritingException.registerExceptions(e);
+					}
+				}
+			};
+			threads.add(thread);
+			thread.start();
 		}
+		for (Thread thread : threads) {
+			try {
+				thread.join();
+			}
+			catch (InterruptedException e) {
+				log.warn("A track writing thread was interrupted.", e);
+			}
+		}
+		if (trackWritingException.requiresThrowing()) {
+			throw trackWritingException;
+		}
+	}
+	
+	@Override
+	public void writeToDevices(Map<DeviceBean, Collection<WritingListener>> writingListeners) throws TrackWritingException, IOException {
+		Map<DeviceBean, String> pathsByDeviceBean = findDevicesAndFiles();
+		Map<DeviceBean, File> deviceDirectories = new HashMap<DeviceBean, File>();
+		for (DeviceBean deviceBean : new HashSet<DeviceBean>(writingListeners.keySet())) {
+			String path = pathsByDeviceBean.get(deviceBean);
+			if (path == null) {
+				registerIoException(
+						new IOException("The device " + deviceBean + " is not connected."), deviceBean, writingListeners);
+			}
+			else {
+				try {
+					File mountPoint = getMountPointForFile(path);
+					deviceDirectories.put(deviceBean, mountPoint);
+				}
+				catch (IOException e) {
+					registerIoException(e, deviceBean, writingListeners);
+				}
+			}
+		}
+		writeMusic(deviceDirectories, writingListeners);
+	}
+	
+	protected void registerIoException(IOException exception,
+			DeviceBean deviceBean,
+			Map<DeviceBean, Collection<WritingListener>> writingListeners) {
+		Collection<WritingListener> listeners = writingListeners.get(deviceBean);
+		if (listeners != null) {
+			for (WritingListener writingListener : listeners) {
+				writingListener.finish(exception);
+			}
+		}
+		writingListeners.remove(deviceBean);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void writeToDevices(Collection<DeviceBean> deviceBeans) throws TrackWritingException, IOException {
+		ProgressWritingListenerService progressWritingListenerService = getProgressWritingListenerService();
+		Map<DeviceBean, Collection<WritingListener>> writingListeners = new HashMap<DeviceBean, Collection<WritingListener>>();
+		for (DeviceBean deviceBean : deviceBeans) {
+			Collection<WritingListener> listeners = new ArrayList<WritingListener>();
+			listeners.add(progressWritingListenerService.createNewListener(deviceBean));
+			writingListeners.put(deviceBean, listeners);
+		}
+		writeToDevices(writingListeners);
+	}
+	
+	@Override
+	public void writeToAllDevices() throws TrackWritingException, IOException {
+		writeToDevices(findDevicesAndFiles().keySet());
 	}
 	
 	public ProcessService getProcessService() {
@@ -206,5 +292,31 @@ public class DeviceServiceImpl implements DeviceService {
 
 	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
 		i_encodedTrackDao = encodedTrackDao;
+	}
+
+	public ProgressWritingListenerService getProgressWritingListenerService() {
+		return i_progressWritingListenerService;
+	}
+
+	public void setProgressWritingListenerService(
+			ProgressWritingListenerService progressWritingListenerService) {
+		i_progressWritingListenerService = progressWritingListenerService;
+	}
+
+	public TitleFormatServiceFactory getTitleFormatServiceFactory() {
+		return i_titleFormatServiceFactory;
+	}
+
+	public void setTitleFormatServiceFactory(
+			TitleFormatServiceFactory titleFormatServiceFactory) {
+		i_titleFormatServiceFactory = titleFormatServiceFactory;
+	}
+
+	public DevicesWriterFactory getDevicesWriterFactory() {
+		return i_devicesWriterFactory;
+	}
+
+	public void setDevicesWriterFactory(DevicesWriterFactory devicesWriterFactory) {
+		i_devicesWriterFactory = devicesWriterFactory;
 	}
 }

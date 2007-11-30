@@ -3,28 +3,35 @@ package uk.co.unclealex.flacconverter.encoded.writer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-import org.apache.commons.lang.StringUtils;
+import java.io.OutputStream;
 
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 
-public class FileTrackWriterImpl extends AbstractTrackWriter<FileOutputStream> implements FileTrackWriter {
+public class FileTrackStreamImpl implements FileTrackStream {
 
 	private File i_rootDirectory;
+	private OutputStream i_outputStream;
 	
 	@Override
-	public FileOutputStream createStream(EncodedTrackBean encodedTrackBean, String title) throws IOException {
-		File f = new File(getRootDirectory(), "");
-		for (String part : StringUtils.split(title, File.pathSeparatorChar)) {
-			f = new File(f, part);
-		}
+	public OutputStream createStream(EncodedTrackBean encodedTrackBean, String title) throws IOException {
+		File f = new File(getRootDirectory(), title);
 		md(f.getParentFile());
-		return new FileOutputStream(f);
+		OutputStream out;
+		long encodingTime = encodedTrackBean.getTimestamp();
+		long lastModifiedTime = f.lastModified();
+		if (encodingTime > lastModifiedTime) {
+			out = new FileOutputStream(f);
+		}
+		else {
+			out = null;
+		}
+		setOutputStream(out);
+		return out;
 	}
 
 	@Override
-	public void closeStream(EncodedTrackBean encodedTrackBean, String title, FileOutputStream out) throws IOException {
-		out.close();
+	public void closeStream() throws IOException {
+		getOutputStream().close();
 	}
 
 	@Override
@@ -41,16 +48,37 @@ public class FileTrackWriterImpl extends AbstractTrackWriter<FileOutputStream> i
 			throw new IOException("Creating directory " + directory.getCanonicalPath() + " failed.");
 		}		
 	}
+
+	@Override
+	public String toString() {
+		return getRootDirectory().getPath();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof FileTrackStreamImpl && 
+			((FileTrackStreamImpl) obj).getRootDirectory().equals(getRootDirectory());
+	}
+	
+	@Override
+	public int hashCode() {
+		return getRootDirectory().hashCode();
+	}
 	
 	public File getRootDirectory() {
 		return i_rootDirectory;
 	}
 
-	/* (non-Javadoc)
-	 * @see uk.co.unclealex.flacconverter.encoded.writer.FileTrackWriter#setRootDirectory(java.io.File)
-	 */
 	public void setRootDirectory(File rootDirectory) {
 		i_rootDirectory = rootDirectory;
+	}
+
+	public OutputStream getOutputStream() {
+		return i_outputStream;
+	}
+
+	public void setOutputStream(OutputStream outputStream) {
+		i_outputStream = outputStream;
 	}
 
 }

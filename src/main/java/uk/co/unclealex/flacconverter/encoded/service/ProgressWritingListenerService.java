@@ -3,6 +3,7 @@ package uk.co.unclealex.flacconverter.encoded.service;
 import java.util.SortedMap;
 
 import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
+import uk.co.unclealex.flacconverter.encoded.writer.ProgressWritingListener;
 
 public interface ProgressWritingListenerService {
 
@@ -11,11 +12,11 @@ public interface ProgressWritingListenerService {
 	 * @param deviceBean
 	 * @return The created listener or null if one already exists.
 	 */
-	public WritingListener createNewListener(DeviceBean deviceBean);
+	public ProgressWritingListener createNewListener(DeviceBean deviceBean);
 	
-	public SortedMap<DeviceBean, WritingListener> getAllListeners();
+	public SortedMap<DeviceBean, ProgressWritingListener> getAllListeners();
 	
-	public void unregisterListener(DeviceBean deviceBean, WritingListener writingListener);
+	public void unregisterListener(DeviceBean deviceBean, ProgressWritingListener progressProgressWritingListener);
 
-	public boolean hasWritingListener(DeviceBean deviceBean);
+	public boolean hasProgressWritingListener(DeviceBean deviceBean);
 }

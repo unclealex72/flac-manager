@@ -15,9 +15,16 @@ public class HibernateSessionBinder {
 	private SessionFactory i_sessionFactory;
 		
 	public HibernateSessionBinder(SessionFactory sessionFactory) {
-		i_sessionFactory = sessionFactory;
+		this(sessionFactory, null);
 	}
 	
+	public HibernateSessionBinder(
+			SessionFactory sessionFactory, FlushMode flushMode) {
+		super();
+		i_flushMode = flushMode;
+		i_sessionFactory = sessionFactory;
+	}
+
 	public void bind() {
 		setParticipate(false);
 		SessionFactory sessionFactory = getSessionFactory();

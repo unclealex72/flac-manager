@@ -13,6 +13,7 @@ public class DeviceServiceManualTest {
 		String device = "/dev/sdi1";
 		DeviceServiceImpl deviceServiceImpl = new DeviceServiceImpl();
 		deviceServiceImpl.setProcessService(new ProcessServiceImpl());
+		@SuppressWarnings("unused")
 		String password = null;
 		if (deviceServiceImpl.mountingRequiresPassword(device)) {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));

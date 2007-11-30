@@ -1,41 +1,48 @@
 package uk.co.unclealex.flacconverter.encoded.writer;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.SortedMap;
 
+import org.apache.commons.io.output.CountingOutputStream;
+import org.apache.commons.io.output.NullOutputStream;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 
 @Transactional
-public class TestTrackStreamImpl extends AbstractTrackWriter<ByteArrayOutputStream> implements TestTrackWriter {
+public class TestTrackStreamImpl implements TestTrackStream {
 
-	private Map<String, Integer> i_fileNamesAndSizes = new LinkedHashMap<String, Integer>();
-
-	@Override
-	public ByteArrayOutputStream createStream(EncodedTrackBean encodedTrackBean,
-			String title) throws IOException {
-		return new ByteArrayOutputStream();
+	private Map<String, Integer> i_fileNamesAndSizes;
+	private String i_title;
+	private CountingOutputStream i_outputStream;
+	
+	public TestTrackStreamImpl(SortedMap<String, Integer> fileNamesAndSizes) {
+		i_fileNamesAndSizes = fileNamesAndSizes;
 	}
 
 	@Override
-	public void closeStream(EncodedTrackBean encodedTrackBean, String title,
-			ByteArrayOutputStream out) throws IOException {
-		getFileNamesAndSizes().put(title, out.size());
+	public CountingOutputStream createStream(EncodedTrackBean encodedTrackBean,
+			String title) throws IOException {
+		setTitle(title);
+		setOutputStream(new CountingOutputStream(new NullOutputStream()));
+		return getOutputStream();
+	}
+
+	@Override
+	public void closeStream() throws IOException {
+		CountingOutputStream outputStream = getOutputStream();
+		outputStream.flush();
+		getFileNamesAndSizes().put(getTitle(), getOutputStream().getCount());
+		setOutputStream(null);
 	}
 
 	@Override
 	public void close() throws IOException {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void create() throws IOException {
-		// TODO Auto-generated method stub
-		
 	}
 
 	/* (non-Javadoc)
@@ -48,5 +55,21 @@ public class TestTrackStreamImpl extends AbstractTrackWriter<ByteArrayOutputStre
 	public void setFileNamesAndSizes(Map<String, Integer> fileNamesAndSizes) {
 		i_fileNamesAndSizes = fileNamesAndSizes;
 	}
-	
+
+	public String getTitle() {
+		return i_title;
+	}
+
+	public void setTitle(String title) {
+		i_title = title;
+	}
+
+	public CountingOutputStream getOutputStream() {
+		return i_outputStream;
+	}
+
+	public void setOutputStream(CountingOutputStream outputStream) {
+		i_outputStream = outputStream;
+	}
+
 }

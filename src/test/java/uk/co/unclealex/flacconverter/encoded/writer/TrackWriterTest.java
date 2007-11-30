@@ -1,7 +1,12 @@
 package uk.co.unclealex.flacconverter.encoded.writer;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import uk.co.unclealex.flacconverter.encoded.EncodedSpringTest;
 import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
@@ -10,11 +15,14 @@ import uk.co.unclealex.flacconverter.encoded.service.AlreadyEncodingException;
 import uk.co.unclealex.flacconverter.encoded.service.CurrentlyScanningException;
 import uk.co.unclealex.flacconverter.encoded.service.EncoderService;
 import uk.co.unclealex.flacconverter.encoded.service.MultipleEncodingException;
+import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatService;
+import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatServiceFactory;
 
 public class TrackWriterTest extends EncodedSpringTest {
 
 	private EncoderService i_encoderService;
-	private TestTrackWriter i_testTrackWriter;
+	private TrackWriterFactory i_trackWriterFactory;
+	private TitleFormatServiceFactory i_titleFormatServiceFactory;
 	private EncodedTrackDao i_encodedTrackDao;
 	
 	public void testWrite() throws IOException, AlreadyEncodingException, CurrentlyScanningException {
@@ -24,15 +32,34 @@ public class TrackWriterTest extends EncodedSpringTest {
 		catch (MultipleEncodingException e) {
 			// Ignore.
 		}
-		TestTrackWriter writer = getTestTrackWriter();
-		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
-			writer.write(encodedTrackBean, trackStreams);
+		String titleFormat = "${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}";
+		TitleFormatService titleFormatService = getTitleFormatServiceFactory().createTitleFormatService(titleFormat);
+		Map<TrackStream, TitleFormatService> testTrackStreams = new HashMap<TrackStream, TitleFormatService>();
+		List<SortedMap<String, Integer>> fileNamesAndSizes = new LinkedList<SortedMap<String,Integer>>();
+		for (int idx = 0; idx < 2; idx++) {
+			SortedMap<String, Integer> map = new TreeMap<String, Integer>();
+			fileNamesAndSizes.add(map);
+			testTrackStreams.put(new TestTrackStreamImpl(map), titleFormatService);
 		}
-		Map<String, Integer> fileNamesAndSizes = writer.getFileNamesAndSizes();
-		System.out.println(fileNamesAndSizes);
 		
-		// {B/Brutal Truth/Extreme Conditions Demand Extreme Responses/07 - Collateral Damage.ogg=76383, B/Brutal Truth/Sounds Of The Animal Kingdomkill Trend Suicide/09 - Callous.mp3=269258, B/Brutal Truth/Sounds Of The Animal Kingdomkill Trend Suicide/09 - Callous.ogg=196096, N/Napalm Death/From Enslavement To Obliteration/12 - You Suffer.ogg=52324, N/Napalm Death/From Enslavement To Obliteration/12 - You Suffer.mp3=162041, B/Brutal Truth/Extreme Conditions Demand Extreme Responses/07 - Collateral Damage.mp3=101872, N/Napalm Death/Scum/24 - Your Achievement Bonus Track.mp3=149495, N/Napalm Death/Scum/25 - Dead Bonus Track.ogg=55080, N/Napalm Death/Scum/24 - Your Achievement Bonus Track.ogg=77204, S/Sod/Speak English Or Die/20 - The Ballad Of Jimi Hendrix.ogg=113367, S/Sod/Speak English Or Die/20 - The Ballad Of Jimi Hendrix.mp3=137588, S/Sod/Speak English Or Die/21 - Diamonds And Rust Extended Version.ogg=81596, N/Napalm Death/Scum/25 - Dead Bonus Track.mp3=123151, S/Sod/Speak English Or Die/21 - Diamonds And Rust Extended Version.mp3=134463}
+		TrackWriter writer = getTrackWriterFactory().createTrackWriter(testTrackStreams);
+		Map<String, Integer> expectedFileNamesAndSizes = new TreeMap<String, Integer>();
+		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
+			writer.write(encodedTrackBean);
+			expectedFileNamesAndSizes.put(
+					titleFormatService.getTitle(encodedTrackBean),
+					encodedTrackBean.getLength());
+		}
+		
+		int run = 1;
+		for (Map<String, Integer> actualFileNamesAndSizes : fileNamesAndSizes) {
+			assertEquals(
+				"The wrong tracks and lengths were returned on run " + run + ".",
+				expectedFileNamesAndSizes, actualFileNamesAndSizes);
+			run++;
+		}
 	}
+	
 	public EncoderService getEncoderService() {
 		return i_encoderService;
 	}
@@ -41,18 +68,25 @@ public class TrackWriterTest extends EncodedSpringTest {
 		i_encoderService = encoderService;
 	}
 
-	public TestTrackWriter getTestTrackWriter() {
-		return i_testTrackWriter;
-	}
-
-	public void setTestTrackWriter(TestTrackWriter testTrackWriter) {
-		i_testTrackWriter = testTrackWriter;
-	}
 	public EncodedTrackDao getEncodedTrackDao() {
 		return i_encodedTrackDao;
 	}
 	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
 		i_encodedTrackDao = encodedTrackDao;
 	}
-	
+	public TrackWriterFactory getTrackWriterFactory() {
+		return i_trackWriterFactory;
+	}
+	public void setTrackWriterFactory(TrackWriterFactory trackWriterFactory) {
+		i_trackWriterFactory = trackWriterFactory;
+	}
+
+	public TitleFormatServiceFactory getTitleFormatServiceFactory() {
+		return i_titleFormatServiceFactory;
+	}
+
+	public void setTitleFormatServiceFactory(
+			TitleFormatServiceFactory titleFormatServiceFactory) {
+		i_titleFormatServiceFactory = titleFormatServiceFactory;
+	}
 }

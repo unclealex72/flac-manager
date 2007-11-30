@@ -16,15 +16,17 @@ import com.opensymphony.xwork2.ActionInvocation;
 public class HibernateSessionBackgroundProcess extends BackgroundProcess implements StrutsStatics {
 	
 	private HibernateSessionBinder i_hibernateSessionBinder;
+	private SessionFactory i_sessionFactory;
 	
 	public HibernateSessionBackgroundProcess(String threadName,
 			ActionInvocation invocation, int threadPriority) {
 		super(threadName, invocation, threadPriority);
+		setSessionFactory(lookupSessionFactory());
 	}
 
 	@Override
 	protected void beforeInvocation() {
-		HibernateSessionBinder binder = new HibernateSessionBinder(lookupSessionFactory());
+		HibernateSessionBinder binder = new HibernateSessionBinder(getSessionFactory());
 		setHibernateSessionBinder(binder);
 		binder.bind();
 	}
@@ -51,5 +53,13 @@ public class HibernateSessionBackgroundProcess extends BackgroundProcess impleme
 	public void setHibernateSessionBinder(
 			HibernateSessionBinder hibernateSessionBinder) {
 		i_hibernateSessionBinder = hibernateSessionBinder;
+	}
+
+	public SessionFactory getSessionFactory() {
+		return i_sessionFactory;
+	}
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		i_sessionFactory = sessionFactory;
 	}
 }

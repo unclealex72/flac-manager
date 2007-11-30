@@ -1,67 +1,88 @@
 package uk.co.unclealex.flacconverter.actions;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.Transformer;
 
+import uk.co.unclealex.flacconverter.encoded.dao.DeviceDao;
 import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
-import uk.co.unclealex.flacconverter.encoded.service.DeviceService;
-import uk.co.unclealex.flacconverter.encoded.service.WritingListenerService;
+import uk.co.unclealex.flacconverter.encoded.service.ProgressWritingListenerService;
+import uk.co.unclealex.flacconverter.encoded.writer.ProgressWritingListener;
+import uk.co.unclealex.flacconverter.encoded.writer.TrackWritingException;
+import uk.co.unclealex.flacconverter.encoded.writer.WritingListener;
 
-public abstract class DeviceDownloadAction extends FlacAction {
+public class DeviceDownloadAction extends FlacAction {
 
-	private final Logger log = Logger.getLogger(getClass());
+	private List<String> i_devices;
+	private DeviceDao i_deviceDao;
 	
-	private DeviceBean i_device;
-	private String i_errorMessage;
-	private String i_stackTrace;
-
-	public abstract String execute(
-			WritingListenerService writingListenerService, DeviceService deviceService, DeviceBean deviceBean, String path) 
-	throws IOException;
+	private SortedMap<DeviceBean, ProgressWritingListener> i_progressWritingListenersByDeviceBean;
 	
 	@Override
-	public String execute() {
-		try {
-			DeviceService deviceService = getDeviceService();
-			DeviceBean deviceBean = getDevice();
-			return execute(
-					getWritingListenerService(), deviceService, deviceBean, deviceService.findDevicesAndFiles().get(deviceBean));
+	public String execute() throws TrackWritingException, IOException {
+		
+		final DeviceDao deviceDao = getDeviceDao();
+		Collection<DeviceBean> deviceBeans;
+		List<String> devices = getDevices();
+		if (devices == null || devices.isEmpty()) {
+			deviceBeans = getDeviceService().findDevicesAndFiles().keySet();
 		}
-		catch (IOException e) {
-			log.error("An error occured whilst trying to download to a device.", e);
-			setErrorMessage(e.getMessage());
-			StringWriter stackTrace = new StringWriter();
-			e.printStackTrace(new PrintWriter(stackTrace));
-			setStackTrace(stackTrace.toString());
-			return ERROR;
+		else {
+			Transformer<String, DeviceBean> transformer = new Transformer<String, DeviceBean>() {
+				@Override
+				public DeviceBean transform(String input) {
+					return deviceDao.findById(Integer.parseInt(input));
+				}
+			};
+			deviceBeans = CollectionUtils.collect(getDevices(), transformer);
 		}
-	}
-	
-	public DeviceBean getDevice() {
-		return i_device;
-	}
-
-	public void setDevice(DeviceBean device) {
-		i_device = device;
-	}
-
-	public String getErrorMessage() {
-		return i_errorMessage;
-	}
-
-	public void setErrorMessage(String errorMessage) {
-		i_errorMessage = errorMessage;
-	}
-
-	public String getStackTrace() {
-		return i_stackTrace;
+		ProgressWritingListenerService progressWritingListenerService = getProgressWritingListenerService();
+		SortedMap<DeviceBean, Collection<WritingListener>> writingListenersByDevicebean =
+			new TreeMap<DeviceBean, Collection<WritingListener>>();
+		SortedMap<DeviceBean, ProgressWritingListener> progressWritingListenersByDeviceBean = 
+			new TreeMap<DeviceBean, ProgressWritingListener>();
+		for (DeviceBean device : deviceBeans) {
+			DeviceBean deviceBean = deviceDao.findById(device.getId());
+			ProgressWritingListener progressWritingListener = progressWritingListenerService.createNewListener(deviceBean);
+			if (progressWritingListener != null) {
+				List<WritingListener> writingListeners = new LinkedList<WritingListener>();
+				writingListeners.add(progressWritingListener);
+				writingListenersByDevicebean.put(deviceBean, writingListeners);
+				progressWritingListenersByDeviceBean.put(deviceBean, progressWritingListener);
+			}
+		}
+		getDeviceService().writeToDevices(writingListenersByDevicebean);
+		return SUCCESS;
 	}
 
-	public void setStackTrace(String stackTrace) {
-		i_stackTrace = stackTrace;
+	public List<String> getDevices() {
+		return i_devices;
 	}
-	
+
+	public void setDevices(List<String> devices) {
+		i_devices = devices;
+	}
+
+	public DeviceDao getDeviceDao() {
+		return i_deviceDao;
+	}
+
+	public void setDeviceDao(DeviceDao deviceDao) {
+		i_deviceDao = deviceDao;
+	}
+
+	public SortedMap<DeviceBean, ProgressWritingListener> getProgressWritingListenersByDeviceBean() {
+		return i_progressWritingListenersByDeviceBean;
+	}
+
+	public void setProgressWritingListenersByDeviceBean(
+			SortedMap<DeviceBean, ProgressWritingListener> progressWritingListenersByDeviceBean) {
+		i_progressWritingListenersByDeviceBean = progressWritingListenersByDeviceBean;
+	}
 }

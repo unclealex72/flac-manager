@@ -6,12 +6,6 @@ public class DeviceAction extends FlacAction {
 
 	private DeviceBean i_device;
 	
-	@Override
-	public String execute() throws Exception {
-		// TODO Auto-generated method stub
-		return super.execute();
-	}
-
 	public DeviceBean getDevice() {
 		return i_device;
 	}

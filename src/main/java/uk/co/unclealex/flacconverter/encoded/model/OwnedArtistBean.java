@@ -32,6 +32,12 @@ public class OwnedArtistBean extends KeyedBean<OwnedArtistBean> {
 		return super.getId();
 	}
 
+	@Override
+	public String toString() {
+		return "(" + getOwnerBean().getName() + ":" + getName() + ")";
+	}
+
+
 	@ManyToOne
 	public OwnerBean getOwnerBean() {
 		return i_ownerBean;

@@ -54,6 +54,12 @@ public class TestFlacAlbumDao implements FlacAlbumDao {
 	public void flush() {
 		// Do nothing
 	}
+
+	@Override
+	public void clear() {
+		// Do nothing
+	}
+
 	@Override
 	public SortedSet<FlacAlbumBean> getAll() {
 		return getTestFlacProvider().getAllFlacAlbumBeans();

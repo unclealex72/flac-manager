@@ -35,7 +35,7 @@ public class EncoderBean extends KeyedBean<EncoderBean> {
 	
 	@Override
 	public String toString() {
-		return "[Encoder: " + getExtension() + "]";
+		return getExtension();
 	}
 	
 	@OneToMany(mappedBy="encoderBean", cascade={CascadeType.REMOVE})

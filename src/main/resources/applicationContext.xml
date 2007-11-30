@@ -12,7 +12,7 @@
 	default-autowire="byName">
 
 	<jee:jndi-lookup id="flacDataSource"
-		jndi-name="slimserver" resource-ref="true" proxy-interface="javax.sql.DataSource"/>
+		jndi-name="jdbc/slimserver" resource-ref="true" proxy-interface="javax.sql.DataSource"/>
 		
 	<bean id="flacSessionFactory"
 		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
@@ -27,18 +27,10 @@
 		</property>
 		<property name="annotatedClasses">
 			<list>
-				<value>
-					uk.co.unclealex.flacconverter.flac.model.FlacArtistBean
-				</value>
-				<value>
-					uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean
-				</value>
-				<value>
-					uk.co.unclealex.flacconverter.flac.model.FlacTrackBean
-				</value>
-				<value>
-					uk.co.unclealex.flacconverter.flac.model.SlimServerInformationBean
-				</value>
+				<value>uk.co.unclealex.flacconverter.flac.model.FlacArtistBean</value>
+				<value>uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean</value>
+				<value>uk.co.unclealex.flacconverter.flac.model.FlacTrackBean</value>
+				<value>uk.co.unclealex.flacconverter.flac.model.SlimServerInformationBean</value>
 			</list>
 		</property>
 	</bean>
@@ -73,7 +65,7 @@
 	</bean>
 
 	<jee:jndi-lookup id="dataSource"
-		jndi-name="music" resource-ref="true" proxy-interface="javax.sql.DataSource"/>
+		jndi-name="jdbc/music" resource-ref="true" proxy-interface="javax.sql.DataSource"/>
 		
 
 	<tx:annotation-driven/>
@@ -83,7 +75,7 @@
 		<property name="properties">
 			<props>
 				<prop key="hibernate.dialect">
-					org.hibernate.dialect.MySQLDialect
+					uk.co.unclealex.flacconverter.hibernate.LongBlobOnlyMySQL5Dialect
 				</prop>
 				<prop key="hibernate.hbm2ddl.auto">update</prop>
 				<prop key="hibernate.show_sql">false</prop>
@@ -95,79 +87,128 @@
 		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
 		<property name="annotatedClasses">
 			<list>
-				<value>
-					uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean
-				</value>
-				<value>
-					uk.co.unclealex.flacconverter.encoded.model.TrackDataBean
-				</value>
-				<value>
-					uk.co.unclealex.flacconverter.encoded.model.EncoderBean
-				</value>
-				<value>
-					uk.co.unclealex.flacconverter.encoded.model.OwnedAlbumBean
-				</value>
-				<value>
-					uk.co.unclealex.flacconverter.encoded.model.OwnedArtistBean
-				</value>
-				<value>
-					uk.co.unclealex.flacconverter.encoded.model.OwnerBean
-				</value>
-				<value>
-					uk.co.unclealex.flacconverter.encoded.model.DeviceBean
-				</value>
+				<value>uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean</value>
+				<value>uk.co.unclealex.flacconverter.encoded.model.TrackDataBean</value>
+				<value>uk.co.unclealex.flacconverter.encoded.model.EncoderBean</value>
+				<value>uk.co.unclealex.flacconverter.encoded.model.OwnedAlbumBean</value>
+				<value>uk.co.unclealex.flacconverter.encoded.model.OwnedArtistBean</value>
+				<value>uk.co.unclealex.flacconverter.encoded.model.OwnerBean</value>
+				<value>uk.co.unclealex.flacconverter.encoded.model.DeviceBean</value>
 			</list>
 		</property>
 	</bean>
 
 	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager"/>
 
-	<bean id="encodedTrackDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateEncodedTrackDao"/>
+	<bean id="hibernateSessionExecutor" class="uk.co.unclealex.flacconverter.hibernate.HibernateSessionExecutor">
+		<property name="asynchronous" value="false"/>
+	</bean>
+	
+	<bean id="encodedTrackDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateEncodedTrackDao">
+		<property name="maximumUrlsPerQuery" value="2000"/>
+	</bean>
 
 	<bean id="trackDataDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateTrackDataDao"/>
 
 	<bean id="ownerDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateOwnerDao"/>
 
 	<bean id="deviceDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateDeviceDao"/>
-
+ 	
 	<bean id="encoderDao" class="uk.co.unclealex.flacconverter.encoded.dao.HibernateEncoderDao"/>
 
-	<bean id="encoderService"
-		class="uk.co.unclealex.flacconverter.encoded.service.EncoderServiceImpl" />
+	<bean id="encoderService" class="uk.co.unclealex.flacconverter.encoded.service.EncoderServiceImpl">
+		<property name="maximumThreads" value="4"/>
+	</bean>
+
+	<bean
+		id="singleEncoderService"
+		class="uk.co.unclealex.flacconverter.encoded.service.SingleEncoderServiceImpl">
+		<property name="maximumTrackDataLength" value="1048576"/>
+	</bean>
+
+	<bean
+		id="trackDataStreamIteratorFactory"
+		class="uk.co.unclealex.flacconverter.encoded.service.SpringTrackDataStreamIteratorFactory"/>
+		
+	<bean
+		id="trackDataInputStreamIterator"
+		class="uk.co.unclealex.flacconverter.encoded.service.TrackDataInputStreamIteratorImpl"
+		scope="prototype" autowire-candidate="false"/>
+			
+	<bean
+		id="trackDataOutputStreamIterator"
+		class="uk.co.unclealex.flacconverter.encoded.service.TrackDataOutputStreamIteratorImpl"
+		scope="prototype" autowire-candidate="false"/>
+
 	<bean id="ownerService"
 		class="uk.co.unclealex.flacconverter.encoded.service.OwnerServiceImpl" />
+
 	<bean id="deviceService"
 		class="uk.co.unclealex.flacconverter.encoded.service.DeviceServiceImpl" />
+
+	<bean id="devicesWriterFactory" class="uk.co.unclealex.flacconverter.encoded.service.SpringDevicesWriterFactory"/>
+	<bean 
+		id="devicesWriter"
+		class="uk.co.unclealex.flacconverter.encoded.service.DevicesWriterImpl"
+		scope="prototype" autowire-candidate="false"/>
+
+	<bean 
+		id="fileSystemService" 
+		class="uk.co.unclealex.flacconverter.encoded.service.FileSystemServiceImpl"
+		init-method="initialise">
+		<property name="titleFormat">
+			<value>${ext}/${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
+		</property>
+	</bean>
+		
+	<bean id="downloadCartService"
+	  class="uk.co.unclealex.flacconverter.flac.service.DownloadCartServiceImpl"/>
 
 	<bean id="processService"
 		class="uk.co.unclealex.flacconverter.process.service.ProcessServiceImpl" />
 
 	<bean id="initialiser"
-		class="uk.co.unclealex.flacconverter.encoded.service.InitialiserImpl" />
+		class="uk.co.unclealex.flacconverter.encoded.initialise.InitialiserImpl">
+		<property name="trackImporter">
+			<bean class="uk.co.unclealex.flacconverter.encoded.initialise.TrackImporterImpl"/>
+		</property>
+	</bean>
 
-	<bean id="zipTrackWriter"
-		class="uk.co.unclealex.flacconverter.encoded.writer.ZipTrackWriter"
-		scope="prototype" />
-	<bean id="fileTrackWriter"
-		class="uk.co.unclealex.flacconverter.encoded.writer.FileTrackWriter"
-		scope="prototype" />
+	<bean id="zipTrackStream"
+		class="uk.co.unclealex.flacconverter.encoded.writer.ZipTrackStreamImpl"
+		scope="prototype" autowire-candidate="false"/>
+	<bean id="fileTrackStream"
+		class="uk.co.unclealex.flacconverter.encoded.writer.FileTrackStreamImpl"
+		scope="prototype" autowire-candidate="false" />
+	<bean id="trackWriter"
+		class="uk.co.unclealex.flacconverter.encoded.writer.TrackWriterImpl"
+		scope="prototype" autowire-candidate="false" />
 	<bean id="trackWriterFactory"
 		class="uk.co.unclealex.flacconverter.encoded.writer.SpringTrackWriterFactory" />
 
-	<bean id="flacTrackToEncodedTrackTransformer"
-		class="uk.co.unclealex.flacconverter.encoded.transformer.FlacTrackToEncodedTrackTransformer"
-		scope="prototype" />
-	<bean id="flacAlbumToEncodedTracksTransformer"
-		class="uk.co.unclealex.flacconverter.encoded.transformer.FlacAlbumToEncodedTracksTransformer"
-		scope="prototype" />
-	<bean id="toEncodedTracksTransformerFactory"
-		class="uk.co.unclealex.flacconverter.encoded.transformer.SpringToEncodedTracksTransformerFactory" />
-
-	<bean id="writingListenerService" class="uk.co.unclealex.flacconverter.encoded.service.WritingListenerServiceImpl"/>
+	<bean 
+		id="progressWritingListenerService"
+		class="uk.co.unclealex.flacconverter.encoded.service.ProgressWritingListenerServiceImpl"/>
 	
 	<bean id="userService"
 		class="uk.co.unclealex.flacconverter.security.service.FlacConverterUserService" />
-		
+
+	<bean id="titleFormatFactory" class="uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatFactoryImpl">
+		<property name="defaultTitleFormat">
+			<value>${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
+		</property>
+	</bean>
+	
+	<bean id="titleFormat" factory-bean="titleFormatFactory" factory-method="getDefaultTitleFormat"/>
+			
+	<bean id="partitioner" class="uk.co.unclealex.flacconverter.util.Partitioner"/>
+	
+	<bean id="titleFormatServiceFactory" 
+		class="uk.co.unclealex.flacconverter.encoded.service.titleformat.SpringTitleFormatServiceFactory"/>
+
+	<bean id="titleFormatService" scope="prototype" autowire-candidate="false"
+		class="uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatServiceImpl"/>
+			
 	<bean id="webSecurityRules" class="java.lang.String" autowire-candidate="false">
 		<constructor-arg>
 			<value>
@@ -178,6 +219,7 @@
 				/*.zip=ROLE_USER
 			</value>
 		</constructor-arg>
-	</bean>
+	</bean>	
 </beans>
+
 

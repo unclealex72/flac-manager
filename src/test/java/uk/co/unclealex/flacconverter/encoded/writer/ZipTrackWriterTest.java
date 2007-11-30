@@ -18,23 +18,23 @@ public class ZipTrackWriterTest extends TestCase {
 	}
 	
 	public void testDirectoriesCreatedOnlyOnce() {
-		ZipTrackWriterImpl writer = new ZipTrackWriterImpl();
+		ZipTrackStreamImpl stream = new ZipTrackStreamImpl();
 		checkEntries(
-				writer,
+				stream,
 				"Slayer/South Of Heaven/01 - South Of Heaven.mpg",
 				new String[] { "Slayer/", "Slayer/South Of Heaven/", "Slayer/South Of Heaven/01 - South Of Heaven.mpg" });
 		checkEntries(
-				writer,
+				stream,
 				"Slayer/South Of Heaven/02 - Silent Scream.mpg",
 				new String[] { "Slayer/South Of Heaven/02 - Silent Scream.mpg" });
 	}
 	
 	public void checkEntries(String title, String[] expectedEntries) {
-		checkEntries(new ZipTrackWriterImpl(), title, expectedEntries);
+		checkEntries(new ZipTrackStreamImpl(), title, expectedEntries);
 	}
 	
-	public void checkEntries(ZipTrackWriterImpl zipFileWriter, String title, String[] expectedEntries) {
-		List<ZipEntry> zipEntries = zipFileWriter.createEntries(title);
+	public void checkEntries(ZipTrackStreamImpl zipTrackStreamImpl, String title, String[] expectedEntries) {
+		List<ZipEntry> zipEntries = zipTrackStreamImpl.createEntries(title);
 		int lastIndex = zipEntries.size() - 1;
 		for (ListIterator<ZipEntry> iter = zipEntries.listIterator(); iter.hasNext(); ) {
 			int index = iter.nextIndex();

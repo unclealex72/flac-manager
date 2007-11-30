@@ -17,6 +17,7 @@ public class DeviceBean extends KeyedBean<DeviceBean> {
 	private String i_identifier;
 	private String i_description;
 	private String i_titleFormat;
+	private Boolean i_deletingRequired;
 	private OwnerBean i_ownerBean;
 	private EncoderBean i_encoderBean;	
 	
@@ -31,6 +32,12 @@ public class DeviceBean extends KeyedBean<DeviceBean> {
 	public String getFullDescription() {
 		return getOwnerBean().getName() + "'s " + getDescription();
 	}
+	
+	@Override
+	public String toString() {
+		return "Device: " + getFullDescription();
+	}
+	
 	@Column(unique=true)
 	public String getIdentifier() {
 		return i_identifier;
@@ -72,6 +79,14 @@ public class DeviceBean extends KeyedBean<DeviceBean> {
 
 	public void setTitleFormat(String titleFormat) {
 		i_titleFormat = titleFormat;
+	}
+
+	public Boolean isDeletingRequired() {
+		return i_deletingRequired;
+	}
+
+	public void setDeletingRequired(Boolean requiresDeleting) {
+		i_deletingRequired = requiresDeleting;
 	}
 	
 	

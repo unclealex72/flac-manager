@@ -14,6 +14,12 @@ public class HibernateOwnerDao extends HibernateEncodingDao<OwnerBean>
 	}
 	
 	@Override
+	public OwnerBean findByName(String name) {
+		OwnerBean exampleBean = createExampleBean();
+		exampleBean.setName(name);
+		return findByExample(exampleBean);
+	}
+	@Override
 	public OwnerBean createExampleBean() {
 		return new OwnerBean();
 	}

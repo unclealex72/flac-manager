@@ -14,7 +14,7 @@ import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
 import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
 import uk.co.unclealex.flacconverter.encoded.model.OwnerBean;
 import uk.co.unclealex.flacconverter.encoded.service.DeviceService;
-import uk.co.unclealex.flacconverter.encoded.service.WritingListenerService;
+import uk.co.unclealex.flacconverter.encoded.service.ProgressWritingListenerService;
 import uk.co.unclealex.flacconverter.flac.dao.FlacArtistDao;
 import uk.co.unclealex.flacconverter.flac.model.DownloadCartBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
@@ -30,7 +30,7 @@ public class FlacAction extends ActionSupport implements Preparable, AfterPrepar
 
 	private DeviceService i_deviceService;
 	private EncoderDao i_encoderDao;
-	private WritingListenerService i_writingListenerService;
+	private ProgressWritingListenerService i_progressWritingListenerService;
 	private FlacArtistDao i_flacArtistDao;
 	private OwnerDao i_ownerDao;
 	private DownloadCartService i_downloadCartService;
@@ -53,7 +53,7 @@ public class FlacAction extends ActionSupport implements Preparable, AfterPrepar
 	private void prepareDevices() throws IOException {
 		Set<DeviceBean> deviceBeans = getDeviceService().findDevicesAndFiles().keySet();
 		SortedSet<DeviceBean> connectedDevices = new TreeSet<DeviceBean>(deviceBeans);
-		connectedDevices.removeAll(getWritingListenerService().getAllListeners().keySet());
+		connectedDevices.removeAll(getProgressWritingListenerService().getAllListeners().keySet());
 		setConnectedDevices(connectedDevices);		
 	}
 	
@@ -112,13 +112,13 @@ public class FlacAction extends ActionSupport implements Preparable, AfterPrepar
 		i_connectedDevices = deviceBeans;
 	}
 
-	public WritingListenerService getWritingListenerService() {
-		return i_writingListenerService;
+	public ProgressWritingListenerService getProgressWritingListenerService() {
+		return i_progressWritingListenerService;
 	}
 
-	public void setWritingListenerService(
-			WritingListenerService writingListenerService) {
-		i_writingListenerService = writingListenerService;
+	public void setProgressWritingListenerService(
+			ProgressWritingListenerService writingListenerService) {
+		i_progressWritingListenerService = writingListenerService;
 	}
 
 	public SortedSet<Character> getStartingCharacters() {

@@ -7,6 +7,9 @@ public abstract class AbstractFlacBean<T extends AbstractFlacBean<T>> extends Ke
 	private String i_code;
 	
 	@Override
+	public abstract String toString();
+	
+	@Override
 	public int compareTo(T o) {
 		return getCode().compareTo(o.getCode());
 	}

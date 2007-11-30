@@ -5,10 +5,13 @@ import java.util.Comparator;
 
 import org.apache.commons.collections15.comparators.NullComparator;
 
-public class KeyedBean<T extends KeyedBean<T>> implements Comparable<T>, Serializable {
+public abstract class KeyedBean<T extends KeyedBean<T>> implements Comparable<T>, Serializable {
 
 	private Integer i_id;
 
+	@Override
+	public abstract String toString();
+	
 	public int compareTo(T o) {
 		return
 			new NullComparator<Integer>(
@@ -37,6 +40,5 @@ public class KeyedBean<T extends KeyedBean<T>> implements Comparable<T>, Seriali
 
 	public void setId(Integer id) {
 		i_id = id;
-	}
-	
+	}	
 }

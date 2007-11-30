@@ -22,7 +22,7 @@
   				<li>
   					<c:set var="link">
   						<s:url value="/music.zip">
-  							<s:param name="encoder" value="id"/>
+  							<s:param name="extension" value="extension"/>
   						</s:url>
   					</c:set>
   					<a href="${link}"><s:property value="extension"/></a>

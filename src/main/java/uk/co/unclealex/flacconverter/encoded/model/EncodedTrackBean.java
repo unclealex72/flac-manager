@@ -1,42 +1,37 @@
 package uk.co.unclealex.flacconverter.encoded.model;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.util.SortedSet;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
+import org.hibernate.annotations.Sort;
+import org.hibernate.annotations.SortType;
 import org.hibernate.validator.NotNull;
 
 @Table(
 		name="encoded_tracks",
-		uniqueConstraints = {@UniqueConstraint(columnNames={"url", "encoderbean_id"})})
-@Entity
+		uniqueConstraints = {@UniqueConstraint(columnNames={"url", "encoderBean_id"})})
+@Entity(name="encodedTrackBean")
 public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
 
 	private String i_flacUrl;
 	private EncoderBean i_encoderBean;
-	private TrackDataBean i_trackDataBean;
+	private Integer i_length;
 	private Long i_timestamp;
-	
+
+	private SortedSet<TrackDataBean> i_trackDataBeans;
 	
 	public EncodedTrackBean() {
 		super();
-	}
-
-	public EncodedTrackBean(byte[] data) {
-		this();
-		setTrackDataBean(new TrackDataBean(data));
 	}
 	
 	@Override
@@ -46,18 +41,17 @@ public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
 	}
 	
 	@Override
+	public String toString() {
+		return getEncoderBean().getExtension() + "->" + getFlacUrl();
+	}
+	
+	@Override
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	public Integer getId() {
 		return super.getId();
 	}
 
-	@Transient
-	public InputStream getTrack() {
-		TrackDataBean trackDataBean = getTrackDataBean();
-		return trackDataBean==null?null:new ByteArrayInputStream(trackDataBean.getTrack());
-	}
-	
 	@ManyToOne
 	public EncoderBean getEncoderBean() {
 		return i_encoderBean;
@@ -85,13 +79,23 @@ public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
 		i_timestamp = timestamp;
 	}
 
-	@OneToOne(optional=false, cascade={ CascadeType.ALL }, fetch = FetchType.LAZY)
-	public TrackDataBean getTrackDataBean() {
-		return i_trackDataBean;
+	@NotNull(message="You must explicitly set the length of track data.")
+	public Integer getLength() {
+		return i_length;
 	}
 
-	public void setTrackDataBean(TrackDataBean trackDataBean) {
-		i_trackDataBean = trackDataBean;
-	}	
+	public void setLength(Integer length) {
+		i_length = length;
+	}
+
+	@OneToMany(mappedBy="encodedTrackBean", targetEntity=TrackDataBean.class, cascade = CascadeType.ALL)
+	@Sort(type=SortType.NATURAL)
+	public SortedSet<TrackDataBean> getTrackDataBeans() {
+		return i_trackDataBeans;
+	}
+
+	public void setTrackDataBeans(SortedSet<TrackDataBean> trackDataBeans) {
+		i_trackDataBeans = trackDataBeans;
+	}
 
 }

@@ -91,7 +91,7 @@
     <div id="content">
       <div id="column1">
         <div id="cartContainer" class="sidebaritem">
-        	<jsp:include page="/WEB-INF/pages/cart.jsp"/>
+        	<jsp:include page="/WEB-INF/ajax/cart.jsp"/>
         </div>
         <div class="sidebaritem">
           <h1>Connected Devices</h1>
@@ -105,13 +105,19 @@
 			  				<li>
 			  					<c:set var="link">
 				  					<s:url action="device-download" includeParams="none">
-				  						<s:param name="device" value="id"/>
+				  						<s:param name="devices" value="id"/>
 				  					</s:url>
 				  				</c:set>
 				  				<a href="${link}"><s:property value="fullDescription"/></a>
 			  				</li>
 			  			</s:iterator>
 			  		</ul>
+			  		<p>
+			  			<c:set var="link">
+			  				<s:url action="device-download" includeParams="none"/>
+			  			</c:set>
+			  			<a href="${link}">Download to all</a>
+			  		</p>
 			  	</s:else>
 			  	<c:set var="link"><s:url action="manage-devices" includeParams="none"/></c:set>
 			  	<p><a href="${link}">Manage devices</a></p>

@@ -1,8 +1,8 @@
 package uk.co.unclealex.flacconverter.hibernate;
 
-import org.hibernate.dialect.MySQL5InnoDBDialect;
+import org.hibernate.dialect.MySQL5Dialect;
 
-public class LongBlobOnlyMySQL5Dialect extends MySQL5InnoDBDialect {
+public class LongBlobOnlyMySQL5Dialect extends MySQL5Dialect {
 
 	@Override
 	protected void registerColumnType(int code, int capacity, String name) {
@@ -10,6 +10,11 @@ public class LongBlobOnlyMySQL5Dialect extends MySQL5InnoDBDialect {
 		super.registerColumnType(code, capacity, name);
 	}
 	
+	@Override
+	public String getTableTypeString() {
+		return " ENGINE=MyISAM";
+	}
+
 	@Override
 	protected void registerColumnType(int code, String name) {
 		name = transform(name);

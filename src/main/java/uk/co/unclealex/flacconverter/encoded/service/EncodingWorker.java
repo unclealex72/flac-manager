@@ -4,10 +4,14 @@ import java.io.IOException;
 import java.util.SortedMap;
 import java.util.concurrent.BlockingQueue;
 
+import org.apache.log4j.Logger;
+
 import uk.co.unclealex.flacconverter.encoded.model.EncodingCommandBean;
 
 abstract class EncodingWorker extends Thread {
 
+	private static final Logger log = Logger.getLogger(EncodingWorker.class);
+	
 	private BlockingQueue<EncodingCommandBean> i_queue;
 	private int i_count;
 	private SortedMap<EncodingCommandBean,Throwable> i_errors;
@@ -30,11 +34,12 @@ abstract class EncodingWorker extends Thread {
 					process(encodingCommandBean);
 					setCount(getCount() + 1);
 				}
-				catch(IOException e) {
-					errors.put(encodingCommandBean, e);
-				}
 				catch(Throwable t) {
 					errors.put(encodingCommandBean, t);
+					log.error(
+						"Error whilst encoding " + encodingCommandBean.getFlacTrackBean().getUrl() + " to " + 
+						encodingCommandBean.getEncoderBean().getExtension(),
+						t);
 				}
 			}
 		}

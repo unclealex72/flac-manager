@@ -1,24 +1,24 @@
-package uk.co.unclealex.flacconverter.encoded.service;
+package uk.co.unclealex.flacconverter.encoded.writer;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.LinkedList;
 
-import org.apache.log4j.Logger;
+import uk.co.unclealex.flacconverter.log.FormattableLogger;
 
-public class WritingListener implements Serializable {
+public class ProgressWritingListener implements WritingListener {
 
-	private static final Logger log = Logger.getLogger(WritingListener.class);
+	private static final FormattableLogger log = new FormattableLogger(ProgressWritingListener.class);
 	
-	private boolean i_finished;
+	private Progress i_progress;
 	private IOException i_exception;
 	private LinkedList<String> i_fileNamesWritten = new LinkedList<String>();
 	private int i_totalFiles;
 	private int i_filesWrittenCount;
+	private long i_writeStartTime;
 	private Thread i_thread;
 	
 	public void initialise(int totalFiles) {
-		setFinished(false);
+		setProgress(Progress.PREPARING);
 		setException(null);
 		setFileNamesWritten(new LinkedList<String>());
 		setTotalFiles(totalFiles);
@@ -26,10 +26,33 @@ public class WritingListener implements Serializable {
 		setThread(Thread.currentThread());
 	}
 	
-	public void registerFileWrite(String fileName) {
+	@Override
+	public void beforeFileWrites() {
+	}
+	
+	public void registerFileWrite() {
+		setProgress(Progress.WRITING);
+		setWriteStartTime(System.currentTimeMillis());
+	}
+	
+	@Override
+	public void registerFileIgnore(String title) {
+		setProgress(Progress.WRITING);
+		getFileNamesWritten().add(title);
+		i_filesWrittenCount++;
+		log.info("Ignoring %s", title);
+	}
+	
+	public void registerFileWritten(String fileName, int length) {
 		getFileNamesWritten().add(fileName);
 		i_filesWrittenCount++;
-		log.info("Written " + fileName);
+		double speed = length / ((System.currentTimeMillis() - getWriteStartTime()) * 1.024);
+		log.info("Written %s in %.2fkb/s", fileName, speed);
+	}
+	
+	@Override
+	public void afterFilesWritten() {
+		setProgress(Progress.FINALISING);
 	}
 	
 	public void finish() {
@@ -37,7 +60,7 @@ public class WritingListener implements Serializable {
 	}
 	
 	public void finish(IOException exception) {
-		setFinished(true);
+		setProgress(Progress.FINISHED);
 		setException(exception);
 	}
 	
@@ -45,12 +68,6 @@ public class WritingListener implements Serializable {
 		getThread().join();
 	}
 	
-	public boolean isFinished() {
-		return i_finished;
-	}
-	public void setFinished(boolean finished) {
-		i_finished = finished;
-	}
 	public IOException getException() {
 		return i_exception;
 	}
@@ -86,4 +103,19 @@ public class WritingListener implements Serializable {
 		i_thread = thread;
 	}
 
+	public long getWriteStartTime() {
+		return i_writeStartTime;
+	}
+
+	public void setWriteStartTime(long writeStartTime) {
+		i_writeStartTime = writeStartTime;
+	}
+
+	public Progress getProgress() {
+		return i_progress;
+	}
+
+	public void setProgress(Progress progress) {
+		i_progress = progress;
+	}
 }

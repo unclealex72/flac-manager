@@ -2,66 +2,70 @@ package uk.co.unclealex.flacconverter.encoded.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Iterator;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.flacconverter.encoded.dao.TrackDataDao;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 import uk.co.unclealex.flacconverter.encoded.model.TrackDataBean;
+import uk.co.unclealex.flacconverter.hibernate.HibernateSessionExecutor;
 
+@Transactional(readOnly=true)
 public class TrackDataInputStreamIteratorImpl implements
 		TrackDataInputStreamIterator {
 
 	private TrackDataDao i_trackDataDao;
 	
-	private EncodedTrackBean i_encodedTrackBean;
-	private TrackDataBean i_trackDataBean;
-	private int i_sequence;
+	private Iterator<Integer> i_trackDataIdIterator;
+	private HibernateSessionExecutor i_hibernateSessionExecutor;
 	
 	@Override
 	public void initialise(EncodedTrackBean encodedTrackBean) {
-		setEncodedTrackBean(encodedTrackBean);
-		setSequence(0);
+		setTrackDataIdIterator(
+				getTrackDataDao().getIdsForEncodedTrackBean(encodedTrackBean).iterator());
 	}
 
 	@Override
 	public boolean hasNext() {
-		return getTrackDataDao().trackWithEncodedTrackBeanAndSequenceExists(
-				getEncodedTrackBean(), getSequence());
+		return getTrackDataIdIterator().hasNext();
 	}
 
 	@Override
 	public InputStream next() {
-		TrackDataBean trackDataBean = getTrackDataBean();
-		TrackDataDao trackDataDao = getTrackDataDao();
-		if (trackDataBean != null) {
-			trackDataDao.flush();
-			trackDataDao.dismiss(trackDataBean);
+		final int trackDataId = getTrackDataIdIterator().next();
+		Callable<byte[]> callable = new Callable<byte[]>() {
+			public byte[] call() {
+				TrackDataDao trackDataDao = getTrackDataDao();
+				TrackDataBean trackDataBean = trackDataDao.findById(trackDataId);
+				byte[] track = trackDataBean.getTrack();
+				trackDataDao.dismiss(trackDataBean);
+				trackDataDao.flush();
+				return track;
+			}
+		};
+		FutureTask<byte[]> task = new FutureTask<byte[]>(callable);
+		getHibernateSessionExecutor().execute(task);
+		byte[] track;
+		try {
+			track = task.get();
 		}
-		int sequence = getSequence();
-		trackDataBean = trackDataDao.findByEncodedTrackBeanAndSequenceExists(getEncodedTrackBean(), sequence);
-		setTrackDataBean(trackDataBean);
-		setSequence(sequence + 1);
-		return new ByteArrayInputStream(trackDataBean.getTrack());
+		catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		catch (ExecutionException e) {
+			throw new RuntimeException(e);
+		}
+		return new ByteArrayInputStream(track);
 	}
 
 	@Override
 	public void remove() {
 		throw new UnsupportedOperationException(getClass() + ":remove");
-	}
-
-	public EncodedTrackBean getEncodedTrackBean() {
-		return i_encodedTrackBean;
-	}
-
-	public void setEncodedTrackBean(EncodedTrackBean encodedTrackBean) {
-		i_encodedTrackBean = encodedTrackBean;
-	}
-
-	public int getSequence() {
-		return i_sequence;
-	}
-
-	public void setSequence(int sequence) {
-		i_sequence = sequence;
 	}
 
 	public TrackDataDao getTrackDataDao() {
@@ -72,12 +76,23 @@ public class TrackDataInputStreamIteratorImpl implements
 		i_trackDataDao = trackDataDao;
 	}
 
-	public TrackDataBean getTrackDataBean() {
-		return i_trackDataBean;
+	public Iterator<Integer> getTrackDataIdIterator() {
+		return i_trackDataIdIterator;
 	}
 
-	public void setTrackDataBean(TrackDataBean trackDataBean) {
-		i_trackDataBean = trackDataBean;
+	public void setTrackDataIdIterator(Iterator<Integer> sequenceIterator) {
+		i_trackDataIdIterator = sequenceIterator;
 	}
+
+	@Required
+	public HibernateSessionExecutor getHibernateSessionExecutor() {
+		return i_hibernateSessionExecutor;
+	}
+
+	public void setHibernateSessionExecutor(
+			HibernateSessionExecutor hibernateSessionExecutor) {
+		i_hibernateSessionExecutor = hibernateSessionExecutor;
+	}
+
 
 }

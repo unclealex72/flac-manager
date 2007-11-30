@@ -1,11 +1,13 @@
 package uk.co.unclealex.flacconverter.encoded.service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.TreeSet;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
 import uk.co.unclealex.flacconverter.encoded.dao.TrackDataDao;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 import uk.co.unclealex.flacconverter.encoded.model.TrackDataBean;
@@ -16,10 +18,9 @@ public class TrackDataOutputStreamIteratorImpl implements
 
 	private EncodedTrackBean i_encodedTrackBean;
 	private int i_sequence;
-	private TrackDataBean i_currentTrackDataBean;
-	private ByteArrayOutputStream i_currentByteArrayOutputStream;
 	
 	private TrackDataDao i_trackDataDao;
+	private EncodedTrackDao i_encodedTrackDao;
 	
 	@Override
 	public void initialise(EncodedTrackBean encodedTrackBean) {
@@ -36,20 +37,22 @@ public class TrackDataOutputStreamIteratorImpl implements
 	@Override
 	public OutputStream next() {
 		EncodedTrackBean encodedTrackBean = getEncodedTrackBean();
-		TrackDataBean trackDataBean = getCurrentTrackDataBean();
-		TrackDataDao trackDataDao = getTrackDataDao();
-		if (trackDataBean != null) {
-			trackDataBean.setTrack(getCurrentByteArrayOutputStream().toByteArray());
-			trackDataDao.store(trackDataBean);
-			trackDataDao.flush();
-			trackDataDao.dismiss(trackDataBean);
-		}
-		trackDataBean = new TrackDataBean();
+		final TrackDataBean trackDataBean = new TrackDataBean();
 		trackDataBean.setEncodedTrackBean(encodedTrackBean);
 		trackDataBean.setSequence(getSequence());
 		setSequence(getSequence() + 1);
-		setCurrentByteArrayOutputStream(new ByteArrayOutputStream());
-		return getCurrentByteArrayOutputStream();
+		ByteArrayOutputStream out = new ByteArrayOutputStream() {
+			@Override
+			public void close() throws IOException {
+				TrackDataDao trackDataDao = getTrackDataDao();
+				trackDataBean.setTrack(toByteArray());
+				trackDataDao.store(trackDataBean);
+				trackDataDao.flush();
+				trackDataDao.dismiss(trackDataBean);
+				super.close();
+			}
+		};
+		return out;
 	}
 
 	@Override
@@ -73,14 +76,6 @@ public class TrackDataOutputStreamIteratorImpl implements
 		i_sequence = sequence;
 	}
 
-	public TrackDataBean getCurrentTrackDataBean() {
-		return i_currentTrackDataBean;
-	}
-
-	public void setCurrentTrackDataBean(TrackDataBean currentTrackDataBean) {
-		i_currentTrackDataBean = currentTrackDataBean;
-	}
-
 	public TrackDataDao getTrackDataDao() {
 		return i_trackDataDao;
 	}
@@ -89,12 +84,11 @@ public class TrackDataOutputStreamIteratorImpl implements
 		i_trackDataDao = trackDataDao;
 	}
 
-	public ByteArrayOutputStream getCurrentByteArrayOutputStream() {
-		return i_currentByteArrayOutputStream;
+	public EncodedTrackDao getEncodedTrackDao() {
+		return i_encodedTrackDao;
 	}
 
-	public void setCurrentByteArrayOutputStream(
-			ByteArrayOutputStream currentByteArrayOutputStream) {
-		i_currentByteArrayOutputStream = currentByteArrayOutputStream;
+	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
+		i_encodedTrackDao = encodedTrackDao;
 	}
 }

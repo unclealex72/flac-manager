@@ -46,6 +46,10 @@ public class OwnerBean extends KeyedBean<OwnerBean> implements User {
 	}
 	
 	@Override
+	public String toString() {
+		return getName();
+	}
+	@Override
 	public int compareTo(OwnerBean o) {
 		return getName().compareTo(o.getName());
 	}

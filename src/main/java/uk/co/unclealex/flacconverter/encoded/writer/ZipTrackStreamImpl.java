@@ -2,6 +2,7 @@ package uk.co.unclealex.flacconverter.encoded.writer;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -12,7 +13,7 @@ import org.apache.commons.lang.StringUtils;
 
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 
-public class ZipTrackWriterImpl extends AbstractTrackWriter<ZipOutputStream> implements ZipTrackWriter {
+public class ZipTrackStreamImpl implements ZipTrackStream {
 
 	private static final String DIR_SEPARATOR_UNIX_STRING = new String(new char[] {IOUtils.DIR_SEPARATOR_UNIX});
 	
@@ -20,7 +21,7 @@ public class ZipTrackWriterImpl extends AbstractTrackWriter<ZipOutputStream> imp
 	private List<String> i_directories = new LinkedList<String>();
 	
 	@Override
-	public ZipOutputStream createStream(EncodedTrackBean encodedTrackBean, String title) throws IOException {
+	public OutputStream createStream(EncodedTrackBean encodedTrackBean, String title) throws IOException {
 		ZipOutputStream zipOutputStream = getZipOutputStream();
 		for (ZipEntry entry : createEntries(title)) {
 			zipOutputStream.putNextEntry(entry);
@@ -52,7 +53,7 @@ public class ZipTrackWriterImpl extends AbstractTrackWriter<ZipOutputStream> imp
 	}
 	
 	@Override
-	public void closeStream(EncodedTrackBean encodedTrackBean, String title, ZipOutputStream out) throws IOException {
+	public void closeStream() {
 		// Do nothing
 	}
 

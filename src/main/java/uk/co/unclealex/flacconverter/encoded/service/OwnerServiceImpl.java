@@ -1,12 +1,10 @@
 package uk.co.unclealex.flacconverter.encoded.service;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.collections15.IteratorUtils;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
 import org.springframework.beans.factory.annotation.Required;
@@ -58,7 +56,7 @@ public class OwnerServiceImpl implements OwnerService {
 	}
 	
 	@Override
-	public KnownSizeIterator<EncodedTrackBean> getOwnedEncodedTracks(OwnerBean ownerBean, final EncoderBean encoderBean) {
+	public SortedSet<EncodedTrackBean> getOwnedEncodedTracks(OwnerBean ownerBean, final EncoderBean encoderBean) {
 		SortedSet<FlacTrackBean> flacTrackBeans;
 		if (ownerBean.isOwnsAll()) {
 			flacTrackBeans = getFlacTrackDao().getAll();
@@ -75,18 +73,9 @@ public class OwnerServiceImpl implements OwnerService {
 				return flacTrackBean.getUrl();
 			}
 		};
-		final EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		Transformer<String, EncodedTrackBean> toTrackTransformer = new Transformer<String, EncodedTrackBean>() {
-			@Override
-			public EncodedTrackBean transform(String url) {
-				return encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
-			}
-		};
-		int size = flacTrackBeans.size();
-		List<String> urls = new ArrayList<String>(size + 2);
+		List<String> urls = new LinkedList<String>();
 		CollectionUtils.collect(flacTrackBeans, toUrltransformer, urls);
-		Iterator<EncodedTrackBean> iter = IteratorUtils.transformedIterator(urls.iterator(), toTrackTransformer);
-		return new KnownSizeIterator<EncodedTrackBean>(size, iter);
+		return getEncodedTrackDao().findByUrlsAndEncoderBean(urls, encoderBean);
 	}
 	
 	@Required

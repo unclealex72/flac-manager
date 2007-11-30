@@ -11,45 +11,16 @@
   <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-15" />
-    <c:set var="link"><s:url action="device-downloading" /></c:set>
-    <meta http-equiv="refresh" content="10;url=${link}"/>
     <title>Writing Progress</title>
-  </head>
-  
+	</head>
   <body>
-  	<table>
-  		<tbody>
-  			<tr>
-  				<th>Device:</th>
-  				<td><s:property value="device.fullDescription"/></td>
-  			</tr>
-  			<s:if test="writingListener == null">
-  				<th/>
-  				<td>Preparing the device for writing.</td>
-  			</s:if>
-  			<s:else>
-	  			<s:push value="writingListener">
-	  				<tr>
-	  					<th>Files written:</th>
-	  					<td><s:property value="filesWrittenCount"/> of <s:property value="totalFiles"/></td>
-	  				</tr>
-	  				<tr>
-	  					<th>Last file written:</th>
-	  					<td>
-	  						<s:push value="fileNamesWritten">
-	  							<s:if test="empty">
-	  								N/A
-	  							</s:if>
-	  							<s:else>
-	  								<s:property value="last"/>
-	  							</s:else>
-	  						</s:push>
-	  					</td>
-	  				</tr>
-	  			</s:push>
-	  		</s:else>
-  		</tbody>
-  	</table>
+  	<c:set var="link">
+  		<s:url namespace="/ajax" action="devicedownload" includeParams="all"/>
+  	</c:set>
+  	<div dojoType="struts:BindDiv" updateFreq="2000" autoStart="true" stopTimerListenTopics="/finished"
+  			 href="${link}" executeScripts="true" showError="true" showLoading="false">
+			<p>Please wait...</p>
+		</div>
   </body>
   </html>
 </jsp:root>

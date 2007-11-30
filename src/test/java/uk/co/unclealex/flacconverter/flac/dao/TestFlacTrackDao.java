@@ -29,6 +29,11 @@ public class TestFlacTrackDao implements FlacTrackDao {
 	}
 
 	@Override
+	public int countTracks() {
+		return getAll().size();
+	}
+	
+	@Override
 	public FlacTrackBean findById(final int id) {
 		return CollectionUtils.find(getAll(),
 			new Predicate<FlacTrackBean>() {
@@ -43,6 +48,11 @@ public class TestFlacTrackDao implements FlacTrackDao {
 	public void flush() {
 		// Do nothing
 		
+	}
+
+	@Override
+	public void clear() {
+		// Do nothing
 	}
 
 	@Override

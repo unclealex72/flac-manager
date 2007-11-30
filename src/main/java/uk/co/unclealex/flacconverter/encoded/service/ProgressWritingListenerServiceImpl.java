@@ -6,18 +6,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
+import uk.co.unclealex.flacconverter.encoded.writer.ProgressWritingListener;
 
 public class ProgressWritingListenerServiceImpl implements ProgressWritingListenerService {
 
-	private ConcurrentMap<DeviceBean, WritingListener> i_writingListeners = 
-		new ConcurrentHashMap<DeviceBean, WritingListener>();
+	private ConcurrentMap<DeviceBean, ProgressWritingListener> i_progressWritingListeners = 
+		new ConcurrentHashMap<DeviceBean, ProgressWritingListener>();
 	
 	@Override
-	public WritingListener createNewListener(DeviceBean deviceBean) {
-		ConcurrentMap<DeviceBean, WritingListener> writingListeners = getWritingListeners();
-		WritingListener writingListener = new WritingListener();
-		if (writingListeners.putIfAbsent(deviceBean, writingListener) == null) {
-			return writingListener;
+	public ProgressWritingListener createNewListener(DeviceBean deviceBean) {
+		ConcurrentMap<DeviceBean, ProgressWritingListener> progressWritingListeners = getProgressWritingListeners();
+		ProgressWritingListener progressWritingListener = new ProgressWritingListener();
+		if (progressWritingListeners.putIfAbsent(deviceBean, progressWritingListener) == null) {
+			return progressWritingListener;
 		}
 		else {
 			return null;
@@ -25,27 +26,27 @@ public class ProgressWritingListenerServiceImpl implements ProgressWritingListen
 	}
 
 	@Override
-	public SortedMap<DeviceBean, WritingListener> getAllListeners() {
-		return new TreeMap<DeviceBean, WritingListener>(getWritingListeners());
+	public SortedMap<DeviceBean, ProgressWritingListener> getAllListeners() {
+		return new TreeMap<DeviceBean, ProgressWritingListener>(getProgressWritingListeners());
 	}
 
 	@Override
-	public void unregisterListener(DeviceBean deviceBean, WritingListener writingListener) {
-		getWritingListeners().remove(deviceBean, writingListener);
+	public void unregisterListener(DeviceBean deviceBean, ProgressWritingListener progressWritingListener) {
+		getProgressWritingListeners().remove(deviceBean, progressWritingListener);
 	}
 
 	@Override
-	public boolean hasWritingListener(DeviceBean deviceBean) {
-		return getWritingListeners().containsKey(deviceBean);
+	public boolean hasProgressWritingListener(DeviceBean deviceBean) {
+		return getProgressWritingListeners().containsKey(deviceBean);
 	}
 	
-	public ConcurrentMap<DeviceBean, WritingListener> getWritingListeners() {
-		return i_writingListeners;
+	public ConcurrentMap<DeviceBean, ProgressWritingListener> getProgressWritingListeners() {
+		return i_progressWritingListeners;
 	}
 
-	protected void setWritingListeners(
-			ConcurrentMap<DeviceBean, WritingListener> writingListeners) {
-		i_writingListeners = writingListeners;
+	protected void setProgressWritingListeners(
+			ConcurrentMap<DeviceBean, ProgressWritingListener> progressWritingListeners) {
+		i_progressWritingListeners = progressWritingListeners;
 	}
 
 }

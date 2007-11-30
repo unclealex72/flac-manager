@@ -10,7 +10,8 @@ public interface EncodedTrackDao extends EncodingDao<EncodedTrackBean> {
 
 	public EncodedTrackBean findByUrlAndEncoderBean(String url, EncoderBean encoderBean);
 
-	public SortedSet<EncodedTrackBean> findByUrlsAndEncoderBean(Collection<String> urls, EncoderBean encoderBean);
-
 	public SortedSet<EncodedTrackBean> findByEncoderBean(EncoderBean encoderBean);
+
+	public SortedSet<EncodedTrackBean> findByUrlsAndEncoderBean(
+			Collection<String> urls, EncoderBean encoderBean);
 }

@@ -1,16 +1,13 @@
 package uk.co.unclealex.flacconverter.encoded.initialise;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Formatter;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -20,17 +17,12 @@ import java.util.TreeSet;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.flacconverter.encoded.dao.DeviceDao;
 import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
 import uk.co.unclealex.flacconverter.encoded.dao.EncoderDao;
 import uk.co.unclealex.flacconverter.encoded.dao.EncodingDao;
 import uk.co.unclealex.flacconverter.encoded.dao.OwnerDao;
-import uk.co.unclealex.flacconverter.encoded.dao.TrackDataDao;
 import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
@@ -38,11 +30,7 @@ import uk.co.unclealex.flacconverter.encoded.model.KeyedBean;
 import uk.co.unclealex.flacconverter.encoded.model.OwnedAlbumBean;
 import uk.co.unclealex.flacconverter.encoded.model.OwnedArtistBean;
 import uk.co.unclealex.flacconverter.encoded.model.OwnerBean;
-import uk.co.unclealex.flacconverter.encoded.model.TrackDataBean;
-import uk.co.unclealex.flacconverter.encoded.service.AlreadyEncodingException;
-import uk.co.unclealex.flacconverter.encoded.service.CurrentlyScanningException;
-import uk.co.unclealex.flacconverter.encoded.service.EncoderService;
-import uk.co.unclealex.flacconverter.encoded.service.MultipleEncodingException;
+import uk.co.unclealex.flacconverter.encoded.service.TrackDataStreamIteratorFactory;
 import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 
@@ -53,29 +41,22 @@ public class InitialiserImpl implements Initialiser {
 	private static final String FLAC_FILE_BASE = "/mnt/multimedia/flac/";
 	private static final String FLAC_URL_BASE = "file://" + FLAC_FILE_BASE;
 	
-	public static void main(String[] args) throws IOException, AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException {
-		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext-commandline.xml");
-		Initialiser initialiser = (Initialiser) applicationContext.getBean("initialiser");
-		EncoderService encoderService = (EncoderService) applicationContext.getBean("encoderService");
-//		initialiser.initialise();
-		initialiser.importTracks();
-		encoderService.encodeAll(8);
-	}
-
 	private OwnerDao i_ownerDao;
 	private EncoderDao i_encoderDao;
-	private TrackDataDao i_trackDataDao;
 	private DeviceDao i_deviceDao;
 	private EncodedTrackDao i_encodedTrackDao;
 	private FlacTrackDao i_flacTrackDao;
+	private TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
+	private TrackImporter i_trackImporter;
 	
-	//@Transactional(propagation=Propagation.NEVER)
 	public void importTracks() throws IOException {
+		TrackImporter trackImporter = getTrackImporter();
+		log.info("Importing tracks.");
 		File baseDir = new File("/mnt/multimedia/converted");
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
 		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
 			SortedMap<File, FlacTrackBean> tracksByFile = new TreeMap<File, FlacTrackBean>();
-			File base = new File(new File(baseDir, encoderBean.getExtension()), "raw/Z");
+			File base = new File(new File(baseDir, encoderBean.getExtension()), "raw");
 			collect(base, tracksByFile, encoderBean.getExtension());
 			for (Map.Entry<File, FlacTrackBean> entry : tracksByFile.entrySet()) {
 				File file = entry.getKey();
@@ -85,45 +66,11 @@ public class InitialiserImpl implements Initialiser {
 					EncodedTrackBean encodedTrackBean =
 						encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
 					if (encodedTrackBean == null) {
-						importTrack(encoderBean, file, flacTrackBean);
-					}
-					else {
-						TrackDataBean trackDataBean = encodedTrackBean.getTrackDataBean();
-						int expectedLength = (int) file.length();
-						int actualLength = trackDataBean.getTrack().length;
-						if (trackDataBean.getTrack().length != file.length()) {
-							Formatter formatter = new Formatter();
-							
-							log.error(formatter.format("FAILED check %s of %s. Expected %d but found %d.", encoderBean.getExtension(), url, expectedLength, actualLength));
-						}
-						getTrackDataDao().dismiss(trackDataBean);
-						getEncodedTrackDao().dismiss(encodedTrackBean);
+						trackImporter.importTrack(encoderBean, file, flacTrackBean);
 					}
 				}
 			}
 		}
-	}
-
-	@Transactional(propagation=Propagation.REQUIRES_NEW)
-	public void importTrack(EncoderBean encoderBean, File file, FlacTrackBean flacTrackBean) throws IOException {
-		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		TrackDataDao trackDataDao = getTrackDataDao();
-		FileInputStream in = new FileInputStream(file);
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		int length = IOUtils.copy(in, out);
-		in.close();
-		out.close();
-		TrackDataBean trackDataBean = new TrackDataBean();
-		trackDataBean.setTrack(out.toByteArray());
-		trackDataBean.setLength(length);
-		EncodedTrackBean encodedTrackBean = new EncodedTrackBean();
-		encodedTrackBean.setTrackDataBean(trackDataBean);
-		encodedTrackBean.setEncoderBean(encoderBean);
-		encodedTrackBean.setFlacUrl(flacTrackBean.getUrl());
-		encodedTrackBean.setTimestamp(file.lastModified());
-		log.info("Storing " + encoderBean.getExtension() + " of " + flacTrackBean.getUrl());
-		encodedTrackDao.store(encodedTrackBean);
-		trackDataDao.clear();
 	}
 	
 	protected void collect(File base, SortedMap<File, FlacTrackBean> tracksByFile, final String ext) throws IOException {
@@ -174,6 +121,7 @@ public class InitialiserImpl implements Initialiser {
 		return buff.toString().toLowerCase().replace(' ', '_');
 	}
 	public void initialise() throws IOException {
+		log.info("Initialising defaults.");
 		OwnerBean alex = createOwnerBean("Alex", false);
 		OwnerBean trevor = createOwnerBean("Trevor", true);
 		EncoderBean mp3Encoder = createEncoderBean("mp3", "flac2mp3.sh", "494433");
@@ -278,13 +226,20 @@ public class InitialiserImpl implements Initialiser {
 		i_flacTrackDao = flacTrackDao;
 	}
 
-	public TrackDataDao getTrackDataDao() {
-		return i_trackDataDao;
+	public TrackDataStreamIteratorFactory getTrackDataStreamIteratorFactory() {
+		return i_trackDataStreamIteratorFactory;
 	}
 
-	public void setTrackDataDao(TrackDataDao trackDataDao) {
-		i_trackDataDao = trackDataDao;
+	public void setTrackDataStreamIteratorFactory(
+			TrackDataStreamIteratorFactory trackDataStreamIteratorFactory) {
+		i_trackDataStreamIteratorFactory = trackDataStreamIteratorFactory;
 	}
 
+	public TrackImporter getTrackImporter() {
+		return i_trackImporter;
+	}
 
+	public void setTrackImporter(TrackImporter trackImporter) {
+		i_trackImporter = trackImporter;
+	}
 }

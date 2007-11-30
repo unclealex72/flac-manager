@@ -3,6 +3,7 @@ package uk.co.unclealex.flacconverter.encoded.dao;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Example;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
@@ -12,6 +13,8 @@ import uk.co.unclealex.flacconverter.encoded.model.KeyedBean;
 public abstract class HibernateKeyedDao<T extends KeyedBean<T>> extends HibernateDaoSupport implements
 		KeyedDao<T> {
 
+	protected Logger log = Logger.getLogger(getClass());
+	
 	@SuppressWarnings("unchecked")
 	public T findById(int id) {
 		return (T) getSession().get(createExampleBean().getClass(), id);
@@ -49,6 +52,7 @@ public abstract class HibernateKeyedDao<T extends KeyedBean<T>> extends Hibernat
 	@Override
 	public void dismiss(T keyedBean) {
 		getSession().evict(keyedBean);
+		getSessionFactory().evict(createExampleBean().getClass(), keyedBean.getId());
 	}
 	
 	@Override

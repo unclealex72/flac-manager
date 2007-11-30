@@ -1,6 +1,7 @@
 package uk.co.unclealex.flacconverter.flac.dao;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -11,6 +12,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
+import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang.StringUtils;
 
 import uk.co.unclealex.flacconverter.flac.FlacSpringTest;
@@ -59,9 +61,33 @@ public class FlacDaoTest extends FlacSpringTest {
 			testSame("hibernate urls", hibernateUrls, "sql urls", sqlUrls);
 		}
 		finally {
-			if (conn != null) { conn.close(); }
-			if (stmt != null) { stmt.close(); }
-			if (rs != null) { rs.close(); }
+			DbUtils.closeQuietly(conn);
+		}
+	}
+
+	public void testStartsWith() throws SQLException {
+		for (char c : "abcdefghijklmnopqrstuvwxyz".toCharArray()) {
+			SortedSet<FlacArtistBean> flacArtistBeans =
+				new TreeSet<FlacArtistBean>(getFlacArtistDao().getArtistsBeginningWith(c));
+			SortedSet<String> sqlNames = new TreeSet<String>();
+			Connection conn = null;
+			PreparedStatement stmt = null;
+			ResultSet rs = null;
+			try {
+				conn = getFlacDataSource().getConnection();
+				stmt = conn.prepareStatement("select name from contributors where namesort like ? order by namesort");
+				stmt.setString(1, Character.toUpperCase(c) + "%");
+				rs = stmt.executeQuery();
+				while (rs.next()) {
+					sqlNames.add(new String(rs.getBytes("name")));
+				}
+				SortedSet<String> hibernateNames = new TreeSet<String>();
+				CollectionUtils.collect(flacArtistBeans, createNameTransformer(), hibernateNames);
+				testSame("hibernate names", hibernateNames, "sql names", sqlNames);
+			}
+			finally {
+				DbUtils.closeQuietly(conn);
+			}
 		}
 	}
 	
@@ -99,6 +125,14 @@ public class FlacDaoTest extends FlacSpringTest {
 		return new Transformer<FlacTrackBean, String>() {
 			public String transform(FlacTrackBean flacTrackBean) {
 				return flacTrackBean.getUrl();
+			}
+		};
+	}
+
+	protected Transformer<FlacArtistBean, String> createNameTransformer() {
+		return new Transformer<FlacArtistBean, String>() {
+			public String transform(FlacArtistBean flacArtistBean) {
+				return flacArtistBean.getName();
 			}
 		};
 	}
