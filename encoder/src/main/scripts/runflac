@@ -1,0 +1,13 @@
+#!/bin/sh
+
+#usage: runflac class [arguments...]
+
+CLASS=$1
+shift
+
+for JAR in /home/java/flacconverter/libs/*.jar
+do
+  CLASSPATH=$CLASSPATH:$JAR
+done
+
+java -cp $CLASSPATH uk.co.unclealex.flacconverter.main.$CLASS $@

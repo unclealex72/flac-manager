@@ -1,0 +1,13 @@
+#!/bin/sh
+
+#usage copyto extension owner target
+
+EXTENSION=$1
+OWNER=$2
+TARGET=$3
+
+# Delete the old files on the device
+
+find $TARGET -maxdepth 1 -type d -not -name ".*" -exec rm -rf "{}" ";"
+
+runflac CopyTo $EXTENSION $OWNER $TARGET

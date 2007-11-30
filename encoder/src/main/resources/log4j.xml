@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns="http://jakarta.apache.org/log4j/" debug="false">
+
+  <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+    <param name="Target" value="System.out"/>
+    <param name="Threshold" value="INFO"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p [%c{1}] %m%n"/>
+    </layout>
+  </appender>
+
+  <appender name="FILE_OGG" class="org.apache.log4j.DailyRollingFileAppender">
+	<param name="Threshold" value="INFO"/>
+	<param name="File" value="/mnt/multimedia/logs/flacConverter.ogg.log"/>
+	<param name="Append" value="true"/>
+	<param name="DatePattern" value="'.'yyyy-MM-dd"/>
+	<layout class="org.apache.log4j.PatternLayout">
+	  <param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p %m%n"/>
+	</layout>
+  </appender>
+
+  <appender name="FILE_MP3" class="org.apache.log4j.DailyRollingFileAppender">
+	<param name="Threshold" value="INFO"/>
+	<param name="File" value="/mnt/multimedia/logs/flacConverter.mp3.log"/>
+	<param name="Append" value="true"/>
+	<param name="DatePattern" value="'.'yyyy-MM-dd"/>
+	<layout class="org.apache.log4j.PatternLayout">
+	  <param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p %m%n"/>
+	</layout>
+  </appender>
+
+  <appender name="FILE_FLAC" class="org.apache.log4j.DailyRollingFileAppender">
+	<param name="Threshold" value="INFO"/>
+	<param name="File" value="/mnt/multimedia/logs/flacConverter.log"/>
+	<param name="Append" value="true"/>
+	<param name="DatePattern" value="'.'yyyy-MM-dd"/>
+	<layout class="org.apache.log4j.PatternLayout">
+	  <param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p %m%n"/>
+	</layout>
+  </appender>
+
+  <appender name="SMTP" class="org.apache.log4j.net.SMTPAppender">
+    <param name="Threshold" value="WARN"/>
+    <param name="To" value="alex.jones@unclealex.co.uk"/>
+    <param name="From" value="alex.jones@unclealex.co.uk"/>
+    <param name="Subject" value="FlacConverter"/>
+    <param name="SMTPHost" value="smtp.mailbox.co.uk"/>
+    <param name="BufferSize" value="1"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p [%c{1}] %m%n"/>
+    </layout>
+  </appender>
+
+  <logger name="flac" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="SMTP"/>
+    <appender-ref ref="FILE_FLAC"/>
+  </logger>
+  <logger name="mp3" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="SMTP"/>
+    <appender-ref ref="FILE_MP3"/>
+  </logger>
+  <logger name="ogg" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="SMTP"/>
+    <appender-ref ref="FILE_OGG"/>
+  </logger>
+  <root>
+    <priority value="DEBUG"/>
+    <appender-ref ref="CONSOLE"/>
+  </root>
+</log4j:configuration>
