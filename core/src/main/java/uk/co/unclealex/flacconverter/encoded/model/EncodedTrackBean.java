@@ -27,8 +27,11 @@ public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
 	private EncoderBean i_encoderBean;
 	private Integer i_length;
 	private Long i_timestamp;
-
+	private String i_title;
+	private int i_trackNumber;
+	
 	private SortedSet<TrackDataBean> i_trackDataBeans;
+	private EncodedAlbumBean i_encodedAlbumBean;
 	
 	public EncodedTrackBean() {
 		super();
@@ -88,6 +91,15 @@ public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
 		i_length = length;
 	}
 
+	@ManyToOne
+	public EncodedAlbumBean getEncodedAlbumBean() {
+		return i_encodedAlbumBean;
+	}
+
+	public void setEncodedAlbumBean(EncodedAlbumBean encodedAlbumBean) {
+		i_encodedAlbumBean = encodedAlbumBean;
+	}
+
 	@OneToMany(mappedBy="encodedTrackBean", targetEntity=TrackDataBean.class, cascade = CascadeType.ALL)
 	@Sort(type=SortType.NATURAL)
 	public SortedSet<TrackDataBean> getTrackDataBeans() {
@@ -96,6 +108,22 @@ public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
 
 	public void setTrackDataBeans(SortedSet<TrackDataBean> trackDataBeans) {
 		i_trackDataBeans = trackDataBeans;
+	}
+
+	public String getTitle() {
+		return i_title;
+	}
+
+	public void setTitle(String title) {
+		i_title = title;
+	}
+
+	public int getTrackNumber() {
+		return i_trackNumber;
+	}
+
+	public void setTrackNumber(int trackNumber) {
+		i_trackNumber = trackNumber;
 	}
 
 }
