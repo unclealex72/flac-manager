@@ -1,6 +1,5 @@
-package uk.co.unclealex.flacconverter.encoded.converter;
+package uk.co.unclealex.flacconverter.converter;
 
-import uk.co.unclealex.flacconverter.converter.KeyedConverter;
 import uk.co.unclealex.flacconverter.encoded.dao.KeyedDao;
 import uk.co.unclealex.flacconverter.encoded.dao.OwnerDao;
 import uk.co.unclealex.flacconverter.encoded.model.OwnerBean;
