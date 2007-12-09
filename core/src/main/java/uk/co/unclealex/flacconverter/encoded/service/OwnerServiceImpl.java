@@ -23,37 +23,7 @@ import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 
 public class OwnerServiceImpl implements OwnerService {
 
-	private FlacArtistDao i_flacArtistDao;
-	private FlacAlbumDao i_flacAlbumDao;
-	private FlacTrackDao i_flacTrackDao;
 	private EncodedTrackDao i_encodedTrackDao;
-	
-	@Override
-	public SortedSet<FlacAlbumBean> getOwnedAlbums(OwnerBean ownerBean) {
-		ArtistTransformer artistTransformer = new ArtistTransformer();
-		AlbumTransformer albumTransformer = new AlbumTransformer();
-		
-		SortedSet<FlacAlbumBean> flacAlbumBeans = new TreeSet<FlacAlbumBean>();
-		for (OwnedArtistBean ownedArtistBean : ownerBean.getOwnedArtistBeans()) {
-			flacAlbumBeans.addAll(artistTransformer.transform(ownedArtistBean));
-		}
-		CollectionUtils.collect(ownerBean.getOwnedAlbumBeans(), albumTransformer, flacAlbumBeans);
-		return flacAlbumBeans;
-	}
-
-	protected class ArtistTransformer implements Transformer<OwnedArtistBean, SortedSet<FlacAlbumBean>> {
-		@Override
-		public SortedSet<FlacAlbumBean> transform(OwnedArtistBean ownedArtistBean) {
-			return getFlacArtistDao().findByCode(ownedArtistBean.getName()).getFlacAlbumBeans();
-		}
-	}
-
-	protected class AlbumTransformer implements Transformer<OwnedAlbumBean, FlacAlbumBean> {
-		@Override
-		public FlacAlbumBean transform(OwnedAlbumBean ownedAlbumBean) {
-			return getFlacAlbumDao().findByArtistAndAlbum(ownedAlbumBean.getArtistName(), ownedAlbumBean.getAlbumName());
-		}
-	}
 	
 	@Override
 	public SortedSet<EncodedTrackBean> getOwnedEncodedTracks(OwnerBean ownerBean, final EncoderBean encoderBean) {
@@ -79,24 +49,6 @@ public class OwnerServiceImpl implements OwnerService {
 	}
 	
 	@Required
-	public FlacArtistDao getFlacArtistDao() {
-		return i_flacArtistDao;
-	}
-
-	public void setFlacArtistDao(FlacArtistDao flacArtistDao) {
-		i_flacArtistDao = flacArtistDao;
-	}
-
-	@Required
-	public FlacAlbumDao getFlacAlbumDao() {
-		return i_flacAlbumDao;
-	}
-
-	public void setFlacAlbumDao(FlacAlbumDao flacAlbumDao) {
-		i_flacAlbumDao = flacAlbumDao;
-	}
-
-	@Required
 	public EncodedTrackDao getEncodedTrackDao() {
 		return i_encodedTrackDao;
 	}
@@ -104,13 +56,4 @@ public class OwnerServiceImpl implements OwnerService {
 	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
 		i_encodedTrackDao = encodedTrackDao;
 	}
-
-	public FlacTrackDao getFlacTrackDao() {
-		return i_flacTrackDao;
-	}
-
-	public void setFlacTrackDao(FlacTrackDao flacTrackDao) {
-		i_flacTrackDao = flacTrackDao;
-	}
-
 }

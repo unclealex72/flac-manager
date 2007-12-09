@@ -20,23 +20,21 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
 import uk.co.unclealex.flacconverter.encoded.dao.TrackDataDao;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.encoded.service.SingleEncoderService;
 import uk.co.unclealex.flacconverter.encoded.service.TrackDataStreamIteratorFactory;
+import uk.co.unclealex.flacconverter.encoded.service.TrackStreamService;
 import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatService;
 import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatServiceFactory;
-import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
 
 @Transactional(readOnly=true)
 public class TrackWriterImpl implements TrackWriter {
 
   private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
-	private FlacTrackDao i_flacTrackDao;
 	private TrackDataDao i_trackDataDao;
 	private EncodedTrackDao i_encodedTrackDao;
 	private TitleFormatServiceFactory i_titleFormatServiceFactory;
 	private TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
-	private SingleEncoderService i_singleEncoderService;
+	private TrackStreamService i_trackStreamService;
 
 	private Map<TrackStream, TitleFormatService> i_titleFormatServicesByTrackStream;
 	private TrackWritingException i_trackWritingException = new TrackWritingException();
@@ -151,7 +149,7 @@ public class TrackWriterImpl implements TrackWriter {
 			}
 		}
 		if (!outputStreamsByTrackStream.isEmpty()) {
-			InputStream in = getSingleEncoderService().getTrackInputStream(encodedTrackBean);
+			InputStream in = getTrackStreamService().getTrackInputStream(encodedTrackBean);
 	    int count = 0;
 	    byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
 			try {
@@ -285,14 +283,6 @@ public class TrackWriterImpl implements TrackWriter {
 	}
 	
 	@Required
-	public FlacTrackDao getFlacTrackDao() {
-		return i_flacTrackDao;
-	}
-
-	public void setFlacTrackDao(FlacTrackDao flacTrackDao) {
-		i_flacTrackDao = flacTrackDao;
-	}
-
 	public TrackDataDao getTrackDataDao() {
 		return i_trackDataDao;
 	}
@@ -318,12 +308,12 @@ public class TrackWriterImpl implements TrackWriter {
 		i_trackDataStreamIteratorFactory = trackDataStreamIteratorFactory;
 	}
 
-	public SingleEncoderService getSingleEncoderService() {
-		return i_singleEncoderService;
+	public TrackStreamService getTrackStreamService() {
+		return i_trackStreamService;
 	}
 
-	public void setSingleEncoderService(SingleEncoderService singleEncoderService) {
-		i_singleEncoderService = singleEncoderService;
+	public void setTrackStreamService(TrackStreamService singleEncoderService) {
+		i_trackStreamService = singleEncoderService;
 	}
 
 	public Map<TrackStream, TitleFormatService> getTitleFormatServicesByTrackStream() {

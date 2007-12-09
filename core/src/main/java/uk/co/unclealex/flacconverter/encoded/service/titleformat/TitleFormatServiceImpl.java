@@ -7,12 +7,9 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 
 import uk.co.unclealex.flacconverter.SlimServerConfig;
+import uk.co.unclealex.flacconverter.encoded.model.EncodedAlbumBean;
+import uk.co.unclealex.flacconverter.encoded.model.EncodedArtistBean;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
-import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
-import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.flacconverter.substitutor.Substitutor;
 
 public class TitleFormatServiceImpl implements TitleFormatService {
@@ -29,28 +26,16 @@ public class TitleFormatServiceImpl implements TitleFormatService {
 
 	private String i_titleFormat;
 	private SlimServerConfig i_slimServerConfig;
-	private FlacTrackDao i_flacTrackDao;
-	
-	public FlacTrackDao getFlacTrackDao() {
-		return i_flacTrackDao;
-	}
-	public void setFlacTrackDao(FlacTrackDao flacTrackDao) {
-		i_flacTrackDao = flacTrackDao;
-	}
-	@Override
-	public String getTitle(EncodedTrackBean encodedTrackBean) {
-		return getTitle(getFlacTrackDao().findByUrl(encodedTrackBean.getFlacUrl()), encodedTrackBean.getEncoderBean());
-	}
-	
-	public String getTitle(FlacTrackBean flacTrackBean, EncoderBean encoderBean) {
+
+	public String getTitle(EncodedTrackBean trackBean) {
 		Substitutor substitutor = new Substitutor(getTitleFormat());
-		FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
-		FlacArtistBean flacArtistBean = flacAlbumBean.getFlacArtistBean();
-		substitutor.substitute(TitleFormatVariable.TRACK, flacTrackBean.getTrackNumber());
-		substitutor.substitute(TitleFormatVariable.TITLE, sanitise(flacTrackBean.getTitle()));
-		substitutor.substitute(TitleFormatVariable.ALBUM, sanitise(flacAlbumBean.getTitle()));
-		substitutor.substitute(TitleFormatVariable.ARTIST, sanitise(removeDefiniteArticle(flacArtistBean.getName())));
-		substitutor.substitute(TitleFormatVariable.EXTENSION, encoderBean.getExtension());
+		EncodedAlbumBean albumBean = trackBean.getEncodedAlbumBean();
+		EncodedArtistBean artistBean = albumBean.getEncodedArtistBean();
+		substitutor.substitute(TitleFormatVariable.TRACK, trackBean.getTrackNumber());
+		substitutor.substitute(TitleFormatVariable.TITLE, sanitise(trackBean.getTitle()));
+		substitutor.substitute(TitleFormatVariable.ALBUM, sanitise(albumBean.getTitle()));
+		substitutor.substitute(TitleFormatVariable.ARTIST, sanitise(removeDefiniteArticle(artistBean.getName())));
+		substitutor.substitute(TitleFormatVariable.EXTENSION, trackBean.getEncoderBean().getExtension());
 		return substitutor.getText();
 	}
 

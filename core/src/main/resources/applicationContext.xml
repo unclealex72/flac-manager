@@ -126,6 +126,8 @@
 		<property name="maximumTrackDataLength" value="1048576"/>
 	</bean>
 
+	<bean id="trackStreamService" class="uk.co.unclealex.flacconverter.encoded.service.TrackStreamServiceImpl"/>
+
 	<bean
 		id="trackDataStreamIteratorFactory"
 		class="uk.co.unclealex.flacconverter.encoded.service.SpringTrackDataStreamIteratorFactory"/>
