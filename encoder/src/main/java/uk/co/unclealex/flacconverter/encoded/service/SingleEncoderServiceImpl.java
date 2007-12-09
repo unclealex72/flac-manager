@@ -39,14 +39,10 @@ import uk.co.unclealex.flacconverter.util.EnumeratorBridge;
 @Transactional
 public class SingleEncoderServiceImpl implements SingleEncoderService, Serializable {
 
-	private static final int BUFFER_STREAM_SIZE = 1024 * 1024;
-
 	private static Logger log = Logger.getLogger(SingleEncoderServiceImpl.class);
 
 	private EncodedTrackDao i_encodedTrackDao;
 	private TrackDataDao i_trackDataDao;
-	private	TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
-	private Integer i_maximumTrackDataLength;
 	
 	@Transactional(rollbackFor=IOException.class)
 	public int encode(
@@ -183,26 +179,6 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 							"Skipping %s %s, %s: %02d - %s", extension, artistName, albumName, trackNumber, trackName));
 		}
 		return retval;
-	}
-
-	@Override
-	public InputStream getTrackInputStream(EncodedTrackBean encodedTrackBean) {
-		Iterator<InputStream> inIterator =
-			getTrackDataStreamIteratorFactory().createTrackDataInputStreamIterator(encodedTrackBean);
-		return
-			new BufferedInputStream(
-				new SequenceInputStream(new EnumeratorBridge<InputStream>(inIterator)),
-				BUFFER_STREAM_SIZE);
-	}
-	
-	@Override
-	public OutputStream getTrackOutputStream(EncodedTrackBean encodedTrackBean) {
-		Iterator<OutputStream> outIter = 
-			getTrackDataStreamIteratorFactory().createTrackDataOutputStreamIterator(encodedTrackBean);
-		return
-			new BufferedOutputStream(
-				new SequenceOutputStream(getMaximumTrackDataLength(), outIter),
-				BUFFER_STREAM_SIZE);
 	}
 	
 	public EncodedTrackDao getEncodedTrackDao() {

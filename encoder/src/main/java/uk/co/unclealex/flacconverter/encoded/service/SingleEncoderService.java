@@ -32,9 +32,4 @@ public interface SingleEncoderService extends Serializable {
 	@Transactional(rollbackFor = IOException.class)
 	public File createCommandFile(EncoderBean encoderBean) throws IOException;
 	
-	public int getMaximumTrackDataLength();
-	
-	public InputStream getTrackInputStream(EncodedTrackBean encodedTrackBean);
-	public OutputStream getTrackOutputStream(EncodedTrackBean encodedTrackBean);
-	
 }
