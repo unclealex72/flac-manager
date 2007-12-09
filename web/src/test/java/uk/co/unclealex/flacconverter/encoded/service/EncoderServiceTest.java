@@ -45,7 +45,7 @@ public class EncoderServiceTest extends EncodedSpringTest {
 	private TrackDataDao i_trackDataDao;
 	
 	public void testMagicNumber() throws IOException {
-		SingleEncoderService singleEncoderService = getSingleEncoderService();
+		SingleEncoderService singleEncoderService = getTrackStreamService();
 		FlacTrackBean flacTrackBean = getFlacTrackDao().getAll().first();
 		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
 			MagicNumberCheckingEncodingClosure closure = new MagicNumberCheckingEncodingClosure(encoderBean);
@@ -54,7 +54,7 @@ public class EncoderServiceTest extends EncodedSpringTest {
 	}
 
 	public void testCorrectLengthEncoded() throws IOException {
-		SingleEncoderService singleEncoderService = getSingleEncoderService();
+		SingleEncoderService singleEncoderService = getTrackStreamService();
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
 		for (FlacTrackBean flacTrackBean : getFlacTrackDao().getAll()) {
 			for (EncoderBean encoderBean : getEncoderDao().getAll()) {
@@ -224,7 +224,7 @@ public class EncoderServiceTest extends EncodedSpringTest {
 					encodedTrackBean.getFlacUrl() + " is empty.",
 					trackDataBeans.isEmpty());
 		}
-		int maximumTrackDataLength = getSingleEncoderService().getMaximumTrackDataLength();
+		int maximumTrackDataLength = getTrackStreamService().getMaximumTrackDataLength();
 		for (TrackDataBean trackDataBean : getTrackDataDao().getAll()) {
 			int length = trackDataBean.getTrack().length;
 			if (length > maximumTrackDataLength) {
@@ -246,7 +246,7 @@ public class EncoderServiceTest extends EncodedSpringTest {
 	}
 
 	public void testOverwrite(long time, boolean isOverwrite) throws IOException, SQLException {
-		SingleEncoderService singleEncoderService = getSingleEncoderService();
+		SingleEncoderService singleEncoderService = getTrackStreamService();
 		TrackDataDao trackDataDao = getTrackDataDao();
 		EncodingCommandBean encodingCommandBean = getFirstEncodingCommandBean();
 		EncoderBean encoderBean = encodingCommandBean.getEncoderBean();
@@ -407,11 +407,11 @@ public class EncoderServiceTest extends EncodedSpringTest {
 		i_trackDataDao = trackDataDao;
 	}
 
-	public SingleEncoderService getSingleEncoderService() {
+	public SingleEncoderService getTrackStreamService() {
 		return i_singleEncoderService;
 	}
 
-	public void setSingleEncoderService(SingleEncoderService singleEncoderService) {
+	public void setTrackStreamService(SingleEncoderService singleEncoderService) {
 		i_singleEncoderService = singleEncoderService;
 	}
 }

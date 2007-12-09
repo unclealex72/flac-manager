@@ -1,13 +1,18 @@
 <?xml version="1.0"?>
-<project>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>unclealex</groupId>
-	<artifactId>flac-converter</artifactId>
-	<name>Flac Conversion</name>
+	<groupId>uk.co.unclealex</groupId>
+	<artifactId>flac-converter-web</artifactId>
 	<version>2.0</version>
+	<name>Flac Conversion</name>
 	<url>http://maven.apache.org</url>
 	<packaging>war</packaging>
 	<dependencies>
+		<dependency>
+			<groupId>uk.co.unclealex</groupId>
+			<artifactId>flac-converter-core</artifactId>
+			<version>${version}</version>
+		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
