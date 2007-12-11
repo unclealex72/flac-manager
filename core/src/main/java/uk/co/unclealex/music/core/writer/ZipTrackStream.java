@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.core.encoded.writer;
+package uk.co.unclealex.music.core.writer;
 
 import java.util.zip.ZipOutputStream;
 

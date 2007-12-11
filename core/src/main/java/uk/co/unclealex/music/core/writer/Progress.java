@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.core.encoded.writer;
+package uk.co.unclealex.music.core.writer;
 
 public enum Progress implements Comparable<Progress> {
 	PREPARING("PREPARING"), WRITING("WRITING"), FINALISING("FINALISING"), FINISHED("FINISHED");

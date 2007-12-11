@@ -177,16 +177,16 @@
 	</bean>
 
 	<bean id="zipTrackStream"
-		class="uk.co.unclealex.music.core.encoded.writer.ZipTrackStreamImpl"
+		class="uk.co.unclealex.music.core.writer.ZipTrackStreamImpl"
 		scope="prototype" autowire-candidate="false"/>
 	<bean id="fileTrackStream"
-		class="uk.co.unclealex.music.core.encoded.writer.FileTrackStreamImpl"
+		class="uk.co.unclealex.music.core.writer.FileTrackStreamImpl"
 		scope="prototype" autowire-candidate="false" />
 	<bean id="trackWriter"
-		class="uk.co.unclealex.music.core.encoded.writer.TrackWriterImpl"
+		class="uk.co.unclealex.music.core.writer.TrackWriterImpl"
 		scope="prototype" autowire-candidate="false" />
 	<bean id="trackWriterFactory"
-		class="uk.co.unclealex.music.core.encoded.writer.SpringTrackWriterFactory" />
+		class="uk.co.unclealex.music.core.writer.SpringTrackWriterFactory" />
 
 	<bean 
 		id="progressWritingListenerService"

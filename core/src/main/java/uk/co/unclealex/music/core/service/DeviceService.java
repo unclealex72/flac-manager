@@ -6,9 +6,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.SortedMap;
 
-import uk.co.unclealex.music.core.encoded.writer.TrackWritingException;
-import uk.co.unclealex.music.core.encoded.writer.WritingListener;
 import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.core.writer.TrackWritingException;
+import uk.co.unclealex.music.core.writer.WritingListener;
 
 public interface DeviceService {
 

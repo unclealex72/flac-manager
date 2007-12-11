@@ -5,8 +5,8 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import uk.co.unclealex.music.core.encoded.writer.ProgressWritingListener;
 import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.core.writer.ProgressWritingListener;
 
 public class ProgressWritingListenerServiceImpl implements ProgressWritingListenerService {
 
