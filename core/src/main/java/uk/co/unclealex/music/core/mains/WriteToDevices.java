@@ -2,7 +2,7 @@ package uk.co.unclealex.music.core.mains;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.encoded.service.DeviceService;
+import uk.co.unclealex.music.core.service.DeviceService;
 
 @Transactional
 public class WriteToDevices extends Main {

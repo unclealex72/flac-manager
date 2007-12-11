@@ -126,32 +126,32 @@
 		<property name="maximumTrackDataLength" value="1048576"/>
 	</bean>
 
-	<bean id="trackStreamService" class="uk.co.unclealex.music.core.encoded.service.TrackStreamServiceImpl"/>
+	<bean id="trackStreamService" class="uk.co.unclealex.music.core.service.TrackStreamServiceImpl"/>
 
 	<bean
 		id="trackDataStreamIteratorFactory"
-		class="uk.co.unclealex.music.core.encoded.service.SpringTrackDataStreamIteratorFactory"/>
+		class="uk.co.unclealex.music.core.service.SpringTrackDataStreamIteratorFactory"/>
 		
 	<bean
 		id="trackDataInputStreamIterator"
-		class="uk.co.unclealex.music.core.encoded.service.TrackDataInputStreamIteratorImpl"
+		class="uk.co.unclealex.music.core.service.TrackDataInputStreamIteratorImpl"
 		scope="prototype" autowire-candidate="false"/>
 			
 	<bean
 		id="trackDataOutputStreamIterator"
-		class="uk.co.unclealex.music.core.encoded.service.TrackDataOutputStreamIteratorImpl"
+		class="uk.co.unclealex.music.core.service.TrackDataOutputStreamIteratorImpl"
 		scope="prototype" autowire-candidate="false"/>
 
 	<bean id="ownerService"
-		class="uk.co.unclealex.music.core.encoded.service.OwnerServiceImpl" />
+		class="uk.co.unclealex.music.core.service.OwnerServiceImpl" />
 
 	<bean id="deviceService"
-		class="uk.co.unclealex.music.core.encoded.service.DeviceServiceImpl" />
+		class="uk.co.unclealex.music.core.service.DeviceServiceImpl" />
 
-	<bean id="devicesWriterFactory" class="uk.co.unclealex.music.core.encoded.service.SpringDevicesWriterFactory"/>
+	<bean id="devicesWriterFactory" class="uk.co.unclealex.music.core.service.SpringDevicesWriterFactory"/>
 	<bean 
 		id="devicesWriter"
-		class="uk.co.unclealex.music.core.encoded.service.DevicesWriterImpl"
+		class="uk.co.unclealex.music.core.service.DevicesWriterImpl"
 		scope="prototype" autowire-candidate="false"/>
 
 	<bean 
@@ -190,7 +190,7 @@
 
 	<bean 
 		id="progressWritingListenerService"
-		class="uk.co.unclealex.music.core.encoded.service.ProgressWritingListenerServiceImpl"/>
+		class="uk.co.unclealex.music.core.service.ProgressWritingListenerServiceImpl"/>
 	
 	<bean id="userService"
 		class="uk.co.unclealex.music.core.security.service.FlacConverterUserService" />

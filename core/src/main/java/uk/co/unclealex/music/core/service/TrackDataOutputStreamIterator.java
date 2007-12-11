@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.core.encoded.service;
+package uk.co.unclealex.music.core.service;
 
 import java.io.OutputStream;
 import java.util.Iterator;

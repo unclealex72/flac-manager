@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.core.encoded.service;
+package uk.co.unclealex.music.core.service;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;

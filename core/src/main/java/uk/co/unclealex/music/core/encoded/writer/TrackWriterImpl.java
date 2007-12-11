@@ -21,9 +21,9 @@ import uk.co.unclealex.flacconverter.encoded.service.TitleFormatService;
 import uk.co.unclealex.flacconverter.encoded.service.TitleFormatServiceFactory;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
-import uk.co.unclealex.music.core.encoded.service.TrackDataStreamIteratorFactory;
-import uk.co.unclealex.music.core.encoded.service.TrackStreamService;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.service.TrackDataStreamIteratorFactory;
+import uk.co.unclealex.music.core.service.TrackStreamService;
 
 @Transactional(readOnly=true)
 public class TrackWriterImpl implements TrackWriter {

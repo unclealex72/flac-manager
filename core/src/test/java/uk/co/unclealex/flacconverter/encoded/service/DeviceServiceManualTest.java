@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import uk.co.unclealex.music.core.encoded.service.DeviceServiceImpl;
 import uk.co.unclealex.music.core.process.service.ProcessServiceImpl;
+import uk.co.unclealex.music.core.service.DeviceServiceImpl;
 
 public class DeviceServiceManualTest {
 
