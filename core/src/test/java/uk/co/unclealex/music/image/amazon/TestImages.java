@@ -1,17 +1,17 @@
 /**
  * 
  */
-package uk.co.unclealex.flacconverter.image.amazon;
+package uk.co.unclealex.music.image.amazon;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import uk.co.unclealex.flacconverter.image.TestAmazonSearchManager;
 import uk.co.unclealex.music.core.image.Album;
 import uk.co.unclealex.music.core.image.AlbumComparator;
 import uk.co.unclealex.music.core.image.SearchManager;
+import uk.co.unclealex.music.image.TestAmazonSearchManager;
 
 /**
  * @author alex

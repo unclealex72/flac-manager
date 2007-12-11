@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.model;
+package uk.co.unclealex.music.model;
 
 import junit.framework.TestCase;
 import uk.co.unclealex.music.core.model.DeviceBean;

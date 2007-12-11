@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.util;
+package uk.co.unclealex.music.util;
 
 import java.util.ArrayList;
 import java.util.List;

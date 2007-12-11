@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.encoded.writer;
+package uk.co.unclealex.music.encoded.writer;
 
 import java.io.IOException;
 import java.util.Map;

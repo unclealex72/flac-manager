@@ -1,12 +1,11 @@
-package uk.co.unclealex.flacconverter.util;
+package uk.co.unclealex.music.util;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import uk.co.unclealex.flacconverter.Partitioner;
-import uk.co.unclealex.music.core.EncodedSpringTest;
+import uk.co.unclealex.music.core.util.Partitioner;
 
 public class PartitionerTest extends EncodedSpringTest {
 

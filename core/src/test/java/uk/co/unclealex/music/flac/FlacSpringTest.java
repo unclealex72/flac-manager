@@ -1,6 +1,6 @@
-package uk.co.unclealex.flacconverter.flac;
+package uk.co.unclealex.music.flac;
 
-import uk.co.unclealex.flacconverter.SpringTest;
+import uk.co.unclealex.music.SpringTest;
 
 public abstract class FlacSpringTest extends SpringTest {
 
