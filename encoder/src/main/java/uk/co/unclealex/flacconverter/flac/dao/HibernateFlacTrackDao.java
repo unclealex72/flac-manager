@@ -3,8 +3,8 @@ package uk.co.unclealex.flacconverter.flac.dao;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Projections;
 
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.music.core.dao.HibernateKeyedDao;
+import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
 public class HibernateFlacTrackDao extends HibernateKeyedDao<FlacTrackBean> implements FlacTrackDao {
 

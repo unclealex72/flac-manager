@@ -18,12 +18,8 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 
-import uk.co.unclealex.flacconverter.encoded.model.EncodingCommandBean;
-import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
-import uk.co.unclealex.flacconverter.flac.dao.SlimServerInformationDao;
 import uk.co.unclealex.flacconverter.flac.dao.TestFlacProvider;
 import uk.co.unclealex.flacconverter.flac.dao.TestSlimServerInformationDao;
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.music.core.AlreadyEncodingException;
 import uk.co.unclealex.music.core.CurrentlyScanningException;
 import uk.co.unclealex.music.core.EncodedTrackBean;
@@ -39,6 +35,10 @@ import uk.co.unclealex.music.core.TrackDataBean;
 import uk.co.unclealex.music.core.TrackDataDao;
 import uk.co.unclealex.music.core.TrackStreamService;
 import uk.co.unclealex.music.core.core.EncodedSpringTest;
+import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
+import uk.co.unclealex.music.encoder.flac.dao.FlacTrackDao;
+import uk.co.unclealex.music.encoder.flac.dao.SlimServerInformationDao;
+import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
 public class EncoderServiceTest extends EncodedSpringTest {
 

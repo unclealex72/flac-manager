@@ -1,7 +1,7 @@
 package uk.co.unclealex.flacconverter.flac.dao;
 
-import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacAlbumBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacArtistBean;
 
 public class HibernateFlacAlbumDao extends HibernateCodeDao<FlacAlbumBean> implements
 		FlacAlbumDao {

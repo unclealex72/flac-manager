@@ -1,8 +1,8 @@
-package uk.co.unclealex.flacconverter.encoded.service;
+package uk.co.unclealex.music.encoder.encoded.service;
 
 import java.util.SortedMap;
 
-import uk.co.unclealex.flacconverter.encoded.model.EncodingCommandBean;
+import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
 
 public class MultipleEncodingException extends EncodingException {
 

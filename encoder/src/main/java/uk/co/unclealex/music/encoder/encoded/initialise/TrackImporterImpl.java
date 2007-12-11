@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.encoded.initialise;
+package uk.co.unclealex.music.encoder.encoded.initialise;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,11 +10,11 @@ import org.apache.log4j.Logger;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.service.TrackStreamService;
+import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
 @Transactional(propagation=Propagation.REQUIRES_NEW)
 public class TrackImporterImpl implements TrackImporter {

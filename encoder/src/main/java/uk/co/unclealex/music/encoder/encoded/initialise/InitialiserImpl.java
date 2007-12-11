@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.encoded.initialise;
+package uk.co.unclealex.music.encoder.encoded.initialise;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -18,8 +18,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.music.core.DeviceBean;
 import uk.co.unclealex.music.core.DeviceDao;
 import uk.co.unclealex.music.core.EncodedTrackBean;
@@ -36,6 +34,8 @@ import uk.co.unclealex.music.core.TrackDataStreamIteratorFactory;
 import uk.co.unclealex.music.core.TrackImporter;
 import uk.co.unclealex.music.core.core.encoded.model.OwnedAlbumBean;
 import uk.co.unclealex.music.core.core.encoded.model.OwnedArtistBean;
+import uk.co.unclealex.music.encoder.flac.dao.FlacTrackDao;
+import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
 public class InitialiserImpl implements Initialiser {
 

@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.encoded.service;
+package uk.co.unclealex.music.encoder.encoded.service;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,9 +21,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.flacconverter.encoded.model.EncodingCommandBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.io.SequenceOutputStream;
@@ -32,6 +29,9 @@ import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
 import uk.co.unclealex.music.core.service.TrackDataStreamIteratorFactory;
 import uk.co.unclealex.music.core.service.TrackStreamService;
+import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacAlbumBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
 @Transactional
 public class SingleEncoderServiceImpl implements SingleEncoderService, Serializable {

@@ -2,7 +2,7 @@ package uk.co.unclealex.flacconverter.flac.dao;
 
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 
-import uk.co.unclealex.flacconverter.flac.model.SlimServerInformationBean;
+import uk.co.unclealex.music.encoder.flac.model.SlimServerInformationBean;
 
 public class HibernateSlimServerDao extends HibernateDaoSupport implements
 		SlimServerInformationDao {

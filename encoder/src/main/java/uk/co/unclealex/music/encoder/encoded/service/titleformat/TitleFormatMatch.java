@@ -1,10 +1,10 @@
-package uk.co.unclealex.flacconverter.encoded.service.titleformat;
+package uk.co.unclealex.music.encoder.encoded.service.titleformat;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import uk.co.unclealex.flacconverter.flac.model.FlacBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacBean;
 
 public class TitleFormatMatch {
 

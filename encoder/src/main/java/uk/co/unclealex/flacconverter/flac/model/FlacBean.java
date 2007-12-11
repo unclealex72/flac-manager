@@ -1,6 +1,6 @@
 package uk.co.unclealex.flacconverter.flac.model;
 
-import uk.co.unclealex.flacconverter.flac.visitor.FlacVisitor;
+import uk.co.unclealex.music.encoder.flac.visitor.FlacVisitor;
 
 public interface FlacBean {
 

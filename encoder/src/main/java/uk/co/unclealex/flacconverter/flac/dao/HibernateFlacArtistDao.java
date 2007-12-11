@@ -7,7 +7,7 @@ import org.hibernate.Criteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
-import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacArtistBean;
 
 public class HibernateFlacArtistDao extends HibernateCodeDao<FlacArtistBean> implements
 		FlacArtistDao {

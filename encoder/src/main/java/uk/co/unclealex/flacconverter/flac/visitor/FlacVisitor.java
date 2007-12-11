@@ -1,9 +1,9 @@
 package uk.co.unclealex.flacconverter.flac.visitor;
 
-import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacAlbumBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacArtistBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
 public abstract class FlacVisitor {
 

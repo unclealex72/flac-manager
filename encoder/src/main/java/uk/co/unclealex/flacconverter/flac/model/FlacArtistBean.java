@@ -13,7 +13,7 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 
-import uk.co.unclealex.flacconverter.flac.visitor.FlacVisitor;
+import uk.co.unclealex.music.encoder.flac.visitor.FlacVisitor;
 
 @Entity
 @org.hibernate.annotations.Entity(mutable=false)

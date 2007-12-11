@@ -1,8 +1,8 @@
 package uk.co.unclealex.flacconverter.mains;
 
-import uk.co.unclealex.flacconverter.encoded.initialise.Initialiser;
-import uk.co.unclealex.flacconverter.encoded.service.EncoderService;
 import uk.co.unclealex.music.core.mains.Main;
+import uk.co.unclealex.music.encoder.encoded.initialise.Initialiser;
+import uk.co.unclealex.music.encoder.encoded.service.EncoderService;
 
 public class Initialise extends Main {
 

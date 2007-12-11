@@ -1,6 +1,6 @@
 package uk.co.unclealex.flacconverter.flac.dao;
 
-import uk.co.unclealex.flacconverter.flac.model.SlimServerInformationBean;
+import uk.co.unclealex.music.encoder.flac.model.SlimServerInformationBean;
 
 public interface SlimServerInformationDao {
 

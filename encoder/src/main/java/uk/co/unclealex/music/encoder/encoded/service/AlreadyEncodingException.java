@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.encoded.service;
+package uk.co.unclealex.music.encoder.encoded.service;
 
 public class AlreadyEncodingException extends EncodingException {
 

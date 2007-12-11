@@ -11,7 +11,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import uk.co.unclealex.flacconverter.flac.visitor.FlacVisitor;
+import uk.co.unclealex.music.encoder.flac.visitor.FlacVisitor;
 
 @Entity
 @org.hibernate.annotations.Entity(mutable=false)

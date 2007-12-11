@@ -2,7 +2,7 @@ package uk.co.unclealex.flacconverter.flac.dao;
 
 import java.util.SortedSet;
 
-import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacArtistBean;
 
 public interface FlacArtistDao extends CodeDao<FlacArtistBean> {
 

@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.encoded.service;
+package uk.co.unclealex.music.encoder.encoded.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,10 +9,10 @@ import java.util.Map;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.flacconverter.encoded.model.EncodingCommandBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
 @Transactional
 public interface SingleEncoderService extends Serializable {

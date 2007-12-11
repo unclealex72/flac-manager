@@ -1,7 +1,7 @@
-package uk.co.unclealex.flacconverter.encoded.service;
+package uk.co.unclealex.music.encoder.encoded.service;
 
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
 public interface EncodingEventListener {
 

@@ -2,8 +2,8 @@ package uk.co.unclealex.flacconverter.encoded.service;
 
 import org.apache.commons.collections15.Transformer;
 
-import uk.co.unclealex.flacconverter.encoded.model.EncodingCommandBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
 
 public class EncoderUrlPair implements Comparable<EncoderUrlPair>{
 

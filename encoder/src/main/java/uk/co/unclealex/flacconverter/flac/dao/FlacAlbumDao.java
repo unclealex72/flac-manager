@@ -1,6 +1,6 @@
 package uk.co.unclealex.flacconverter.flac.dao;
 
-import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacAlbumBean;
 
 public interface FlacAlbumDao extends CodeDao<FlacAlbumBean> {
 

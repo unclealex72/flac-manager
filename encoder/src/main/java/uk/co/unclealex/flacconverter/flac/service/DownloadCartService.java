@@ -5,13 +5,13 @@ import java.io.OutputStream;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-import uk.co.unclealex.flacconverter.flac.model.DownloadCartBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.writer.TrackWritingException;
+import uk.co.unclealex.music.encoder.flac.model.DownloadCartBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacAlbumBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacArtistBean;
+import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
 public interface DownloadCartService {
 
