@@ -72,7 +72,7 @@ public class ZipTrackStreamImpl implements ZipTrackStream {
 	}
 
 	/* (non-Javadoc)
-	 * @see uk.co.unclealex.music.core.encoded.writer.ZipTrackWriter#setZipOutputStream(java.util.zip.ZipOutputStream)
+	 * @see uk.co.unclealex.music.core.core.encoded.writer.ZipTrackWriter#setZipOutputStream(java.util.zip.ZipOutputStream)
 	 */
 	public void setZipOutputStream(ZipOutputStream zipOutputStream) {
 		i_zipOutputStream = zipOutputStream;

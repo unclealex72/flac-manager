@@ -16,7 +16,7 @@
 
 	<bean
 		id="singleEncoderService"
-		class="uk.co.unclealex.music.core.encoded.service.SingleEncoderServiceImpl">
+		class="uk.co.unclealex.music.core.core.encoded.service.SingleEncoderServiceImpl">
 		<property name="maximumTrackDataLength" value="32768"/>
 	</bean>
 	
@@ -27,6 +27,6 @@
 		<property name="password" value=""/>
 	</bean>
 	
-	<bean id="deviceService" class="uk.co.unclealex.music.core.encoded.service.TestDeviceService"/>
+	<bean id="deviceService" class="uk.co.unclealex.music.core.core.encoded.service.TestDeviceService"/>
 </beans>
 

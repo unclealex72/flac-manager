@@ -13,10 +13,10 @@ import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 
-import uk.co.unclealex.flacconverter.encoded.service.TitleFormatService;
-import uk.co.unclealex.flacconverter.encoded.service.TitleFormatServiceFactory;
 import uk.co.unclealex.music.core.model.DeviceBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
 import uk.co.unclealex.music.core.writer.NoOpWritingListener;
 import uk.co.unclealex.music.core.writer.TrackStream;
 import uk.co.unclealex.music.core.writer.TrackWriter;

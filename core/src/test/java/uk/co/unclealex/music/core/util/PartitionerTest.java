@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import uk.co.unclealex.music.core.util.Partitioner;
-
 public class PartitionerTest extends EncodedSpringTest {
 
 	private Partitioner<String> i_partitioner; 

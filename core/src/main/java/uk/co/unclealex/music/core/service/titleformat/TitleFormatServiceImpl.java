@@ -6,13 +6,11 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
-import uk.co.unclealex.flacconverter.EncodedAlbumBean;
-import uk.co.unclealex.flacconverter.EncodedArtistBean;
-import uk.co.unclealex.flacconverter.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.Substitutor;
-import uk.co.unclealex.flacconverter.TitleFormatService;
-import uk.co.unclealex.flacconverter.TitleFormatVariable;
 import uk.co.unclealex.music.core.SlimServerConfig;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
+import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.substitutor.Substitutor;
 
 public class TitleFormatServiceImpl implements TitleFormatService {
 

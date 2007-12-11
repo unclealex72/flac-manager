@@ -10,11 +10,11 @@ import java.util.TreeSet;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 
-import uk.co.unclealex.flacconverter.encoded.service.TitleFormatFactory;
 import uk.co.unclealex.music.core.dao.DeviceDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.OwnerDao;
 import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatFactory;
 
 public class FileSystemDeviceService extends DeviceServiceImpl {
 

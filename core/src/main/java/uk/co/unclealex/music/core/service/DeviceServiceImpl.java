@@ -25,13 +25,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.flacconverter.encoded.service.TitleFormatServiceFactory;
 import uk.co.unclealex.music.core.dao.DeviceDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.model.DeviceBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.process.service.ProcessResult;
 import uk.co.unclealex.music.core.process.service.ProcessService;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
 import uk.co.unclealex.music.core.writer.TrackWriterFactory;
 import uk.co.unclealex.music.core.writer.TrackWritingException;
 import uk.co.unclealex.music.core.writer.WritingListener;

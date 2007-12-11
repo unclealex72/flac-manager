@@ -12,7 +12,7 @@
 	default-autowire="byName">
 
 	<bean id="deviceService"
-		class="uk.co.unclealex.music.core.service.FileSystemDeviceService" init-method="initialise"/>
+		class="uk.co.unclealex.music.core.core.service.FileSystemDeviceService" init-method="initialise"/>
  	<bean id="deviceDao" factory-bean="deviceService" factory-method="createDeviceDao"/>
 </beans>
 

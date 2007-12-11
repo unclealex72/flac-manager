@@ -27,38 +27,38 @@
 		</property>
 		<property name="annotatedClasses">
 			<list>
-				<value>uk.co.unclealex.music.core.flac.model.FlacArtistBean</value>
-				<value>uk.co.unclealex.music.core.flac.model.FlacAlbumBean</value>
-				<value>uk.co.unclealex.music.core.flac.model.FlacTrackBean</value>
-				<value>uk.co.unclealex.music.core.flac.model.SlimServerInformationBean</value>
+				<value>uk.co.unclealex.music.core.core.flac.model.FlacArtistBean</value>
+				<value>uk.co.unclealex.music.core.core.flac.model.FlacAlbumBean</value>
+				<value>uk.co.unclealex.music.core.core.flac.model.FlacTrackBean</value>
+				<value>uk.co.unclealex.music.core.core.flac.model.SlimServerInformationBean</value>
 			</list>
 		</property>
 	</bean>
 
 	<bean id="flacTrackDao"
-		class="uk.co.unclealex.music.core.flac.dao.HibernateFlacTrackDao">
+		class="uk.co.unclealex.music.core.core.flac.dao.HibernateFlacTrackDao">
 		<property name="sessionFactory" ref="flacSessionFactory" />
 	</bean>
 
 	<bean id="flacAlbumDao"
-		class="uk.co.unclealex.music.core.flac.dao.HibernateFlacAlbumDao">
+		class="uk.co.unclealex.music.core.core.flac.dao.HibernateFlacAlbumDao">
 		<property name="sessionFactory" ref="flacSessionFactory" />
 	</bean>
 
 	<bean id="flacArtistDao"
-		class="uk.co.unclealex.music.core.flac.dao.HibernateFlacArtistDao">
+		class="uk.co.unclealex.music.core.core.flac.dao.HibernateFlacArtistDao">
 		<property name="sessionFactory" ref="flacSessionFactory" />
 	</bean>
 
 	<bean id="slimServerInformationDao"
-		class="uk.co.unclealex.music.core.flac.dao.HibernateSlimServerDao">
+		class="uk.co.unclealex.music.core.core.flac.dao.HibernateSlimServerDao">
 		<property name="sessionFactory" ref="flacSessionFactory" />
 	</bean>
 
 	<bean id="slimServerService"
-		class="uk.co.unclealex.music.core.flac.service.SlimServerServiceImpl" />
+		class="uk.co.unclealex.music.core.core.flac.service.SlimServerServiceImpl" />
 	<bean id="slimServerConfig"
-		class="uk.co.unclealex.music.core.FileSlimServerConfig"
+		class="uk.co.unclealex.music.core.core.FileSlimServerConfig"
 		init-method="initialise">
 		<property name="configFile"
 			value="/etc/slimserver/slimserver.pref" />
@@ -75,7 +75,7 @@
 		<property name="properties">
 			<props>
 				<prop key="hibernate.dialect">
-					uk.co.unclealex.music.core.hibernate.LongBlobOnlyMySQL5Dialect
+					uk.co.unclealex.music.core.core.hibernate.LongBlobOnlyMySQL5Dialect
 				</prop>
 				<prop key="hibernate.hbm2ddl.auto">update</prop>
 				<prop key="hibernate.show_sql">false</prop>
@@ -87,76 +87,76 @@
 		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
 		<property name="annotatedClasses">
 			<list>
-				<value>uk.co.unclealex.music.core.model.EncodedTrackBean</value>
-				<value>uk.co.unclealex.music.core.model.TrackDataBean</value>
-				<value>uk.co.unclealex.music.core.model.EncoderBean</value>
-				<value>uk.co.unclealex.music.core.encoded.model.OwnedAlbumBean</value>
-				<value>uk.co.unclealex.music.core.encoded.model.OwnedArtistBean</value>
-				<value>uk.co.unclealex.music.core.model.OwnerBean</value>
-				<value>uk.co.unclealex.music.core.model.DeviceBean</value>
+				<value>uk.co.unclealex.music.core.core.model.EncodedTrackBean</value>
+				<value>uk.co.unclealex.music.core.core.model.TrackDataBean</value>
+				<value>uk.co.unclealex.music.core.core.model.EncoderBean</value>
+				<value>uk.co.unclealex.music.core.core.encoded.model.OwnedAlbumBean</value>
+				<value>uk.co.unclealex.music.core.core.encoded.model.OwnedArtistBean</value>
+				<value>uk.co.unclealex.music.core.core.model.OwnerBean</value>
+				<value>uk.co.unclealex.music.core.core.model.DeviceBean</value>
 			</list>
 		</property>
 	</bean>
 
 	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager"/>
 
-	<bean id="hibernateSessionExecutor" class="uk.co.unclealex.music.core.hibernate.HibernateSessionExecutor">
+	<bean id="hibernateSessionExecutor" class="uk.co.unclealex.music.core.core.hibernate.HibernateSessionExecutor">
 		<property name="asynchronous" value="false"/>
 	</bean>
 	
-	<bean id="encodedTrackDao" class="uk.co.unclealex.music.core.dao.HibernateEncodedTrackDao">
+	<bean id="encodedTrackDao" class="uk.co.unclealex.music.core.core.dao.HibernateEncodedTrackDao">
 		<property name="maximumUrlsPerQuery" value="2000"/>
 	</bean>
 
-	<bean id="trackDataDao" class="uk.co.unclealex.music.core.dao.HibernateTrackDataDao"/>
+	<bean id="trackDataDao" class="uk.co.unclealex.music.core.core.dao.HibernateTrackDataDao"/>
 
-	<bean id="ownerDao" class="uk.co.unclealex.music.core.dao.HibernateOwnerDao"/>
+	<bean id="ownerDao" class="uk.co.unclealex.music.core.core.dao.HibernateOwnerDao"/>
 
-	<bean id="deviceDao" class="uk.co.unclealex.music.core.dao.HibernateDeviceDao"/>
+	<bean id="deviceDao" class="uk.co.unclealex.music.core.core.dao.HibernateDeviceDao"/>
  	
-	<bean id="encoderDao" class="uk.co.unclealex.music.core.dao.HibernateEncoderDao"/>
+	<bean id="encoderDao" class="uk.co.unclealex.music.core.core.dao.HibernateEncoderDao"/>
 
-	<bean id="encoderService" class="uk.co.unclealex.music.core.encoded.service.EncoderServiceImpl">
+	<bean id="encoderService" class="uk.co.unclealex.music.core.core.encoded.service.EncoderServiceImpl">
 		<property name="maximumThreads" value="4"/>
 	</bean>
 
 	<bean
 		id="singleEncoderService"
-		class="uk.co.unclealex.music.core.encoded.service.SingleEncoderServiceImpl">
+		class="uk.co.unclealex.music.core.core.encoded.service.SingleEncoderServiceImpl">
 		<property name="maximumTrackDataLength" value="1048576"/>
 	</bean>
 
-	<bean id="trackStreamService" class="uk.co.unclealex.music.core.service.TrackStreamServiceImpl"/>
+	<bean id="trackStreamService" class="uk.co.unclealex.music.core.core.service.TrackStreamServiceImpl"/>
 
 	<bean
 		id="trackDataStreamIteratorFactory"
-		class="uk.co.unclealex.music.core.service.SpringTrackDataStreamIteratorFactory"/>
+		class="uk.co.unclealex.music.core.core.service.SpringTrackDataStreamIteratorFactory"/>
 		
 	<bean
 		id="trackDataInputStreamIterator"
-		class="uk.co.unclealex.music.core.service.TrackDataInputStreamIteratorImpl"
+		class="uk.co.unclealex.music.core.core.service.TrackDataInputStreamIteratorImpl"
 		scope="prototype" autowire-candidate="false"/>
 			
 	<bean
 		id="trackDataOutputStreamIterator"
-		class="uk.co.unclealex.music.core.service.TrackDataOutputStreamIteratorImpl"
+		class="uk.co.unclealex.music.core.core.service.TrackDataOutputStreamIteratorImpl"
 		scope="prototype" autowire-candidate="false"/>
 
 	<bean id="ownerService"
-		class="uk.co.unclealex.music.core.service.OwnerServiceImpl" />
+		class="uk.co.unclealex.music.core.core.service.OwnerServiceImpl" />
 
 	<bean id="deviceService"
-		class="uk.co.unclealex.music.core.service.DeviceServiceImpl" />
+		class="uk.co.unclealex.music.core.core.service.DeviceServiceImpl" />
 
-	<bean id="devicesWriterFactory" class="uk.co.unclealex.music.core.service.SpringDevicesWriterFactory"/>
+	<bean id="devicesWriterFactory" class="uk.co.unclealex.music.core.core.service.SpringDevicesWriterFactory"/>
 	<bean 
 		id="devicesWriter"
-		class="uk.co.unclealex.music.core.service.DevicesWriterImpl"
+		class="uk.co.unclealex.music.core.core.service.DevicesWriterImpl"
 		scope="prototype" autowire-candidate="false"/>
 
 	<bean 
 		id="fileSystemService" 
-		class="uk.co.unclealex.music.core.encoded.service.FileSystemServiceImpl"
+		class="uk.co.unclealex.music.core.core.encoded.service.FileSystemServiceImpl"
 		init-method="initialise">
 		<property name="titleFormat">
 			<value>${ext}/${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
@@ -164,38 +164,38 @@
 	</bean>
 		
 	<bean id="downloadCartService"
-	  class="uk.co.unclealex.music.core.flac.service.DownloadCartServiceImpl"/>
+	  class="uk.co.unclealex.music.core.core.flac.service.DownloadCartServiceImpl"/>
 
 	<bean id="processService"
-		class="uk.co.unclealex.music.core.process.service.ProcessServiceImpl" />
+		class="uk.co.unclealex.music.core.core.process.service.ProcessServiceImpl" />
 
 	<bean id="initialiser"
-		class="uk.co.unclealex.music.core.encoded.initialise.InitialiserImpl">
+		class="uk.co.unclealex.music.core.core.encoded.initialise.InitialiserImpl">
 		<property name="trackImporter">
-			<bean class="uk.co.unclealex.music.core.encoded.initialise.TrackImporterImpl"/>
+			<bean class="uk.co.unclealex.music.core.core.encoded.initialise.TrackImporterImpl"/>
 		</property>
 	</bean>
 
 	<bean id="zipTrackStream"
-		class="uk.co.unclealex.music.core.writer.ZipTrackStreamImpl"
+		class="uk.co.unclealex.music.core.core.writer.ZipTrackStreamImpl"
 		scope="prototype" autowire-candidate="false"/>
 	<bean id="fileTrackStream"
-		class="uk.co.unclealex.music.core.writer.FileTrackStreamImpl"
+		class="uk.co.unclealex.music.core.core.writer.FileTrackStreamImpl"
 		scope="prototype" autowire-candidate="false" />
 	<bean id="trackWriter"
-		class="uk.co.unclealex.music.core.writer.TrackWriterImpl"
+		class="uk.co.unclealex.music.core.core.writer.TrackWriterImpl"
 		scope="prototype" autowire-candidate="false" />
 	<bean id="trackWriterFactory"
-		class="uk.co.unclealex.music.core.writer.SpringTrackWriterFactory" />
+		class="uk.co.unclealex.music.core.core.writer.SpringTrackWriterFactory" />
 
 	<bean 
 		id="progressWritingListenerService"
-		class="uk.co.unclealex.music.core.service.ProgressWritingListenerServiceImpl"/>
+		class="uk.co.unclealex.music.core.core.service.ProgressWritingListenerServiceImpl"/>
 	
 	<bean id="userService"
-		class="uk.co.unclealex.music.core.security.service.FlacConverterUserService" />
+		class="uk.co.unclealex.music.core.core.security.service.FlacConverterUserService" />
 
-	<bean id="titleFormatFactory" class="uk.co.unclealex.music.core.service.titleformat.TitleFormatFactoryImpl">
+	<bean id="titleFormatFactory" class="uk.co.unclealex.music.core.core.service.titleformat.TitleFormatFactoryImpl">
 		<property name="defaultTitleFormat">
 			<value>${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
 		</property>
@@ -203,13 +203,13 @@
 	
 	<bean id="titleFormat" factory-bean="titleFormatFactory" factory-method="getDefaultTitleFormat"/>
 			
-	<bean id="partitioner" class="uk.co.unclealex.music.core.util.Partitioner"/>
+	<bean id="partitioner" class="uk.co.unclealex.music.core.core.util.Partitioner"/>
 	
 	<bean id="titleFormatServiceFactory" 
-		class="uk.co.unclealex.music.core.service.titleformat.SpringTitleFormatServiceFactory"/>
+		class="uk.co.unclealex.music.core.core.service.titleformat.SpringTitleFormatServiceFactory"/>
 
 	<bean id="titleFormatService" scope="prototype" autowire-candidate="false"
-		class="uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceImpl"/>
+		class="uk.co.unclealex.music.core.core.service.titleformat.TitleFormatServiceImpl"/>
 			
 	<bean id="webSecurityRules" class="java.lang.String" autowire-candidate="false">
 		<constructor-arg>

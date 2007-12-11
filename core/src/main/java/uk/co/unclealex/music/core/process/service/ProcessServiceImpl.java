@@ -12,7 +12,7 @@ import org.apache.commons.lang.StringUtils;
 public class ProcessServiceImpl implements ProcessService {
 
 	/* (non-Javadoc)
-	 * @see uk.co.unclealex.music.core.process.service.ProcessService#run(java.lang.ProcessBuilder)
+	 * @see uk.co.unclealex.music.core.core.process.service.ProcessService#run(java.lang.ProcessBuilder)
 	 */
 	protected ProcessResult run(
 			ProcessBuilder processBuilder, InputStream in, Reader reader, boolean throwOnNonZeroReturn) throws IOException {
