@@ -26,12 +26,12 @@ import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
-import uk.co.unclealex.music.core.encoded.service.TrackDataStreamIteratorFactory;
-import uk.co.unclealex.music.core.encoded.service.TrackStreamService;
 import uk.co.unclealex.music.core.io.SequenceOutputStream;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
+import uk.co.unclealex.music.core.service.TrackDataStreamIteratorFactory;
+import uk.co.unclealex.music.core.service.TrackStreamService;
 
 @Transactional
 public class SingleEncoderServiceImpl implements SingleEncoderService, Serializable {

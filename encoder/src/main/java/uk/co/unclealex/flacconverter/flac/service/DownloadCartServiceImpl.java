@@ -17,14 +17,14 @@ import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.flacconverter.flac.visitor.FlacTrackVisitor;
 import uk.co.unclealex.flacconverter.flac.visitor.FlacVisitor;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.encoded.service.titleformat.TitleFormatService;
-import uk.co.unclealex.music.core.encoded.service.titleformat.TitleFormatServiceFactory;
-import uk.co.unclealex.music.core.encoded.writer.TrackStream;
-import uk.co.unclealex.music.core.encoded.writer.TrackWriter;
-import uk.co.unclealex.music.core.encoded.writer.TrackWriterFactory;
-import uk.co.unclealex.music.core.encoded.writer.TrackWritingException;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.core.writer.TrackStream;
+import uk.co.unclealex.music.core.writer.TrackWriter;
+import uk.co.unclealex.music.core.writer.TrackWriterFactory;
+import uk.co.unclealex.music.core.writer.TrackWritingException;
 
 public class DownloadCartServiceImpl implements DownloadCartService {
 

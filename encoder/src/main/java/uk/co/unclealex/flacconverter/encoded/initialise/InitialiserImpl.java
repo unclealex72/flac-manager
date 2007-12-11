@@ -18,24 +18,24 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import uk.co.unclealex.flacconverter.DeviceBean;
-import uk.co.unclealex.flacconverter.DeviceDao;
-import uk.co.unclealex.flacconverter.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.EncodedTrackDao;
-import uk.co.unclealex.flacconverter.EncoderBean;
-import uk.co.unclealex.flacconverter.EncoderDao;
-import uk.co.unclealex.flacconverter.EncodingDao;
-import uk.co.unclealex.flacconverter.Initialiser;
-import uk.co.unclealex.flacconverter.InitialiserImpl;
-import uk.co.unclealex.flacconverter.KeyedBean;
-import uk.co.unclealex.flacconverter.OwnerBean;
-import uk.co.unclealex.flacconverter.OwnerDao;
-import uk.co.unclealex.flacconverter.TrackDataStreamIteratorFactory;
-import uk.co.unclealex.flacconverter.TrackImporter;
 import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
-import uk.co.unclealex.music.core.encoded.model.OwnedAlbumBean;
-import uk.co.unclealex.music.core.encoded.model.OwnedArtistBean;
+import uk.co.unclealex.music.core.DeviceBean;
+import uk.co.unclealex.music.core.DeviceDao;
+import uk.co.unclealex.music.core.EncodedTrackBean;
+import uk.co.unclealex.music.core.EncodedTrackDao;
+import uk.co.unclealex.music.core.EncoderBean;
+import uk.co.unclealex.music.core.EncoderDao;
+import uk.co.unclealex.music.core.EncodingDao;
+import uk.co.unclealex.music.core.Initialiser;
+import uk.co.unclealex.music.core.InitialiserImpl;
+import uk.co.unclealex.music.core.KeyedBean;
+import uk.co.unclealex.music.core.OwnerBean;
+import uk.co.unclealex.music.core.OwnerDao;
+import uk.co.unclealex.music.core.TrackDataStreamIteratorFactory;
+import uk.co.unclealex.music.core.TrackImporter;
+import uk.co.unclealex.music.core.core.encoded.model.OwnedAlbumBean;
+import uk.co.unclealex.music.core.core.encoded.model.OwnedArtistBean;
 
 public class InitialiserImpl implements Initialiser {
 

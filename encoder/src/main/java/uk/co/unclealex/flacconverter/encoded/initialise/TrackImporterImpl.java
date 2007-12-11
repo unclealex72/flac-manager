@@ -12,9 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.encoded.service.TrackStreamService;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.service.TrackStreamService;
 
 @Transactional(propagation=Propagation.REQUIRES_NEW)
 public class TrackImporterImpl implements TrackImporter {

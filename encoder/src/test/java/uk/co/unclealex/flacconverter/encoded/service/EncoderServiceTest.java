@@ -18,27 +18,27 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 
-import uk.co.unclealex.flacconverter.AlreadyEncodingException;
-import uk.co.unclealex.flacconverter.CurrentlyScanningException;
-import uk.co.unclealex.flacconverter.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.EncodedTrackDao;
-import uk.co.unclealex.flacconverter.EncoderBean;
-import uk.co.unclealex.flacconverter.EncoderDao;
-import uk.co.unclealex.flacconverter.EncoderService;
-import uk.co.unclealex.flacconverter.EncoderUrlPair;
-import uk.co.unclealex.flacconverter.EncodingClosure;
-import uk.co.unclealex.flacconverter.MultipleEncodingException;
-import uk.co.unclealex.flacconverter.SingleEncoderService;
-import uk.co.unclealex.flacconverter.TrackDataBean;
-import uk.co.unclealex.flacconverter.TrackDataDao;
-import uk.co.unclealex.flacconverter.TrackStreamService;
 import uk.co.unclealex.flacconverter.encoded.model.EncodingCommandBean;
 import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
 import uk.co.unclealex.flacconverter.flac.dao.SlimServerInformationDao;
 import uk.co.unclealex.flacconverter.flac.dao.TestFlacProvider;
 import uk.co.unclealex.flacconverter.flac.dao.TestSlimServerInformationDao;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
-import uk.co.unclealex.music.core.EncodedSpringTest;
+import uk.co.unclealex.music.core.AlreadyEncodingException;
+import uk.co.unclealex.music.core.CurrentlyScanningException;
+import uk.co.unclealex.music.core.EncodedTrackBean;
+import uk.co.unclealex.music.core.EncodedTrackDao;
+import uk.co.unclealex.music.core.EncoderBean;
+import uk.co.unclealex.music.core.EncoderDao;
+import uk.co.unclealex.music.core.EncoderService;
+import uk.co.unclealex.music.core.EncoderUrlPair;
+import uk.co.unclealex.music.core.EncodingClosure;
+import uk.co.unclealex.music.core.MultipleEncodingException;
+import uk.co.unclealex.music.core.SingleEncoderService;
+import uk.co.unclealex.music.core.TrackDataBean;
+import uk.co.unclealex.music.core.TrackDataDao;
+import uk.co.unclealex.music.core.TrackStreamService;
+import uk.co.unclealex.music.core.core.EncodedSpringTest;
 
 public class EncoderServiceTest extends EncodedSpringTest {
 

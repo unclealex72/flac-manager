@@ -9,19 +9,19 @@ import java.util.SortedSet;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
 
-import uk.co.unclealex.flacconverter.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.EncodedTrackDao;
-import uk.co.unclealex.flacconverter.EncoderBean;
-import uk.co.unclealex.flacconverter.EncoderDao;
-import uk.co.unclealex.flacconverter.OwnerBean;
-import uk.co.unclealex.flacconverter.OwnerDao;
-import uk.co.unclealex.flacconverter.OwnerService;
 import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
 import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
-import uk.co.unclealex.music.core.EncodedSpringTest;
-import uk.co.unclealex.music.core.encoded.model.OwnedAlbumBean;
-import uk.co.unclealex.music.core.encoded.model.OwnedArtistBean;
+import uk.co.unclealex.music.core.EncodedTrackBean;
+import uk.co.unclealex.music.core.EncodedTrackDao;
+import uk.co.unclealex.music.core.EncoderBean;
+import uk.co.unclealex.music.core.EncoderDao;
+import uk.co.unclealex.music.core.OwnerBean;
+import uk.co.unclealex.music.core.OwnerDao;
+import uk.co.unclealex.music.core.OwnerService;
+import uk.co.unclealex.music.core.core.EncodedSpringTest;
+import uk.co.unclealex.music.core.core.encoded.model.OwnedAlbumBean;
+import uk.co.unclealex.music.core.core.encoded.model.OwnedArtistBean;
 
 public class OwnerServiceTest extends EncodedSpringTest {
 
