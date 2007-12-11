@@ -8,9 +8,10 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import uk.co.unclealex.flacconverter.image.Album;
-import uk.co.unclealex.flacconverter.image.AlbumComparator;
-import uk.co.unclealex.flacconverter.image.SearchManager;
+import uk.co.unclealex.flacconverter.image.TestAmazonSearchManager;
+import uk.co.unclealex.music.core.image.Album;
+import uk.co.unclealex.music.core.image.AlbumComparator;
+import uk.co.unclealex.music.core.image.SearchManager;
 
 /**
  * @author alex

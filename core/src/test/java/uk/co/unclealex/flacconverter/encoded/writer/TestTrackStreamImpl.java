@@ -8,7 +8,7 @@ import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
 
 @Transactional
 public class TestTrackStreamImpl implements TestTrackStream {
@@ -46,7 +46,7 @@ public class TestTrackStreamImpl implements TestTrackStream {
 	}
 
 	/* (non-Javadoc)
-	 * @see uk.co.unclealex.flacconverter.encoded.writer.TestTrackWriter#getFileNamesAndSizes()
+	 * @see uk.co.unclealex.music.core.encoded.writer.TestTrackWriter#getFileNamesAndSizes()
 	 */
 	public Map<String, Integer> getFileNamesAndSizes() {
 		return i_fileNamesAndSizes;

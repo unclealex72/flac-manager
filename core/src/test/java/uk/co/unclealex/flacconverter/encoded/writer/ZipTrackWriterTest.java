@@ -11,6 +11,8 @@ import junit.framework.TestCase;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
 
+import uk.co.unclealex.music.core.encoded.writer.ZipTrackStreamImpl;
+
 public class ZipTrackWriterTest extends TestCase {
 
 	public void testSimpleEntry() {

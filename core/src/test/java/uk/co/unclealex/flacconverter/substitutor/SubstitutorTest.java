@@ -3,7 +3,8 @@
  */
 package uk.co.unclealex.flacconverter.substitutor;
 
-import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatVariable;
+import uk.co.unclealex.music.core.encoded.service.titleformat.TitleFormatVariable;
+import uk.co.unclealex.music.core.substitutor.Substitutor;
 import junit.framework.TestCase;
 
 /**

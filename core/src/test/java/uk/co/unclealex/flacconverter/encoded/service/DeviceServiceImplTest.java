@@ -9,6 +9,8 @@ import junit.framework.TestCase;
 
 import org.apache.commons.io.FileUtils;
 
+import uk.co.unclealex.music.core.encoded.service.DeviceServiceImpl;
+
 public class DeviceServiceImplTest extends TestCase {
 
 	public void testFindMusicFiles() throws IOException {

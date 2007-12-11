@@ -3,6 +3,8 @@ package uk.co.unclealex.flacconverter.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import uk.co.unclealex.music.core.util.TreeSetTree;
+
 import junit.framework.TestCase;
 
 public class TreeSetTreeTest extends TestCase {

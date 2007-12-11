@@ -10,10 +10,10 @@
 		<interceptors>
 			<interceptor
 				name="execAndWait"
-				class="uk.co.unclealex.flacconverter.interceptor.HibernateSessionExecuteAndWaitInterceptor"/>			
+				class="uk.co.unclealex.music.core.interceptor.HibernateSessionExecuteAndWaitInterceptor"/>			
 			<interceptor
 				name="prepareAfter"
-				class="uk.co.unclealex.flacconverter.interceptor.PrepareAfterInterceptor"/>			
+				class="uk.co.unclealex.music.core.interceptor.PrepareAfterInterceptor"/>			
 
 			<interceptor-stack name="scopedStack">
         <interceptor-ref name="exception"/>
@@ -42,7 +42,7 @@
 		<default-interceptor-ref name="scopedStack"/>
 
 		<action name="index"
-			class="uk.co.unclealex.flacconverter.actions.FlacAction">
+			class="uk.co.unclealex.music.core.actions.FlacAction">
 			<result name="success" type="redirect">/html/index.html</result>
 		</action>
 
@@ -51,42 +51,42 @@
 	<package name="html" extends="default" namespace="/html">
 			
 		<action name="index"
-			class="uk.co.unclealex.flacconverter.actions.FlacAction">
+			class="uk.co.unclealex.music.core.actions.FlacAction">
 			<result name="success">/WEB-INF/pages/index.jsp</result>
 		</action>
 
 		<action name="manage-devices"
-			class="uk.co.unclealex.flacconverter.actions.ManageDevicesAction">
+			class="uk.co.unclealex.music.core.actions.ManageDevicesAction">
 			<result name="success">/WEB-INF/pages/manage-devices.jsp</result>
 		</action>
 
 		<action name="device-download"
-			class="uk.co.unclealex.flacconverter.actions.FlacAction">
+			class="uk.co.unclealex.music.core.actions.FlacAction">
 			<result name="success">/WEB-INF/pages/device-downloading.jsp</result>
 		</action>
 
 		<action name="edit-owner"
-			class="uk.co.unclealex.flacconverter.actions.EditOwnerAction">
+			class="uk.co.unclealex.music.core.actions.EditOwnerAction">
 			<result name="success">/WEB-INF/pages/owner.jsp</result>
 		</action>
 
 		<action name="artists"
-			class="uk.co.unclealex.flacconverter.actions.ArtistsAction">
+			class="uk.co.unclealex.music.core.actions.ArtistsAction">
 			<result name="success">/WEB-INF/pages/artists.jsp</result>
 		</action>
 		
 		<action name="albums"
-			class="uk.co.unclealex.flacconverter.actions.AlbumsAction">
+			class="uk.co.unclealex.music.core.actions.AlbumsAction">
 			<result name="success">/WEB-INF/pages/albums.jsp</result>
 		</action>
 
 		<action name="tracks"
-			class="uk.co.unclealex.flacconverter.actions.TracksAction">
+			class="uk.co.unclealex.music.core.actions.TracksAction">
 			<result name="success">/WEB-INF/pages/tracks.jsp</result>
 		</action>
 
 		<action name="addartists"
-			class="uk.co.unclealex.flacconverter.actions.AddArtistsToCartAction">
+			class="uk.co.unclealex.music.core.actions.AddArtistsToCartAction">
 			<result name="success" type="chain">
 				<param name="actionName">artists</param>
 				<param name="namespace">/html</param>
@@ -95,7 +95,7 @@
 		</action>
 
 		<action name="addalbums"
-			class="uk.co.unclealex.flacconverter.actions.AddAlbumsToCartAction">
+			class="uk.co.unclealex.music.core.actions.AddAlbumsToCartAction">
 			<result name="success" type="chain">
 				<param name="actionName">albums</param>
 				<param name="namespace">/html</param>
@@ -104,7 +104,7 @@
 		</action>
 
 		<action name="addtracks"
-			class="uk.co.unclealex.flacconverter.actions.AddTracksToCartAction">
+			class="uk.co.unclealex.music.core.actions.AddTracksToCartAction">
 			<result name="success" type="chain">
 				<param name="actionName">tracks</param>
 				<param name="namespace">/html</param>			
@@ -113,12 +113,12 @@
 		</action>
 
 		<action name="clearcart"
-			class="uk.co.unclealex.flacconverter.actions.ClearCartAction">
+			class="uk.co.unclealex.music.core.actions.ClearCartAction">
 			<result name="success" type="redirect">/html/index.html</result>
 		</action>
 
 		<action name="downloadcart"
-			class="uk.co.unclealex.flacconverter.actions.FlacAction">
+			class="uk.co.unclealex.music.core.actions.FlacAction">
 			<result name="success">/WEB-INF/pages/download-cart.jsp</result>
 		</action>
 	</package>
@@ -126,7 +126,7 @@
 	<package name="ajax" namespace="/ajax" extends="default">
 
 		<action name="devicedownload"
-			class="uk.co.unclealex.flacconverter.actions.DeviceDownloadAction">
+			class="uk.co.unclealex.music.core.actions.DeviceDownloadAction">
 			<interceptor-ref name="defaultStack" />
 			<interceptor-ref name="execAndWait" />
 			<result name="success">/WEB-INF/ajax/device-finished.jsp</result>
@@ -136,22 +136,22 @@
 		</action>
 		
 		<action name="removeartist"
-			class="uk.co.unclealex.flacconverter.actions.RemoveArtistFromCartAction">
+			class="uk.co.unclealex.music.core.actions.RemoveArtistFromCartAction">
 			<result name="success">/WEB-INF/ajax/cart.jsp</result>
 		</action>
 
 		<action name="removealbum"
-			class="uk.co.unclealex.flacconverter.actions.RemoveAlbumFromCartAction">
+			class="uk.co.unclealex.music.core.actions.RemoveAlbumFromCartAction">
 			<result name="success">/WEB-INF/ajax/cart.jsp</result>
 		</action>
 
 		<action name="removetrack"
-			class="uk.co.unclealex.flacconverter.actions.RemoveTrackFromCartAction">
+			class="uk.co.unclealex.music.core.actions.RemoveTrackFromCartAction">
 			<result name="success">/WEB-INF/ajax/cart.jsp</result>
 		</action>
 
 		<action name="clearcart"
-			class="uk.co.unclealex.flacconverter.actions.ClearCartAction">
+			class="uk.co.unclealex.music.core.actions.ClearCartAction">
 			<result name="success">/WEB-INF/ajax/cart.jsp</result>
 		</action>
 	</package>

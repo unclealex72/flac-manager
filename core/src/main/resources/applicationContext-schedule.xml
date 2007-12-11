@@ -10,7 +10,7 @@
 	<bean id="timerFactory" class="org.springframework.scheduling.timer.TimerFactoryBean">
     <property name="scheduledTimerTasks">
         <list>
-					<bean id="scheduledTask" class="uk.co.unclealex.flacconverter.spring.ScheduledTimerTask">
+					<bean id="scheduledTask" class="uk.co.unclealex.music.core.spring.ScheduledTimerTask">
 				    <property name="next" value="02:00:00" />
 				    <property name="period" value="86400000" />
 				    <property name="timerTask">

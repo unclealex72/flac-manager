@@ -21,8 +21,8 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.io.IOUtils;
 
-import uk.co.unclealex.flacconverter.image.Album;
-import uk.co.unclealex.flacconverter.image.SearchManager;
+import uk.co.unclealex.music.core.image.Album;
+import uk.co.unclealex.music.core.image.SearchManager;
 
 /**
  * @author alex

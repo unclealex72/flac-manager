@@ -1,0 +1,9 @@
+package uk.co.unclealex.music.core.encoded.dao;
+
+import uk.co.unclealex.music.core.encoded.model.EncoderBean;
+
+public interface EncoderDao extends EncodingDao<EncoderBean> {
+
+	public EncoderBean findByExtension(String extension);
+
+}
