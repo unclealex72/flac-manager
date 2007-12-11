@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoded.writer;
+package uk.co.unclealex.music.writer;
 
 import java.util.Map;
 

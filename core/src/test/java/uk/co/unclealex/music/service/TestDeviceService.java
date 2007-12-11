@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoded.service;
+package uk.co.unclealex.music.service;
 
 import java.io.File;
 import java.io.IOException;
