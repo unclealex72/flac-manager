@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.encoded.service;
+package uk.co.unclealex.music.encoder.encoded.service;
 
 import java.io.File;
 import java.io.IOException;
