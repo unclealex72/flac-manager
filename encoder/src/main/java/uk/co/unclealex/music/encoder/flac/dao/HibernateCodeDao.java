@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.flac.dao;
+package uk.co.unclealex.music.encoder.flac.dao;
 
 import uk.co.unclealex.music.core.dao.HibernateKeyedDao;
 import uk.co.unclealex.music.encoder.flac.model.AbstractFlacBean;

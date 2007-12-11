@@ -8,10 +8,6 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import uk.co.unclealex.flacconverter.encoded.service.AlreadyEncodingException;
-import uk.co.unclealex.flacconverter.encoded.service.CurrentlyScanningException;
-import uk.co.unclealex.flacconverter.encoded.service.EncoderService;
-import uk.co.unclealex.flacconverter.encoded.service.MultipleEncodingException;
 import uk.co.unclealex.music.core.EncodedTrackBean;
 import uk.co.unclealex.music.core.EncodedTrackDao;
 import uk.co.unclealex.music.core.TestTrackStreamImpl;
@@ -21,6 +17,10 @@ import uk.co.unclealex.music.core.TrackStream;
 import uk.co.unclealex.music.core.TrackWriter;
 import uk.co.unclealex.music.core.TrackWriterFactory;
 import uk.co.unclealex.music.core.core.EncodedSpringTest;
+import uk.co.unclealex.music.encoder.encoded.service.AlreadyEncodingException;
+import uk.co.unclealex.music.encoder.encoded.service.CurrentlyScanningException;
+import uk.co.unclealex.music.encoder.encoded.service.EncoderService;
+import uk.co.unclealex.music.encoder.encoded.service.MultipleEncodingException;
 
 public class TrackWriterTest extends EncodedSpringTest {
 

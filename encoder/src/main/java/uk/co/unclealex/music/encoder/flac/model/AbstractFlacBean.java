@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.flac.model;
+package uk.co.unclealex.music.encoder.flac.model;
 
 import uk.co.unclealex.music.core.model.KeyedBean;
 

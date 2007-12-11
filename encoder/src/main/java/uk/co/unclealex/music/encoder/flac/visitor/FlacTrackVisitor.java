@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.flac.visitor;
+package uk.co.unclealex.music.encoder.flac.visitor;
 
 import uk.co.unclealex.music.encoder.flac.model.FlacAlbumBean;
 import uk.co.unclealex.music.encoder.flac.model.FlacArtistBean;

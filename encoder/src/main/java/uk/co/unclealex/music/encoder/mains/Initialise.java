@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.mains;
+package uk.co.unclealex.music.encoder.mains;
 
 import uk.co.unclealex.music.core.mains.Main;
 import uk.co.unclealex.music.encoder.encoded.initialise.Initialiser;

@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.flac.dao;
+package uk.co.unclealex.music.encoder.flac.dao;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Projections;
