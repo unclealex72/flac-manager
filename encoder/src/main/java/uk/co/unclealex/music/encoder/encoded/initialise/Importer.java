@@ -8,9 +8,5 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public interface Importer {
 
-	public void initialise() throws IOException;
-	
 	public void importTracks() throws IOException;
-
-	public void clear();	
 }

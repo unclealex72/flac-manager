@@ -1,17 +1,17 @@
 package uk.co.unclealex.music.encoder.mains;
 
 import uk.co.unclealex.music.core.mains.Main;
-import uk.co.unclealex.music.encoder.encoded.initialise.Initialiser;
+import uk.co.unclealex.music.encoder.encoded.initialise.Importer;
 import uk.co.unclealex.music.encoder.encoded.service.EncoderService;
 
 public class Initialise extends Main {
 
-	private Initialiser i_initialiser;
+	private Importer i_importer;
 	private EncoderService i_encoderService;
 	
 	@Override
 	public void execute() throws Exception {
-		//Initialiser initialiser = getInitialiser();
+		//Importer initialiser = getInitialiser();
 		//initialiser.initialise();
 		//initialiser.importTracks();
 		EncoderService encoderService = getEncoderService();
@@ -23,12 +23,12 @@ public class Initialise extends Main {
 		Main.execute(new Initialise());
 	}
 
-	public Initialiser getInitialiser() {
-		return i_initialiser;
+	public Importer getInitialiser() {
+		return i_importer;
 	}
 
-	public void setInitialiser(Initialiser initialiser) {
-		i_initialiser = initialiser;
+	public void setInitialiser(Importer importer) {
+		i_importer = importer;
 	}
 
 	public EncoderService getEncoderService() {

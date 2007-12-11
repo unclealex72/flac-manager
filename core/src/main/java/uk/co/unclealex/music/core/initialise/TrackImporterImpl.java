@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoder.encoded.initialise;
+package uk.co.unclealex.music.core.initialise;
 
 import java.io.File;
 import java.io.FileInputStream;

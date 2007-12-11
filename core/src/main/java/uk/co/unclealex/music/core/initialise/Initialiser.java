@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoder.encoded.initialise;
+package uk.co.unclealex.music.core.initialise;
 
 
 import java.io.IOException;
@@ -10,7 +10,5 @@ public interface Initialiser {
 
 	public void initialise() throws IOException;
 	
-	public void importTracks() throws IOException;
-
 	public void clear();	
 }
