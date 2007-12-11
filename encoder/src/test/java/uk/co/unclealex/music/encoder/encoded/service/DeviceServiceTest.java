@@ -13,18 +13,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 
-import uk.co.unclealex.music.core.AlreadyEncodingException;
-import uk.co.unclealex.music.core.CurrentlyScanningException;
-import uk.co.unclealex.music.core.DeviceBean;
-import uk.co.unclealex.music.core.DeviceService;
-import uk.co.unclealex.music.core.EncoderService;
-import uk.co.unclealex.music.core.MultipleEncodingException;
-import uk.co.unclealex.music.core.OwnerBean;
-import uk.co.unclealex.music.core.OwnerDao;
-import uk.co.unclealex.music.core.TrackWritingException;
-import uk.co.unclealex.music.core.core.EncodedSpringTest;
-import uk.co.unclealex.music.core.core.encoded.model.OwnedAlbumBean;
-import uk.co.unclealex.music.core.core.encoded.model.OwnedArtistBean;
+import uk.co.unclealex.music.core.dao.OwnerDao;
+import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.core.model.OwnerBean;
+import uk.co.unclealex.music.core.service.DeviceService;
+import uk.co.unclealex.music.core.writer.TrackWritingException;
 
 public class DeviceServiceTest extends EncodedSpringTest {
 
