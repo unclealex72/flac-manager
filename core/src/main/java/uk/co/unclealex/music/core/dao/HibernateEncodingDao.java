@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.core.encoded.dao;
+package uk.co.unclealex.music.core.dao;
 
 import org.hibernate.Query;
 import org.hibernate.metadata.ClassMetadata;

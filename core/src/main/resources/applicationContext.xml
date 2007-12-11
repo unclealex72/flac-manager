@@ -104,17 +104,17 @@
 		<property name="asynchronous" value="false"/>
 	</bean>
 	
-	<bean id="encodedTrackDao" class="uk.co.unclealex.music.core.encoded.dao.HibernateEncodedTrackDao">
+	<bean id="encodedTrackDao" class="uk.co.unclealex.music.core.dao.HibernateEncodedTrackDao">
 		<property name="maximumUrlsPerQuery" value="2000"/>
 	</bean>
 
-	<bean id="trackDataDao" class="uk.co.unclealex.music.core.encoded.dao.HibernateTrackDataDao"/>
+	<bean id="trackDataDao" class="uk.co.unclealex.music.core.dao.HibernateTrackDataDao"/>
 
-	<bean id="ownerDao" class="uk.co.unclealex.music.core.encoded.dao.HibernateOwnerDao"/>
+	<bean id="ownerDao" class="uk.co.unclealex.music.core.dao.HibernateOwnerDao"/>
 
-	<bean id="deviceDao" class="uk.co.unclealex.music.core.encoded.dao.HibernateDeviceDao"/>
+	<bean id="deviceDao" class="uk.co.unclealex.music.core.dao.HibernateDeviceDao"/>
  	
-	<bean id="encoderDao" class="uk.co.unclealex.music.core.encoded.dao.HibernateEncoderDao"/>
+	<bean id="encoderDao" class="uk.co.unclealex.music.core.dao.HibernateEncoderDao"/>
 
 	<bean id="encoderService" class="uk.co.unclealex.music.core.encoded.service.EncoderServiceImpl">
 		<property name="maximumThreads" value="4"/>

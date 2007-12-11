@@ -10,7 +10,7 @@ import java.util.concurrent.FutureTask;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.encoded.dao.TrackDataDao;
+import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.encoded.model.TrackDataBean;
 import uk.co.unclealex.music.core.hibernate.HibernateSessionExecutor;

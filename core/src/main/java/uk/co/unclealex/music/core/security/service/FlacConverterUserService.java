@@ -2,7 +2,7 @@ package uk.co.unclealex.music.core.security.service;
 
 import uk.co.unclealex.acegi.User;
 import uk.co.unclealex.acegi.UserService;
-import uk.co.unclealex.music.core.encoded.dao.OwnerDao;
+import uk.co.unclealex.music.core.dao.OwnerDao;
 
 public class FlacConverterUserService implements UserService {
 
