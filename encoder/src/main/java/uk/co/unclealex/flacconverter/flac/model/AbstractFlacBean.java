@@ -1,6 +1,6 @@
 package uk.co.unclealex.flacconverter.flac.model;
 
-import uk.co.unclealex.flacconverter.encoded.model.KeyedBean;
+import uk.co.unclealex.music.core.model.KeyedBean;
 
 public abstract class AbstractFlacBean<T extends AbstractFlacBean<T>> extends KeyedBean<T> implements FlacBean {
 

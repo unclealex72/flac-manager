@@ -8,15 +8,19 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import uk.co.unclealex.flacconverter.EncodedSpringTest;
-import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
-import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
+import uk.co.unclealex.flacconverter.EncodedTrackBean;
+import uk.co.unclealex.flacconverter.EncodedTrackDao;
+import uk.co.unclealex.flacconverter.TestTrackStreamImpl;
+import uk.co.unclealex.flacconverter.TitleFormatService;
+import uk.co.unclealex.flacconverter.TitleFormatServiceFactory;
+import uk.co.unclealex.flacconverter.TrackStream;
+import uk.co.unclealex.flacconverter.TrackWriter;
+import uk.co.unclealex.flacconverter.TrackWriterFactory;
 import uk.co.unclealex.flacconverter.encoded.service.AlreadyEncodingException;
 import uk.co.unclealex.flacconverter.encoded.service.CurrentlyScanningException;
 import uk.co.unclealex.flacconverter.encoded.service.EncoderService;
 import uk.co.unclealex.flacconverter.encoded.service.MultipleEncodingException;
-import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatService;
-import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.core.EncodedSpringTest;
 
 public class TrackWriterTest extends EncodedSpringTest {
 

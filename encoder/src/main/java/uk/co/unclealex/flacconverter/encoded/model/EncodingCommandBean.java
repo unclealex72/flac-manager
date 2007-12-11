@@ -1,6 +1,7 @@
 package uk.co.unclealex.flacconverter.encoded.model;
 
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
+import uk.co.unclealex.music.core.model.EncoderBean;
 
 public class EncodingCommandBean implements Comparable<EncodingCommandBean> {
 

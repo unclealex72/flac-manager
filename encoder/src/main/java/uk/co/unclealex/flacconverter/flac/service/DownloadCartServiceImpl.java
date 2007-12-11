@@ -7,15 +7,6 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
-import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
-import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatService;
-import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatServiceFactory;
-import uk.co.unclealex.flacconverter.encoded.writer.TrackStream;
-import uk.co.unclealex.flacconverter.encoded.writer.TrackWriter;
-import uk.co.unclealex.flacconverter.encoded.writer.TrackWriterFactory;
-import uk.co.unclealex.flacconverter.encoded.writer.TrackWritingException;
 import uk.co.unclealex.flacconverter.flac.dao.FlacAlbumDao;
 import uk.co.unclealex.flacconverter.flac.dao.FlacArtistDao;
 import uk.co.unclealex.flacconverter.flac.model.DownloadCartBean;
@@ -25,6 +16,15 @@ import uk.co.unclealex.flacconverter.flac.model.FlacBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.flacconverter.flac.visitor.FlacTrackVisitor;
 import uk.co.unclealex.flacconverter.flac.visitor.FlacVisitor;
+import uk.co.unclealex.music.core.dao.EncodedTrackDao;
+import uk.co.unclealex.music.core.encoded.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.core.encoded.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.core.encoded.writer.TrackStream;
+import uk.co.unclealex.music.core.encoded.writer.TrackWriter;
+import uk.co.unclealex.music.core.encoded.writer.TrackWriterFactory;
+import uk.co.unclealex.music.core.encoded.writer.TrackWritingException;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncoderBean;
 
 public class DownloadCartServiceImpl implements DownloadCartService {
 

@@ -119,7 +119,7 @@
 
 	<filter>
 		<filter-name>download</filter-name>
-		<filter-class>uk.co.unclealex.flacconverter.encoded.filter.ZipDownloadFilter</filter-class>
+		<filter-class>uk.co.unclealex.music.core.encoded.filter.ZipDownloadFilter</filter-class>
 	</filter>
 <!-- 
 	<filter-mapping>
@@ -210,7 +210,7 @@
         <display-name>Slide DAV Server</display-name>
         <servlet-name>webdav</servlet-name>
         <servlet-class>
-        	uk.co.unclealex.flacconverter.encoded.webdav.SpringWebdavServlet
+        	uk.co.unclealex.music.core.encoded.webdav.SpringWebdavServlet
         </servlet-class>
         <init-param>
             <description>

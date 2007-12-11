@@ -9,10 +9,10 @@ import java.util.Map;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
 import uk.co.unclealex.flacconverter.encoded.model.EncodingCommandBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncoderBean;
 
 @Transactional
 public interface SingleEncoderService extends Serializable {

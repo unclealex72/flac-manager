@@ -3,14 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>uk.co.unclealex</groupId>
 	<version>2.0</version>
-	<artifactId>flac-converter-encoder</artifactId>
-	<name>Flac Conversion</name>
+	<artifactId>music-encoder</artifactId>
+	<name>Music Encoder</name>
 	<url>http://maven.apache.org</url>
 	<packaging>war</packaging>
 	<dependencies>
 		<dependency>
 			<groupId>uk.co.unclealex</groupId>
-			<artifactId>flac-converter-core</artifactId>
+			<artifactId>music-core</artifactId>
 			<version>${version}</version>
 		</dependency>
 		<dependency>

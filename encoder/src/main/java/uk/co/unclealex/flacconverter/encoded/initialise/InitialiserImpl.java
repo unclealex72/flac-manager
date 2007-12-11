@@ -18,21 +18,24 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import uk.co.unclealex.flacconverter.encoded.dao.DeviceDao;
-import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
-import uk.co.unclealex.flacconverter.encoded.dao.EncoderDao;
-import uk.co.unclealex.flacconverter.encoded.dao.EncodingDao;
-import uk.co.unclealex.flacconverter.encoded.dao.OwnerDao;
-import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
-import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
-import uk.co.unclealex.flacconverter.encoded.model.KeyedBean;
-import uk.co.unclealex.flacconverter.encoded.model.OwnedAlbumBean;
-import uk.co.unclealex.flacconverter.encoded.model.OwnedArtistBean;
-import uk.co.unclealex.flacconverter.encoded.model.OwnerBean;
-import uk.co.unclealex.flacconverter.encoded.service.TrackDataStreamIteratorFactory;
+import uk.co.unclealex.flacconverter.DeviceBean;
+import uk.co.unclealex.flacconverter.DeviceDao;
+import uk.co.unclealex.flacconverter.EncodedTrackBean;
+import uk.co.unclealex.flacconverter.EncodedTrackDao;
+import uk.co.unclealex.flacconverter.EncoderBean;
+import uk.co.unclealex.flacconverter.EncoderDao;
+import uk.co.unclealex.flacconverter.EncodingDao;
+import uk.co.unclealex.flacconverter.Initialiser;
+import uk.co.unclealex.flacconverter.InitialiserImpl;
+import uk.co.unclealex.flacconverter.KeyedBean;
+import uk.co.unclealex.flacconverter.OwnerBean;
+import uk.co.unclealex.flacconverter.OwnerDao;
+import uk.co.unclealex.flacconverter.TrackDataStreamIteratorFactory;
+import uk.co.unclealex.flacconverter.TrackImporter;
 import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
+import uk.co.unclealex.music.core.encoded.model.OwnedAlbumBean;
+import uk.co.unclealex.music.core.encoded.model.OwnedArtistBean;
 
 public class InitialiserImpl implements Initialiser {
 

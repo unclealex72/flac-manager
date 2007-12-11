@@ -1,7 +1,7 @@
 package uk.co.unclealex.flacconverter.flac.dao;
 
-import uk.co.unclealex.flacconverter.encoded.dao.KeyedDao;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
+import uk.co.unclealex.music.core.dao.KeyedDao;
 
 public interface FlacTrackDao extends KeyedDao<FlacTrackBean> {
 

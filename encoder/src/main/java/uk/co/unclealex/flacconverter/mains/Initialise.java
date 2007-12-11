@@ -2,6 +2,7 @@ package uk.co.unclealex.flacconverter.mains;
 
 import uk.co.unclealex.flacconverter.encoded.initialise.Initialiser;
 import uk.co.unclealex.flacconverter.encoded.service.EncoderService;
+import uk.co.unclealex.music.core.mains.Main;
 
 public class Initialise extends Main {
 

@@ -11,14 +11,14 @@
 		<property name="password" value="slimserver"/>
 	</bean>
 
-	<bean id="testFlacProvider" class="uk.co.unclealex.flacconverter.flac.dao.TestFlacProvider"
+	<bean id="testFlacProvider" class="uk.co.unclealex.music.core.flac.dao.TestFlacProvider"
 		init-method="initialise"/>
 		
-	<bean id="flacTrackDao" class="uk.co.unclealex.flacconverter.flac.dao.TestFlacTrackDao"/>
-	<bean id="flacAlbumDao" class="uk.co.unclealex.flacconverter.flac.dao.TestFlacAlbumDao"/>
-	<bean id="flacArtistDao" class="uk.co.unclealex.flacconverter.flac.dao.TestFlacArtistDao"/>
+	<bean id="flacTrackDao" class="uk.co.unclealex.music.core.flac.dao.TestFlacTrackDao"/>
+	<bean id="flacAlbumDao" class="uk.co.unclealex.music.core.flac.dao.TestFlacAlbumDao"/>
+	<bean id="flacArtistDao" class="uk.co.unclealex.music.core.flac.dao.TestFlacArtistDao"/>
 
 	<bean id="slimServerInformationDao"
-		class="uk.co.unclealex.flacconverter.flac.dao.TestSlimServerInformationDao"/>
+		class="uk.co.unclealex.music.core.flac.dao.TestSlimServerInformationDao"/>
 </beans>
 

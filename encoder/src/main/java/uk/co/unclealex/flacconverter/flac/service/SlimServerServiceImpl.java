@@ -2,9 +2,10 @@ package uk.co.unclealex.flacconverter.flac.service;
 
 import java.util.List;
 
-import uk.co.unclealex.flacconverter.SlimServerConfig;
+import uk.co.unclealex.flacconverter.SlimServerService;
 import uk.co.unclealex.flacconverter.flac.dao.SlimServerInformationDao;
 import uk.co.unclealex.flacconverter.flac.model.SlimServerInformationBean;
+import uk.co.unclealex.music.core.SlimServerConfig;
 
 public class SlimServerServiceImpl implements SlimServerService {
 
