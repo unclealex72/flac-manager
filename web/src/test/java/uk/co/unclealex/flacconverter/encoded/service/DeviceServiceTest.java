@@ -14,12 +14,12 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 
 import uk.co.unclealex.flacconverter.encoded.EncodedSpringTest;
-import uk.co.unclealex.flacconverter.encoded.dao.OwnerDao;
-import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
-import uk.co.unclealex.flacconverter.encoded.model.OwnedAlbumBean;
-import uk.co.unclealex.flacconverter.encoded.model.OwnedArtistBean;
-import uk.co.unclealex.flacconverter.encoded.model.OwnerBean;
-import uk.co.unclealex.flacconverter.encoded.writer.TrackWritingException;
+import uk.co.unclealex.music.web.encoded.dao.OwnerDao;
+import uk.co.unclealex.music.web.encoded.model.DeviceBean;
+import uk.co.unclealex.music.web.encoded.model.OwnedAlbumBean;
+import uk.co.unclealex.music.web.encoded.model.OwnedArtistBean;
+import uk.co.unclealex.music.web.encoded.model.OwnerBean;
+import uk.co.unclealex.music.web.encoded.writer.TrackWritingException;
 
 public class DeviceServiceTest extends EncodedSpringTest {
 

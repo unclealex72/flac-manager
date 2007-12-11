@@ -9,14 +9,14 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import uk.co.unclealex.flacconverter.encoded.EncodedSpringTest;
-import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
-import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.encoded.service.AlreadyEncodingException;
-import uk.co.unclealex.flacconverter.encoded.service.CurrentlyScanningException;
-import uk.co.unclealex.flacconverter.encoded.service.EncoderService;
-import uk.co.unclealex.flacconverter.encoded.service.MultipleEncodingException;
-import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatService;
-import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.web.encoded.dao.EncodedTrackDao;
+import uk.co.unclealex.music.web.encoded.model.EncodedTrackBean;
+import uk.co.unclealex.music.web.encoded.service.AlreadyEncodingException;
+import uk.co.unclealex.music.web.encoded.service.CurrentlyScanningException;
+import uk.co.unclealex.music.web.encoded.service.EncoderService;
+import uk.co.unclealex.music.web.encoded.service.MultipleEncodingException;
+import uk.co.unclealex.music.web.encoded.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.web.encoded.service.titleformat.TitleFormatServiceFactory;
 
 public class TrackWriterTest extends EncodedSpringTest {
 

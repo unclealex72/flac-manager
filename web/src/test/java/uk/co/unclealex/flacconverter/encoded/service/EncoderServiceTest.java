@@ -18,19 +18,20 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 
+import uk.co.unclealex.flacconverter.EncoderUrlPair;
 import uk.co.unclealex.flacconverter.encoded.EncodedSpringTest;
-import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
-import uk.co.unclealex.flacconverter.encoded.dao.EncoderDao;
-import uk.co.unclealex.flacconverter.encoded.dao.TrackDataDao;
-import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
-import uk.co.unclealex.flacconverter.encoded.model.EncodingCommandBean;
-import uk.co.unclealex.flacconverter.encoded.model.TrackDataBean;
-import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
-import uk.co.unclealex.flacconverter.flac.dao.SlimServerInformationDao;
 import uk.co.unclealex.flacconverter.flac.dao.TestFlacProvider;
 import uk.co.unclealex.flacconverter.flac.dao.TestSlimServerInformationDao;
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
+import uk.co.unclealex.music.web.encoded.dao.EncodedTrackDao;
+import uk.co.unclealex.music.web.encoded.dao.EncoderDao;
+import uk.co.unclealex.music.web.encoded.dao.TrackDataDao;
+import uk.co.unclealex.music.web.encoded.model.EncodedTrackBean;
+import uk.co.unclealex.music.web.encoded.model.EncoderBean;
+import uk.co.unclealex.music.web.encoded.model.EncodingCommandBean;
+import uk.co.unclealex.music.web.encoded.model.TrackDataBean;
+import uk.co.unclealex.music.web.flac.dao.FlacTrackDao;
+import uk.co.unclealex.music.web.flac.dao.SlimServerInformationDao;
+import uk.co.unclealex.music.web.flac.model.FlacTrackBean;
 
 public class EncoderServiceTest extends EncodedSpringTest {
 

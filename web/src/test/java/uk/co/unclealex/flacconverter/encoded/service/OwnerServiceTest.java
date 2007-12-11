@@ -10,17 +10,17 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
 
 import uk.co.unclealex.flacconverter.encoded.EncodedSpringTest;
-import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
-import uk.co.unclealex.flacconverter.encoded.dao.EncoderDao;
-import uk.co.unclealex.flacconverter.encoded.dao.OwnerDao;
-import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
-import uk.co.unclealex.flacconverter.encoded.model.OwnedAlbumBean;
-import uk.co.unclealex.flacconverter.encoded.model.OwnedArtistBean;
-import uk.co.unclealex.flacconverter.encoded.model.OwnerBean;
-import uk.co.unclealex.flacconverter.flac.dao.FlacTrackDao;
-import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
+import uk.co.unclealex.music.web.encoded.dao.EncodedTrackDao;
+import uk.co.unclealex.music.web.encoded.dao.EncoderDao;
+import uk.co.unclealex.music.web.encoded.dao.OwnerDao;
+import uk.co.unclealex.music.web.encoded.model.EncodedTrackBean;
+import uk.co.unclealex.music.web.encoded.model.EncoderBean;
+import uk.co.unclealex.music.web.encoded.model.OwnedAlbumBean;
+import uk.co.unclealex.music.web.encoded.model.OwnedArtistBean;
+import uk.co.unclealex.music.web.encoded.model.OwnerBean;
+import uk.co.unclealex.music.web.flac.dao.FlacTrackDao;
+import uk.co.unclealex.music.web.flac.model.FlacAlbumBean;
+import uk.co.unclealex.music.web.flac.model.FlacTrackBean;
 
 public class OwnerServiceTest extends EncodedSpringTest {
 

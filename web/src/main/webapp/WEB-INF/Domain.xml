@@ -12,7 +12,7 @@
                 <!-- <nodestore classname="org.apache.slide.simple.store.WebdavStoreAdapter"> -->
                 <!-- replace the above line with this one if your Slide version and your store supports macro operations on the store level -->  
                 <nodestore classname="org.apache.slide.simple.store.WebdavStoreMacroAdapter">
-                    <parameter name="callback-store">uk.co.unclealex.flacconverter.encoded.webdav.WebdavStore</parameter>
+                    <parameter name="callback-store">uk.co.unclealex.music.web.encoded.webdav.WebdavStore</parameter>
                     <!-- this is where all the resources in the /files collection go to -->
                     <!-- adapt to your needs -->
                     <parameter name="rootpath">store</parameter>

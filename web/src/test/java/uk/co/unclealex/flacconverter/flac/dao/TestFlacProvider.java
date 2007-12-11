@@ -14,10 +14,10 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 
-import uk.co.unclealex.flacconverter.flac.model.AbstractFlacBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
+import uk.co.unclealex.music.web.flac.model.AbstractFlacBean;
+import uk.co.unclealex.music.web.flac.model.FlacAlbumBean;
+import uk.co.unclealex.music.web.flac.model.FlacArtistBean;
+import uk.co.unclealex.music.web.flac.model.FlacTrackBean;
 
 public class TestFlacProvider {
 

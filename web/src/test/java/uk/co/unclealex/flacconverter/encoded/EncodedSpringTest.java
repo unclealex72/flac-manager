@@ -1,7 +1,7 @@
 package uk.co.unclealex.flacconverter.encoded;
 
-import uk.co.unclealex.flacconverter.SpringTest;
-import uk.co.unclealex.flacconverter.encoded.initialise.Initialiser;
+import uk.co.unclealex.music.web.SpringTest;
+import uk.co.unclealex.music.web.encoded.initialise.Initialiser;
 
 public abstract class EncodedSpringTest extends SpringTest {
 

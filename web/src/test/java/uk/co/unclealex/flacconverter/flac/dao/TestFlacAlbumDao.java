@@ -5,8 +5,9 @@ import java.util.SortedSet;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 
-import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
+import uk.co.unclealex.flacconverter.TestFlacProvider;
+import uk.co.unclealex.music.web.flac.model.FlacAlbumBean;
+import uk.co.unclealex.music.web.flac.model.FlacArtistBean;
 
 public class TestFlacAlbumDao implements FlacAlbumDao {
 

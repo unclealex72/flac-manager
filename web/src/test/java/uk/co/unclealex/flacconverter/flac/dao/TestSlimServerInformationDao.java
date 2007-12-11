@@ -2,7 +2,7 @@ package uk.co.unclealex.flacconverter.flac.dao;
 
 import java.util.Map;
 
-import uk.co.unclealex.flacconverter.flac.model.SlimServerInformationBean;
+import uk.co.unclealex.music.web.flac.model.SlimServerInformationBean;
 
 public class TestSlimServerInformationDao implements SlimServerInformationDao {
 

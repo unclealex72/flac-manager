@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import uk.co.unclealex.flacconverter.encoded.EncodedSpringTest;
-import uk.co.unclealex.flacconverter.encoded.dao.EncoderDao;
-import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
+import uk.co.unclealex.music.web.encoded.dao.EncoderDao;
+import uk.co.unclealex.music.web.encoded.model.EncoderBean;
 
 public class FileSystemServiceTest extends EncodedSpringTest {
 
