@@ -32,9 +32,9 @@ import uk.co.unclealex.music.core.service.TrackDataStreamIteratorFactory;
 import uk.co.unclealex.music.encoder.flac.dao.FlacTrackDao;
 import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
-public class InitialiserImpl implements Initialiser {
+public class ImporterImpl implements Importer {
 
-	private static final Logger log = Logger.getLogger(InitialiserImpl.class);
+	private static final Logger log = Logger.getLogger(ImporterImpl.class);
 	
 	private static final String FLAC_FILE_BASE = "/mnt/multimedia/flac/";
 	private static final String FLAC_URL_BASE = "file://" + FLAC_FILE_BASE;

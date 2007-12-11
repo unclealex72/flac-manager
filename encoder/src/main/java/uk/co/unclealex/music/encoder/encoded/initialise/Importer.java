@@ -6,7 +6,7 @@ import java.io.IOException;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-public interface Initialiser {
+public interface Importer {
 
 	public void initialise() throws IOException;
 	
