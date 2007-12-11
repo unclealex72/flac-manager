@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoder.encoded.service;
+package uk.co.unclealex.music.core.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;

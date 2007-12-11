@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoder.encoded.writer;
+package uk.co.unclealex.music.core.writer;
 
 import java.io.IOException;
 import java.util.HashMap;
