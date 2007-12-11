@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.core.encoded.service.titleformat;
+package uk.co.unclealex.music.core.service.titleformat;
 
 public class TitleFormatFactoryImpl implements TitleFormatFactory {
 

@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.core.encoded.service.titleformat;
+package uk.co.unclealex.music.core.service.titleformat;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;

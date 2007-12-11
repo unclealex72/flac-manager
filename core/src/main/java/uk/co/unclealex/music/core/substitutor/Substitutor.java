@@ -6,7 +6,7 @@ package uk.co.unclealex.music.core.substitutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import uk.co.unclealex.music.core.encoded.service.titleformat.TitleFormatVariable;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatVariable;
 
 /**
  * @author alex

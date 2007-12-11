@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.core.encoded.service.titleformat;
+package uk.co.unclealex.music.core.service.titleformat;
 
 public enum TitleFormatVariable {
 	ARTIST("artist"), ALBUM("album"), TRACK("track"), TITLE("title"), EXTENSION("ext");

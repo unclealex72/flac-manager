@@ -11,7 +11,7 @@ import java.util.zip.ZipOutputStream;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import uk.co.unclealex.music.core.encoded.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
 
 public class SpringTrackWriterFactory implements TrackWriterFactory, ApplicationContextAware {
 

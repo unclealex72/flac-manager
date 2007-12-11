@@ -195,7 +195,7 @@
 	<bean id="userService"
 		class="uk.co.unclealex.music.core.security.service.FlacConverterUserService" />
 
-	<bean id="titleFormatFactory" class="uk.co.unclealex.music.core.encoded.service.titleformat.TitleFormatFactoryImpl">
+	<bean id="titleFormatFactory" class="uk.co.unclealex.music.core.service.titleformat.TitleFormatFactoryImpl">
 		<property name="defaultTitleFormat">
 			<value>${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
 		</property>
@@ -206,10 +206,10 @@
 	<bean id="partitioner" class="uk.co.unclealex.music.core.util.Partitioner"/>
 	
 	<bean id="titleFormatServiceFactory" 
-		class="uk.co.unclealex.music.core.encoded.service.titleformat.SpringTitleFormatServiceFactory"/>
+		class="uk.co.unclealex.music.core.service.titleformat.SpringTitleFormatServiceFactory"/>
 
 	<bean id="titleFormatService" scope="prototype" autowire-candidate="false"
-		class="uk.co.unclealex.music.core.encoded.service.titleformat.TitleFormatServiceImpl"/>
+		class="uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceImpl"/>
 			
 	<bean id="webSecurityRules" class="java.lang.String" autowire-candidate="false">
 		<constructor-arg>

@@ -4,8 +4,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.SortedSet;
 
-import uk.co.unclealex.music.core.encoded.service.titleformat.TitleFormatService;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
 
 public interface TrackWriter {
 

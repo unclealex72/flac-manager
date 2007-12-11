@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.OutputStream;
 import java.util.Map;
 
-import uk.co.unclealex.music.core.encoded.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
 
 public interface TrackWriterFactory {
 
