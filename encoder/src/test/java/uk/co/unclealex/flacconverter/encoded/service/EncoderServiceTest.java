@@ -18,7 +18,7 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 
-import uk.co.unclealex.flacconverter.encoded.EncodedSpringTest;
+import uk.co.unclealex.flacconverter.EncodedSpringTest;
 import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
 import uk.co.unclealex.flacconverter.encoded.dao.EncoderDao;
 import uk.co.unclealex.flacconverter.encoded.dao.TrackDataDao;
@@ -38,6 +38,7 @@ public class EncoderServiceTest extends EncodedSpringTest {
 	
 	private FlacTrackDao i_flacTrackDao;
 	private SlimServerInformationDao i_slimServerInformationDao;
+	private TrackStreamService i_trackStreamService;
 	private EncoderService i_encoderService;
 	private SingleEncoderService i_singleEncoderService;
 	private EncoderDao i_encoderDao;
@@ -71,7 +72,7 @@ public class EncoderServiceTest extends EncodedSpringTest {
 				if (succeeded) {
 					EncodedTrackBean encodedTrackBean = 
 						encodedTrackDao.findByUrlAndEncoderBean(flacTrackBean.getUrl(), encoderBean);
-					InputStream in = singleEncoderService.getTrackInputStream(encodedTrackBean);
+					InputStream in = getTrackStreamService().getTrackInputStream(encodedTrackBean);
 					int actualLength = IOUtils.copy(in, new NullOutputStream());
 					assertEquals(
 							"Encoded bean for url " + url + " and encoding " + encoderBean.getExtension() + " has the wrong length.",
@@ -224,7 +225,7 @@ public class EncoderServiceTest extends EncodedSpringTest {
 					encodedTrackBean.getFlacUrl() + " is empty.",
 					trackDataBeans.isEmpty());
 		}
-		int maximumTrackDataLength = getSingleEncoderService().getMaximumTrackDataLength();
+		int maximumTrackDataLength = getTrackStreamService().getMaximumTrackDataLength();
 		for (TrackDataBean trackDataBean : getTrackDataDao().getAll()) {
 			int length = trackDataBean.getTrack().length;
 			if (length > maximumTrackDataLength) {
@@ -413,5 +414,13 @@ public class EncoderServiceTest extends EncodedSpringTest {
 
 	public void setSingleEncoderService(SingleEncoderService singleEncoderService) {
 		i_singleEncoderService = singleEncoderService;
+	}
+
+	public TrackStreamService getTrackStreamService() {
+		return i_trackStreamService;
+	}
+
+	public void setTrackStreamService(TrackStreamService trackStreamService) {
+		i_trackStreamService = trackStreamService;
 	}
 }

@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -17,7 +18,9 @@ import org.hibernate.annotations.SortType;
 public class EncodedArtistBean extends KeyedBean<EncodedArtistBean> {
 
 	private String i_name;
+	private String i_slimIdentifier;
 	private SortedSet<EncodedAlbumBean> i_encodedAlbumBeans;
+	private SortedSet<OwnerBean> i_ownerBeans;
 	
 	@Override
 	@Id
@@ -44,6 +47,24 @@ public class EncodedArtistBean extends KeyedBean<EncodedArtistBean> {
 	}
 	public void setEncodedAlbumBeans(SortedSet<EncodedAlbumBean> encodedAlbumBeans) {
 		i_encodedAlbumBeans = encodedAlbumBeans;
+	}
+
+	@ManyToMany(mappedBy="encodedArtists")
+	@Sort(type=SortType.NATURAL)
+	public SortedSet<OwnerBean> getOwnerBeans() {
+		return i_ownerBeans;
+	}
+
+	public void setOwnerBeans(SortedSet<OwnerBean> ownerBeans) {
+		i_ownerBeans = ownerBeans;
+	}
+
+	public String getSlimIdentifier() {
+		return i_slimIdentifier;
+	}
+
+	public void setSlimIdentifier(String slimIdentifier) {
+		i_slimIdentifier = slimIdentifier;
 	}
 	
 

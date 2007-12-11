@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
-import uk.co.unclealex.flacconverter.encoded.service.SingleEncoderService;
+import uk.co.unclealex.flacconverter.encoded.service.TrackStreamService;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 
 @Transactional(propagation=Propagation.REQUIRES_NEW)
@@ -21,7 +21,7 @@ public class TrackImporterImpl implements TrackImporter {
 
 	private static final Logger log = Logger.getLogger(TrackImporterImpl.class);
 	
-	private SingleEncoderService i_singleEncoderService;
+	private TrackStreamService i_trackStreamService;
 	private EncodedTrackDao i_encodedTrackDao;
 	
 	@Override
@@ -34,7 +34,7 @@ public class TrackImporterImpl implements TrackImporter {
 		encodedTrackBean.setTimestamp(file.lastModified());
 		encodedTrackBean.setLength((int) file.length());
 		encodedTrackDao.store(encodedTrackBean);
-		OutputStream out = getSingleEncoderService().getTrackOutputStream(encodedTrackBean);
+		OutputStream out = getTrackStreamService().getTrackOutputStream(encodedTrackBean);
 		encodedTrackBean.setLength(IOUtils.copy(in, out));
 		in.close();
 		out.close();
@@ -51,12 +51,12 @@ public class TrackImporterImpl implements TrackImporter {
 		i_encodedTrackDao = encodedTrackDao;
 	}
 
-	public SingleEncoderService getSingleEncoderService() {
-		return i_singleEncoderService;
+	public TrackStreamService getTrackStreamService() {
+		return i_trackStreamService;
 	}
 
-	public void setSingleEncoderService(SingleEncoderService singleEncoderService) {
-		i_singleEncoderService = singleEncoderService;
+	public void setTrackStreamService(TrackStreamService trackStreamService) {
+		i_trackStreamService = trackStreamService;
 	}
 
 }

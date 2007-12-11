@@ -9,7 +9,7 @@ import java.util.SortedSet;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
 
-import uk.co.unclealex.flacconverter.encoded.EncodedSpringTest;
+import uk.co.unclealex.flacconverter.EncodedSpringTest;
 import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
 import uk.co.unclealex.flacconverter.encoded.dao.EncoderDao;
 import uk.co.unclealex.flacconverter.encoded.dao.OwnerDao;

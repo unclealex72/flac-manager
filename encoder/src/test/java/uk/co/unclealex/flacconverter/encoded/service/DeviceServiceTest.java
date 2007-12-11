@@ -13,7 +13,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 
-import uk.co.unclealex.flacconverter.encoded.EncodedSpringTest;
+import uk.co.unclealex.flacconverter.EncodedSpringTest;
 import uk.co.unclealex.flacconverter.encoded.dao.OwnerDao;
 import uk.co.unclealex.flacconverter.encoded.model.DeviceBean;
 import uk.co.unclealex.flacconverter.encoded.model.OwnedAlbumBean;

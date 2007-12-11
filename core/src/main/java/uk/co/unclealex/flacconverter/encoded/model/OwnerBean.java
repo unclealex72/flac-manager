@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -29,8 +30,8 @@ public class OwnerBean extends KeyedBean<OwnerBean> implements User {
 	private String i_passwordHash;
 	
 	private Boolean i_ownsAll;
-	private SortedSet<OwnedAlbumBean> i_ownedAlbumBeans;
-	private SortedSet<OwnedArtistBean> i_ownedArtistBeans;
+	private SortedSet<EncodedArtistBean> i_encodedArtistBeans;
+	private SortedSet<EncodedAlbumBean> i_encodedAlbumBeans;
 	private SortedSet<DeviceBean> i_deviceBeans;
 	
 	@Override
@@ -74,26 +75,6 @@ public class OwnerBean extends KeyedBean<OwnerBean> implements User {
 
 	@OneToMany(mappedBy="ownerBean", cascade={CascadeType.REMOVE})
 	@Sort(type=SortType.NATURAL)
-	public SortedSet<OwnedAlbumBean> getOwnedAlbumBeans() {
-		return i_ownedAlbumBeans;
-	}
-
-	public void setOwnedAlbumBeans(SortedSet<OwnedAlbumBean> ownedAlbumBeans) {
-		i_ownedAlbumBeans = ownedAlbumBeans;
-	}
-
-	@OneToMany(mappedBy="ownerBean", cascade={CascadeType.REMOVE})
-	@Sort(type=SortType.NATURAL)
-	public SortedSet<OwnedArtistBean> getOwnedArtistBeans() {
-		return i_ownedArtistBeans;
-	}
-
-	public void setOwnedArtistBeans(SortedSet<OwnedArtistBean> ownedArtistBeans) {
-		i_ownedArtistBeans = ownedArtistBeans;
-	}
-
-	@OneToMany(mappedBy="ownerBean", cascade={CascadeType.REMOVE})
-	@Sort(type=SortType.NATURAL)
 	public SortedSet<DeviceBean> getDeviceBeans() {
 		return i_deviceBeans;
 	}
@@ -118,5 +99,24 @@ public class OwnerBean extends KeyedBean<OwnerBean> implements User {
 
 	public void setPasswordHash(String passwordHash) {
 		i_passwordHash = passwordHash;
+	}
+
+	@ManyToMany(cascade=CascadeType.PERSIST)
+	public SortedSet<EncodedArtistBean> getEncodedArtistBeans() {
+		return i_encodedArtistBeans;
+	}
+
+	public void setEncodedArtistBeans(
+			SortedSet<EncodedArtistBean> encodedArtistBeans) {
+		i_encodedArtistBeans = encodedArtistBeans;
+	}
+
+	@ManyToMany(cascade=CascadeType.PERSIST)
+	public SortedSet<EncodedAlbumBean> getEncodedAlbumBeans() {
+		return i_encodedAlbumBeans;
+	}
+
+	public void setEncodedAlbumBeans(SortedSet<EncodedAlbumBean> encodedAlbumBeans) {
+		i_encodedAlbumBeans = encodedAlbumBeans;
 	}
 }

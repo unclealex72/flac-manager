@@ -1,14 +1,11 @@
 package uk.co.unclealex.flacconverter.encoded.service;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.SequenceInputStream;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -22,7 +19,6 @@ import java.util.TreeSet;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
@@ -34,7 +30,6 @@ import uk.co.unclealex.flacconverter.encoded.model.TrackDataBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
 import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
 import uk.co.unclealex.flacconverter.io.SequenceOutputStream;
-import uk.co.unclealex.flacconverter.util.EnumeratorBridge;
 
 @Transactional
 public class SingleEncoderServiceImpl implements SingleEncoderService, Serializable {
@@ -43,6 +38,8 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 
 	private EncodedTrackDao i_encodedTrackDao;
 	private TrackDataDao i_trackDataDao;
+	private TrackStreamService i_trackStreamService;
+	private TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
 	
 	@Transactional(rollbackFor=IOException.class)
 	public int encode(
@@ -143,7 +140,8 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 					public void process(InputStream in) throws IOException {
 						Iterator<OutputStream> outIterator = 
 							trackDataStreamIteratorFactory.createTrackDataOutputStreamIterator(newEncodedTrackBean);
-						OutputStream out = new SequenceOutputStream(getMaximumTrackDataLength(), outIterator);
+						OutputStream out = 
+							new SequenceOutputStream(getTrackStreamService().getMaximumTrackDataLength(), outIterator);
 						int length = IOUtils.copy(in, out);
 						out.close();
 						newEncodedTrackBean.setLength(length);
@@ -206,12 +204,11 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 		i_trackDataStreamIteratorFactory = trackDataStreamIteratorFactory;
 	}
 
-	@Required
-	public int getMaximumTrackDataLength() {
-		return i_maximumTrackDataLength;
+	public TrackStreamService getTrackStreamService() {
+		return i_trackStreamService;
 	}
 
-	public void setMaximumTrackDataLength(int maximumTrackDataLength) {
-		i_maximumTrackDataLength = maximumTrackDataLength;
+	public void setTrackStreamService(TrackStreamService trackStreamService) {
+		i_trackStreamService = trackStreamService;
 	}
 }

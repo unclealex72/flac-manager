@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import uk.co.unclealex.flacconverter.encoded.EncodedSpringTest;
+import uk.co.unclealex.flacconverter.EncodedSpringTest;
 import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 import uk.co.unclealex.flacconverter.encoded.service.AlreadyEncodingException;

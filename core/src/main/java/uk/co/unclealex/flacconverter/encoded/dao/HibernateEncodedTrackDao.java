@@ -1,14 +1,15 @@
 package uk.co.unclealex.flacconverter.encoded.dao;
 
-import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Example;
-import org.hibernate.criterion.Expression;
 
+import uk.co.unclealex.flacconverter.encoded.model.EncodedAlbumBean;
+import uk.co.unclealex.flacconverter.encoded.model.EncodedArtistBean;
 import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
 import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
 import uk.co.unclealex.flacconverter.util.Partitioner;
@@ -18,19 +19,33 @@ public class HibernateEncodedTrackDao extends
 
 	private int i_maximumUrlsPerQuery;
 	private Partitioner<String> i_partitioner;
+
+	@Override
+	public SortedSet<? extends EncodedTrackBean> findByAlbumAndEncoderBean(
+			EncodedAlbumBean encodedAlbumBean, EncoderBean encoderBean) {
+		Query query = getSession().createQuery(
+				"from encodedTrackBean where encodedAlbumBean = :encodedAlbumBean and encoderBean = :encoderBean");
+		query.setEntity("encodedAlbumBean", encodedAlbumBean);
+		query.setEntity("encoderBean", encoderBean);
+		return asSortedSet(query);
+	}
 	
-	@SuppressWarnings("unchecked")
-	public SortedSet<EncodedTrackBean> findByUrlsAndEncoderBean(Collection<String> urls, EncoderBean encoderBean) {
-		SortedSet<EncodedTrackBean> encodedTrackBeans = new TreeSet<EncodedTrackBean>();
-		for (Collection<String> urlPartition : getPartitioner().partition(urls, getMaximumUrlsPerQuery())) {
-			EncodedTrackBean exampleBean = createExampleBean();
-			Criteria criteria = 
-				createFindByEncoderBean(exampleBean, encoderBean, Expression.in("flacUrl", urlPartition));
-			encodedTrackBeans.addAll(criteria.list());
-		}
-		return encodedTrackBeans;
+	@Override
+	public SortedSet<? extends EncodedTrackBean> findByArtistAndEncoderBean(
+			EncodedArtistBean encodedArtistBean, EncoderBean encoderBean) {
+		Query query = getSession().createQuery(
+		"select tr from encodedAlbumBean al join al.encodedTrackBean tr " +
+		"where al.encodedArtistBean = :encodedArtistBean and tr.encoderBean = :encoderBean");
+		query.setEntity("encodedArtistBean", encodedArtistBean);
+		query.setEntity("encoderBean", encoderBean);
+		return asSortedSet(query);
 	}
 
+	@SuppressWarnings("unchecked")
+	protected SortedSet<? extends EncodedTrackBean> asSortedSet(Query query) {
+		return new TreeSet<EncodedTrackBean>(query.list());
+	}
+	
 	public EncodedTrackBean findByUrlAndEncoderBean(String url, EncoderBean encoderBean) {
 		EncodedTrackBean exampleBean = createExampleBean();
 		exampleBean.setFlacUrl(url);

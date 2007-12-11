@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import uk.co.unclealex.flacconverter.encoded.EncodedSpringTest;
+import uk.co.unclealex.flacconverter.EncodedSpringTest;
 
 public class PartitionerTest extends EncodedSpringTest {
 
