@@ -28,11 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.co.unclealex.flacconverter.encoded.service.TitleFormatServiceFactory;
 import uk.co.unclealex.music.core.dao.DeviceDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.encoded.model.DeviceBean;
-import uk.co.unclealex.music.core.encoded.model.EncoderBean;
 import uk.co.unclealex.music.core.encoded.writer.TrackWriterFactory;
 import uk.co.unclealex.music.core.encoded.writer.TrackWritingException;
 import uk.co.unclealex.music.core.encoded.writer.WritingListener;
+import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.process.service.ProcessResult;
 import uk.co.unclealex.music.core.process.service.ProcessService;
 

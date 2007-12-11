@@ -8,7 +8,7 @@ import org.hibernate.Criteria;
 import org.hibernate.criterion.Example;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 
-import uk.co.unclealex.music.core.encoded.model.KeyedBean;
+import uk.co.unclealex.music.core.model.KeyedBean;
 
 public abstract class HibernateKeyedDao<T extends KeyedBean<T>> extends HibernateDaoSupport implements
 		KeyedDao<T> {

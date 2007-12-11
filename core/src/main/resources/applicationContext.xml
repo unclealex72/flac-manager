@@ -87,13 +87,13 @@
 		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
 		<property name="annotatedClasses">
 			<list>
-				<value>uk.co.unclealex.music.core.encoded.model.EncodedTrackBean</value>
-				<value>uk.co.unclealex.music.core.encoded.model.TrackDataBean</value>
-				<value>uk.co.unclealex.music.core.encoded.model.EncoderBean</value>
+				<value>uk.co.unclealex.music.core.model.EncodedTrackBean</value>
+				<value>uk.co.unclealex.music.core.model.TrackDataBean</value>
+				<value>uk.co.unclealex.music.core.model.EncoderBean</value>
 				<value>uk.co.unclealex.music.core.encoded.model.OwnedAlbumBean</value>
 				<value>uk.co.unclealex.music.core.encoded.model.OwnedArtistBean</value>
-				<value>uk.co.unclealex.music.core.encoded.model.OwnerBean</value>
-				<value>uk.co.unclealex.music.core.encoded.model.DeviceBean</value>
+				<value>uk.co.unclealex.music.core.model.OwnerBean</value>
+				<value>uk.co.unclealex.music.core.model.DeviceBean</value>
 			</list>
 		</property>
 	</bean>

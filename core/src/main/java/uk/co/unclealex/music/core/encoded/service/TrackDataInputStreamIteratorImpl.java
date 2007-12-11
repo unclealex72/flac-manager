@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.TrackDataDao;
-import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.encoded.model.TrackDataBean;
 import uk.co.unclealex.music.core.hibernate.HibernateSessionExecutor;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.TrackDataBean;
 
 @Transactional(readOnly=true)
 public class TrackDataInputStreamIteratorImpl implements

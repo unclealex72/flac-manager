@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.core.encoded.model;
+package uk.co.unclealex.music.core.model;
 
 import java.io.Serializable;
 import java.util.Comparator;

@@ -8,10 +8,10 @@ import org.hibernate.Query;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Example;
 
-import uk.co.unclealex.music.core.encoded.model.EncodedAlbumBean;
-import uk.co.unclealex.music.core.encoded.model.EncodedArtistBean;
-import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.encoded.model.EncoderBean;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
+import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.util.Partitioner;
 
 public class HibernateEncodedTrackDao extends

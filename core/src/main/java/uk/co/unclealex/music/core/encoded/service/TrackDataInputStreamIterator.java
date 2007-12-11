@@ -5,7 +5,7 @@ import java.util.Iterator;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
 
 @Transactional
 public interface TrackDataInputStreamIterator extends Iterator<InputStream> {

@@ -1,6 +1,6 @@
 package uk.co.unclealex.music.core.dao;
 
-import uk.co.unclealex.music.core.encoded.model.DeviceBean;
+import uk.co.unclealex.music.core.model.DeviceBean;
 
 public class HibernateDeviceDao extends HibernateEncodingDao<DeviceBean>
 		implements DeviceDao {

@@ -6,11 +6,11 @@ import java.util.TreeSet;
 import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.encoded.model.EncodedAlbumBean;
-import uk.co.unclealex.music.core.encoded.model.EncodedArtistBean;
-import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.encoded.model.EncoderBean;
-import uk.co.unclealex.music.core.encoded.model.OwnerBean;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
+import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.model.OwnerBean;
 
 public class OwnerServiceImpl implements OwnerService {
 

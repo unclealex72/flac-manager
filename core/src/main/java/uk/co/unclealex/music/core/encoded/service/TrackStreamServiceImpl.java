@@ -9,8 +9,8 @@ import java.util.Iterator;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.io.SequenceOutputStream;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.util.EnumeratorBridge;
 
 @Transactional

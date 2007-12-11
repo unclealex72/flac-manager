@@ -15,14 +15,14 @@ import org.apache.log4j.Logger;
 
 import uk.co.unclealex.flacconverter.encoded.service.TitleFormatService;
 import uk.co.unclealex.flacconverter.encoded.service.TitleFormatServiceFactory;
-import uk.co.unclealex.music.core.encoded.model.DeviceBean;
-import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.encoded.writer.NoOpWritingListener;
 import uk.co.unclealex.music.core.encoded.writer.TrackStream;
 import uk.co.unclealex.music.core.encoded.writer.TrackWriter;
 import uk.co.unclealex.music.core.encoded.writer.TrackWriterFactory;
 import uk.co.unclealex.music.core.encoded.writer.TrackWritingException;
 import uk.co.unclealex.music.core.encoded.writer.WritingListener;
+import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
 
 public class DevicesWriterImpl implements DevicesWriter {
 

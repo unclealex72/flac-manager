@@ -3,7 +3,7 @@ package uk.co.unclealex.music.core.encoded.service;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 
-import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
 
 public class SpringTrackDataStreamIteratorFactory implements
 		TrackDataStreamIteratorFactory, BeanFactoryAware {

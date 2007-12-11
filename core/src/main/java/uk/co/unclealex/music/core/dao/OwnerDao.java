@@ -1,6 +1,6 @@
 package uk.co.unclealex.music.core.dao;
 
-import uk.co.unclealex.music.core.encoded.model.OwnerBean;
+import uk.co.unclealex.music.core.model.OwnerBean;
 
 public interface OwnerDao extends EncodingDao<OwnerBean> {
 

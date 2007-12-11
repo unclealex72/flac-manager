@@ -4,7 +4,7 @@ import java.util.SortedSet;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.encoded.model.KeyedBean;
+import uk.co.unclealex.music.core.model.KeyedBean;
 
 @Transactional
 public interface KeyedDao<T extends KeyedBean<T>> {

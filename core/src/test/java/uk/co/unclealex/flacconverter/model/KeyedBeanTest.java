@@ -1,8 +1,8 @@
 package uk.co.unclealex.flacconverter.model;
 
 import junit.framework.TestCase;
-import uk.co.unclealex.music.core.encoded.model.DeviceBean;
-import uk.co.unclealex.music.core.encoded.model.OwnerBean;
+import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.core.model.OwnerBean;
 
 public class KeyedBeanTest extends TestCase {
 

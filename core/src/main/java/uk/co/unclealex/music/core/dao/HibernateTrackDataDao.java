@@ -7,8 +7,8 @@ import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Example;
 
-import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.encoded.model.TrackDataBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.TrackDataBean;
 
 public class HibernateTrackDataDao extends HibernateEncodingDao<TrackDataBean> implements TrackDataDao {
 

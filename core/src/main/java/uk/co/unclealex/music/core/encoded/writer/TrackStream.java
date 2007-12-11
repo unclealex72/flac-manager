@@ -3,7 +3,7 @@ package uk.co.unclealex.music.core.encoded.writer;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
 
 public interface TrackStream {
 

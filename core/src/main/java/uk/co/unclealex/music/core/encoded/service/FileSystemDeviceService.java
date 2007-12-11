@@ -14,7 +14,7 @@ import uk.co.unclealex.flacconverter.encoded.service.TitleFormatFactory;
 import uk.co.unclealex.music.core.dao.DeviceDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.OwnerDao;
-import uk.co.unclealex.music.core.encoded.model.DeviceBean;
+import uk.co.unclealex.music.core.model.DeviceBean;
 
 public class FileSystemDeviceService extends DeviceServiceImpl {
 

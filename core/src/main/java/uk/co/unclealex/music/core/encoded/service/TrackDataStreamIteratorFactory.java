@@ -1,6 +1,6 @@
 package uk.co.unclealex.music.core.encoded.service;
 
-import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
 
 public interface TrackDataStreamIteratorFactory {
 

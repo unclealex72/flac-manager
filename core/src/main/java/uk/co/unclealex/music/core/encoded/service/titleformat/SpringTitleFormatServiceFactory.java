@@ -3,7 +3,7 @@ package uk.co.unclealex.music.core.encoded.service.titleformat;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import uk.co.unclealex.music.core.encoded.model.DeviceBean;
+import uk.co.unclealex.music.core.model.DeviceBean;
 
 public class SpringTitleFormatServiceFactory implements ApplicationContextAware, TitleFormatServiceFactory {
 

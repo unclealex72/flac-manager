@@ -4,9 +4,9 @@ import java.util.SortedSet;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.encoded.model.EncoderBean;
-import uk.co.unclealex.music.core.encoded.model.OwnerBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.model.OwnerBean;
 
 @Transactional
 public interface OwnerService {

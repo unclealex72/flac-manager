@@ -1,6 +1,6 @@
 package uk.co.unclealex.music.core.dao;
 
-import uk.co.unclealex.music.core.encoded.model.KeyedBean;
+import uk.co.unclealex.music.core.model.KeyedBean;
 
 public interface EncodingDao<T extends KeyedBean<T>> extends KeyedDao<T> {
 

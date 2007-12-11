@@ -1,6 +1,6 @@
 package uk.co.unclealex.music.core.encoded.service.titleformat;
 
-import uk.co.unclealex.music.core.encoded.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
 
 public interface TitleFormatService {
 

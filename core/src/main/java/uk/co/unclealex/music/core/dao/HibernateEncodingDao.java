@@ -3,7 +3,7 @@ package uk.co.unclealex.music.core.dao;
 import org.hibernate.Query;
 import org.hibernate.metadata.ClassMetadata;
 
-import uk.co.unclealex.music.core.encoded.model.KeyedBean;
+import uk.co.unclealex.music.core.model.KeyedBean;
 
 public abstract class HibernateEncodingDao<T extends KeyedBean<T>> extends HibernateKeyedDao<T> {
 

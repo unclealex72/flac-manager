@@ -2,8 +2,8 @@ package uk.co.unclealex.music.core.encoded.service;
 
 import java.util.SortedMap;
 
-import uk.co.unclealex.music.core.encoded.model.DeviceBean;
 import uk.co.unclealex.music.core.encoded.writer.ProgressWritingListener;
+import uk.co.unclealex.music.core.model.DeviceBean;
 
 public interface ProgressWritingListenerService {
 
