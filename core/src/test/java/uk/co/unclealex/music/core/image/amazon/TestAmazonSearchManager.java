@@ -1,7 +1,7 @@
 /**
  * 
  */
-package uk.co.unclealex.music.image.amazon;
+package uk.co.unclealex.music.core.image.amazon;
 
 import java.awt.image.BufferedImage;
 import java.io.File;

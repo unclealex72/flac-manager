@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.writer;
+package uk.co.unclealex.music.core.writer;
 
 import java.io.IOException;
 import java.util.Map;
@@ -46,7 +46,7 @@ public class TestTrackStreamImpl implements TestTrackStream {
 	}
 
 	/* (non-Javadoc)
-	 * @see uk.co.unclealex.music.core.encoded.writer.TestTrackWriter#getFileNamesAndSizes()
+	 * @see uk.co.unclealex.music.core.core.encoded.writer.TestTrackWriter#getFileNamesAndSizes()
 	 */
 	public Map<String, Integer> getFileNamesAndSizes() {
 		return i_fileNamesAndSizes;

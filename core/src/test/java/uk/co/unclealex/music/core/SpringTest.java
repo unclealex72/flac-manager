@@ -1,4 +1,4 @@
-package uk.co.unclealex.music;
+package uk.co.unclealex.music.core;
 
 import java.util.Collection;
 import java.util.LinkedList;

@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.model;
+package uk.co.unclealex.music.core.model;
 
 import junit.framework.TestCase;
 import uk.co.unclealex.music.core.model.DeviceBean;

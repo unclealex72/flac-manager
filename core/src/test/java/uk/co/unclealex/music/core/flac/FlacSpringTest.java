@@ -1,6 +1,6 @@
-package uk.co.unclealex.music.flac;
+package uk.co.unclealex.music.core.flac;
 
-import uk.co.unclealex.music.SpringTest;
+import uk.co.unclealex.music.core.SpringTest;
 
 public abstract class FlacSpringTest extends SpringTest {
 

@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.util;
+package uk.co.unclealex.music.core.util;
 
 import java.util.Arrays;
 import java.util.Collection;

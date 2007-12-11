@@ -1,7 +1,7 @@
 /**
  * 
  */
-package uk.co.unclealex.music.substitutor;
+package uk.co.unclealex.music.core.substitutor;
 
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatVariable;
 import uk.co.unclealex.music.core.substitutor.Substitutor;
