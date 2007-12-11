@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.flac.dao;
+package uk.co.unclealex.music.encoder.flac.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
