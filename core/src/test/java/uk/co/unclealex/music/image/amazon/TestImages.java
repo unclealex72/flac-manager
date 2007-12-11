@@ -11,7 +11,6 @@ import java.util.TreeSet;
 import uk.co.unclealex.music.core.image.Album;
 import uk.co.unclealex.music.core.image.AlbumComparator;
 import uk.co.unclealex.music.core.image.SearchManager;
-import uk.co.unclealex.music.image.TestAmazonSearchManager;
 
 /**
  * @author alex
