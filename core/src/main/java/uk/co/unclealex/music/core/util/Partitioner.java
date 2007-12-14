@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public class Partitioner<E> {
 
 	public List<Collection<E>> partition(Collection<E> collection, int maximumSize) {

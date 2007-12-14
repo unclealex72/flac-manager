@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.spring.Prototype;
 
+@Prototype
 public class FileTrackStreamImpl implements FileTrackStream {
 
 	private File i_rootDirectory;

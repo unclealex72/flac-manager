@@ -5,7 +5,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PartitionerTest extends EncodedSpringTest {
+import uk.co.unclealex.music.core.CoreSpringTest;
+
+public class PartitionerTest extends CoreSpringTest {
 
 	private Partitioner<String> i_partitioner; 
 	

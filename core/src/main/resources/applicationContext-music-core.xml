@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+    http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd"
+  default-autowire="byName">
+  
+  <context:component-scan
+  	base-package="uk.co.unclealex.music"
+  	name-generator="uk.co.unclealex.music.core.spring.BeanNameGenerator"/>
+
+	<bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor"/>
+	
+	<jee:jndi-lookup id="dataSource"
+		jndi-name="jdbc/music" resource-ref="true" proxy-interface="javax.sql.DataSource"/>
+		
+	<tx:annotation-driven/>
+
+	<bean id="hibernateProperties"
+		class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="properties">
+			<props>
+				<prop key="hibernate.dialect">
+					uk.co.unclealex.music.core.hibernate.LongBlobOnlyMySQL5Dialect
+				</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.show_sql">false</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="annotatedClasses">
+			<list>
+				<value>uk.co.unclealex.music.core.model.EncodedTrackBean</value>
+				<value>uk.co.unclealex.music.core.model.TrackDataBean</value>
+				<value>uk.co.unclealex.music.core.model.EncoderBean</value>
+				<value>uk.co.unclealex.music.core.model.EncodedAlbumBean</value>
+				<value>uk.co.unclealex.music.core.model.EncodedArtistBean</value>
+				<value>uk.co.unclealex.music.core.model.OwnerBean</value>
+				<value>uk.co.unclealex.music.core.model.DeviceBean</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager"/>
+
+	<bean id="titleFormatFactory" class="uk.co.unclealex.music.core.service.titleformat.TitleFormatFactoryImpl">
+		<property name="defaultTitleFormat">
+			<value>${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
+		</property>
+	</bean>
+	
+	<bean id="titleFormat" factory-bean="titleFormatFactory" factory-method="getDefaultTitleFormat"/>
+			
+</beans>
+
+

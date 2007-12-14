@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
 
-@Repository("encodedArtistDao")
+@Repository
 @Transactional
 public class HibernateEncodedArtistDao extends
 		HibernateKeyedDao<EncodedArtistBean> implements EncodedArtistDao {
@@ -16,9 +16,9 @@ public class HibernateEncodedArtistDao extends
 	}
 
 	@Override
-	public EncodedArtistBean findByName(String name) {
+	public EncodedArtistBean findByIdentifier(String identifier) {
 		EncodedArtistBean artistBean = createExampleBean();
-		artistBean.setName(name);
+		artistBean.setIdentifier(identifier);
 		return (EncodedArtistBean) createCriteria(artistBean).uniqueResult();
 	}
 	

@@ -2,9 +2,11 @@ package uk.co.unclealex.music.core.service;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 
+@Service
 public class SpringTrackDataStreamIteratorFactory implements
 		TrackDataStreamIteratorFactory, BeanFactoryAware {
 

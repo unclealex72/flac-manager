@@ -7,10 +7,13 @@ import java.util.TreeSet;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.DeviceDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.dao.EncodingDao;
+import uk.co.unclealex.music.core.dao.KeyedDao;
 import uk.co.unclealex.music.core.dao.OwnerDao;
 import uk.co.unclealex.music.core.model.DeviceBean;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
@@ -20,6 +23,8 @@ import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.KeyedBean;
 import uk.co.unclealex.music.core.model.OwnerBean;
 
+@Service
+@Transactional
 public class InitialiserImpl implements Initialiser {
 
 	private static final Logger log = Logger.getLogger(InitialiserImpl.class);
@@ -89,6 +94,7 @@ public class InitialiserImpl implements Initialiser {
 		return i_deviceDao;
 	}
 
+	@Required
 	public void setDeviceDao(DeviceDao deviceDao) {
 		i_deviceDao = deviceDao;
 	}
@@ -97,6 +103,7 @@ public class InitialiserImpl implements Initialiser {
 		return i_encoderDao;
 	}
 
+	@Required
 	public void setEncoderDao(EncoderDao encoderDao) {
 		i_encoderDao = encoderDao;
 	}
@@ -105,15 +112,16 @@ public class InitialiserImpl implements Initialiser {
 		return i_ownerDao;
 	}
 
+	@Required
 	public void setOwnerDao(OwnerDao ownerDao) {
 		i_ownerDao = ownerDao;
 	}
 
 	@SuppressWarnings("unchecked")
 	public void clear() {
-		for (EncodingDao encodingDao : new EncodingDao[] { getEncoderDao(), getDeviceDao(), getOwnerDao() }) {
-			for (Object obj : encodingDao.getAll()) {
-				encodingDao.remove((KeyedBean) obj);
+		for (KeyedDao keyedDao : new KeyedDao[] { getEncoderDao(), getDeviceDao(), getOwnerDao() }) {
+			for (Object obj : keyedDao.getAll()) {
+				keyedDao.remove((KeyedBean) obj);
 			}
 		}
 	}

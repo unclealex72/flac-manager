@@ -24,7 +24,9 @@ import uk.co.unclealex.music.core.service.TrackDataStreamIteratorFactory;
 import uk.co.unclealex.music.core.service.TrackStreamService;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.core.spring.Prototype;
 
+@Prototype
 @Transactional(readOnly=true)
 public class TrackWriterImpl implements TrackWriter {
 

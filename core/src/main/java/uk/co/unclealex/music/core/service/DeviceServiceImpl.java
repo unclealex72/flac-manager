@@ -23,6 +23,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.DeviceDao;
@@ -258,6 +259,7 @@ public class DeviceServiceImpl implements DeviceService {
 		return i_processService;
 	}
 
+	@Required
 	public void setProcessService(ProcessService processService) {
 		i_processService = processService;
 	}
@@ -266,6 +268,7 @@ public class DeviceServiceImpl implements DeviceService {
 		return i_deviceDao;
 	}
 
+	@Required
 	public void setDeviceDao(DeviceDao deviceDao) {
 		i_deviceDao = deviceDao;
 	}
@@ -274,6 +277,7 @@ public class DeviceServiceImpl implements DeviceService {
 		return i_ownerService;
 	}
 
+	@Required
 	public void setOwnerService(OwnerService ownerService) {
 		i_ownerService = ownerService;
 	}
@@ -282,6 +286,7 @@ public class DeviceServiceImpl implements DeviceService {
 		return i_trackWriterFactory;
 	}
 
+	@Required
 	public void setTrackWriterFactory(TrackWriterFactory trackWriterFactory) {
 		i_trackWriterFactory = trackWriterFactory;
 	}
@@ -298,6 +303,7 @@ public class DeviceServiceImpl implements DeviceService {
 		return i_progressWritingListenerService;
 	}
 
+	@Required
 	public void setProgressWritingListenerService(
 			ProgressWritingListenerService progressWritingListenerService) {
 		i_progressWritingListenerService = progressWritingListenerService;
@@ -307,6 +313,7 @@ public class DeviceServiceImpl implements DeviceService {
 		return i_titleFormatServiceFactory;
 	}
 
+	@Required
 	public void setTitleFormatServiceFactory(
 			TitleFormatServiceFactory titleFormatServiceFactory) {
 		i_titleFormatServiceFactory = titleFormatServiceFactory;
@@ -316,6 +323,7 @@ public class DeviceServiceImpl implements DeviceService {
 		return i_devicesWriterFactory;
 	}
 
+	@Required
 	public void setDevicesWriterFactory(DevicesWriterFactory devicesWriterFactory) {
 		i_devicesWriterFactory = devicesWriterFactory;
 	}

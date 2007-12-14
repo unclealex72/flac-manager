@@ -9,14 +9,17 @@ import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
+import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.music.core.dao.DeviceDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.OwnerDao;
 import uk.co.unclealex.music.core.model.DeviceBean;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatFactory;
+import uk.co.unclealex.music.core.spring.Prototype;
 
-public class FileSystemDeviceService extends DeviceServiceImpl {
+@Prototype
+public class FileSystemDeviceServiceImpl extends DeviceServiceImpl {
 
 	private SortedMap<DeviceBean, String> i_pathsByDeviceBean;
 	private EncoderDao i_encoderDao;
@@ -119,6 +122,7 @@ public class FileSystemDeviceService extends DeviceServiceImpl {
 		return i_encoderDao;
 	}
 
+	@Required
 	public void setEncoderDao(EncoderDao encoderDao) {
 		i_encoderDao = encoderDao;
 	}
@@ -127,6 +131,7 @@ public class FileSystemDeviceService extends DeviceServiceImpl {
 		return i_ownerDao;
 	}
 
+	@Required
 	public void setOwnerDao(OwnerDao ownerDao) {
 		i_ownerDao = ownerDao;
 	}
@@ -135,6 +140,7 @@ public class FileSystemDeviceService extends DeviceServiceImpl {
 		return i_titleFormatFactory;
 	}
 
+	@Required
 	public void setTitleFormatFactory(TitleFormatFactory titleFormatFactory) {
 		i_titleFormatFactory = titleFormatFactory;
 	}

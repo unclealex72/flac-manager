@@ -10,9 +10,11 @@ import java.util.zip.ZipOutputStream;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
 
+@Service
 public class SpringTrackWriterFactory implements TrackWriterFactory, ApplicationContextAware {
 
 	private ApplicationContext i_applicationContext;

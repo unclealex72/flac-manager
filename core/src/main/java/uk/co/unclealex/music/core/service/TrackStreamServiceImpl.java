@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.util.Iterator;
 
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.io.SequenceOutputStream;
@@ -14,6 +16,7 @@ import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.util.EnumeratorBridge;
 
 @Transactional
+@Service
 public class TrackStreamServiceImpl implements TrackStreamService {
 
 	private	TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
@@ -45,6 +48,7 @@ public class TrackStreamServiceImpl implements TrackStreamService {
 		return i_trackDataStreamIteratorFactory;
 	}
 
+	@Required
 	public void setTrackDataStreamIteratorFactory(
 			TrackDataStreamIteratorFactory trackDataStreamIteratorFactory) {
 		i_trackDataStreamIteratorFactory = trackDataStreamIteratorFactory;

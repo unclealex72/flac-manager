@@ -4,6 +4,7 @@ import java.util.concurrent.Executor;
 
 import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.music.core.spring.HibernateSessionBinder;
 
@@ -44,6 +45,7 @@ public class HibernateSessionExecutor implements Executor {
 		return i_sessionFactory;
 	}
 
+	@Required
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		i_sessionFactory = sessionFactory;
 	}

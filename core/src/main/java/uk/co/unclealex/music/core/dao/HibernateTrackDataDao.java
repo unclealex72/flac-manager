@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
 
-@Repository("trackDataDao")
+@Repository
 @Transactional
 public class HibernateTrackDataDao extends HibernateKeyedDao<TrackDataBean> implements TrackDataDao {
 

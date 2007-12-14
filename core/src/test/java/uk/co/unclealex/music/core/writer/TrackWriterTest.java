@@ -8,34 +8,21 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import uk.co.unclealex.music.core.EncodedTrackBean;
-import uk.co.unclealex.music.core.EncodedTrackDao;
-import uk.co.unclealex.music.core.TestTrackStreamImpl;
-import uk.co.unclealex.music.core.TitleFormatService;
-import uk.co.unclealex.music.core.TitleFormatServiceFactory;
-import uk.co.unclealex.music.core.TrackStream;
-import uk.co.unclealex.music.core.TrackWriter;
-import uk.co.unclealex.music.core.TrackWriterFactory;
-import uk.co.unclealex.music.core.core.EncodedSpringTest;
-import uk.co.unclealex.music.encoder.encoded.service.AlreadyEncodingException;
-import uk.co.unclealex.music.encoder.encoded.service.CurrentlyScanningException;
-import uk.co.unclealex.music.encoder.encoded.service.EncoderService;
-import uk.co.unclealex.music.encoder.encoded.service.MultipleEncodingException;
+import org.springframework.beans.factory.annotation.Required;
 
-public class TrackWriterTest extends EncodedSpringTest {
+import uk.co.unclealex.music.core.CoreSpringTest;
+import uk.co.unclealex.music.core.dao.EncodedTrackDao;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
 
-	private EncoderService i_encoderService;
+public class TrackWriterTest extends CoreSpringTest {
+
 	private TrackWriterFactory i_trackWriterFactory;
 	private TitleFormatServiceFactory i_titleFormatServiceFactory;
 	private EncodedTrackDao i_encodedTrackDao;
 	
-	public void testWrite() throws IOException, AlreadyEncodingException, CurrentlyScanningException {
-		try {
-			getEncoderService().encodeAll(4);
-		}
-		catch (MultipleEncodingException e) {
-			// Ignore.
-		}
+	public void testWrite() throws IOException {
 		String titleFormat = "${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}";
 		TitleFormatService titleFormatService = getTitleFormatServiceFactory().createTitleFormatService(titleFormat);
 		Map<TrackStream, TitleFormatService> testTrackStreams = new HashMap<TrackStream, TitleFormatService>();
@@ -64,23 +51,19 @@ public class TrackWriterTest extends EncodedSpringTest {
 		}
 	}
 	
-	public EncoderService getEncoderService() {
-		return i_encoderService;
-	}
-
-	public void setEncoderService(EncoderService encoderService) {
-		i_encoderService = encoderService;
-	}
-
 	public EncodedTrackDao getEncodedTrackDao() {
 		return i_encodedTrackDao;
 	}
+	
+	@Required
 	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
 		i_encodedTrackDao = encodedTrackDao;
 	}
 	public TrackWriterFactory getTrackWriterFactory() {
 		return i_trackWriterFactory;
 	}
+
+	@Required
 	public void setTrackWriterFactory(TrackWriterFactory trackWriterFactory) {
 		i_trackWriterFactory = trackWriterFactory;
 	}
@@ -89,8 +72,10 @@ public class TrackWriterTest extends EncodedSpringTest {
 		return i_titleFormatServiceFactory;
 	}
 
+	@Required
 	public void setTitleFormatServiceFactory(
 			TitleFormatServiceFactory titleFormatServiceFactory) {
 		i_titleFormatServiceFactory = titleFormatServiceFactory;
 	}
 }
+	

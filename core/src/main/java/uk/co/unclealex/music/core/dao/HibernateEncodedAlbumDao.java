@@ -5,8 +5,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
+import uk.co.unclealex.music.core.model.EncodedArtistBean;
 
-@Repository("encodedAlbumDao")
+@Repository
 @Transactional
 public class HibernateEncodedAlbumDao extends
 		HibernateKeyedDao<EncodedAlbumBean> implements EncodedAlbumDao {
@@ -17,13 +18,13 @@ public class HibernateEncodedAlbumDao extends
 	}
 
 	@Override
-	public EncodedAlbumBean findByArtistAndTitle(String artistName,
-			String albumTitle) {
+	public EncodedAlbumBean findByArtistAndIdentifier(EncodedArtistBean encodedArtistBean,
+			String albumIdentifier) {
 		Query query = getSession().createQuery(
 				"select al from encodedArtistBean ar join ar.encodedAlbumBeans al " +
-				"where ar.name = :name and al.title = :title").
-			setString("name", artistName).
-			setString("title", albumTitle);
+				"where ar = :artist and al.identifier = :identifier").
+			setEntity("artist", encodedArtistBean).
+			setString("identifier", albumIdentifier);
 		return (EncodedAlbumBean) query.uniqueResult();
 	}
 

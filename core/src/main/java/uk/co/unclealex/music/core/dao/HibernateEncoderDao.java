@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.model.EncoderBean;
 
-@Repository("encoderDao")
+@Repository
 @Transactional
 public class HibernateEncoderDao extends HibernateKeyedDao<EncoderBean>
 		implements EncoderDao {

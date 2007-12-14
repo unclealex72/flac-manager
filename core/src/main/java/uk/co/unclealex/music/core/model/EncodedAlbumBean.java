@@ -2,6 +2,7 @@ package uk.co.unclealex.music.core.model;
 
 import java.util.SortedSet;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -10,16 +11,18 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
+import org.hibernate.validator.NotNull;
 
 @Table(name="encoded_albums")
 @Entity(name="encodedAlbumBean")
-public class EncodedAlbumBean extends KeyedBean<EncodedAlbumBean> {
+@UniqueConstraint(columnNames={"encoded_artist_bean_id", "identifier"})
+public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String> {
 
 	private String i_title;
-	private String i_slimIdentifier;
 	private SortedSet<EncodedTrackBean> i_encodedTrackBeans;
 	private EncodedArtistBean i_encodedArtistBean;
 	private SortedSet<OwnerBean> i_ownerBeans;
@@ -55,6 +58,7 @@ public class EncodedAlbumBean extends KeyedBean<EncodedAlbumBean> {
 	}
 
 	@ManyToOne
+	@Column(name="encoded_artist_bean_id")
 	public EncodedArtistBean getEncodedArtistBean() {
 		return i_encodedArtistBean;
 	}
@@ -73,13 +77,11 @@ public class EncodedAlbumBean extends KeyedBean<EncodedAlbumBean> {
 		i_ownerBeans = ownerBeans;
 	}
 
-	public String getSlimIdentifier() {
-		return i_slimIdentifier;
+	@Override
+	@NotNull
+	@Column(name="identifier")
+	public String getIdentifier() {
+		return super.getIdentifier();
 	}
-
-	public void setSlimIdentifier(String slimIdentifier) {
-		i_slimIdentifier = slimIdentifier;
-	}
-
 
 }

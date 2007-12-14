@@ -14,8 +14,10 @@ import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.hibernate.HibernateSessionExecutor;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
+import uk.co.unclealex.music.core.spring.Prototype;
 
 @Transactional(readOnly=true)
+@Prototype
 public class TrackDataInputStreamIteratorImpl implements
 		TrackDataInputStreamIterator {
 
@@ -72,6 +74,7 @@ public class TrackDataInputStreamIteratorImpl implements
 		return i_trackDataDao;
 	}
 
+	@Required
 	public void setTrackDataDao(TrackDataDao trackDataDao) {
 		i_trackDataDao = trackDataDao;
 	}

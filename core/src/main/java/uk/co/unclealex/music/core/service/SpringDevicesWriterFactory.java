@@ -2,7 +2,9 @@ package uk.co.unclealex.music.core.service;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Service;
 
+@Service
 public class SpringDevicesWriterFactory implements DevicesWriterFactory,
 		ApplicationContextAware {
 

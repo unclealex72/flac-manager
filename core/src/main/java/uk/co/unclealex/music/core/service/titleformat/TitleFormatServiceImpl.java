@@ -5,13 +5,16 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.music.core.SlimServerConfig;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.spring.Prototype;
 import uk.co.unclealex.music.core.substitutor.Substitutor;
 
+@Prototype
 public class TitleFormatServiceImpl implements TitleFormatService {
 
 	private static String INVALID_CHARACTER_STRING = "/\\?%*:|\"<>";
@@ -66,6 +69,7 @@ public class TitleFormatServiceImpl implements TitleFormatService {
 		return i_titleFormat;
 	}
 
+	@Required
 	public void setTitleFormat(String titleFormat) {
 		i_titleFormat = titleFormat;
 	}
@@ -74,6 +78,7 @@ public class TitleFormatServiceImpl implements TitleFormatService {
 		return i_slimServerConfig;
 	}
 
+	@Required
 	public void setSlimServerConfig(SlimServerConfig slimServerConfig) {
 		i_slimServerConfig = slimServerConfig;
 	}

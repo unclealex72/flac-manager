@@ -2,6 +2,7 @@ package uk.co.unclealex.music.core.model;
 
 import java.util.SortedSet;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -12,13 +13,13 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
+import org.hibernate.validator.NotNull;
 
 @Table(name="encoded_artists")
 @Entity(name="encodedArtistBean")
-public class EncodedArtistBean extends KeyedBean<EncodedArtistBean> {
+public class EncodedArtistBean extends IdentifiableBean<EncodedArtistBean, String> {
 
 	private String i_name;
-	private String i_slimIdentifier;
 	private SortedSet<EncodedAlbumBean> i_encodedAlbumBeans;
 	private SortedSet<OwnerBean> i_ownerBeans;
 	
@@ -59,13 +60,10 @@ public class EncodedArtistBean extends KeyedBean<EncodedArtistBean> {
 		i_ownerBeans = ownerBeans;
 	}
 
-	public String getSlimIdentifier() {
-		return i_slimIdentifier;
+	@Override
+	@NotNull
+	@Column(unique=true)
+	public String getIdentifier() {
+		return super.getIdentifier();
 	}
-
-	public void setSlimIdentifier(String slimIdentifier) {
-		i_slimIdentifier = slimIdentifier;
-	}
-	
-
 }

@@ -12,7 +12,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.spring.Prototype;
 
+@Prototype
 public class ZipTrackStreamImpl implements ZipTrackStream {
 
 	private static final String DIR_SEPARATOR_UNIX_STRING = new String(new char[] {IOUtils.DIR_SEPARATOR_UNIX});

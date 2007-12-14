@@ -4,6 +4,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
@@ -12,6 +13,7 @@ import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.OwnerBean;
 
+@Service
 public class OwnerServiceImpl implements OwnerService {
 
 	private EncodedTrackDao i_encodedTrackDao;
@@ -34,11 +36,11 @@ public class OwnerServiceImpl implements OwnerService {
 		return encodedTrackBeans;
 	}
 	
-	@Required
 	public EncodedTrackDao getEncodedTrackDao() {
 		return i_encodedTrackDao;
 	}
 
+	@Required
 	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
 		i_encodedTrackDao = encodedTrackDao;
 	}

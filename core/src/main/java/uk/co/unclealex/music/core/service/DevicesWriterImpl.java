@@ -12,11 +12,13 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.music.core.model.DeviceBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.core.spring.Prototype;
 import uk.co.unclealex.music.core.writer.NoOpWritingListener;
 import uk.co.unclealex.music.core.writer.TrackStream;
 import uk.co.unclealex.music.core.writer.TrackWriter;
@@ -24,6 +26,7 @@ import uk.co.unclealex.music.core.writer.TrackWriterFactory;
 import uk.co.unclealex.music.core.writer.TrackWritingException;
 import uk.co.unclealex.music.core.writer.WritingListener;
 
+@Prototype
 public class DevicesWriterImpl implements DevicesWriter {
 
 	private static final Logger log = Logger.getLogger(DevicesWriterImpl.class);
@@ -163,6 +166,7 @@ public class DevicesWriterImpl implements DevicesWriter {
 		return i_ownerService;
 	}
 
+	@Required
 	public void setOwnerService(OwnerService ownerService) {
 		i_ownerService = ownerService;
 	}
@@ -171,6 +175,7 @@ public class DevicesWriterImpl implements DevicesWriter {
 		return i_trackWriterFactory;
 	}
 
+	@Required
 	public void setTrackWriterFactory(TrackWriterFactory trackWriterFactory) {
 		i_trackWriterFactory = trackWriterFactory;
 	}
@@ -179,6 +184,7 @@ public class DevicesWriterImpl implements DevicesWriter {
 		return i_titleFormatServiceFactory;
 	}
 
+	@Required
 	public void setTitleFormatServiceFactory(
 			TitleFormatServiceFactory titleFormatServiceFactory) {
 		i_titleFormatServiceFactory = titleFormatServiceFactory;
@@ -188,6 +194,7 @@ public class DevicesWriterImpl implements DevicesWriter {
 		return i_deviceService;
 	}
 
+	@Required
 	public void setDeviceService(DeviceService deviceService) {
 		i_deviceService = deviceService;
 	}

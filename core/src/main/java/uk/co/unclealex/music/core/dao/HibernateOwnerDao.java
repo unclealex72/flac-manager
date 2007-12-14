@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.model.OwnerBean;
 
-@Repository("ownerDao")
+@Repository
 @Transactional
 public class HibernateOwnerDao extends HibernateKeyedDao<OwnerBean>
 		implements OwnerDao {

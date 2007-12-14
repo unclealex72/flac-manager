@@ -13,13 +13,15 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 
+import uk.co.unclealex.music.core.CoreSpringTest;
 import uk.co.unclealex.music.core.dao.OwnerDao;
 import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
+import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.OwnerBean;
-import uk.co.unclealex.music.core.service.DeviceService;
 import uk.co.unclealex.music.core.writer.TrackWritingException;
 
-public class DeviceServiceTest extends EncodedSpringTest {
+public class DeviceServiceTest extends CoreSpringTest {
 
 	private static final Map<String,String[]> OWNED_ARTISTS;
 	private static final Map<String,String[]> EXPECTED_SONGS;
@@ -53,7 +55,6 @@ public class DeviceServiceTest extends EncodedSpringTest {
 	
 	private OwnerDao i_ownerDao;
 	private DeviceService i_deviceService;
-	private EncoderService i_encoderService;
 	
 	@Override
 	protected void onSetUpInTransaction() throws Exception {
@@ -61,20 +62,22 @@ public class DeviceServiceTest extends EncodedSpringTest {
 		OwnerDao ownerDao = getOwnerDao();
 		for (OwnerBean ownerBean : ownerDao.getAll()) {
 			ownerBean.setOwnsAll(false);
-			ownerBean.setOwnedAlbumBeans(new TreeSet<OwnedAlbumBean>());
-			SortedSet<OwnedArtistBean> ownedArtistBeans = new TreeSet<OwnedArtistBean>();
+			ownerBean.setEncodedAlbumBeans(new TreeSet<EncodedAlbumBean>());
+			SortedSet<EncodedArtistBean> encodedArtistBeans = new TreeSet<EncodedArtistBean>();
 			for (String artistName : OWNED_ARTISTS.get(ownerBean.getName())) {
-				OwnedArtistBean ownedArtistBean = new OwnedArtistBean();
-				ownedArtistBean.setName(artistName);
-				ownedArtistBean.setOwnerBean(ownerBean);
-				ownedArtistBeans.add(ownedArtistBean);
+				EncodedArtistBean encodedArtistBean = new EncodedArtistBean();
+				encodedArtistBean.setName(artistName);
+				SortedSet<OwnerBean> ownerBeans = new TreeSet<OwnerBean>();
+				ownerBeans.add(ownerBean);
+				encodedArtistBean.setOwnerBeans(ownerBeans);
+				encodedArtistBeans.add(encodedArtistBean);
 			}
-			ownerBean.setOwnedArtistBeans(ownedArtistBeans);
+			ownerBean.setEncodedArtistBeans(encodedArtistBeans);
 			ownerDao.store(ownerBean);
 		}
 	}
 	
-	public void testWriteToAll() throws IOException, AlreadyEncodingException, CurrentlyScanningException, TrackWritingException {
+	public void testWriteToAll() throws IOException, TrackWritingException {
 		DeviceService deviceService = getDeviceService();
 		SortedMap<DeviceBean, String> pathsByDeviceBean = deviceService.findDevicesAndFiles();
 		try {
@@ -85,12 +88,6 @@ public class DeviceServiceTest extends EncodedSpringTest {
 				}
 				createFile(YOUR_ACHIEVEMENT, root, entry.getKey());
 				createFile(DATA_FILE_A, root, entry.getKey());
-			}
-			try {
-				getEncoderService().encodeAll();
-			}
-			catch (MultipleEncodingException e) {
-				// Perfectly allowable in this test.
 			}
 			for (Map.Entry<DeviceBean, String> entry : pathsByDeviceBean.entrySet()) {
 				File root = new File(entry.getValue());
@@ -192,13 +189,5 @@ public class DeviceServiceTest extends EncodedSpringTest {
 	
 	public void setDeviceService(DeviceService deviceService) {
 		i_deviceService = deviceService;
-	}
-
-	public EncoderService getEncoderService() {
-		return i_encoderService;
-	}
-
-	public void setEncoderService(EncoderService encoderService) {
-		i_encoderService = encoderService;
 	}
 }

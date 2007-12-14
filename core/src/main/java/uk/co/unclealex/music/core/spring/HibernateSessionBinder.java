@@ -3,6 +3,7 @@ package uk.co.unclealex.music.core.spring;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.orm.hibernate3.SessionFactoryUtils;
 import org.springframework.orm.hibernate3.SessionHolder;
@@ -77,6 +78,8 @@ public class HibernateSessionBinder {
 	public SessionFactory getSessionFactory() {
 		return i_sessionFactory;
 	}
+
+	@Required
 	protected void setSessionFactory(SessionFactory sessionFactory) {
 		i_sessionFactory = sessionFactory;
 	}

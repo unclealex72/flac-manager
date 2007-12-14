@@ -8,7 +8,9 @@ import java.io.StringWriter;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ProcessServiceImpl implements ProcessService {
 
 	/* (non-Javadoc)

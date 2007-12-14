@@ -5,14 +5,17 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.TreeSet;
 
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
+import uk.co.unclealex.music.core.spring.Prototype;
 
 @Transactional
+@Prototype
 public class TrackDataOutputStreamIteratorImpl implements
 		TrackDataOutputStreamIterator {
 
@@ -80,6 +83,7 @@ public class TrackDataOutputStreamIteratorImpl implements
 		return i_trackDataDao;
 	}
 
+	@Required
 	public void setTrackDataDao(TrackDataDao trackDataDao) {
 		i_trackDataDao = trackDataDao;
 	}
@@ -88,6 +92,7 @@ public class TrackDataOutputStreamIteratorImpl implements
 		return i_encodedTrackDao;
 	}
 
+	@Required
 	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
 		i_encodedTrackDao = encodedTrackDao;
 	}

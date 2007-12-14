@@ -1,10 +1,14 @@
 package uk.co.unclealex.music.core.security.service;
 
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.stereotype.Service;
+
 import uk.co.unclealex.acegi.User;
 import uk.co.unclealex.acegi.UserService;
 import uk.co.unclealex.music.core.dao.OwnerDao;
 
-public class FlacConverterUserService implements UserService {
+@Service
+public class UserServiceImpl implements UserService {
 
 	private OwnerDao i_ownerDao;
 	
@@ -22,6 +26,7 @@ public class FlacConverterUserService implements UserService {
 		return i_ownerDao;
 	}
 
+	@Required
 	public void setOwnerDao(OwnerDao ownerDao) {
 		i_ownerDao = ownerDao;
 	}

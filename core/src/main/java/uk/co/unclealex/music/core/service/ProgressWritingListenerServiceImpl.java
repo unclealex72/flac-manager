@@ -5,9 +5,12 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.springframework.stereotype.Service;
+
 import uk.co.unclealex.music.core.model.DeviceBean;
 import uk.co.unclealex.music.core.writer.ProgressWritingListener;
 
+@Service
 public class ProgressWritingListenerServiceImpl implements ProgressWritingListenerService {
 
 	private ConcurrentMap<DeviceBean, ProgressWritingListener> i_progressWritingListeners = 
