@@ -8,6 +8,7 @@ import org.hibernate.Query;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Example;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
@@ -16,6 +17,7 @@ import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.util.Partitioner;
 
 @Repository("encodedTrackDao")
+@Transactional
 public class HibernateEncodedTrackDao extends
 		HibernateKeyedDao<EncodedTrackBean> implements EncodedTrackDao {
 

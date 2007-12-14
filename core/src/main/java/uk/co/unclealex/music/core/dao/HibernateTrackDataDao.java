@@ -7,11 +7,13 @@ import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Example;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
 
 @Repository("trackDataDao")
+@Transactional
 public class HibernateTrackDataDao extends HibernateKeyedDao<TrackDataBean> implements TrackDataDao {
 
 	@Override

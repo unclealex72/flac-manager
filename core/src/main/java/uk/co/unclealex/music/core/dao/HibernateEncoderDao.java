@@ -1,10 +1,12 @@
 package uk.co.unclealex.music.core.dao;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.model.EncoderBean;
 
 @Repository("encoderDao")
+@Transactional
 public class HibernateEncoderDao extends HibernateKeyedDao<EncoderBean>
 		implements EncoderDao {
 

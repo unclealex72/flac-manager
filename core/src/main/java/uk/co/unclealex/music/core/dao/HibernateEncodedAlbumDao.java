@@ -2,10 +2,12 @@ package uk.co.unclealex.music.core.dao;
 
 import org.hibernate.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 
 @Repository("encodedAlbumDao")
+@Transactional
 public class HibernateEncodedAlbumDao extends
 		HibernateKeyedDao<EncodedAlbumBean> implements EncodedAlbumDao {
 
