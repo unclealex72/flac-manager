@@ -7,7 +7,7 @@ import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 
-public interface EncodedTrackDao extends EncodingDao<EncodedTrackBean> {
+public interface EncodedTrackDao extends KeyedDao<EncodedTrackBean> {
 
 	public EncodedTrackBean findByUrlAndEncoderBean(String url, EncoderBean encoderBean);
 

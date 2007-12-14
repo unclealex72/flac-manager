@@ -1,8 +1,11 @@
 package uk.co.unclealex.music.core.dao;
 
+import org.springframework.stereotype.Repository;
+
 import uk.co.unclealex.music.core.model.OwnerBean;
 
-public class HibernateOwnerDao extends HibernateEncodingDao<OwnerBean>
+@Repository("ownerDao")
+public class HibernateOwnerDao extends HibernateKeyedDao<OwnerBean>
 		implements OwnerDao {
 
 	@Override

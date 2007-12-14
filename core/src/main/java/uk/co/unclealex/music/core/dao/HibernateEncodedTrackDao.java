@@ -7,6 +7,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Example;
+import org.springframework.stereotype.Repository;
 
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
@@ -14,8 +15,9 @@ import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.util.Partitioner;
 
+@Repository("encodedTrackDao")
 public class HibernateEncodedTrackDao extends
-		HibernateEncodingDao<EncodedTrackBean> implements EncodedTrackDao {
+		HibernateKeyedDao<EncodedTrackBean> implements EncodedTrackDao {
 
 	private int i_maximumUrlsPerQuery;
 	private Partitioner<String> i_partitioner;

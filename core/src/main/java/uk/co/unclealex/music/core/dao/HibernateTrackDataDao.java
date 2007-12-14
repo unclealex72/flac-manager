@@ -6,11 +6,13 @@ import java.util.TreeSet;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Example;
+import org.springframework.stereotype.Repository;
 
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
 
-public class HibernateTrackDataDao extends HibernateEncodingDao<TrackDataBean> implements TrackDataDao {
+@Repository("trackDataDao")
+public class HibernateTrackDataDao extends HibernateKeyedDao<TrackDataBean> implements TrackDataDao {
 
 	@Override
 	public TrackDataBean createExampleBean() {
