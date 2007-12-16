@@ -1,5 +1,7 @@
 package uk.co.unclealex.music.core.dao;
 
+import java.util.SortedSet;
+
 import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,5 +38,11 @@ public class HibernateEncodedAlbumDao extends
 		return (EncodedAlbumBean) query.uniqueResult();
 	}
 
+	@Override
+	public SortedSet<EncodedAlbumBean> findAllEmptyAlbums() {
+		Query query = getSession().createQuery(
+				"from encodedAlbumBean a where a.encodedTrackBeans is empty");
+		return asSortedSet(query);
+	}
 	
 }
