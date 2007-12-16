@@ -1,12 +1,22 @@
 package uk.co.unclealex.music.encoder.flac.dao;
 
 import org.hibernate.Criteria;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
 
-import uk.co.unclealex.music.core.dao.HibernateKeyedDao;
+import uk.co.unclealex.music.core.dao.HibernateKeyedReadOnlyDao;
 import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
-public class HibernateFlacTrackDao extends HibernateKeyedDao<FlacTrackBean> implements FlacTrackDao {
+@Repository
+public class HibernateFlacTrackDao extends HibernateKeyedReadOnlyDao<FlacTrackBean> implements FlacTrackDao {
+
+	@Autowired
+	public HibernateFlacTrackDao(@Qualifier("flacSessionFactory") SessionFactory sessionFactory) {
+		super(sessionFactory);
+	}
 
 	public FlacTrackBean findByUrl(String url) {
 		FlacTrackBean example = createExampleBean();

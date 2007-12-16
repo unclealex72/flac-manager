@@ -14,21 +14,29 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.service.EncodedService;
 import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
 import uk.co.unclealex.music.encoder.flac.dao.FlacTrackDao;
 import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 import uk.co.unclealex.music.encoder.flac.service.SlimServerService;
 
+@Service
+@Transactional
 public class EncoderServiceImpl implements EncoderService {
 
 	private static Logger log = Logger.getLogger(EncoderServiceImpl.class);
@@ -39,6 +47,7 @@ public class EncoderServiceImpl implements EncoderService {
 	private EncodedTrackDao i_encodedTrackDao;
 	private TrackDataDao i_trackDataDao;
 	private EncoderDao i_encoderDao;
+	private EncodedService i_encodedService;
 	private FlacTrackDao i_flacTrackDao;
 	private SingleEncoderService i_singleEncoderService;
 	
@@ -154,6 +163,7 @@ public class EncoderServiceImpl implements EncoderService {
 					" conversion of " + encodedTrackBean.getFlacUrl() + " " + encodedTrackBean.getId());
 		}
 		encodedTrackDao.flush();
+		getEncodedService().removeEmptyAlbumsAndArtists();
 		return extraTracks.size();
 	}
 	
@@ -171,6 +181,7 @@ public class EncoderServiceImpl implements EncoderService {
 		return i_maximumThreads;
 	}
 
+	@Resource
 	public void setMaximumThreads(int maximumThreads) {
 		i_maximumThreads = maximumThreads;
 	}
@@ -179,6 +190,7 @@ public class EncoderServiceImpl implements EncoderService {
 		return i_slimServerService;
 	}
 
+	@Required
 	public void setSlimServerService(SlimServerService slimServerService) {
 		i_slimServerService = slimServerService;
 	}
@@ -195,6 +207,7 @@ public class EncoderServiceImpl implements EncoderService {
 		return i_encoderDao;
 	}
 
+	@Required
 	public void setEncoderDao(EncoderDao encoderDao) {
 		i_encoderDao = encoderDao;
 	}
@@ -203,6 +216,7 @@ public class EncoderServiceImpl implements EncoderService {
 		return i_flacTrackDao;
 	}
 
+	@Required
 	public void setFlacTrackDao(FlacTrackDao flacTrackDao) {
 		i_flacTrackDao = flacTrackDao;
 	}
@@ -211,6 +225,7 @@ public class EncoderServiceImpl implements EncoderService {
 		return i_singleEncoderService;
 	}
 
+	@Required
 	public void setSingleEncoderService(SingleEncoderService singleEncoderService) {
 		i_singleEncoderService = singleEncoderService;
 	}
@@ -219,6 +234,7 @@ public class EncoderServiceImpl implements EncoderService {
 		return i_encodedTrackDao;
 	}
 
+	@Required
 	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
 		i_encodedTrackDao = encodedTrackDao;
 	}
@@ -227,6 +243,7 @@ public class EncoderServiceImpl implements EncoderService {
 		return i_encodingEventListeners;
 	}
 
+	@Required
 	public void setEncodingEventListeners(
 			Set<EncodingEventListener> encodingEventListeners) {
 		i_encodingEventListeners = encodingEventListeners;
@@ -236,8 +253,18 @@ public class EncoderServiceImpl implements EncoderService {
 		return i_trackDataDao;
 	}
 
+	@Required
 	public void setTrackDataDao(TrackDataDao trackDataDao) {
 		i_trackDataDao = trackDataDao;
+	}
+
+	public EncodedService getEncodedService() {
+		return i_encodedService;
+	}
+
+	@Required
+	public void setEncodedService(EncodedService encodedService) {
+		i_encodedService = encodedService;
 	}
 
 }

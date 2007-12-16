@@ -2,9 +2,9 @@ package uk.co.unclealex.music.encoder.encoded.initialise;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,24 +12,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Required;
 
-import uk.co.unclealex.music.core.dao.DeviceDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.dao.EncodingDao;
-import uk.co.unclealex.music.core.dao.OwnerDao;
 import uk.co.unclealex.music.core.initialise.TrackImporter;
-import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.model.KeyedBean;
-import uk.co.unclealex.music.core.model.OwnerBean;
-import uk.co.unclealex.music.core.service.TrackDataStreamIteratorFactory;
+import uk.co.unclealex.music.encoder.encoded.service.FlacTrackService;
 import uk.co.unclealex.music.encoder.flac.dao.FlacTrackDao;
 import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
@@ -39,13 +33,11 @@ public class ImporterImpl implements Importer {
 	
 	private static final String FLAC_FILE_BASE = "/mnt/multimedia/flac/";
 	private static final String FLAC_URL_BASE = "file://" + FLAC_FILE_BASE;
-	
-	private OwnerDao i_ownerDao;
+
 	private EncoderDao i_encoderDao;
-	private DeviceDao i_deviceDao;
 	private EncodedTrackDao i_encodedTrackDao;
+	private FlacTrackService i_flacTrackService;
 	private FlacTrackDao i_flacTrackDao;
-	private TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
 	private TrackImporter i_trackImporter;
 	
 	public void importTracks() throws IOException {
@@ -53,6 +45,7 @@ public class ImporterImpl implements Importer {
 		log.info("Importing tracks.");
 		File baseDir = new File("/mnt/multimedia/converted");
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
+		FlacTrackService flacTrackService = getFlacTrackService();
 		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
 			SortedMap<File, FlacTrackBean> tracksByFile = new TreeMap<File, FlacTrackBean>();
 			File base = new File(new File(baseDir, encoderBean.getExtension()), "raw");
@@ -65,7 +58,13 @@ public class ImporterImpl implements Importer {
 					EncodedTrackBean encodedTrackBean =
 						encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
 					if (encodedTrackBean == null) {
-						trackImporter.importTrack(encoderBean, file, flacTrackBean);
+						EncodedAlbumBean encodedAlbumBean =
+							flacTrackService.findOrCreateEncodedAlbumBean(flacTrackBean.getFlacAlbumBean());
+						InputStream in = new FileInputStream(file);
+						trackImporter.importTrack(
+							in, encoderBean, encodedAlbumBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), 
+							flacTrackBean.getTrackNumber(), file.lastModified());
+						in.close();
 					}
 				}
 			}
@@ -120,36 +119,48 @@ public class ImporterImpl implements Importer {
 		return buff.toString().toLowerCase().replace(' ', '_');
 	}
 
-	public EncodedTrackDao getEncodedTrackDao() {
-		return i_encodedTrackDao;
-	}
-
-	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
-		i_encodedTrackDao = encodedTrackDao;
-	}
-
 	public FlacTrackDao getFlacTrackDao() {
 		return i_flacTrackDao;
 	}
 
+	@Required
 	public void setFlacTrackDao(FlacTrackDao flacTrackDao) {
 		i_flacTrackDao = flacTrackDao;
-	}
-
-	public TrackDataStreamIteratorFactory getTrackDataStreamIteratorFactory() {
-		return i_trackDataStreamIteratorFactory;
-	}
-
-	public void setTrackDataStreamIteratorFactory(
-			TrackDataStreamIteratorFactory trackDataStreamIteratorFactory) {
-		i_trackDataStreamIteratorFactory = trackDataStreamIteratorFactory;
 	}
 
 	public TrackImporter getTrackImporter() {
 		return i_trackImporter;
 	}
 
+	@Required
 	public void setTrackImporter(TrackImporter trackImporter) {
 		i_trackImporter = trackImporter;
+	}
+
+	public EncoderDao getEncoderDao() {
+		return i_encoderDao;
+	}
+
+	@Required
+	public void setEncoderDao(EncoderDao encoderDao) {
+		i_encoderDao = encoderDao;
+	}
+
+	public EncodedTrackDao getEncodedTrackDao() {
+		return i_encodedTrackDao;
+	}
+
+	@Required
+	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
+		i_encodedTrackDao = encodedTrackDao;
+	}
+
+	public FlacTrackService getFlacTrackService() {
+		return i_flacTrackService;
+	}
+
+	@Required
+	public void setFlacTrackService(FlacTrackService flacTrackService) {
+		i_flacTrackService = flacTrackService;
 	}
 }

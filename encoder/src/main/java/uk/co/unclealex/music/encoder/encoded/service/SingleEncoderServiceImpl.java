@@ -19,11 +19,14 @@ import java.util.TreeSet;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.io.SequenceOutputStream;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
@@ -33,6 +36,7 @@ import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
 import uk.co.unclealex.music.encoder.flac.model.FlacAlbumBean;
 import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
 
+@Service
 @Transactional
 public class SingleEncoderServiceImpl implements SingleEncoderService, Serializable {
 
@@ -40,6 +44,7 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 
 	private EncodedTrackDao i_encodedTrackDao;
 	private TrackDataDao i_trackDataDao;
+	private FlacTrackService i_flactrackService;
 	private TrackStreamService i_trackStreamService;
 	private TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
 	
@@ -105,8 +110,10 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 
 	@Transactional(rollbackFor=IOException.class)
 	public EncodedTrackBean encode(EncodingCommandBean encodingCommandBean, Map<EncoderBean, File> commandCache) throws IOException {
-		EncoderBean encoderBean = encodingCommandBean.getEncoderBean();
 		TrackDataDao trackDataDao = getTrackDataDao();
+		FlacTrackService flactrackService = getFlactrackService();
+
+		EncoderBean encoderBean = encodingCommandBean.getEncoderBean();
 		FlacTrackBean flacTrackBean = encodingCommandBean.getFlacTrackBean();
 		
 		final EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
@@ -125,10 +132,12 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 		// We encode if there was no previously encoded track or the encoded track is older than the flac track
 		if (encodedTrackBean == null || encodedTrackBean.getTimestamp() < flacTrackBean.getFile().lastModified()) {
 			final EncodedTrackBean newEncodedTrackBean = encodedTrackBean==null?new EncodedTrackBean():encodedTrackBean;
+			EncodedAlbumBean encodedAlbumBean = flactrackService.findOrCreateEncodedAlbumBean(flacAlbumBean);
 			newEncodedTrackBean.setFlacUrl(url);
 			newEncodedTrackBean.setEncoderBean(encoderBean);
 			newEncodedTrackBean.setTimestamp(new Date().getTime());
 			newEncodedTrackBean.setLength(-1);
+			newEncodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
 			SortedSet<TrackDataBean> trackDataBeans = newEncodedTrackBean.getTrackDataBeans();
 			if (trackDataBeans != null) {
 				for (TrackDataBean trackDataBean : trackDataBeans) {
@@ -185,6 +194,7 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 		return i_encodedTrackDao;
 	}
 
+	@Required
 	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
 		i_encodedTrackDao = encodedTrackDao;
 	}
@@ -193,6 +203,7 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 		return i_trackDataDao;
 	}
 
+	@Required
 	public void setTrackDataDao(TrackDataDao trackDataDao) {
 		i_trackDataDao = trackDataDao;
 	}
@@ -201,6 +212,7 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 		return i_trackDataStreamIteratorFactory;
 	}
 
+	@Required
 	public void setTrackDataStreamIteratorFactory(
 			TrackDataStreamIteratorFactory trackDataStreamIteratorFactory) {
 		i_trackDataStreamIteratorFactory = trackDataStreamIteratorFactory;
@@ -210,7 +222,17 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 		return i_trackStreamService;
 	}
 
+	@Required
 	public void setTrackStreamService(TrackStreamService trackStreamService) {
 		i_trackStreamService = trackStreamService;
+	}
+
+	public FlacTrackService getFlactrackService() {
+		return i_flactrackService;
+	}
+
+	@Required
+	public void setFlactrackService(FlacTrackService flactrackService) {
+		i_flactrackService = flactrackService;
 	}
 }

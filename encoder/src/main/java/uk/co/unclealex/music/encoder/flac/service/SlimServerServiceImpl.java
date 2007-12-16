@@ -2,11 +2,13 @@ package uk.co.unclealex.music.encoder.flac.service;
 
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import uk.co.unclealex.music.core.SlimServerConfig;
-import uk.co.unclealex.music.core.SlimServerService;
 import uk.co.unclealex.music.encoder.flac.dao.SlimServerInformationDao;
 import uk.co.unclealex.music.encoder.flac.model.SlimServerInformationBean;
 
+@Service
 public class SlimServerServiceImpl implements SlimServerService {
 
 	protected static String IS_SCANNING = "isScanning";

@@ -4,6 +4,7 @@ import uk.co.unclealex.music.core.mains.Main;
 import uk.co.unclealex.music.encoder.encoded.initialise.Importer;
 import uk.co.unclealex.music.encoder.encoded.service.EncoderService;
 
+@uk.co.unclealex.music.core.spring.Main
 public class Initialise extends Main {
 
 	private Importer i_importer;
