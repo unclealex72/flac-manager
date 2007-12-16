@@ -33,13 +33,12 @@ public class TestDeviceService extends DeviceServiceImpl implements
 		SortedMap<DeviceBean, String>  pathsByDeviceBean = new TreeMap<DeviceBean, String>();
 		File tmp = new File(System.getProperty("java.io.tmpdir")); 
 		OwnerDao ownerDao = getOwnerDao();
-		boolean deletingRequired = false;
 		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
 			String extension = encoderBean.getExtension();
 			File deviceDirectory = new File(tmp, "testdeviceserivce-" + extension);
 			DeviceBean deviceBean = new TestDeviceBean(deviceDirectory);
 			deviceBean.setId(encoderBean.getId());
-			deviceBean.setDeletingRequired(deletingRequired = !deletingRequired);
+			deviceBean.setDeletingRequired("ogg".equals(extension));
 			deviceBean.setDescription(extension + " encoder");
 			deviceBean.setEncoderBean(encoderBean);
 			deviceBean.setIdentifier(extension);

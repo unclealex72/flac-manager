@@ -1,6 +1,5 @@
 package uk.co.unclealex.music.core;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.SortedSet;
 import java.util.regex.Matcher;
@@ -42,13 +41,13 @@ public abstract class CoreSpringTest extends SpringTest {
 		"Napalm Death/Scum/25 - Dead (Bonus Track)",
 		"Napalm Death/From Enslavement To Obliteration/12 - You Suffer",
 		"S.O.D./Speak English Or Die/21 - Diamonds And Rust (Extended Version)",
-		"S.O.D./Speak English Or Die/22 - Identity",
+		"S.O.D./Speak English Or Die/20 - The Ballad Of Jimi Hendrix",
 		"Brutal Truth/Extreme Conditions Demand Extreme Responses/07 - Collateral Damage",
 		"Brutal Truth/Sounds of The Animal Kingdom Kill Trend Suicide/09 - Callous"
 	};
 	
 	@Override
-	protected void onSetUpBeforeTransaction() throws IOException {
+	protected void onSetUpBeforeTransaction() throws Exception {
 		getInitialiser().initialise();
 		EncodedService encodedService = getEncodedService();
 		SortedSet<EncoderBean> encoderBeans = getEncoderDao().getAll();
@@ -57,7 +56,7 @@ public abstract class CoreSpringTest extends SpringTest {
 		Pattern pattern = Pattern.compile("(.+?)/(.+?)/([0-9]+) - (.+)");
 		ClassLoader classLoader = getClass().getClassLoader();
 		
-		long now = System.currentTimeMillis();
+		long encodingTime = getEncodingTime();
 		
 		for (String track : TRACKS) {
 			Matcher matcher = pattern.matcher(track);
@@ -73,11 +72,15 @@ public abstract class CoreSpringTest extends SpringTest {
 			for (EncoderBean encoderBean : encoderBeans) {
 				String url = "music/" + track + "." + encoderBean.getExtension();
 				InputStream in = classLoader.getResourceAsStream(url);
-				trackImporter.importTrack(in, encoderBean, encodedAlbumBean, title, url, trackNumber, now);
+				trackImporter.importTrack(in, encoderBean, encodedAlbumBean, title, url, trackNumber, encodingTime);
 			}
 		}
 	}
 	
+	protected long getEncodingTime() {
+		return System.currentTimeMillis();
+	}
+
 	protected String makeIdentifier(String str) {
 		StringBuffer retVal = new StringBuffer();
 		for (char ch : str.toUpperCase().toCharArray()) {

@@ -56,6 +56,13 @@ public class DeviceServiceTest extends CoreSpringTest {
 	private DeviceService i_deviceService;
 	
 	@Override
+	protected long getEncodingTime() {
+		// Encode an hour in the past so that there are no problems with the granularity of
+		// file modification times cannot cause problems.
+		return System.currentTimeMillis() - (1000 * 3600);
+	}
+	
+	@Override
 	protected void onSetUpInTransaction() {
 		OwnerDao ownerDao = getOwnerDao();
 		for (OwnerBean ownerBean : ownerDao.getAll()) {
@@ -80,16 +87,9 @@ public class DeviceServiceTest extends CoreSpringTest {
 		try {
 			for (Map.Entry<DeviceBean, String> entry : pathsByDeviceBean.entrySet()) {
 				File root = new File(entry.getValue());
-				if (root.exists()) {
-					FileUtils.deleteDirectory(root);
-				}
-				createFile(YOUR_ACHIEVEMENT, root, entry.getKey());
-				createFile(DATA_FILE_A, root, entry.getKey());
-			}
-			for (Map.Entry<DeviceBean, String> entry : pathsByDeviceBean.entrySet()) {
-				File root = new File(entry.getValue());
 				createFile(YOU_SUFFER, root, entry.getKey());
 				createFile(BOHEMIAN_RHAPSODY, root, entry.getKey());
+				createFile(DATA_FILE_A, root, entry.getKey());
 				createFile(DATA_FILE_B, root, entry.getKey());
 			}		
 			deviceService.writeToAllDevices();
