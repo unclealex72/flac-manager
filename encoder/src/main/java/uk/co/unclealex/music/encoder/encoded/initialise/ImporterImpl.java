@@ -23,9 +23,9 @@ import uk.co.unclealex.music.core.initialise.TrackImporter;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.encoder.dao.FlacTrackDao;
 import uk.co.unclealex.music.encoder.encoded.service.FlacTrackService;
-import uk.co.unclealex.music.encoder.flac.dao.FlacTrackDao;
-import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
+import uk.co.unclealex.music.encoder.model.FlacTrackBean;
 
 public class ImporterImpl implements Importer {
 

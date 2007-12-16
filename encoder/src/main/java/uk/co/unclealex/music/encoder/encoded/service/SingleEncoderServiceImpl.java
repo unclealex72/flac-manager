@@ -33,8 +33,8 @@ import uk.co.unclealex.music.core.model.TrackDataBean;
 import uk.co.unclealex.music.core.service.TrackDataStreamIteratorFactory;
 import uk.co.unclealex.music.core.service.TrackStreamService;
 import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
-import uk.co.unclealex.music.encoder.flac.model.FlacAlbumBean;
-import uk.co.unclealex.music.encoder.flac.model.FlacTrackBean;
+import uk.co.unclealex.music.encoder.model.FlacAlbumBean;
+import uk.co.unclealex.music.encoder.model.FlacTrackBean;
 
 @Service
 @Transactional

@@ -4,7 +4,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.encoder.flac.model.FlacBean;
+import uk.co.unclealex.music.encoder.model.FlacBean;
 
 public class TitleFormatMatch {
 

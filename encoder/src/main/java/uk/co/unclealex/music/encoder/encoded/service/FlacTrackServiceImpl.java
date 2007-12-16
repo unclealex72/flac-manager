@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.service.EncodedService;
-import uk.co.unclealex.music.encoder.flac.model.FlacAlbumBean;
-import uk.co.unclealex.music.encoder.flac.model.FlacArtistBean;
+import uk.co.unclealex.music.encoder.model.FlacAlbumBean;
+import uk.co.unclealex.music.encoder.model.FlacArtistBean;
 
 @Service
 @Transactional
