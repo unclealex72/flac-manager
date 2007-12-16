@@ -51,6 +51,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
 			<version>2.5</version>
 		</dependency>
@@ -86,9 +91,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>unclealex</groupId>
+			<groupId>uk.co.unclealex</groupId>
 			<artifactId>acegi-support</artifactId>
-			<version>1.0.0</version>
+			<version>1.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
