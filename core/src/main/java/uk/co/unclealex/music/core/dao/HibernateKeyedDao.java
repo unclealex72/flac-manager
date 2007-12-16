@@ -1,11 +1,16 @@
 package uk.co.unclealex.music.core.dao;
 
 import org.hibernate.Query;
+import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 
 import uk.co.unclealex.music.core.model.KeyedBean;
 
 public abstract class HibernateKeyedDao<T extends KeyedBean<T>> extends HibernateKeyedReadOnlyDao<T> {
+
+	public HibernateKeyedDao(SessionFactory sessionFactory) {
+		super(sessionFactory);
+	}
 
 	public void remove(T keyedBean) {
 		ClassMetadata metadata = getSessionFactory().getClassMetadata(keyedBean.getClass());

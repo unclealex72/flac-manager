@@ -13,14 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.DeviceDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.dao.KeyedDao;
 import uk.co.unclealex.music.core.dao.OwnerDao;
 import uk.co.unclealex.music.core.model.DeviceBean;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.model.KeyedBean;
 import uk.co.unclealex.music.core.model.OwnerBean;
 
 @Service
@@ -115,14 +113,5 @@ public class InitialiserImpl implements Initialiser {
 	@Required
 	public void setOwnerDao(OwnerDao ownerDao) {
 		i_ownerDao = ownerDao;
-	}
-
-	@SuppressWarnings("unchecked")
-	public void clear() {
-		for (KeyedDao keyedDao : new KeyedDao[] { getEncoderDao(), getDeviceDao(), getOwnerDao() }) {
-			for (Object obj : keyedDao.getAll()) {
-				keyedDao.remove((KeyedBean) obj);
-			}
-		}
 	}
 }

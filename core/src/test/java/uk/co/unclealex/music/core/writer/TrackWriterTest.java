@@ -11,7 +11,6 @@ import java.util.TreeMap;
 import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.music.core.CoreSpringTest;
-import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
@@ -20,7 +19,6 @@ public class TrackWriterTest extends CoreSpringTest {
 
 	private TrackWriterFactory i_trackWriterFactory;
 	private TitleFormatServiceFactory i_titleFormatServiceFactory;
-	private EncodedTrackDao i_encodedTrackDao;
 	
 	public void testWrite() throws IOException {
 		String titleFormat = "${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}";
@@ -51,14 +49,6 @@ public class TrackWriterTest extends CoreSpringTest {
 		}
 	}
 	
-	public EncodedTrackDao getEncodedTrackDao() {
-		return i_encodedTrackDao;
-	}
-	
-	@Required
-	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
-		i_encodedTrackDao = encodedTrackDao;
-	}
 	public TrackWriterFactory getTrackWriterFactory() {
 		return i_trackWriterFactory;
 	}

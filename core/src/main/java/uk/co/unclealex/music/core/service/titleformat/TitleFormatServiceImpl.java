@@ -69,7 +69,6 @@ public class TitleFormatServiceImpl implements TitleFormatService {
 		return i_titleFormat;
 	}
 
-	@Required
 	public void setTitleFormat(String titleFormat) {
 		i_titleFormat = titleFormat;
 	}

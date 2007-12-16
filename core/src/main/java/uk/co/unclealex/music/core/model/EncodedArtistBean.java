@@ -50,7 +50,7 @@ public class EncodedArtistBean extends IdentifiableBean<EncodedArtistBean, Strin
 		i_encodedAlbumBeans = encodedAlbumBeans;
 	}
 
-	@ManyToMany(mappedBy="encodedArtists")
+	@ManyToMany(mappedBy="encodedArtistBeans")
 	@Sort(type=SortType.NATURAL)
 	public SortedSet<OwnerBean> getOwnerBeans() {
 		return i_ownerBeans;

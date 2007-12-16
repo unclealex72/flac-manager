@@ -10,5 +10,4 @@ public interface Initialiser {
 
 	public void initialise() throws IOException;
 	
-	public void clear();	
 }

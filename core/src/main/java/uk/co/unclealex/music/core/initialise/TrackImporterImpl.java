@@ -42,6 +42,8 @@ public class TrackImporterImpl implements TrackImporter {
 		encodedTrackBean.setTimestamp(lastModifiedMillis);
 		encodedTrackBean.setTrackNumber(trackNumber);
 		encodedTrackBean.setTitle(title);
+		encodedTrackBean.setLength(0);
+		encodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
 		encodedTrackDao.store(encodedTrackBean);
 		OutputStream out = getTrackStreamService().getTrackOutputStream(encodedTrackBean);
 		encodedTrackBean.setLength(IOUtils.copy(in, out));

@@ -28,7 +28,7 @@ public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
 	private Integer i_length;
 	private Long i_timestamp;
 	private String i_title;
-	private int i_trackNumber;
+	private Integer i_trackNumber;
 	
 	private SortedSet<TrackDataBean> i_trackDataBeans;
 	private EncodedAlbumBean i_encodedAlbumBean;
@@ -118,11 +118,11 @@ public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
 		i_title = title;
 	}
 
-	public int getTrackNumber() {
+	public Integer getTrackNumber() {
 		return i_trackNumber;
 	}
 
-	public void setTrackNumber(int trackNumber) {
+	public void setTrackNumber(Integer trackNumber) {
 		i_trackNumber = trackNumber;
 	}
 

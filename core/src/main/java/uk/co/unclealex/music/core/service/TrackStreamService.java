@@ -9,6 +9,6 @@ public interface TrackStreamService {
 
 	public InputStream getTrackInputStream(EncodedTrackBean encodedTrackBean);
 	public OutputStream getTrackOutputStream(EncodedTrackBean encodedTrackBean);
-	public int getMaximumTrackDataLength();	
+	public Integer getMaximumTrackDataLength();	
 
 }

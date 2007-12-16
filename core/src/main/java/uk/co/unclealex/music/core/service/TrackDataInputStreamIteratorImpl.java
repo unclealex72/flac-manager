@@ -87,11 +87,11 @@ public class TrackDataInputStreamIteratorImpl implements
 		i_trackDataIdIterator = sequenceIterator;
 	}
 
-	@Required
 	public HibernateSessionExecutor getHibernateSessionExecutor() {
 		return i_hibernateSessionExecutor;
 	}
 
+	@Required
 	public void setHibernateSessionExecutor(
 			HibernateSessionExecutor hibernateSessionExecutor) {
 		i_hibernateSessionExecutor = hibernateSessionExecutor;

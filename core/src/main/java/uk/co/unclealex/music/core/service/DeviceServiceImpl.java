@@ -237,7 +237,6 @@ public class DeviceServiceImpl implements DeviceService {
 		writingListeners.remove(deviceBean);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void writeToDevices(Collection<DeviceBean> deviceBeans) throws TrackWritingException, IOException {
 		ProgressWritingListenerService progressWritingListenerService = getProgressWritingListenerService();

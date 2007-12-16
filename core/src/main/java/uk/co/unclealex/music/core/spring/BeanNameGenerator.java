@@ -12,6 +12,7 @@ public class BeanNameGenerator extends AnnotationBeanNameGenerator {
 	protected String buildDefaultBeanName(BeanDefinition definition) {
 		String beanName = super.buildDefaultBeanName(definition);
 		beanName = StringUtils.removeStart(beanName, "spring");
+		beanName = StringUtils.removeStart(beanName, "hibernate");
 		beanName = StringUtils.removeEnd(beanName, "Impl");
 		return Introspector.decapitalize(beanName);
 	}

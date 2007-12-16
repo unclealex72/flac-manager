@@ -11,7 +11,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
@@ -19,7 +18,6 @@ import org.hibernate.validator.NotNull;
 
 @Table(name="encoded_albums")
 @Entity(name="encodedAlbumBean")
-@UniqueConstraint(columnNames={"encoded_artist_bean_id", "identifier"})
 public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String> {
 
 	private String i_title;
@@ -58,7 +56,6 @@ public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String>
 	}
 
 	@ManyToOne
-	@Column(name="encoded_artist_bean_id")
 	public EncodedArtistBean getEncodedArtistBean() {
 		return i_encodedArtistBean;
 	}
@@ -67,7 +64,7 @@ public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String>
 		i_encodedArtistBean = encodedArtistBean;
 	}
 
-	@ManyToMany(mappedBy="encodedAlbums")
+	@ManyToMany(mappedBy="encodedAlbumBeans")
 	@Sort(type=SortType.NATURAL)
 	public SortedSet<OwnerBean> getOwnerBeans() {
 		return i_ownerBeans;

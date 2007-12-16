@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 
 @Table(name="track_data",
 		uniqueConstraints = {@UniqueConstraint(columnNames={"sequence", "encodedTrack"})})
-@Entity
+@Entity(name="trackDataBean")
 public class TrackDataBean extends KeyedBean<TrackDataBean> {
 
 	private static long s_count = 0;

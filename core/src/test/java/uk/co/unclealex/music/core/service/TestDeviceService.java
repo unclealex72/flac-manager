@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.commons.io.FileUtils;
+
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.OwnerDao;
 import uk.co.unclealex.music.core.model.DeviceBean;
@@ -34,14 +36,14 @@ public class TestDeviceService extends DeviceServiceImpl implements
 		boolean deletingRequired = false;
 		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
 			String extension = encoderBean.getExtension();
-			DeviceBean deviceBean = new DeviceBean();
+			File deviceDirectory = new File(tmp, "testdeviceserivce-" + extension);
+			DeviceBean deviceBean = new TestDeviceBean(deviceDirectory);
 			deviceBean.setId(encoderBean.getId());
 			deviceBean.setDeletingRequired(deletingRequired = !deletingRequired);
 			deviceBean.setDescription(extension + " encoder");
 			deviceBean.setEncoderBean(encoderBean);
 			deviceBean.setIdentifier(extension);
 			deviceBean.setOwnerBean(ownerDao.findByName(OWNERS.get(extension)));
-			File deviceDirectory = new File(tmp, "testdeviceserivce-" + extension);
 			pathsByDeviceBean.put(deviceBean, deviceDirectory.getCanonicalPath());
 		}
 		return pathsByDeviceBean;
@@ -77,5 +79,23 @@ public class TestDeviceService extends DeviceServiceImpl implements
 
 	public void setOwnerDao(OwnerDao ownerDao) {
 		i_ownerDao = ownerDao;
+	}
+	
+	public class TestDeviceBean extends DeviceBean {
+		
+		private File i_root;
+
+		private TestDeviceBean(File root) {
+			super();
+			i_root = root;
+		}
+
+		@Override
+		protected void finalize() throws Throwable {
+			if (i_root.exists()) {
+				FileUtils.deleteDirectory(i_root);
+			}
+			super.finalize();
+		}
 	}
 }

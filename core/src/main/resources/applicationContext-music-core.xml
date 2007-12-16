@@ -12,18 +12,16 @@
     http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd"
   default-autowire="byName">
   
-  <context:component-scan
-  	base-package="uk.co.unclealex.music"
-  	name-generator="uk.co.unclealex.music.core.spring.BeanNameGenerator"/>
-
+  <!-- 
 	<bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor"/>
-	
-	<jee:jndi-lookup id="dataSource"
+	 -->
+	 
+	<jee:jndi-lookup id="musicDataSource"
 		jndi-name="jdbc/music" resource-ref="true" proxy-interface="javax.sql.DataSource"/>
 		
 	<tx:annotation-driven/>
 
-	<bean id="hibernateProperties"
+	<bean id="musicHibernateProperties"
 		class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="properties">
 			<props>
@@ -36,8 +34,10 @@
 		</property>
 	</bean>
 
-	<bean id="sessionFactory"
+	<bean id="musicSessionFactory"
 		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource" ref="musicDataSource"/>
+		<property name="hibernateProperties" ref="musicHibernateProperties"/>
 		<property name="annotatedClasses">
 			<list>
 				<value>uk.co.unclealex.music.core.model.EncodedTrackBean</value>
@@ -51,8 +51,18 @@
 		</property>
 	</bean>
 
-	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager"/>
+	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="musicSessionFactory"/>
+	</bean>
 
+	<bean id="hibernateSessionExecutor" class="uk.co.unclealex.music.core.hibernate.HibernateSessionExecutor">
+		<property name="sessionFactory" ref="musicSessionFactory"/>
+	</bean>
+	
+	<bean id="maximumTrackDataLength" class="java.lang.Integer">
+		<constructor-arg value="1048576"/>
+	</bean>
+	
 	<bean id="titleFormatFactory" class="uk.co.unclealex.music.core.service.titleformat.TitleFormatFactoryImpl">
 		<property name="defaultTitleFormat">
 			<value>${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
@@ -61,6 +71,11 @@
 	
 	<bean id="titleFormat" factory-bean="titleFormatFactory" factory-method="getDefaultTitleFormat"/>
 			
+  <context:component-scan
+  	base-package="uk.co.unclealex.music"
+  	name-generator="uk.co.unclealex.music.core.spring.BeanNameGenerator"
+  	scope-resolver="uk.co.unclealex.music.core.spring.AnnotationScopeMetadataResolver"/>
+
 </beans>
 
 

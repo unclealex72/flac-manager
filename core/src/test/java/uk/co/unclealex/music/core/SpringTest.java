@@ -19,26 +19,26 @@ public abstract class SpringTest extends AbstractTransactionalSpringContextTests
 		setDependencyCheck(false);
 	}
 	
-	@SuppressWarnings("unchecked")
-	public void assertEquals(String message, Collection expected, Collection actual) {
-		List extra = new LinkedList();
+
+	public <E> void assertEquals(String message, Collection<E> expected, Collection<E> actual) {
+		List<E> extra = new LinkedList<E>();
 		extra.addAll(actual);
 		extra.removeAll(expected);
-		List missing = new LinkedList();
+		List<E> missing = new LinkedList<E>();
 		missing.addAll(expected);
 		missing.removeAll(actual);
 		if (extra.isEmpty() && missing.isEmpty()) {
 			return;
 		}
-		Transformer transformer = new Transformer() {
+		Transformer<E, String> transformer = new Transformer<E, String>() {
 			@Override
-			public Object transform(Object input) {
+			public String transform(E input) {
 				return input.toString();
 			}
 		};
-		SortedSet extraSet = new TreeSet();
+		SortedSet<String> extraSet = new TreeSet<String>();
 		CollectionUtils.collect(extra, transformer, extraSet);
-		SortedSet missingSet = new TreeSet();
+		SortedSet<String> missingSet = new TreeSet<String>();
 		CollectionUtils.collect(missing, transformer, missingSet);
 
 		String error = "";

@@ -29,12 +29,12 @@ public class DeviceServiceTest extends CoreSpringTest {
 	private static final String COLLATERAL_DAMAGE = 
 		"B/Brutal Truth/Extreme Conditions Demand Extreme Responses/07 - Collateral Damage";
 	private static final String CALLOUS = 
-		"B/Brutal Truth/Sounds Of The Animal Kingdomkill Trend Suicide/09 - Callous";
-	private static final String YOUR_ACHIEVEMENT = "N/Napalm Death/Scum/24 - Your Achievement Bonus Track";
-	private static final String DEAD = "N/Napalm Death/Scum/25 - Dead Bonus Track";
+		"B/Brutal Truth/Sounds of The Animal Kingdom Kill Trend Suicide/09 - Callous";
+	private static final String YOUR_ACHIEVEMENT = "N/Napalm Death/Scum/24 - Your Achievement_ (Bonus Track)";
+	private static final String DEAD = "N/Napalm Death/Scum/25 - Dead (Bonus Track)";
 	private static final String YOU_SUFFER = "N/Napalm Death/From Enslavement To Obliteration/12 - You Suffer";
-	private static final String JIMI_HENDRIX = "S/Sod/Speak English Or Die/20 - The Ballad Of Jimi Hendrix";
-	private static final String DIAMONDS_AND_RUST = "S/Sod/Speak English Or Die/21 - Diamonds And Rust Extended Version";
+	private static final String JIMI_HENDRIX = "S/S.O.D./Speak English Or Die/20 - The Ballad Of Jimi Hendrix";
+	private static final String DIAMONDS_AND_RUST = "S/S.O.D./Speak English Or Die/21 - Diamonds And Rust (Extended Version)";
 	private static final String BOHEMIAN_RHAPSODY = "Q/Queen/A Night At The Opera/09 - Bohemian Rhapsody";
 	private static final String DATA_FILE_A = "data/data_a.txt";
 	private static final String DATA_FILE_B = "data/data_b.txt";
@@ -53,20 +53,17 @@ public class DeviceServiceTest extends CoreSpringTest {
 			new String[] { YOUR_ACHIEVEMENT, DEAD, YOU_SUFFER, JIMI_HENDRIX, DIAMONDS_AND_RUST, DATA_FILE_A, DATA_FILE_B });
 	}
 	
-	private OwnerDao i_ownerDao;
 	private DeviceService i_deviceService;
 	
 	@Override
-	protected void onSetUpInTransaction() throws Exception {
-		super.onSetUpInTransaction();
+	protected void onSetUpInTransaction() {
 		OwnerDao ownerDao = getOwnerDao();
 		for (OwnerBean ownerBean : ownerDao.getAll()) {
 			ownerBean.setOwnsAll(false);
 			ownerBean.setEncodedAlbumBeans(new TreeSet<EncodedAlbumBean>());
 			SortedSet<EncodedArtistBean> encodedArtistBeans = new TreeSet<EncodedArtistBean>();
-			for (String artistName : OWNED_ARTISTS.get(ownerBean.getName())) {
-				EncodedArtistBean encodedArtistBean = new EncodedArtistBean();
-				encodedArtistBean.setName(artistName);
+			for (String artistIdentifier : OWNED_ARTISTS.get(ownerBean.getName())) {
+				EncodedArtistBean encodedArtistBean = getEncodedArtistDao().findByIdentifier(artistIdentifier);
 				SortedSet<OwnerBean> ownerBeans = new TreeSet<OwnerBean>();
 				ownerBeans.add(ownerBean);
 				encodedArtistBean.setOwnerBeans(ownerBeans);
@@ -175,14 +172,6 @@ public class DeviceServiceTest extends CoreSpringTest {
 		f.createNewFile();
 	}
 
-	public OwnerDao getOwnerDao() {
-		return i_ownerDao;
-	}
-	
-	public void setOwnerDao(OwnerDao ownerDao) {
-		i_ownerDao = ownerDao;
-	}
-	
 	public DeviceService getDeviceService() {
 		return i_deviceService;
 	}

@@ -15,11 +15,13 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.stereotype.Service;
 
 /**
  * @author alex
  *
  */
+@Service("slimServiceConfig")
 public class FileSlimServerConfig implements SlimServerConfig {
 
 	private List<String> i_definiteArticles = new LinkedList<String>();

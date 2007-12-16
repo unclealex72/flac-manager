@@ -1,6 +1,8 @@
 package uk.co.unclealex.music.core.writer;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -15,6 +17,21 @@ public class TrackWritingException extends Exception {
 		return !getIoExceptionsByTrackStream().isEmpty();
 	}
 
+	@Override
+	public String getMessage() {
+		StringWriter writer = new StringWriter();
+		PrintWriter out = new PrintWriter(writer);
+		for (Map.Entry<TrackStream, Collection<IOException>> entry : getIoExceptionsByTrackStream().entrySet()) {
+			TrackStream trackStream = entry.getKey();
+			for (IOException ex : entry.getValue()) {
+				out.println(trackStream);
+				out.println(ex.getMessage());
+				ex.printStackTrace(out);
+			}
+		}
+		return writer.toString();
+	}
+	
 	public void registerExceptions(TrackWritingException trackWritingException) {
 		for (
 			Map.Entry<TrackStream, Collection<IOException>> entry : 

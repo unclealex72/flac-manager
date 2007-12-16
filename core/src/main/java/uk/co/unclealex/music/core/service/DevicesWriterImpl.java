@@ -13,6 +13,7 @@ import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.model.DeviceBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
@@ -27,6 +28,7 @@ import uk.co.unclealex.music.core.writer.TrackWritingException;
 import uk.co.unclealex.music.core.writer.WritingListener;
 
 @Prototype
+@Transactional
 public class DevicesWriterImpl implements DevicesWriter {
 
 	private static final Logger log = Logger.getLogger(DevicesWriterImpl.class);

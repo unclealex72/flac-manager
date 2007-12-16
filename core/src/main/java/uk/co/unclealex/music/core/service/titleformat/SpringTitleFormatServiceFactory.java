@@ -41,7 +41,6 @@ public class SpringTitleFormatServiceFactory implements ApplicationContextAware,
 		return i_titleFormatServiceName;
 	}
 
-	@Required
 	public void setTitleFormatServiceName(String trackFormatServiceName) {
 		i_titleFormatServiceName = trackFormatServiceName;
 	}

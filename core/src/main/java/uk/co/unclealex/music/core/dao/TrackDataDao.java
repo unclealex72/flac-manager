@@ -13,5 +13,7 @@ public interface TrackDataDao extends KeyedDao<TrackDataBean> {
 	public SortedSet<Integer> getIdsForEncodedTrackBean(
 			EncodedTrackBean encodedTrackBean);
 
+	public SortedSet<Integer> getAllIds();
+	
 	public void removeById(int id);
 }

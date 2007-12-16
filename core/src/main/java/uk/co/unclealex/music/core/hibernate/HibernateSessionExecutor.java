@@ -5,9 +5,11 @@ import java.util.concurrent.Executor;
 import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.core.spring.HibernateSessionBinder;
 
+@Service("hibernateSessionExecutor")
 public class HibernateSessionExecutor implements Executor {
 
 	private SessionFactory i_sessionFactory;

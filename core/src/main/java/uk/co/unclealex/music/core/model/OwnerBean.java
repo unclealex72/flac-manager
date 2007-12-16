@@ -102,6 +102,7 @@ public class OwnerBean extends KeyedBean<OwnerBean> implements User {
 	}
 
 	@ManyToMany(cascade=CascadeType.PERSIST)
+	@Sort(type=SortType.NATURAL)
 	public SortedSet<EncodedArtistBean> getEncodedArtistBeans() {
 		return i_encodedArtistBeans;
 	}
@@ -112,6 +113,7 @@ public class OwnerBean extends KeyedBean<OwnerBean> implements User {
 	}
 
 	@ManyToMany(cascade=CascadeType.PERSIST)
+	@Sort(type=SortType.NATURAL)
 	public SortedSet<EncodedAlbumBean> getEncodedAlbumBeans() {
 		return i_encodedAlbumBeans;
 	}

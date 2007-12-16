@@ -5,6 +5,8 @@ import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
+import org.hibernate.Query;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Example;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 
@@ -15,26 +17,45 @@ public abstract class HibernateKeyedReadOnlyDao<T extends KeyedBean<T>> extends 
 
 	protected Logger log = Logger.getLogger(getClass());
 	
+	public HibernateKeyedReadOnlyDao(SessionFactory sessionFactory) {
+		super();
+		setSessionFactory(sessionFactory);
+	}
+	
 	@SuppressWarnings("unchecked")
 	public T findById(int id) {
 		return (T) getSession().get(createExampleBean().getClass(), id);
 	}
 
-	@SuppressWarnings("unchecked")
 	public SortedSet<T> getAll() {
-		SortedSet<T> all = new TreeSet<T>();
 		T exampleBean = createExampleBean();
-		all.addAll(getSession().createCriteria(exampleBean.getClass()).add(Example.create(exampleBean)).list());
-		return all;
+		return asSortedSet(getSession().createCriteria(exampleBean.getClass()).add(Example.create(exampleBean)));
+	}
+
+	protected SortedSet<T> getAllByExample(T exampleBean) {
+		return asSortedSet(createCriteria(exampleBean));
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected SortedSet<T> asSortedSet(Query q) {
+		return new TreeSet<T>(q.list());
 	}
 
 	@SuppressWarnings("unchecked")
-	protected SortedSet<T> getAllByExample(T exampleBean) {
-		SortedSet<T> all = new TreeSet<T>();
-		all.addAll(createCriteria(exampleBean).list());
-		return all;		
+	protected SortedSet<T> asSortedSet(Criteria c) {
+		return new TreeSet<T>(c.list());
 	}
-	
+
+	@SuppressWarnings("unchecked")
+	protected <O> SortedSet<O> asSortedSet(Query q, Class<O> clazz) {
+		return new TreeSet<O>(q.list());
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <O> SortedSet<O> asSortedSet(Criteria c, Class<O> clazz) {
+		return new TreeSet<O>(c.list());
+	}
+
 	@SuppressWarnings("unchecked")
 	protected T findByExample(T exampleBean) {
 		return (T) createCriteria(exampleBean).uniqueResult();

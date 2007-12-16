@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.util.Iterator;
 
+import javax.annotation.Resource;
+
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +22,7 @@ import uk.co.unclealex.music.core.util.EnumeratorBridge;
 public class TrackStreamServiceImpl implements TrackStreamService {
 
 	private	TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
-	private int i_maximumTrackDataLength;
+	private Integer i_maximumTrackDataLength;
 
 	private static final int BUFFER_STREAM_SIZE = 1024 * 1024;
 
@@ -54,11 +56,12 @@ public class TrackStreamServiceImpl implements TrackStreamService {
 		i_trackDataStreamIteratorFactory = trackDataStreamIteratorFactory;
 	}
 
-	public int getMaximumTrackDataLength() {
+	public Integer getMaximumTrackDataLength() {
 		return i_maximumTrackDataLength;
 	}
 
-	public void setMaximumTrackDataLength(int maximumTrackDataLength) {
+	@Resource(name="maximumTrackDataLength")
+	public void setMaximumTrackDataLength(Integer maximumTrackDataLength) {
 		i_maximumTrackDataLength = maximumTrackDataLength;
 	}
 

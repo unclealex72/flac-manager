@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -278,10 +277,9 @@ public class TrackWriterImpl implements TrackWriter {
 		getTitleFormatServicesByTrackStream().remove(trackStream);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public Set<WritingListener> getWritingListenersForTrackStream(TrackStream trackStream) {
 		Set<WritingListener> writingListeners = getWritingListenersByTrackStream().get(trackStream);
-		return writingListeners == null?Collections.EMPTY_SET:writingListeners;
+		return writingListeners == null?new HashSet<WritingListener>():writingListeners;
 	}
 	
 	@Required

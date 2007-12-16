@@ -1,13 +1,14 @@
 package uk.co.unclealex.music.core.dao;
 
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.hibernate.Criteria;
 import org.hibernate.Query;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Example;
-import org.springframework.beans.factory.annotation.Required;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,15 +16,16 @@ import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.util.Partitioner;
 
 @Repository
 @Transactional
 public class HibernateEncodedTrackDao extends
 		HibernateKeyedDao<EncodedTrackBean> implements EncodedTrackDao {
 
-	private int i_maximumUrlsPerQuery;
-	private Partitioner<String> i_partitioner;
+	@Autowired
+	public HibernateEncodedTrackDao(@Qualifier("musicSessionFactory") SessionFactory sessionFactory) {
+		super(sessionFactory);
+	}
 
 	@Override
 	public SortedSet<? extends EncodedTrackBean> findByAlbumAndEncoderBean(
@@ -39,18 +41,13 @@ public class HibernateEncodedTrackDao extends
 	public SortedSet<? extends EncodedTrackBean> findByArtistAndEncoderBean(
 			EncodedArtistBean encodedArtistBean, EncoderBean encoderBean) {
 		Query query = getSession().createQuery(
-		"select tr from encodedAlbumBean al join al.encodedTrackBean tr " +
+		"select tr from encodedAlbumBean al join al.encodedTrackBeans tr " +
 		"where al.encodedArtistBean = :encodedArtistBean and tr.encoderBean = :encoderBean");
 		query.setEntity("encodedArtistBean", encodedArtistBean);
 		query.setEntity("encoderBean", encoderBean);
 		return asSortedSet(query);
 	}
 
-	@SuppressWarnings("unchecked")
-	protected SortedSet<? extends EncodedTrackBean> asSortedSet(Query query) {
-		return new TreeSet<EncodedTrackBean>(query.list());
-	}
-	
 	public EncodedTrackBean findByUrlAndEncoderBean(String url, EncoderBean encoderBean) {
 		EncodedTrackBean exampleBean = createExampleBean();
 		exampleBean.setFlacUrl(url);
@@ -74,33 +71,14 @@ public class HibernateEncodedTrackDao extends
 		return criteria;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public SortedSet<EncodedTrackBean> findByEncoderBean(EncoderBean encoderBean) {
 		Criteria criteria = createFindByEncoderBean(createExampleBean(), encoderBean);
-		return new TreeSet<EncodedTrackBean>(criteria.list());
+		return asSortedSet(criteria);
 	}
 	
 	@Override
 	public EncodedTrackBean createExampleBean() {
 		return new EncodedTrackBean();
-	}
-
-	public int getMaximumUrlsPerQuery() {
-		return i_maximumUrlsPerQuery;
-	}
-
-	@Required
-	public void setMaximumUrlsPerQuery(int maximumUrlsPerQuery) {
-		i_maximumUrlsPerQuery = maximumUrlsPerQuery;
-	}
-
-	public Partitioner<String> getPartitioner() {
-		return i_partitioner;
-	}
-
-	@Required
-	public void setPartitioner(Partitioner<String> partitioner) {
-		i_partitioner = partitioner;
 	}
 }

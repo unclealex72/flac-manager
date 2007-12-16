@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.apache.commons.lang.ObjectUtils;
+
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.spring.Prototype;
 
@@ -64,7 +66,7 @@ public class FileTrackStreamImpl implements FileTrackStream {
 	
 	@Override
 	public int hashCode() {
-		return getRootDirectory().hashCode();
+		return ObjectUtils.hashCode(getRootDirectory());
 	}
 	
 	public File getRootDirectory() {
