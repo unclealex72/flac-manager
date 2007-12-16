@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoder.encoded.service;
+package uk.co.unclealex.music.encoder.service;
 
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;

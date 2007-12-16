@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoder.encoded.service;
+package uk.co.unclealex.music.encoder.service;
 
 import java.io.IOException;
 import java.util.SortedMap;
@@ -6,7 +6,6 @@ import java.util.concurrent.BlockingQueue;
 
 import org.apache.log4j.Logger;
 
-import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
 
 abstract class EncodingWorker extends Thread {
 

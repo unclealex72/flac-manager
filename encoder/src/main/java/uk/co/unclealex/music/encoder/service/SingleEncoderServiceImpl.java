@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoder.encoded.service;
+package uk.co.unclealex.music.encoder.service;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,7 +32,6 @@ import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
 import uk.co.unclealex.music.core.service.TrackDataStreamIteratorFactory;
 import uk.co.unclealex.music.core.service.TrackStreamService;
-import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
 import uk.co.unclealex.music.encoder.model.FlacAlbumBean;
 import uk.co.unclealex.music.encoder.model.FlacTrackBean;
 

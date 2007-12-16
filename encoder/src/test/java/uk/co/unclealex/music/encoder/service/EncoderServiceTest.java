@@ -37,7 +37,6 @@ import uk.co.unclealex.music.encoder.dao.FlacTrackDao;
 import uk.co.unclealex.music.encoder.dao.SlimServerInformationDao;
 import uk.co.unclealex.music.encoder.dao.TestFlacProvider;
 import uk.co.unclealex.music.encoder.dao.TestSlimServerInformationDao;
-import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
 import uk.co.unclealex.music.encoder.model.FlacTrackBean;
 
 public class EncoderServiceTest extends EncodedSpringTest {

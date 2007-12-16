@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoder.encoded.initialise;
+package uk.co.unclealex.music.encoder.initialise;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -24,8 +24,8 @@ import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.encoder.dao.FlacTrackDao;
-import uk.co.unclealex.music.encoder.encoded.service.FlacTrackService;
 import uk.co.unclealex.music.encoder.model.FlacTrackBean;
+import uk.co.unclealex.music.encoder.service.FlacTrackService;
 
 public class ImporterImpl implements Importer {
 

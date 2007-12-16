@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoder.encoded.service;
+package uk.co.unclealex.music.encoder.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,9 +31,7 @@ import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.service.EncodedService;
 import uk.co.unclealex.music.encoder.dao.FlacTrackDao;
-import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
 import uk.co.unclealex.music.encoder.model.FlacTrackBean;
-import uk.co.unclealex.music.encoder.service.SlimServerService;
 
 @Service
 @Transactional

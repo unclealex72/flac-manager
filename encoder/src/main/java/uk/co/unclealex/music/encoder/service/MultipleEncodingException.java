@@ -1,8 +1,7 @@
-package uk.co.unclealex.music.encoder.encoded.service;
+package uk.co.unclealex.music.encoder.service;
 
 import java.util.SortedMap;
 
-import uk.co.unclealex.music.encoder.encoded.model.EncodingCommandBean;
 
 public class MultipleEncodingException extends EncodingException {
 

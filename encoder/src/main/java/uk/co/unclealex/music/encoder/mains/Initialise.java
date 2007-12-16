@@ -1,8 +1,8 @@
 package uk.co.unclealex.music.encoder.mains;
 
 import uk.co.unclealex.music.core.mains.Main;
-import uk.co.unclealex.music.encoder.encoded.initialise.Importer;
-import uk.co.unclealex.music.encoder.encoded.service.EncoderService;
+import uk.co.unclealex.music.encoder.initialise.Importer;
+import uk.co.unclealex.music.encoder.service.EncoderService;
 
 @uk.co.unclealex.music.core.spring.Main
 public class Initialise extends Main {
