@@ -11,7 +11,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Date;
 import java.util.Formatter;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -25,8 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
-import uk.co.unclealex.music.core.io.SequenceOutputStream;
-import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
@@ -43,7 +40,6 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 
 	private EncodedTrackDao i_encodedTrackDao;
 	private TrackDataDao i_trackDataDao;
-	private FlacTrackService i_flactrackService;
 	private TrackStreamService i_trackStreamService;
 	private TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
 	
@@ -110,13 +106,11 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 	@Transactional(rollbackFor=IOException.class)
 	public EncodedTrackBean encode(EncodingCommandBean encodingCommandBean, Map<EncoderBean, File> commandCache) throws IOException {
 		TrackDataDao trackDataDao = getTrackDataDao();
-		FlacTrackService flactrackService = getFlactrackService();
 
 		EncoderBean encoderBean = encodingCommandBean.getEncoderBean();
 		FlacTrackBean flacTrackBean = encodingCommandBean.getFlacTrackBean();
 		
 		final EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		final TrackDataStreamIteratorFactory trackDataStreamIteratorFactory = getTrackDataStreamIteratorFactory();
 		FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
 		final String albumName = flacAlbumBean.getTitle();
 		final String artistName = flacAlbumBean.getFlacArtistBean().getName();
@@ -131,12 +125,10 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 		// We encode if there was no previously encoded track or the encoded track is older than the flac track
 		if (encodedTrackBean == null || encodedTrackBean.getTimestamp() < flacTrackBean.getFile().lastModified()) {
 			final EncodedTrackBean newEncodedTrackBean = encodedTrackBean==null?new EncodedTrackBean():encodedTrackBean;
-			EncodedAlbumBean encodedAlbumBean = flactrackService.findOrCreateEncodedAlbumBean(flacAlbumBean);
 			newEncodedTrackBean.setFlacUrl(url);
 			newEncodedTrackBean.setEncoderBean(encoderBean);
 			newEncodedTrackBean.setTimestamp(new Date().getTime());
 			newEncodedTrackBean.setLength(-1);
-			newEncodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
 			SortedSet<TrackDataBean> trackDataBeans = newEncodedTrackBean.getTrackDataBeans();
 			if (trackDataBeans != null) {
 				for (TrackDataBean trackDataBean : trackDataBeans) {
@@ -148,10 +140,7 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 			try {	
 				EncodingClosure closure = new EncodingClosure() {
 					public void process(InputStream in) throws IOException {
-						Iterator<OutputStream> outIterator = 
-							trackDataStreamIteratorFactory.createTrackDataOutputStreamIterator(newEncodedTrackBean);
-						OutputStream out = 
-							new SequenceOutputStream(getTrackStreamService().getMaximumTrackDataLength(), outIterator);
+						OutputStream out = getTrackStreamService().getTrackOutputStream(newEncodedTrackBean);
 						int length = IOUtils.copy(in, out);
 						out.close();
 						newEncodedTrackBean.setLength(length);
@@ -224,14 +213,5 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 	@Required
 	public void setTrackStreamService(TrackStreamService trackStreamService) {
 		i_trackStreamService = trackStreamService;
-	}
-
-	public FlacTrackService getFlactrackService() {
-		return i_flactrackService;
-	}
-
-	@Required
-	public void setFlactrackService(FlacTrackService flactrackService) {
-		i_flactrackService = flactrackService;
 	}
 }

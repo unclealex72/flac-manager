@@ -23,15 +23,15 @@
 		</property>
 		<property name="annotatedClasses">
 			<list>
-				<value>uk.co.unclealex.music.core.core.flac.model.FlacArtistBean</value>
-				<value>uk.co.unclealex.music.core.core.flac.model.FlacAlbumBean</value>
-				<value>uk.co.unclealex.music.core.core.flac.model.FlacTrackBean</value>
-				<value>uk.co.unclealex.music.core.core.flac.model.SlimServerInformationBean</value>
+				<value>uk.co.unclealex.music.encoder.model.FlacArtistBean</value>
+				<value>uk.co.unclealex.music.encoder.model.FlacAlbumBean</value>
+				<value>uk.co.unclealex.music.encoder.model.FlacTrackBean</value>
+				<value>uk.co.unclealex.music.encoder.model.SlimServerInformationBean</value>
 			</list>
 		</property>
 	</bean>
 	
-	<bean name="maximumThreads" class="java.lang.Integer">
+	<bean id="maximumThreads" class="java.lang.Integer">
 		<constructor-arg value="8"/>
 	</bean>
 </beans>

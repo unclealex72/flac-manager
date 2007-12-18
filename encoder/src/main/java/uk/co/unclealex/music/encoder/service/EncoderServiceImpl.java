@@ -14,8 +14,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
@@ -27,10 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.service.EncodedService;
 import uk.co.unclealex.music.encoder.dao.FlacTrackDao;
+import uk.co.unclealex.music.encoder.model.FlacAlbumBean;
 import uk.co.unclealex.music.encoder.model.FlacTrackBean;
 
 @Service
@@ -39,7 +39,7 @@ public class EncoderServiceImpl implements EncoderService {
 
 	private static Logger log = Logger.getLogger(EncoderServiceImpl.class);
 
-	private int i_maximumThreads = 1;
+	private Integer i_maximumThreads = 8;
 	
 	private SlimServerService i_slimServerService;
 	private EncodedTrackDao i_encodedTrackDao;
@@ -48,6 +48,7 @@ public class EncoderServiceImpl implements EncoderService {
 	private EncodedService i_encodedService;
 	private FlacTrackDao i_flacTrackDao;
 	private SingleEncoderService i_singleEncoderService;
+	private FlacTrackService i_flacTrackService;
 	
 	private AtomicBoolean i_atomicCurrentlyEncoding = new AtomicBoolean(false);
 	private Set<EncodingEventListener> i_encodingEventListeners = new HashSet<EncodingEventListener>();
@@ -123,6 +124,7 @@ public class EncoderServiceImpl implements EncoderService {
 		if (!errors.isEmpty()) {
 			throw new MultipleEncodingException(errors, totalCount);
 		}
+		updateMissingAlbumInformation();
 		return totalCount;
 	}
 
@@ -171,16 +173,30 @@ public class EncoderServiceImpl implements EncoderService {
 		return encodeAll() + removeDeleted();
 	}
 	
+	@Override
+	public void updateMissingAlbumInformation() {
+		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
+		FlacTrackDao flacTrackDao = getFlacTrackDao();
+		FlacTrackService flactrackService = getFlacTrackService();
+		for (EncodedTrackBean encodedTrackBean : encodedTrackDao.findTracksWithoutAnAlbum()) {
+			String flacUrl = encodedTrackBean.getFlacUrl();
+			FlacAlbumBean flacAlbumBean = flacTrackDao.findByUrl(flacUrl).getFlacAlbumBean();
+			EncodedAlbumBean encodedAlbumBean = flactrackService.findOrCreateEncodedAlbumBean(flacAlbumBean);
+			encodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
+			encodedTrackDao.store(encodedTrackBean);
+			log.info("Updated album information for " + flacUrl);
+		}
+	}
+	
 	public boolean isCurrentlyEncoding() {
 		return getAtomicCurrentlyEncoding().get();
 	}
 
-	public int getMaximumThreads() {
+	public Integer getMaximumThreads() {
 		return i_maximumThreads;
 	}
 
-	@Resource
-	public void setMaximumThreads(int maximumThreads) {
+	public void setMaximumThreads(Integer maximumThreads) {
 		i_maximumThreads = maximumThreads;
 	}
 
@@ -241,7 +257,6 @@ public class EncoderServiceImpl implements EncoderService {
 		return i_encodingEventListeners;
 	}
 
-	@Required
 	public void setEncodingEventListeners(
 			Set<EncodingEventListener> encodingEventListeners) {
 		i_encodingEventListeners = encodingEventListeners;
@@ -263,6 +278,15 @@ public class EncoderServiceImpl implements EncoderService {
 	@Required
 	public void setEncodedService(EncodedService encodedService) {
 		i_encodedService = encodedService;
+	}
+
+	public FlacTrackService getFlacTrackService() {
+		return i_flacTrackService;
+	}
+
+	@Required
+	public void setFlacTrackService(FlacTrackService flactrackService) {
+		i_flacTrackService = flactrackService;
 	}
 
 }

@@ -2,23 +2,28 @@ package uk.co.unclealex.music.core.service;
 
 import java.util.Collection;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.core.dao.EncodedArtistDao;
+import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.KeyedDao;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
-import uk.co.unclealex.music.core.model.KeyedBean;
+import uk.co.unclealex.music.core.model.IdentifiableBean;
 
 @Service
 @Transactional
 public class EncodedServiceImpl implements EncodedService {
 
+	private static Logger log = Logger.getLogger(EncodedServiceImpl.class);
+
 	private EncodedAlbumDao i_encodedAlbumDao;
 	private EncodedArtistDao i_encodedArtistDao;
+	private EncodedTrackDao i_encodedTrackDao;
 	
 	@Override
 	public EncodedAlbumBean findOrCreateAlbum(
@@ -52,20 +57,21 @@ public class EncodedServiceImpl implements EncodedService {
 	public int removeEmptyAlbumsAndArtists() {
 		EncodedAlbumDao encodedAlbumDao = getEncodedAlbumDao();
 		EncodedArtistDao encodedArtistDao = getEncodedArtistDao();
-		int cnt = remove(encodedAlbumDao, encodedAlbumDao.findAllEmptyAlbums());
-		remove(encodedArtistDao, encodedArtistDao.findAllEmptyArtists());
+		int cnt = remove("artist", encodedAlbumDao, encodedAlbumDao.findAllEmptyAlbums());
+		remove("album", encodedArtistDao, encodedArtistDao.findAllEmptyArtists());
 		return cnt;
 	}
 	
-	protected <T extends KeyedBean<T>> int remove(KeyedDao<T> dao, Collection<T> beans) {
+	protected <T extends IdentifiableBean<T, String>> int remove(String type, KeyedDao<T> dao, Collection<T> beans) {
 		int cnt = 0;
 		for (T bean : beans) {
 			dao.remove(bean);
+			log.info("Removed " + type + " " + bean.getIdentifier());
 			cnt++;
 		}
 		return cnt;
 	}
-	
+		
 	public EncodedAlbumDao getEncodedAlbumDao() {
 		return i_encodedAlbumDao;
 	}
@@ -82,5 +88,13 @@ public class EncodedServiceImpl implements EncodedService {
 	@Required
 	public void setEncodedArtistDao(EncodedArtistDao encodedArtistDao) {
 		i_encodedArtistDao = encodedArtistDao;
+	}
+
+	public EncodedTrackDao getEncodedTrackDao() {
+		return i_encodedTrackDao;
+	}
+
+	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
+		i_encodedTrackDao = encodedTrackDao;
 	}
 }

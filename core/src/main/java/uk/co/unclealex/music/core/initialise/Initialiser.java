@@ -9,5 +9,5 @@ import org.springframework.transaction.annotation.Transactional;
 public interface Initialiser {
 
 	public void initialise() throws IOException;
-	
+	public void clear();
 }

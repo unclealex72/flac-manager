@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.core.dao.EncodedArtistDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.service.TrackStreamService;
@@ -33,8 +32,8 @@ public class TrackImporterImpl implements TrackImporter {
 	@Override
 	@Transactional(propagation=Propagation.REQUIRES_NEW)
 	public EncodedTrackBean importTrack(
-			InputStream in, EncoderBean encoderBean, EncodedAlbumBean encodedAlbumBean, 
-			String title, String url, int trackNumber, long lastModifiedMillis) throws IOException {
+			InputStream in, EncoderBean encoderBean, String title, 
+			String url, int trackNumber, long lastModifiedMillis) throws IOException {
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
 		EncodedTrackBean encodedTrackBean = new EncodedTrackBean();
 		encodedTrackBean.setEncoderBean(encoderBean);
@@ -43,7 +42,6 @@ public class TrackImporterImpl implements TrackImporter {
 		encodedTrackBean.setTrackNumber(trackNumber);
 		encodedTrackBean.setTitle(title);
 		encodedTrackBean.setLength(0);
-		encodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
 		encodedTrackDao.store(encodedTrackBean);
 		OutputStream out = getTrackStreamService().getTrackOutputStream(encodedTrackBean);
 		encodedTrackBean.setLength(IOUtils.copy(in, out));

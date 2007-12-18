@@ -12,13 +12,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.DeviceDao;
+import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
+import uk.co.unclealex.music.core.dao.EncodedArtistDao;
+import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
+import uk.co.unclealex.music.core.dao.KeyedDao;
 import uk.co.unclealex.music.core.dao.OwnerDao;
+import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.model.DeviceBean;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.model.KeyedBean;
 import uk.co.unclealex.music.core.model.OwnerBean;
 
 @Service
@@ -30,6 +36,11 @@ public class InitialiserImpl implements Initialiser {
 	private OwnerDao i_ownerDao;
 	private EncoderDao i_encoderDao;
 	private DeviceDao i_deviceDao;
+	private EncodedTrackDao i_encodedTrackDao;
+	private EncodedAlbumDao i_encodedAlbumDao;
+	private EncodedArtistDao i_encodedArtistDao;
+	private TrackDataDao i_trackDataDao;
+
 	
 	public void initialise() throws IOException {
 		log.info("Initialising defaults.");
@@ -88,6 +99,26 @@ public class InitialiserImpl implements Initialiser {
 		return deviceBean;
 	}
 
+	@Override
+	public void clear() {
+		TrackDataDao trackDataDao = getTrackDataDao();
+		for (int id : trackDataDao.getAllIds()) {
+			trackDataDao.removeById(id);
+		}
+		removeAll(getEncodedTrackDao());
+		removeAll(getEncodedAlbumDao());
+		removeAll(getEncodedArtistDao());
+		removeAll(getDeviceDao());
+		removeAll(getOwnerDao());
+		removeAll(getEncoderDao());
+	}
+
+	protected <T extends KeyedBean<T>> void removeAll(KeyedDao<T> dao) {
+		for (T keyedBean : dao.getAll()) {
+			dao.remove(keyedBean);
+		}
+	}
+
 	public DeviceDao getDeviceDao() {
 		return i_deviceDao;
 	}
@@ -113,5 +144,41 @@ public class InitialiserImpl implements Initialiser {
 	@Required
 	public void setOwnerDao(OwnerDao ownerDao) {
 		i_ownerDao = ownerDao;
+	}
+
+	public EncodedTrackDao getEncodedTrackDao() {
+		return i_encodedTrackDao;
+	}
+
+	@Required
+	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
+		i_encodedTrackDao = encodedTrackDao;
+	}
+
+	public EncodedAlbumDao getEncodedAlbumDao() {
+		return i_encodedAlbumDao;
+	}
+
+	@Required
+	public void setEncodedAlbumDao(EncodedAlbumDao encodedAlbumDao) {
+		i_encodedAlbumDao = encodedAlbumDao;
+	}
+
+	public EncodedArtistDao getEncodedArtistDao() {
+		return i_encodedArtistDao;
+	}
+
+	@Required
+	public void setEncodedArtistDao(EncodedArtistDao encodedArtistDao) {
+		i_encodedArtistDao = encodedArtistDao;
+	}
+
+	public TrackDataDao getTrackDataDao() {
+		return i_trackDataDao;
+	}
+
+	@Required
+	public void setTrackDataDao(TrackDataDao trackDataDao) {
+		i_trackDataDao = trackDataDao;
 	}
 }

@@ -9,12 +9,14 @@ public class SequenceOutputStream extends OutputStream {
 	private Iterator<OutputStream> outputStreamIterator;
 	private OutputStream currentOutputStream;
 	private int threshold;
+	private int available;
 	private long bytesWritten = 0;
 	
 	public SequenceOutputStream(int threshold,
 			Iterator<OutputStream> outputStreamIterator) {
 		this.threshold = threshold;
 		this.outputStreamIterator = outputStreamIterator;
+		available = threshold;
 	}
 
 	
@@ -41,16 +43,16 @@ public class SequenceOutputStream extends OutputStream {
 	@Override
 	public void write(byte[] b, int off, int len) throws IOException {
 		while (len != 0) {
-			int availableToWrite = threshold - (int) (bytesWritten % threshold);
-			if (availableToWrite == 0) {
+			if (available == 0) {
 				thresholdReached();
-				availableToWrite = threshold;
+				available = threshold;
 			}
-			int writeNow = Math.min(len, availableToWrite);
+			int writeNow = Math.min(len, available);
 			getStream().write(b, off, writeNow);
 			off += writeNow;
 			len -= writeNow;
 			bytesWritten += writeNow;
+			available -= writeNow;
 		}
 	}
 

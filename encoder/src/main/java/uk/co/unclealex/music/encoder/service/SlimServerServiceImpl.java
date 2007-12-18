@@ -2,6 +2,7 @@ package uk.co.unclealex.music.encoder.service;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.core.SlimServerConfig;
@@ -35,6 +36,7 @@ public class SlimServerServiceImpl implements SlimServerService {
 		return i_slimServerInformationDao;
 	}
 
+	@Required
 	public void setSlimServerInformationDao(
 			SlimServerInformationDao slimServerInformationDao) {
 		i_slimServerInformationDao = slimServerInformationDao;
@@ -44,6 +46,7 @@ public class SlimServerServiceImpl implements SlimServerService {
 		return i_slimServerConfig;
 	}
 
+	@Required
 	public void setSlimServerConfig(SlimServerConfig slimServerConfig) {
 		i_slimServerConfig = slimServerConfig;
 	}

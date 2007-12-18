@@ -48,6 +48,12 @@ public class HibernateEncodedTrackDao extends
 		return asSortedSet(query);
 	}
 
+	@Override
+	public SortedSet<? extends EncodedTrackBean> findTracksWithoutAnAlbum() {
+		Query query = getSession().createQuery("from encodedTrackBean where encodedAlbumBean is null");
+		return asSortedSet(query);
+	}
+	
 	public EncodedTrackBean findByUrlAndEncoderBean(String url, EncoderBean encoderBean) {
 		EncodedTrackBean exampleBean = createExampleBean();
 		exampleBean.setFlacUrl(url);

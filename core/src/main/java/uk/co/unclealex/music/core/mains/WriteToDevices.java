@@ -1,13 +1,12 @@
 package uk.co.unclealex.music.core.mains;
 
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.service.DeviceService;
 
 @Transactional
 @uk.co.unclealex.music.core.spring.Main
-public class WriteToDevices extends Main {
+public class WriteToDevices extends CoreMain {
 
 	private DeviceService i_deviceService;
 	
@@ -24,7 +23,6 @@ public class WriteToDevices extends Main {
 		return i_deviceService;
 	}
 
-	@Required
 	public void setDeviceService(DeviceService deviceService) {
 		i_deviceService = deviceService;
 	}

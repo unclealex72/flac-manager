@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
  * @author alex
  *
  */
-@Service("slimServiceConfig")
+@Service("slimServerConfig")
 public class FileSlimServerConfig implements SlimServerConfig {
 
 	private List<String> i_definiteArticles = new LinkedList<String>();

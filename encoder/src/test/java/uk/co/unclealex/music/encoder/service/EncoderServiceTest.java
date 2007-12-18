@@ -18,28 +18,21 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 
-import uk.co.unclealex.music.core.AlreadyEncodingException;
-import uk.co.unclealex.music.core.CurrentlyScanningException;
-import uk.co.unclealex.music.core.EncodedTrackBean;
-import uk.co.unclealex.music.core.EncodedTrackDao;
-import uk.co.unclealex.music.core.EncoderBean;
-import uk.co.unclealex.music.core.EncoderDao;
-import uk.co.unclealex.music.core.EncoderService;
-import uk.co.unclealex.music.core.EncoderUrlPair;
-import uk.co.unclealex.music.core.EncodingClosure;
-import uk.co.unclealex.music.core.MultipleEncodingException;
-import uk.co.unclealex.music.core.SingleEncoderService;
-import uk.co.unclealex.music.core.TrackDataBean;
-import uk.co.unclealex.music.core.TrackDataDao;
-import uk.co.unclealex.music.core.TrackStreamService;
-import uk.co.unclealex.music.core.core.EncodedSpringTest;
+import uk.co.unclealex.music.core.dao.EncodedTrackDao;
+import uk.co.unclealex.music.core.dao.EncoderDao;
+import uk.co.unclealex.music.core.dao.TrackDataDao;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.model.TrackDataBean;
+import uk.co.unclealex.music.core.service.TrackStreamService;
+import uk.co.unclealex.music.encoder.EncoderSpringTest;
 import uk.co.unclealex.music.encoder.dao.FlacTrackDao;
 import uk.co.unclealex.music.encoder.dao.SlimServerInformationDao;
 import uk.co.unclealex.music.encoder.dao.TestFlacProvider;
 import uk.co.unclealex.music.encoder.dao.TestSlimServerInformationDao;
 import uk.co.unclealex.music.encoder.model.FlacTrackBean;
 
-public class EncoderServiceTest extends EncodedSpringTest {
+public class EncoderServiceTest extends EncoderSpringTest {
 
 	public static final int SIMULTANEOUS_THREADS = 1;
 	
@@ -240,7 +233,7 @@ public class EncoderServiceTest extends EncodedSpringTest {
 				fail(
 					"Track " + trackDataBean.getSequence() + " for encoding " + 
 					encodedTrackBean.getEncoderBean().getExtension() + " and url " + encodedTrackBean.getFlacUrl() + 
-					" is too long (" + length + ")");
+					" is too long (" + length + " instead of " + maximumTrackDataLength + ")");
 			}
 		}
 	}
@@ -288,7 +281,7 @@ public class EncoderServiceTest extends EncodedSpringTest {
 			for (TrackDataBean dataBean : trackDataBeans) {
 				totalSize += dataBean.getTrack().length;
 			}
-			assertFalse("The track data should not be empty.", trackDataBean.getTrack().length == 0);
+			assertFalse("The track data should not be empty.", totalSize == 0);
 		}
 		else {
 			assertFalse("The track should not have been overwritten.", written);

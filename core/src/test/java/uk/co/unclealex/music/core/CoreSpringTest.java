@@ -12,15 +12,14 @@ import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.core.dao.EncodedArtistDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.dao.KeyedDao;
 import uk.co.unclealex.music.core.dao.OwnerDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.initialise.Initialiser;
 import uk.co.unclealex.music.core.initialise.TrackImporter;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.model.KeyedBean;
 import uk.co.unclealex.music.core.service.EncodedService;
 
 public abstract class CoreSpringTest extends SpringTest {
@@ -50,6 +49,8 @@ public abstract class CoreSpringTest extends SpringTest {
 	protected void onSetUpBeforeTransaction() throws Exception {
 		getInitialiser().initialise();
 		EncodedService encodedService = getEncodedService();
+		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
+		
 		SortedSet<EncoderBean> encoderBeans = getEncoderDao().getAll();
 		
 		TrackImporter trackImporter = getTrackImporter();
@@ -72,7 +73,10 @@ public abstract class CoreSpringTest extends SpringTest {
 			for (EncoderBean encoderBean : encoderBeans) {
 				String url = "music/" + track + "." + encoderBean.getExtension();
 				InputStream in = classLoader.getResourceAsStream(url);
-				trackImporter.importTrack(in, encoderBean, encodedAlbumBean, title, url, trackNumber, encodingTime);
+				EncodedTrackBean encodedTrackBean = 
+					trackImporter.importTrack(in, encoderBean, title, url, trackNumber, encodingTime);
+				encodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
+				encodedTrackDao.store(encodedTrackBean);
 			}
 		}
 	}
@@ -90,25 +94,12 @@ public abstract class CoreSpringTest extends SpringTest {
 		}
 		return retVal.toString();
 	}
+	
 	@Override
-	protected void onTearDownAfterTransaction() throws Exception {
-		TrackDataDao trackDataDao = getTrackDataDao();
-		for (int id : trackDataDao.getAllIds()) {
-			trackDataDao.removeById(id);
-		}
-		removeAll(getEncodedTrackDao());
-		removeAll(getEncodedAlbumDao());
-		removeAll(getEncodedArtistDao());
-		removeAll(getDeviceDao());
-		removeAll(getOwnerDao());
-		removeAll(getEncoderDao());
+	protected void onTearDownAfterTransaction() {
+		getInitialiser().clear();
 	}
 
-	protected <T extends KeyedBean<T>> void removeAll(KeyedDao<T> dao) {
-		for (T keyedBean : dao.getAll()) {
-			dao.remove(keyedBean);
-		}
-	}
 	@Override
 	protected String[] getConfigLocations() {
 		return new String[] { "applicationContext-music-core.xml", "applicationContext-music-core-test.xml" }; 

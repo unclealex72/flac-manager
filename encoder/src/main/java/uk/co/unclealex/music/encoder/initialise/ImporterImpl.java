@@ -16,17 +16,20 @@ import java.util.TreeMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.initialise.TrackImporter;
-import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.encoder.dao.FlacTrackDao;
 import uk.co.unclealex.music.encoder.model.FlacTrackBean;
-import uk.co.unclealex.music.encoder.service.FlacTrackService;
+import uk.co.unclealex.music.encoder.service.EncoderService;
 
+@Service
+@Transactional
 public class ImporterImpl implements Importer {
 
 	private static final Logger log = Logger.getLogger(ImporterImpl.class);
@@ -36,16 +39,15 @@ public class ImporterImpl implements Importer {
 
 	private EncoderDao i_encoderDao;
 	private EncodedTrackDao i_encodedTrackDao;
-	private FlacTrackService i_flacTrackService;
+	private EncoderService i_encoderService;
 	private FlacTrackDao i_flacTrackDao;
 	private TrackImporter i_trackImporter;
 	
 	public void importTracks() throws IOException {
 		TrackImporter trackImporter = getTrackImporter();
 		log.info("Importing tracks.");
-		File baseDir = new File("/mnt/multimedia/converted");
+		File baseDir = new File("/home/converted");
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		FlacTrackService flacTrackService = getFlacTrackService();
 		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
 			SortedMap<File, FlacTrackBean> tracksByFile = new TreeMap<File, FlacTrackBean>();
 			File base = new File(new File(baseDir, encoderBean.getExtension()), "raw");
@@ -58,17 +60,16 @@ public class ImporterImpl implements Importer {
 					EncodedTrackBean encodedTrackBean =
 						encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
 					if (encodedTrackBean == null) {
-						EncodedAlbumBean encodedAlbumBean =
-							flacTrackService.findOrCreateEncodedAlbumBean(flacTrackBean.getFlacAlbumBean());
 						InputStream in = new FileInputStream(file);
 						trackImporter.importTrack(
-							in, encoderBean, encodedAlbumBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), 
-							flacTrackBean.getTrackNumber(), file.lastModified());
+							in, encoderBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), flacTrackBean.getTrackNumber(), 
+							file.lastModified());
 						in.close();
 					}
 				}
 			}
 		}
+		getEncoderService().updateMissingAlbumInformation();
 	}
 	
 	protected void collect(File base, SortedMap<File, FlacTrackBean> tracksByFile, final String ext) throws IOException {
@@ -155,12 +156,12 @@ public class ImporterImpl implements Importer {
 		i_encodedTrackDao = encodedTrackDao;
 	}
 
-	public FlacTrackService getFlacTrackService() {
-		return i_flacTrackService;
+	public EncoderService getEncoderService() {
+		return i_encoderService;
 	}
 
 	@Required
-	public void setFlacTrackService(FlacTrackService flacTrackService) {
-		i_flacTrackService = flacTrackService;
+	public void setEncoderService(EncoderService encoderService) {
+		i_encoderService = encoderService;
 	}
 }

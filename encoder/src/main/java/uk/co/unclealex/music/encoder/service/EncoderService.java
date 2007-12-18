@@ -10,6 +10,8 @@ public interface EncoderService {
 
 	public int encodeAll() throws AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException, IOException;
 
+	public void updateMissingAlbumInformation();
+	
 	public int removeDeleted();
 
 	public int encodeAllAndRemoveDeleted() throws AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException, IOException;

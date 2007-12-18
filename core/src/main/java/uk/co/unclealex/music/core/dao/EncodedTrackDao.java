@@ -18,4 +18,6 @@ public interface EncodedTrackDao extends KeyedDao<EncodedTrackBean> {
 
 	public SortedSet<? extends EncodedTrackBean> findByAlbumAndEncoderBean(
 			EncodedAlbumBean encodedAlbumBean, EncoderBean encoderBean);
+	
+	public SortedSet<? extends EncodedTrackBean> findTracksWithoutAnAlbum();
 }
