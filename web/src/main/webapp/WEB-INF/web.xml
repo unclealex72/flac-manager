@@ -119,7 +119,7 @@
 
 	<filter>
 		<filter-name>download</filter-name>
-		<filter-class>uk.co.unclealex.music.web.encoded.filter.ZipDownloadFilter</filter-class>
+		<filter-class>uk.co.unclealex.music.web.filter.ZipDownloadFilter</filter-class>
 	</filter>
 <!-- 
 	<filter-mapping>

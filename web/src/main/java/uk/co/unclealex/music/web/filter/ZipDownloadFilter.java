@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.web.encoded.filter;
+package uk.co.unclealex.music.web.filter;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -20,13 +20,12 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import uk.co.unclealex.flacconverter.ZipDownloadFilter;
-import uk.co.unclealex.music.web.encoded.dao.EncoderDao;
-import uk.co.unclealex.music.web.encoded.model.EncoderBean;
-import uk.co.unclealex.music.web.encoded.service.titleformat.TitleFormatFactory;
-import uk.co.unclealex.music.web.encoded.writer.TrackWritingException;
-import uk.co.unclealex.music.web.flac.model.DownloadCartBean;
-import uk.co.unclealex.music.web.flac.service.DownloadCartService;
+import uk.co.unclealex.music.core.dao.EncoderDao;
+import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatFactory;
+import uk.co.unclealex.music.core.writer.TrackWritingException;
+import uk.co.unclealex.music.web.model.DownloadCartBean;
+import uk.co.unclealex.music.web.service.DownloadCartService;
 
 public class ZipDownloadFilter implements Filter {
 

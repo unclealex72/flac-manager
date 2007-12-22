@@ -3,26 +3,25 @@ package uk.co.unclealex.music.web.actions;
 import java.util.LinkedList;
 import java.util.List;
 
-import uk.co.unclealex.flacconverter.RemoveFromCartAction;
-import uk.co.unclealex.music.web.flac.model.FlacBean;
-import uk.co.unclealex.music.web.flac.model.FlacTrackBean;
+import uk.co.unclealex.music.core.model.EncodedBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
 
 public class RemoveTrackFromCartAction extends RemoveFromCartAction {
 
-	private FlacTrackBean i_flacTrack;
+	private EncodedTrackBean i_encodedTrack;
 
 	@Override
-	public List<FlacBean> listBeansToRemove() {
-		List<FlacBean> flacBeans = new LinkedList<FlacBean>();
-		flacBeans.add(getFlacTrack());
-		return flacBeans;
+	public List<EncodedBean> listBeansToRemove() {
+		List<EncodedBean> encodedBeans = new LinkedList<EncodedBean>();
+		encodedBeans.add(getEncodedTrack());
+		return encodedBeans;
 	}
 	
-	public FlacTrackBean getFlacTrack() {
-		return i_flacTrack;
+	public EncodedTrackBean getEncodedTrack() {
+		return i_encodedTrack;
 	}
 
-	public void setFlacTrack(FlacTrackBean flacTrack) {
-		i_flacTrack = flacTrack;
+	public void setEncodedTrack(EncodedTrackBean encodedTrack) {
+		i_encodedTrack = encodedTrack;
 	}
 }

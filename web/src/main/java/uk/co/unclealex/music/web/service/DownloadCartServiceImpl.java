@@ -1,4 +1,4 @@
-package uk.co.unclealex.flacconverter.flac.service;
+package uk.co.unclealex.music.web.service;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -7,72 +7,71 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import uk.co.unclealex.flacconverter.encoded.dao.EncodedTrackDao;
-import uk.co.unclealex.flacconverter.encoded.model.EncodedTrackBean;
-import uk.co.unclealex.flacconverter.encoded.model.EncoderBean;
-import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatService;
-import uk.co.unclealex.flacconverter.encoded.service.titleformat.TitleFormatServiceFactory;
-import uk.co.unclealex.flacconverter.encoded.writer.TrackStream;
-import uk.co.unclealex.flacconverter.encoded.writer.TrackWriter;
-import uk.co.unclealex.flacconverter.encoded.writer.TrackWriterFactory;
-import uk.co.unclealex.flacconverter.encoded.writer.TrackWritingException;
-import uk.co.unclealex.flacconverter.flac.dao.FlacAlbumDao;
-import uk.co.unclealex.flacconverter.flac.dao.FlacArtistDao;
-import uk.co.unclealex.flacconverter.flac.model.DownloadCartBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacAlbumBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacArtistBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacBean;
-import uk.co.unclealex.flacconverter.flac.model.FlacTrackBean;
-import uk.co.unclealex.flacconverter.flac.visitor.FlacTrackVisitor;
-import uk.co.unclealex.flacconverter.flac.visitor.FlacVisitor;
+import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
+import uk.co.unclealex.music.core.dao.EncodedArtistDao;
+import uk.co.unclealex.music.core.dao.EncodedTrackDao;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
+import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.core.model.EncodedBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.core.visitor.EncodedTrackVisitor;
+import uk.co.unclealex.music.core.visitor.EncodedVisitor;
+import uk.co.unclealex.music.core.writer.TrackStream;
+import uk.co.unclealex.music.core.writer.TrackWriter;
+import uk.co.unclealex.music.core.writer.TrackWriterFactory;
+import uk.co.unclealex.music.core.writer.TrackWritingException;
+import uk.co.unclealex.music.web.model.DownloadCartBean;
 
 public class DownloadCartServiceImpl implements DownloadCartService {
 
 	private TrackWriterFactory i_trackWriterFactory;
 	private EncodedTrackDao i_encodedTrackDao;
-	private FlacAlbumDao i_flacAlbumDao;
-	private FlacArtistDao i_flacArtistDao;
+	private EncodedAlbumDao i_encodedAlbumDao;
+	private EncodedArtistDao i_encodedArtistDao;
 	private TitleFormatServiceFactory i_titleFormatServiceFactory;
 	
 	@Override
-	public SortedMap<FlacArtistBean, SortedMap<FlacAlbumBean, SortedSet<FlacTrackBean>>> createFullView(
+	public SortedMap<EncodedArtistBean, SortedMap<EncodedAlbumBean, SortedSet<EncodedTrackBean>>> createFullView(
 			DownloadCartBean downloadCartBean) {
-		final SortedMap<FlacArtistBean, SortedMap<FlacAlbumBean, SortedSet<FlacTrackBean>>> fullView =
-			new TreeMap<FlacArtistBean, SortedMap<FlacAlbumBean,SortedSet<FlacTrackBean>>>();
-		FlacVisitor flacVisitor = new FlacVisitor() {
+		final SortedMap<EncodedArtistBean, SortedMap<EncodedAlbumBean, SortedSet<EncodedTrackBean>>> fullView =
+			new TreeMap<EncodedArtistBean, SortedMap<EncodedAlbumBean,SortedSet<EncodedTrackBean>>>();
+		EncodedVisitor encodedVisitor = new EncodedVisitor() {
 			@Override
-			public void visit(FlacArtistBean flacArtistBean) {
-				fullView.put(flacArtistBean, null);
+			public void visit(EncodedArtistBean encodedArtistBean) {
+				fullView.put(encodedArtistBean, null);
 			}
 			@Override
-			public void visit(FlacAlbumBean flacAlbumBean) {
-				FlacArtistBean flacArtistBean = flacAlbumBean.getFlacArtistBean();
-				SortedMap<FlacAlbumBean, SortedSet<FlacTrackBean>> albums = getAlbumsForArtist(flacArtistBean);
+			public void visit(EncodedAlbumBean encodedAlbumBean) {
+				EncodedArtistBean encodedArtistBean = encodedAlbumBean.getEncodedArtistBean();
+				SortedMap<EncodedAlbumBean, SortedSet<EncodedTrackBean>> albums = getAlbumsForArtist(encodedArtistBean);
 				if (albums != null) {
-					albums.put(flacAlbumBean, null);
+					albums.put(encodedAlbumBean, null);
 				}
 			}
 			@Override
-			public void visit(FlacTrackBean flacTrackBean) {
-				FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
-				FlacArtistBean flacArtistBean = flacAlbumBean.getFlacArtistBean();
-				SortedMap<FlacAlbumBean, SortedSet<FlacTrackBean>> albums = getAlbumsForArtist(flacArtistBean);
-				if (!albums.containsKey(flacAlbumBean)) {
-					albums.put(flacAlbumBean, new TreeSet<FlacTrackBean>());
+			public void visit(EncodedTrackBean encodedTrackBean) {
+				EncodedAlbumBean encodedAlbumBean = encodedTrackBean.getEncodedAlbumBean();
+				EncodedArtistBean encodedArtistBean = encodedAlbumBean.getEncodedArtistBean();
+				SortedMap<EncodedAlbumBean, SortedSet<EncodedTrackBean>> albums = getAlbumsForArtist(encodedArtistBean);
+				if (!albums.containsKey(encodedAlbumBean)) {
+					albums.put(encodedAlbumBean, new TreeSet<EncodedTrackBean>());
 				}
-				SortedSet<FlacTrackBean> tracks = albums.get(flacAlbumBean);
-				tracks.add(flacTrackBean);
+				SortedSet<EncodedTrackBean> tracks = albums.get(encodedAlbumBean);
+				tracks.add(encodedTrackBean);
 			}
 			
-			protected SortedMap<FlacAlbumBean, SortedSet<FlacTrackBean>> getAlbumsForArtist(FlacArtistBean flacArtistBean) {
-				if (!fullView.containsKey(flacArtistBean)) {
-					fullView.put(flacArtistBean, new TreeMap<FlacAlbumBean, SortedSet<FlacTrackBean>>());
+			protected SortedMap<EncodedAlbumBean, SortedSet<EncodedTrackBean>> getAlbumsForArtist(EncodedArtistBean encodedArtistBean) {
+				if (!fullView.containsKey(encodedArtistBean)) {
+					fullView.put(encodedArtistBean, new TreeMap<EncodedAlbumBean, SortedSet<EncodedTrackBean>>());
 				}
-			 return fullView.get(flacArtistBean);
+			 return fullView.get(encodedArtistBean);
 			}
 		};
-		for (FlacBean flacBean : downloadCartBean.getSelections()) {
-			flacBean.accept(flacVisitor);
+		for (EncodedBean encodedBean : downloadCartBean.getSelections()) {
+			encodedBean.accept(encodedVisitor);
 		}
 		return fullView;
 	}
@@ -82,23 +81,23 @@ public class DownloadCartServiceImpl implements DownloadCartService {
 			DownloadCartBean downloadCartBean, final EncoderBean encoderBean) {
 		final EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
 		final SortedSet<EncodedTrackBean> encodedTrackBeans = new TreeSet<EncodedTrackBean>();
-		FlacTrackVisitor visitor = new FlacTrackVisitor() {
+		EncodedTrackVisitor visitor = new EncodedTrackVisitor() {
 			@Override
-			public void visit(FlacTrackBean flacTrackBean) {
-				encodedTrackBeans.add(encodedTrackDao.findByUrlAndEncoderBean(flacTrackBean.getUrl(), encoderBean));
+			public void visit(EncodedTrackBean encodedTrackBean) {
+				encodedTrackBeans.add(encodedTrackDao.findByUrlAndEncoderBean(encodedTrackBean.getFlacUrl(), encoderBean));
 			}
 			
 			@Override
-			public FlacAlbumBean refresh(FlacAlbumBean flacAlbumBean) {
-				return getFlacAlbumDao().findById(flacAlbumBean.getId());
+			public EncodedAlbumBean refresh(EncodedAlbumBean encodedAlbumBean) {
+				return getEncodedAlbumDao().findById(encodedAlbumBean.getId());
 			}
 			@Override
-			public FlacArtistBean refresh(FlacArtistBean flacArtistBean) {
-				return getFlacArtistDao().findById(flacArtistBean.getId());
+			public EncodedArtistBean refresh(EncodedArtistBean encodedArtistBean) {
+				return getEncodedArtistDao().findById(encodedArtistBean.getId());
 			}
 		};
-		for (FlacBean flacBean : downloadCartBean.getSelections()) {
-			flacBean.accept(visitor);
+		for (EncodedBean encodedBean : downloadCartBean.getSelections()) {
+			encodedBean.accept(visitor);
 		}
 		return encodedTrackBeans;
 	}
@@ -136,20 +135,20 @@ public class DownloadCartServiceImpl implements DownloadCartService {
 		i_encodedTrackDao = encodedTrackDao;
 	}
 
-	public FlacAlbumDao getFlacAlbumDao() {
-		return i_flacAlbumDao;
+	public EncodedAlbumDao getEncodedAlbumDao() {
+		return i_encodedAlbumDao;
 	}
 
-	public void setFlacAlbumDao(FlacAlbumDao flacAlbumDao) {
-		i_flacAlbumDao = flacAlbumDao;
+	public void setEncodedAlbumDao(EncodedAlbumDao encodedAlbumDao) {
+		i_encodedAlbumDao = encodedAlbumDao;
 	}
 
-	public FlacArtistDao getFlacArtistDao() {
-		return i_flacArtistDao;
+	public EncodedArtistDao getEncodedArtistDao() {
+		return i_encodedArtistDao;
 	}
 
-	public void setFlacArtistDao(FlacArtistDao flacArtistDao) {
-		i_flacArtistDao = flacArtistDao;
+	public void setEncodedArtistDao(EncodedArtistDao encodedArtistDao) {
+		i_encodedArtistDao = encodedArtistDao;
 	}
 
 	public TitleFormatServiceFactory getTitleFormatServiceFactory() {

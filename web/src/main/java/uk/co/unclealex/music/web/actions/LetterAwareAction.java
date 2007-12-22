@@ -1,6 +1,6 @@
 package uk.co.unclealex.music.web.actions;
 
-public class LetterAwareAction extends FlacAction {
+public class LetterAwareAction extends EncodedAction {
 
 	private char i_letter;
 

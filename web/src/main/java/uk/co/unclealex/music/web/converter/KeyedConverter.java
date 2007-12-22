@@ -4,8 +4,8 @@ import java.util.Map;
 
 import org.apache.struts2.util.StrutsTypeConverter;
 
-import uk.co.unclealex.music.web.encoded.dao.KeyedDao;
-import uk.co.unclealex.music.web.encoded.model.KeyedBean;
+import uk.co.unclealex.music.core.dao.KeyedReadOnlyDao;
+import uk.co.unclealex.music.core.model.KeyedBean;
 
 public abstract class KeyedConverter<K extends KeyedBean<K>> extends StrutsTypeConverter {
 
@@ -22,6 +22,6 @@ public abstract class KeyedConverter<K extends KeyedBean<K>> extends StrutsTypeC
 		return id == null?null:id.toString();
 	}
 
-	protected abstract KeyedDao<K> getDao();
+	protected abstract KeyedReadOnlyDao<K> getDao();
 	
 }

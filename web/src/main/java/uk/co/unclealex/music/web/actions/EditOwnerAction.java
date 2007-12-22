@@ -1,5 +1,5 @@
 package uk.co.unclealex.music.web.actions;
 
-public class EditOwnerAction extends FlacAction {
+public class EditOwnerAction extends EncodedAction {
 
 }

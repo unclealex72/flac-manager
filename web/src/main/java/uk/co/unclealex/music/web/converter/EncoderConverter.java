@@ -1,16 +1,15 @@
 package uk.co.unclealex.music.web.converter;
 
-import uk.co.unclealex.flacconverter.KeyedConverter;
-import uk.co.unclealex.music.web.encoded.dao.EncoderDao;
-import uk.co.unclealex.music.web.encoded.dao.KeyedDao;
-import uk.co.unclealex.music.web.encoded.model.EncoderBean;
+import uk.co.unclealex.music.core.dao.EncoderDao;
+import uk.co.unclealex.music.core.dao.KeyedReadOnlyDao;
+import uk.co.unclealex.music.core.model.EncoderBean;
 
 public class EncoderConverter extends KeyedConverter<EncoderBean> {
 
 	private EncoderDao i_encoderDao;
 	
 	@Override
-	protected KeyedDao<EncoderBean> getDao() {
+	protected KeyedReadOnlyDao<EncoderBean> getDao() {
 		return getEncoderDao();
 	}
 

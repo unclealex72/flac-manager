@@ -1,22 +1,22 @@
 package uk.co.unclealex.music.web.actions;
 
-import uk.co.unclealex.flacconverter.AddToCartAction;
-import uk.co.unclealex.music.web.flac.model.FlacAlbumBean;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 
-public class AddAlbumsToCartAction extends AddToCartAction<FlacAlbumBean> {
 
-	private FlacAlbumBean[] i_items;
+public class AddAlbumsToCartAction extends AddToCartAction<EncodedAlbumBean> {
 
-	public FlacAlbumBean[] getItems() {
+	private EncodedAlbumBean[] i_items;
+
+	public EncodedAlbumBean[] getItems() {
 		return i_items;
 	}
 
-	public void setItems(FlacAlbumBean[] items) {
+	public void setItems(EncodedAlbumBean[] items) {
 		i_items = items;
 	}
 
 	@Override
-	public FlacAlbumBean[] getItemsInternal() {
+	public EncodedAlbumBean[] getItemsInternal() {
 		return getItems();
 	}
 

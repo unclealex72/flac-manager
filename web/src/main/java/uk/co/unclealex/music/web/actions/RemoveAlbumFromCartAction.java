@@ -3,28 +3,27 @@ package uk.co.unclealex.music.web.actions;
 import java.util.LinkedList;
 import java.util.List;
 
-import uk.co.unclealex.flacconverter.RemoveFromCartAction;
-import uk.co.unclealex.music.web.flac.model.FlacAlbumBean;
-import uk.co.unclealex.music.web.flac.model.FlacBean;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
+import uk.co.unclealex.music.core.model.EncodedBean;
 
 public class RemoveAlbumFromCartAction extends RemoveFromCartAction {
 
-	private FlacAlbumBean i_flacAlbum;
+	private EncodedAlbumBean i_encodedAlbum;
 	
 	@Override
-	public List<FlacBean> listBeansToRemove() {
-		List<FlacBean> flacBeans = new LinkedList<FlacBean>();
-		FlacAlbumBean flacAlbumBean = getFlacAlbum();
-		flacBeans.add(flacAlbumBean);
-		flacBeans.addAll(flacAlbumBean.getFlacTrackBeans());
-		return flacBeans;
+	public List<EncodedBean> listBeansToRemove() {
+		List<EncodedBean> encodedBeans = new LinkedList<EncodedBean>();
+		EncodedAlbumBean encodedAlbumBean = getEncodedAlbum();
+		encodedBeans.add(encodedAlbumBean);
+		encodedBeans.addAll(encodedAlbumBean.getEncodedTrackBeans());
+		return encodedBeans;
 	}
 	
-	public FlacAlbumBean getFlacAlbum() {
-		return i_flacAlbum;
+	public EncodedAlbumBean getEncodedAlbum() {
+		return i_encodedAlbum;
 	}
 
-	public void setFlacAlbum(FlacAlbumBean flacAlbum) {
-		i_flacAlbum = flacAlbum;
+	public void setEncodedAlbum(EncodedAlbumBean encodedAlbum) {
+		i_encodedAlbum = encodedAlbum;
 	}
 }

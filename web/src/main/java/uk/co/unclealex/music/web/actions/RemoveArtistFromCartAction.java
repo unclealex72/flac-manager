@@ -3,32 +3,31 @@ package uk.co.unclealex.music.web.actions;
 import java.util.LinkedList;
 import java.util.List;
 
-import uk.co.unclealex.flacconverter.RemoveFromCartAction;
-import uk.co.unclealex.music.web.flac.model.FlacAlbumBean;
-import uk.co.unclealex.music.web.flac.model.FlacArtistBean;
-import uk.co.unclealex.music.web.flac.model.FlacBean;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
+import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.core.model.EncodedBean;
 
 public class RemoveArtistFromCartAction extends RemoveFromCartAction {
 
-	private FlacArtistBean i_flacArtist;
+	private EncodedArtistBean i_encodedArtist;
 	
 	@Override
-	public List<FlacBean> listBeansToRemove() {
-		List<FlacBean> flacBeans = new LinkedList<FlacBean>();
-		FlacArtistBean flacArtist = getFlacArtist();
-		flacBeans.add(flacArtist);
-		for (FlacAlbumBean flacAlbumBean : flacArtist.getFlacAlbumBeans()) {
-			flacBeans.add(flacAlbumBean);
-			flacBeans.addAll(flacAlbumBean.getFlacTrackBeans());
+	public List<EncodedBean> listBeansToRemove() {
+		List<EncodedBean> encodedBeans = new LinkedList<EncodedBean>();
+		EncodedArtistBean encodedArtist = getEncodedArtist();
+		encodedBeans.add(encodedArtist);
+		for (EncodedAlbumBean encodedAlbumBean : encodedArtist.getEncodedAlbumBeans()) {
+			encodedBeans.add(encodedAlbumBean);
+			encodedBeans.addAll(encodedAlbumBean.getEncodedTrackBeans());
 		}
-		return flacBeans;
+		return encodedBeans;
 	}
 
-	public FlacArtistBean getFlacArtist() {
-		return i_flacArtist;
+	public EncodedArtistBean getEncodedArtist() {
+		return i_encodedArtist;
 	}
 
-	public void setFlacArtist(FlacArtistBean flacArtist) {
-		i_flacArtist = flacArtist;
+	public void setEncodedArtist(EncodedArtistBean encodedArtist) {
+		i_encodedArtist = encodedArtist;
 	}
 }

@@ -1,6 +1,6 @@
 package uk.co.unclealex.music.web.actions;
 
-public class ClearCartAction extends FlacAction {
+public class ClearCartAction extends EncodedAction {
 
 	@Override
 	public String execute() {

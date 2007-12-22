@@ -1,16 +1,15 @@
 package uk.co.unclealex.music.web.converter;
 
-import uk.co.unclealex.flacconverter.KeyedConverter;
-import uk.co.unclealex.music.web.encoded.dao.KeyedDao;
-import uk.co.unclealex.music.web.encoded.dao.OwnerDao;
-import uk.co.unclealex.music.web.encoded.model.OwnerBean;
+import uk.co.unclealex.music.core.dao.KeyedReadOnlyDao;
+import uk.co.unclealex.music.core.dao.OwnerDao;
+import uk.co.unclealex.music.core.model.OwnerBean;
 
 public class OwnerConverter extends KeyedConverter<OwnerBean> {
 
 	private OwnerDao i_ownerDao;
 	
 	@Override
-	protected KeyedDao<OwnerBean> getDao() {
+	protected KeyedReadOnlyDao<OwnerBean> getDao() {
 		return getOwnerDao();
 	}
 

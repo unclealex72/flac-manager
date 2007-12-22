@@ -8,33 +8,35 @@ import java.util.TreeSet;
 
 import org.springframework.beans.factory.annotation.Required;
 
-import uk.co.unclealex.flacconverter.AfterPreparable;
-import uk.co.unclealex.music.web.encoded.dao.EncoderDao;
-import uk.co.unclealex.music.web.encoded.dao.OwnerDao;
-import uk.co.unclealex.music.web.encoded.model.DeviceBean;
-import uk.co.unclealex.music.web.encoded.model.EncoderBean;
-import uk.co.unclealex.music.web.encoded.model.OwnerBean;
-import uk.co.unclealex.music.web.encoded.service.DeviceService;
-import uk.co.unclealex.music.web.encoded.service.ProgressWritingListenerService;
-import uk.co.unclealex.music.web.flac.dao.FlacArtistDao;
-import uk.co.unclealex.music.web.flac.model.DownloadCartBean;
-import uk.co.unclealex.music.web.flac.model.FlacAlbumBean;
-import uk.co.unclealex.music.web.flac.model.FlacArtistBean;
-import uk.co.unclealex.music.web.flac.model.FlacTrackBean;
-import uk.co.unclealex.music.web.flac.service.DownloadCartService;
+import uk.co.unclealex.music.core.dao.EncodedArtistDao;
+import uk.co.unclealex.music.core.dao.EncoderDao;
+import uk.co.unclealex.music.core.dao.OwnerDao;
+import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
+import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.model.OwnerBean;
+import uk.co.unclealex.music.core.service.DeviceService;
+import uk.co.unclealex.music.core.service.EncodedService;
+import uk.co.unclealex.music.core.service.ProgressWritingListenerService;
+import uk.co.unclealex.music.web.interceptor.AfterPreparable;
+import uk.co.unclealex.music.web.model.DownloadCartBean;
+import uk.co.unclealex.music.web.service.DownloadCartService;
 
 import com.opensymphony.xwork2.ActionSupport;
 import com.opensymphony.xwork2.Preparable;
 
-public class FlacAction extends ActionSupport implements Preparable, AfterPreparable {
+public class EncodedAction extends ActionSupport implements Preparable, AfterPreparable {
 
 	private DeviceService i_deviceService;
 	private EncoderDao i_encoderDao;
+	private EncodedService i_encodedService;
 	private ProgressWritingListenerService i_progressWritingListenerService;
-	private FlacArtistDao i_flacArtistDao;
+	private EncodedArtistDao i_encodedArtistDao;
 	private OwnerDao i_ownerDao;
 	private DownloadCartService i_downloadCartService;
-	private SortedMap<FlacArtistBean, SortedMap<FlacAlbumBean, SortedSet<FlacTrackBean>>> i_downloadCartContents;
+	private SortedMap<EncodedArtistBean, SortedMap<EncodedAlbumBean, SortedSet<EncodedTrackBean>>> i_downloadCartContents;
 	private SortedSet<DeviceBean> i_connectedDevices;
 	private SortedSet<Character> i_startingCharacters;
 	private SortedSet<OwnerBean> i_owners;
@@ -58,14 +60,7 @@ public class FlacAction extends ActionSupport implements Preparable, AfterPrepar
 	}
 	
 	private void prepareLetters() {
-		FlacArtistDao flacArtistDao = getFlacArtistDao();
-		SortedSet<Character> startingCharacters = new TreeSet<Character>();
-		for (char c = 'A'; c <= 'Z'; c++) {
-			if (flacArtistDao.countArtistsBeginningWith(c) != 0) {
-				startingCharacters.add(c);
-			}
-		}
-		setStartingCharacters(startingCharacters);		
+		setStartingCharacters(getEncodedService().getAllFirstLettersOfArtists());
 	}
 	
 	private void prepareOwners() {
@@ -77,7 +72,7 @@ public class FlacAction extends ActionSupport implements Preparable, AfterPrepar
 	}
 	
 	public void prepareAfter() {
-		SortedMap<FlacArtistBean, SortedMap<FlacAlbumBean, SortedSet<FlacTrackBean>>> downloadCartContents =
+		SortedMap<EncodedArtistBean, SortedMap<EncodedAlbumBean, SortedSet<EncodedTrackBean>>> downloadCartContents =
 			getDownloadCartService().createFullView(getDownloadCartBean());
 		setDownloadCartContents(downloadCartContents);
 	}
@@ -129,12 +124,12 @@ public class FlacAction extends ActionSupport implements Preparable, AfterPrepar
 		i_startingCharacters = startingCharacters;
 	}
 
-	public FlacArtistDao getFlacArtistDao() {
-		return i_flacArtistDao;
+	public EncodedArtistDao getEncodedArtistDao() {
+		return i_encodedArtistDao;
 	}
 
-	public void setFlacArtistDao(FlacArtistDao flacArtistDao) {
-		i_flacArtistDao = flacArtistDao;
+	public void setEncodedArtistDao(EncodedArtistDao encodedArtistDao) {
+		i_encodedArtistDao = encodedArtistDao;
 	}
 
 	public OwnerDao getOwnerDao() {
@@ -169,12 +164,12 @@ public class FlacAction extends ActionSupport implements Preparable, AfterPrepar
 		i_downloadCartService = downloadCartService;
 	}
 
-	public SortedMap<FlacArtistBean, SortedMap<FlacAlbumBean, SortedSet<FlacTrackBean>>> getDownloadCartContents() {
+	public SortedMap<EncodedArtistBean, SortedMap<EncodedAlbumBean, SortedSet<EncodedTrackBean>>> getDownloadCartContents() {
 		return i_downloadCartContents;
 	}
 
 	public void setDownloadCartContents(
-			SortedMap<FlacArtistBean, SortedMap<FlacAlbumBean, SortedSet<FlacTrackBean>>> downloadCartContents) {
+			SortedMap<EncodedArtistBean, SortedMap<EncodedAlbumBean, SortedSet<EncodedTrackBean>>> downloadCartContents) {
 		i_downloadCartContents = downloadCartContents;
 	}
 
@@ -192,5 +187,14 @@ public class FlacAction extends ActionSupport implements Preparable, AfterPrepar
 
 	public void setEncoders(SortedSet<EncoderBean> encoders) {
 		i_encoders = encoders;
+	}
+
+	public EncodedService getEncodedService() {
+		return i_encodedService;
+	}
+
+	@Required
+	public void setEncodedService(EncodedService encodedService) {
+		i_encodedService = encodedService;
 	}
 }

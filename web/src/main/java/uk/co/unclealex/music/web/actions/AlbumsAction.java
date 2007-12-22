@@ -3,48 +3,47 @@ package uk.co.unclealex.music.web.actions;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import uk.co.unclealex.flacconverter.LetterAwareAction;
-import uk.co.unclealex.music.web.flac.model.FlacAlbumBean;
-import uk.co.unclealex.music.web.flac.model.FlacArtistBean;
-import uk.co.unclealex.music.web.flac.model.FlacBean;
-import uk.co.unclealex.music.web.flac.visitor.FlacVisitor;
-import uk.co.unclealex.music.web.flac.visitor.NoOpFlacVisitor;
+import uk.co.unclealex.music.core.model.EncodedAlbumBean;
+import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.core.model.EncodedBean;
+import uk.co.unclealex.music.core.visitor.EncodedVisitor;
+import uk.co.unclealex.music.core.visitor.NoOpEncodedVisitor;
 
 public class AlbumsAction extends LetterAwareAction {
 
-	private SortedSet<FlacAlbumBean> i_flacAlbumBeans;
-	private FlacArtistBean i_flacArtist;
+	private SortedSet<EncodedAlbumBean> i_encodedAlbumBeans;
+	private EncodedArtistBean i_encodedArtist;
 	
 	@Override
 	public String execute() {
-		final SortedSet<FlacAlbumBean> flacAlbumBeans = 
-			new TreeSet<FlacAlbumBean>(getFlacArtist().getFlacAlbumBeans());
-		FlacVisitor removeArtistVisitor = new NoOpFlacVisitor() {
+		final SortedSet<EncodedAlbumBean> encodedAlbumBeans = 
+			new TreeSet<EncodedAlbumBean>(getEncodedArtist().getEncodedAlbumBeans());
+		EncodedVisitor removeArtistVisitor = new NoOpEncodedVisitor() {
 			@Override
-			public void visit(FlacAlbumBean flacAlbumBean) {
-				flacAlbumBeans.remove(flacAlbumBean);
+			public void visit(EncodedAlbumBean encodedAlbumBean) {
+				encodedAlbumBeans.remove(encodedAlbumBean);
 			}
 		};
-		for (FlacBean flacBean : getDownloadCartBean().getSelections()) {
-			flacBean.accept(removeArtistVisitor);
+		for (EncodedBean encodedBean : getDownloadCartBean().getSelections()) {
+			encodedBean.accept(removeArtistVisitor);
 		}
-		setFlacAlbumBeans(flacAlbumBeans);
+		setEncodedAlbumBeans(encodedAlbumBeans);
 		return SUCCESS;
 	}
 	
-	public SortedSet<FlacAlbumBean> getFlacAlbumBeans() {
-		return i_flacAlbumBeans;
+	public SortedSet<EncodedAlbumBean> getEncodedAlbumBeans() {
+		return i_encodedAlbumBeans;
 	}
-	public void setFlacAlbumBeans(SortedSet<FlacAlbumBean> flacAlbumBeans) {
-		i_flacAlbumBeans = flacAlbumBeans;
-	}
-
-	public FlacArtistBean getFlacArtist() {
-		return i_flacArtist;
+	public void setEncodedAlbumBeans(SortedSet<EncodedAlbumBean> encodedAlbumBeans) {
+		i_encodedAlbumBeans = encodedAlbumBeans;
 	}
 
-	public void setFlacArtist(FlacArtistBean flacArtist) {
-		i_flacArtist = flacArtist;
+	public EncodedArtistBean getEncodedArtist() {
+		return i_encodedArtist;
+	}
+
+	public void setEncodedArtist(EncodedArtistBean encodedArtist) {
+		i_encodedArtist = encodedArtist;
 	}
 	
 	

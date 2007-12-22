@@ -1,9 +1,8 @@
 package uk.co.unclealex.music.web.actions;
 
-import uk.co.unclealex.flacconverter.FlacAction;
-import uk.co.unclealex.music.web.encoded.model.DeviceBean;
+import uk.co.unclealex.music.core.model.DeviceBean;
 
-public class DeviceAction extends FlacAction {
+public class DeviceAction extends EncodedAction {
 
 	private DeviceBean i_device;
 	

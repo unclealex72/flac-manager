@@ -10,15 +10,14 @@ import java.util.TreeMap;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
 
-import uk.co.unclealex.flacconverter.FlacAction;
-import uk.co.unclealex.music.web.encoded.dao.DeviceDao;
-import uk.co.unclealex.music.web.encoded.model.DeviceBean;
-import uk.co.unclealex.music.web.encoded.service.ProgressWritingListenerService;
-import uk.co.unclealex.music.web.encoded.writer.ProgressWritingListener;
-import uk.co.unclealex.music.web.encoded.writer.TrackWritingException;
-import uk.co.unclealex.music.web.encoded.writer.WritingListener;
+import uk.co.unclealex.music.core.dao.DeviceDao;
+import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.core.service.ProgressWritingListenerService;
+import uk.co.unclealex.music.core.writer.ProgressWritingListener;
+import uk.co.unclealex.music.core.writer.TrackWritingException;
+import uk.co.unclealex.music.core.writer.WritingListener;
 
-public class DeviceDownloadAction extends FlacAction {
+public class DeviceDownloadAction extends EncodedAction {
 
 	private List<String> i_devices;
 	private DeviceDao i_deviceDao;

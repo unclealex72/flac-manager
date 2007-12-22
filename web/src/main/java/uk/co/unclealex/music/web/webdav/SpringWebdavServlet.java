@@ -1,10 +1,11 @@
-package uk.co.unclealex.music.web.encoded.webdav;
+package uk.co.unclealex.music.web.webdav;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-import org.apache.slide.webdav.WebdavServlet;
+import net.sf.webdav.WebdavServlet;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 

@@ -8,7 +8,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import uk.co.unclealex.music.web.spring.HibernateSessionBinder;
+import uk.co.unclealex.music.core.spring.HibernateSessionBinder;
 
 import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionInvocation;
