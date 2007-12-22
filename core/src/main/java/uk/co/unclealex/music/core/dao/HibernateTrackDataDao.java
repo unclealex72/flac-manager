@@ -35,7 +35,7 @@ public class HibernateTrackDataDao extends HibernateKeyedDao<TrackDataBean> impl
 		exampleBean.setSequence(sequence);
 		Criteria criteria = 
 			createCriteria(exampleBean).createCriteria("encodedTrackBean").add(Example.create(encodedTrackBean));
-		return (TrackDataBean) criteria.uniqueResult();
+		return uniqueResult(criteria);
 	}
 
 	@Override

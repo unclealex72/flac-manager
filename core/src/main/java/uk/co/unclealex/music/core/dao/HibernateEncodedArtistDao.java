@@ -31,7 +31,21 @@ public class HibernateEncodedArtistDao extends
 	public EncodedArtistBean findByIdentifier(String identifier) {
 		EncodedArtistBean artistBean = createExampleBean();
 		artistBean.setIdentifier(identifier);
-		return (EncodedArtistBean) createCriteria(artistBean).uniqueResult();
+		return uniqueResult(createCriteria(artistBean));
+	}
+
+	@Override
+	public EncodedArtistBean findByName(String name) {
+		EncodedArtistBean artistBean = createExampleBean();
+		artistBean.setName(name);
+		return uniqueResult(createCriteria(artistBean));
+	}
+
+	@Override
+	public SortedSet<EncodedArtistBean> findByFirstLetter(String firstLetter) {
+		Query query = getSession().createQuery("from encodedArtistBean where identifier like :firstLetter");
+		query.setString("firstLetter", firstLetter + "%");
+		return asSortedSet(query);
 	}
 	
 	@Override

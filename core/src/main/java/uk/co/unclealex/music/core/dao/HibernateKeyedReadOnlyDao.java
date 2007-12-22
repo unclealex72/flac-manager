@@ -57,6 +57,26 @@ public abstract class HibernateKeyedReadOnlyDao<T extends KeyedBean<T>> extends 
 	}
 
 	@SuppressWarnings("unchecked")
+	protected T uniqueResult(Query q) {
+		return (T) q.uniqueResult();
+	}
+
+	@SuppressWarnings("unchecked")
+	protected T uniqueResult(Criteria c) {
+		return (T) c.uniqueResult();
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <O> O uniqueResult(Query q, Class<O> clazz) {
+		return (O) q.uniqueResult();
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <O> O uniqueResult(Criteria c, Class<O> clazz) {
+		return (O) c.uniqueResult();
+	}
+
+	@SuppressWarnings("unchecked")
 	protected T findByExample(T exampleBean) {
 		return (T) createCriteria(exampleBean).uniqueResult();
 	}

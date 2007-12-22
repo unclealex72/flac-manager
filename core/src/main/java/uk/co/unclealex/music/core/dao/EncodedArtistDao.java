@@ -9,4 +9,8 @@ public interface EncodedArtistDao extends KeyedDao<EncodedArtistBean> {
 	public EncodedArtistBean findByIdentifier(String identifier);
 	
 	public SortedSet<EncodedArtistBean> findAllEmptyArtists();
+
+	public SortedSet<EncodedArtistBean> findByFirstLetter(String firstLetter);
+
+	public EncodedArtistBean findByName(String name);
 }

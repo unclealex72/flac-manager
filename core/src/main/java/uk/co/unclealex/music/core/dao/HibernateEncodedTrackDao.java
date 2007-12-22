@@ -38,6 +38,19 @@ public class HibernateEncodedTrackDao extends
 	}
 	
 	@Override
+	public EncodedTrackBean findByAlbumAndEncoderBeanAndTrackNumber(
+			EncodedAlbumBean encodedAlbumBean, EncoderBean encoderBean,
+			int trackNumber) {
+		Query query = getSession().createQuery(
+			"from encodedTrackBean " +
+			"where encodedAlbumBean = :encodedAlbumBean and encoderBean = :encoderBean and trackNumber = :trackNumber");
+		query.setEntity("encodedAlbumBean", encodedAlbumBean);
+		query.setEntity("encoderBean", encoderBean);
+		query.setInteger("trackNumber", trackNumber);
+		return uniqueResult(query);
+	}
+	
+	@Override
 	public SortedSet<? extends EncodedTrackBean> findByArtistAndEncoderBean(
 			EncodedArtistBean encodedArtistBean, EncoderBean encoderBean) {
 		Query query = getSession().createQuery(
@@ -58,7 +71,7 @@ public class HibernateEncodedTrackDao extends
 		EncodedTrackBean exampleBean = createExampleBean();
 		exampleBean.setFlacUrl(url);
 		Criteria criteria = createFindByEncoderBean(exampleBean, encoderBean);
-		return (EncodedTrackBean) criteria.uniqueResult();
+		return uniqueResult(criteria);
 	}
 		
 	protected Criteria createFindByEncoderBean(EncodedTrackBean exampleBean, EncoderBean encoderBean) {

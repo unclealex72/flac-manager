@@ -28,6 +28,17 @@ public class HibernateEncodedAlbumDao extends
 	}
 
 	@Override
+	public EncodedAlbumBean findByArtistAndTitle(
+			EncodedArtistBean encodedArtistBean, String title) {
+		Query query = getSession().createQuery(
+				"select al from encodedArtistBean ar join ar.encodedAlbumBeans al " +
+				"where ar = :artist and al.title = :title").
+			setEntity("artist", encodedArtistBean).
+			setString("title", title);
+		return uniqueResult(query);
+	}
+
+	@Override
 	public EncodedAlbumBean findByArtistAndIdentifier(EncodedArtistBean encodedArtistBean,
 			String albumIdentifier) {
 		Query query = getSession().createQuery(
@@ -35,7 +46,7 @@ public class HibernateEncodedAlbumDao extends
 				"where ar = :artist and al.identifier = :identifier").
 			setEntity("artist", encodedArtistBean).
 			setString("identifier", albumIdentifier);
-		return (EncodedAlbumBean) query.uniqueResult();
+		return uniqueResult(query);
 	}
 
 	@Override

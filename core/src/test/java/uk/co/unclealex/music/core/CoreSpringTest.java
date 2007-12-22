@@ -74,7 +74,7 @@ public abstract class CoreSpringTest extends SpringTest {
 				String url = "music/" + track + "." + encoderBean.getExtension();
 				InputStream in = classLoader.getResourceAsStream(url);
 				EncodedTrackBean encodedTrackBean = 
-					trackImporter.importTrack(in, encoderBean, title, url, trackNumber, encodingTime);
+					trackImporter.importTrack(in, encoderBean, title, url, trackNumber, encodingTime, encodedAlbumBean);
 				encodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
 				encodedTrackDao.store(encodedTrackBean);
 			}

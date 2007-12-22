@@ -11,4 +11,7 @@ public interface EncodedAlbumDao extends KeyedDao<EncodedAlbumBean> {
 	
 	public SortedSet<EncodedAlbumBean> findAllEmptyAlbums();
 
+	public EncodedAlbumBean findByArtistAndTitle(
+			EncodedArtistBean encodedArtistBean, String title);
+
 }

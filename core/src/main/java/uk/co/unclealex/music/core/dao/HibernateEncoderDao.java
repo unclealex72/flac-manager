@@ -22,7 +22,7 @@ public class HibernateEncoderDao extends HibernateKeyedDao<EncoderBean>
 	public EncoderBean findByExtension(String extension) {
 		EncoderBean encoderBean = createExampleBean();
 		encoderBean.setExtension(extension);
-		return (EncoderBean) createCriteria(encoderBean).uniqueResult();
+		return uniqueResult(createCriteria(encoderBean));
 	}
 	
 	@Override
