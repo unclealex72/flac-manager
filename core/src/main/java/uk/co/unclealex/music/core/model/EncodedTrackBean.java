@@ -17,11 +17,13 @@ import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 import org.hibernate.validator.NotNull;
 
+import uk.co.unclealex.music.core.visitor.EncodedVisitor;
+
 @Table(
 		name="encoded_tracks",
 		uniqueConstraints = {@UniqueConstraint(columnNames={"url", "encoderBean_id"})})
 @Entity(name="encodedTrackBean")
-public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
+public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> implements EncodedBean {
 
 	private String i_flacUrl;
 	private EncoderBean i_encoderBean;
@@ -55,6 +57,11 @@ public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> {
 		return super.getId();
 	}
 
+	@Override
+	public void accept(EncodedVisitor encodedVisitor) {
+		encodedVisitor.visit(this);
+	}
+	
 	@ManyToOne
 	public EncoderBean getEncoderBean() {
 		return i_encoderBean;

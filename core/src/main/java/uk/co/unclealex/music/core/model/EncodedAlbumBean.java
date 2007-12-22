@@ -16,9 +16,11 @@ import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 import org.hibernate.validator.NotNull;
 
+import uk.co.unclealex.music.core.visitor.EncodedVisitor;
+
 @Table(name="encoded_albums")
 @Entity(name="encodedAlbumBean")
-public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String> {
+public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String> implements EncodedBean {
 
 	private String i_title;
 	private SortedSet<EncodedTrackBean> i_encodedTrackBeans;
@@ -35,6 +37,11 @@ public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String>
 	@Override
 	public String toString() {
 		return getTitle();
+	}
+	
+	@Override
+	public void accept(EncodedVisitor encodedVisitor) {
+		encodedVisitor.visit(this);
 	}
 	
 	public String getTitle() {
