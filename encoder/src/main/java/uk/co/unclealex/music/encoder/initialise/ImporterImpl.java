@@ -63,7 +63,7 @@ public class ImporterImpl implements Importer {
 						InputStream in = new FileInputStream(file);
 						trackImporter.importTrack(
 							in, encoderBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), flacTrackBean.getTrackNumber(), 
-							file.lastModified());
+							file.lastModified(), null);
 						in.close();
 					}
 				}

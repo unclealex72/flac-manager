@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
@@ -43,6 +44,7 @@ public class EncoderServiceImpl implements EncoderService {
 	
 	private SlimServerService i_slimServerService;
 	private EncodedTrackDao i_encodedTrackDao;
+	private EncodedAlbumDao i_encodedAlbumDao;
 	private TrackDataDao i_trackDataDao;
 	private EncoderDao i_encoderDao;
 	private EncodedService i_encodedService;
@@ -287,6 +289,15 @@ public class EncoderServiceImpl implements EncoderService {
 	@Required
 	public void setFlacTrackService(FlacTrackService flactrackService) {
 		i_flacTrackService = flactrackService;
+	}
+
+	public EncodedAlbumDao getEncodedAlbumDao() {
+		return i_encodedAlbumDao;
+	}
+
+	@Required
+	public void setEncodedAlbumDao(EncodedAlbumDao encodedAlbumDao) {
+		i_encodedAlbumDao = encodedAlbumDao;
 	}
 
 }
