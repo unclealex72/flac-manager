@@ -1,7 +1,10 @@
 package uk.co.unclealex.music.core.service.filesystem;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
@@ -18,6 +21,16 @@ import uk.co.unclealex.music.core.model.EncodedTrackBean;
 public class FileSystemServiceImpl implements FileSystemService {
 
 	private static final char SLASH = '/';
+	private static final Date DIRECTORY_DATE;
+	static {
+		try {
+			DIRECTORY_DATE = new SimpleDateFormat("dd/MM/yyyy HH:mm").parse("05/09/1972 09:12");
+		}
+		catch (ParseException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+	
 	private PathComponentFactory i_pathComponentFactory;
 
 	@Override
@@ -42,6 +55,23 @@ public class FileSystemServiceImpl implements FileSystemService {
 		return getChildren(path) != null;
 	}
 
+	@Override
+	public Date getModificationDate(String path) throws PathNotFoundException {
+		EncodedTrackBean encodedTrackBean = createContext(path).getEncodedTrackBean();
+		return encodedTrackBean == null?DIRECTORY_DATE:new Date(encodedTrackBean.getTimestamp());
+	}
+	
+	@Override
+	public boolean objectExists(String path) {
+		try {
+			createContext(path);
+			return true;
+		}
+		catch (PathNotFoundException e) {
+			return false;
+		}
+	}
+	
 	protected Context createContext(String path) throws PathNotFoundException {
 		PathComponentFactory pathComponentFactory = getPathComponentFactory();
 		Context context = new Context();
