@@ -24,7 +24,7 @@
   				<tr>
   					<td><s:submit value="Add"/></td><td/>
   				</tr>	
-  				<s:iterator value="flacArtistBeans">
+  				<s:iterator value="encodedArtistBeans">
 	  				<tr>
 	  					<td>
 	  						<c:set var="id"><s:property value="id"/></c:set>
@@ -34,7 +34,7 @@
 		  					<c:set var="link">
 			  					<s:url action="albums" includeParams="none">
 			  						<s:param name="letter" value="letter"/>
-			  						<s:param name="flacArtist" value="id"/>
+			  						<s:param name="encodedArtist" value="id"/>
 			  					</s:url>
 			  				</c:set>
 			  				<a href="${link}"><s:property value="name"/></a>		  					

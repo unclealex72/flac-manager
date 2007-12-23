@@ -11,24 +11,18 @@ import net.sf.webdav.exceptions.AccessDeniedException;
 import net.sf.webdav.exceptions.ObjectNotFoundException;
 
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.service.TrackStreamService;
 import uk.co.unclealex.music.core.service.filesystem.FileSystemService;
 import uk.co.unclealex.music.core.service.filesystem.PathNotFoundException;
 
+@Component
 public class WebdavStore implements IWebdavStorage {
 
 	private FileSystemService i_fileSystemService;
 	private TrackStreamService i_trackStreamService;
-	
-	public WebdavStore() {
-		ApplicationContext applicationContext = SpringWebdavServlet.getApplicationContext();
-		AutowireCapableBeanFactory factory = applicationContext .getAutowireCapableBeanFactory();
-		factory.autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_NAME, false);
-	}
 	
 	@SuppressWarnings("unchecked")
 	public void begin(Principal principal, Hashtable parameters) {
@@ -87,7 +81,12 @@ public class WebdavStore implements IWebdavStorage {
 	}
 
 	public long getResourceLength(String resourceUri) throws ObjectNotFoundException {
-		return getTrackForPath(resourceUri).getLength();
+		return new Callback<Long>() {
+			@Override
+			public Long doInFileSystemService(FileSystemService fileSystemService, String uri) throws PathNotFoundException {
+				return fileSystemService.getLength(uri);
+			}
+		}.execute(resourceUri);
 	}
 
 	public boolean isFolder(String uri) throws ObjectNotFoundException {

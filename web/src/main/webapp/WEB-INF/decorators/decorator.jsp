@@ -13,7 +13,7 @@
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 
 <s:head theme="ajax">
-  <title>Flac - <decorator:title/></title>
+  <title>Music - <decorator:title/></title>
   <decorator:head/>
   <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
 
@@ -27,15 +27,15 @@
 
 	<script type="text/javascript">
 		function removeArtist(id) {
-			updateCart("<s:url action='removeartist' namespace='/ajax' includeParams='none'/>", "flacArtist", id);
+			updateCart("<s:url action='removeartist' namespace='/ajax' includeParams='none'/>", "encodedArtist", id);
 		}
 
 		function removeAlbum(id) {
-			updateCart("<s:url action='removealbum' namespace='/ajax' includeParams='none'/>", "flacAlbum", id);
+			updateCart("<s:url action='removealbum' namespace='/ajax' includeParams='none'/>", "encodedAlbum", id);
 		}
 
 		function removeTrack(id) {
-			updateCart("<s:url action='removetrack' namespace='/ajax' includeParams='none'/>", "flacTrack", id);
+			updateCart("<s:url action='removetrack' namespace='/ajax' includeParams='none'/>", "encodedTrack", id);
 		}
 	
 		function clearCart(id) {

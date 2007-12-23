@@ -20,7 +20,7 @@
 					<li><!-- Artist --> <c:set var="link">
 						<s:url action="albums" includeParams="none" namespace="html">
 							<s:param name="letter" value="letter" />
-							<s:param name="flacArtist" value="key.id" />
+							<s:param name="encodedArtist" value="key.id" />
 						</s:url>
 					</c:set>
 					<a href="${link}"><s:property value="key.name" /></a>
@@ -34,7 +34,7 @@
 									<c:set var="link">
 									<s:url action="tracks" includeParams="none" namespace="html">
 										<s:param name="letter" value="letter" />
-										<s:param name="flacAlbum" value="key.id" />
+										<s:param name="encodedAlbum" value="key.id" />
 									</s:url>
 								</c:set> <a href="${link}"><s:property value="key.title" /></a>					
 								<c:set var="link">javascript:removeAlbum(<s:property value="key.id"/>);</c:set>

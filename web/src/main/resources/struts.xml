@@ -42,7 +42,7 @@
 		<default-interceptor-ref name="scopedStack"/>
 
 		<action name="index"
-			class="uk.co.unclealex.music.web.actions.FlacAction">
+			class="uk.co.unclealex.music.web.actions.EncodedAction">
 			<result name="success" type="redirect">/html/index.html</result>
 		</action>
 
@@ -51,7 +51,7 @@
 	<package name="html" extends="default" namespace="/html">
 			
 		<action name="index"
-			class="uk.co.unclealex.music.web.actions.FlacAction">
+			class="uk.co.unclealex.music.web.actions.EncodedAction">
 			<result name="success">/WEB-INF/pages/index.jsp</result>
 		</action>
 
@@ -61,7 +61,7 @@
 		</action>
 
 		<action name="device-download"
-			class="uk.co.unclealex.music.web.actions.FlacAction">
+			class="uk.co.unclealex.music.web.actions.EncodedAction">
 			<result name="success">/WEB-INF/pages/device-downloading.jsp</result>
 		</action>
 
@@ -118,7 +118,7 @@
 		</action>
 
 		<action name="downloadcart"
-			class="uk.co.unclealex.music.web.actions.FlacAction">
+			class="uk.co.unclealex.music.web.actions.EncodedAction">
 			<result name="success">/WEB-INF/pages/download-cart.jsp</result>
 		</action>
 	</package>

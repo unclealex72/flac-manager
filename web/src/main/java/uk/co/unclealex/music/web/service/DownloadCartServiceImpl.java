@@ -7,6 +7,9 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.core.dao.EncodedArtistDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
@@ -25,6 +28,8 @@ import uk.co.unclealex.music.core.writer.TrackWriterFactory;
 import uk.co.unclealex.music.core.writer.TrackWritingException;
 import uk.co.unclealex.music.web.model.DownloadCartBean;
 
+@Service
+@Transactional
 public class DownloadCartServiceImpl implements DownloadCartService {
 
 	private TrackWriterFactory i_trackWriterFactory;

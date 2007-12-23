@@ -12,8 +12,8 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-15" />
     <title>
-    	<s:property value="letter"/> : <s:property value="flacAlbum.flacArtistBean.name"/> :
-    	<s:property value="flacAlbum.title"/>
+    	<s:property value="letter"/> : <s:property value="encodedAlbum.encodedArtistBean.name"/> :
+    	<s:property value="encodedAlbum.title"/>
     </title>
   </head>
   
@@ -21,12 +21,12 @@
   	<p>
   		<s:form action="addtracks" method="get">
   			<s:hidden name="letter"/>
-  			<s:hidden name="flacAlbum"/>
+  			<s:hidden name="encodedAlbum"/>
   			<table border="0">
   				<tr>
   					<td><s:submit value="Add"/></td><td/>
   				</tr>	
-  				<s:iterator value="flacTrackBeans">
+  				<s:iterator value="encodedTrackBeans">
 	  				<tr>
 	  					<td>
 	  						<c:set var="id"><s:property value="id"/></c:set>
