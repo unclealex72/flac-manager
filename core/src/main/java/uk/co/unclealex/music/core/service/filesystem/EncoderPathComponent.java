@@ -4,12 +4,13 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.Transformer;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.dao.EncodedArtistDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.service.EncodedService;
 import uk.co.unclealex.music.core.spring.Prototype;
 
 @Prototype
@@ -17,17 +18,21 @@ import uk.co.unclealex.music.core.spring.Prototype;
 public class EncoderPathComponent extends AbstractPathComponent implements VisiblePathComponent {
 
 	private EncoderDao i_encoderDao;
-	private EncodedArtistDao i_encodedArtistDao;
+	private EncodedService i_encodedService;
 	
 	@Override
 	public SortedSet<String> getChildren() {
-		SortedSet<EncodedArtistBean> encodedArtistBeans = getEncodedArtistDao().getAll();
-		SortedSet<String> firstLetters = new TreeSet<String>();
+		SortedSet<String> children = new TreeSet<String>();
 		CollectionUtils.collect(
-			encodedArtistBeans, 
-			new FirstLetterOfArtistTransformer(),
-			firstLetters);
-		return firstLetters;
+			getEncodedService().getAllFirstLettersOfArtists(),
+			new Transformer<Character, String>() {
+				@Override
+				public String transform(Character c) {
+					return	c.toString();
+				}
+			},
+			children);
+		return children;
 	}
 
 	@Override
@@ -48,16 +53,17 @@ public class EncoderPathComponent extends AbstractPathComponent implements Visib
 		return i_encoderDao;
 	}
 
+	@Required
 	public void setEncoderDao(EncoderDao encoderDao) {
 		i_encoderDao = encoderDao;
 	}
 
-	public EncodedArtistDao getEncodedArtistDao() {
-		return i_encodedArtistDao;
+	public EncodedService getEncodedService() {
+		return i_encodedService;
 	}
 
-	public void setEncodedArtistDao(EncodedArtistDao encodedArtistDao) {
-		i_encodedArtistDao = encodedArtistDao;
+	@Required
+	public void setEncodedService(EncodedService encodedService) {
+		i_encodedService = encodedService;
 	}
-
 }

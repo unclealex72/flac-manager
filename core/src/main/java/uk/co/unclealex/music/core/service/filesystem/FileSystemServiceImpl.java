@@ -103,6 +103,16 @@ public class FileSystemServiceImpl implements FileSystemService {
 		return context;
 	}
 
+	@Override
+	public Long getLength(String path) throws PathNotFoundException {
+		Context context = createContext(path);
+		EncodedTrackBean encodedTrackBean = context.getEncodedTrackBean();
+		return 
+			encodedTrackBean==null?
+				context.getChildren().size():
+				(long) encodedTrackBean.getLength().intValue();
+	}
+	
 	public PathComponentFactory getPathComponentFactory() {
 		return i_pathComponentFactory;
 	}

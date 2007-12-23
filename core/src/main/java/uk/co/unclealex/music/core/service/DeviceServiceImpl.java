@@ -24,6 +24,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.DeviceDao;
@@ -37,6 +38,7 @@ import uk.co.unclealex.music.core.writer.TrackWriterFactory;
 import uk.co.unclealex.music.core.writer.TrackWritingException;
 import uk.co.unclealex.music.core.writer.WritingListener;
 
+@Service
 @Transactional
 public class DeviceServiceImpl implements DeviceService {
 

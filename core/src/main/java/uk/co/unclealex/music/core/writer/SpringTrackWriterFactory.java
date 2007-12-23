@@ -1,6 +1,6 @@
 package uk.co.unclealex.music.core.writer;
 
-import static java.util.zip.ZipOutputStream.STORED;
+import static java.util.zip.ZipOutputStream.DEFLATED;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -50,7 +50,7 @@ public class SpringTrackWriterFactory implements TrackWriterFactory, Application
 		ZipTrackStream zipTrackStream =
 			(ZipTrackStream) getApplicationContext().getBean(getZipTrackStreamId(), ZipTrackStream.class);
 		ZipOutputStream zipOutputStream = new ZipOutputStream(out);
-		zipOutputStream.setMethod(STORED);
+		zipOutputStream.setMethod(DEFLATED);
 		zipTrackStream.setZipOutputStream(zipOutputStream);
 		return zipTrackStream;
 	}

@@ -36,7 +36,7 @@ public class ZipTrackWriterTest extends TestCase {
 	}
 	
 	public void checkEntries(ZipTrackStreamImpl zipTrackStreamImpl, String title, String[] expectedEntries) {
-		List<ZipEntry> zipEntries = zipTrackStreamImpl.createEntries(title);
+		List<ZipEntry> zipEntries = zipTrackStreamImpl.createEntries(title, 0);
 		int lastIndex = zipEntries.size() - 1;
 		for (ListIterator<ZipEntry> iter = zipEntries.listIterator(); iter.hasNext(); ) {
 			int index = iter.nextIndex();

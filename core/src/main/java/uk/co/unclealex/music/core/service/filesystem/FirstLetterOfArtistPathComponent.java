@@ -6,10 +6,12 @@ import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.EncodedArtistDao;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.core.service.EncodedService;
 import uk.co.unclealex.music.core.spring.Prototype;
 
 @Prototype
@@ -17,11 +19,12 @@ import uk.co.unclealex.music.core.spring.Prototype;
 public class FirstLetterOfArtistPathComponent extends AbstractPathComponent implements VisiblePathComponent {
 
 	private EncodedArtistDao i_encodedArtistDao;
+	private EncodedService i_encodedService;
 	private String i_firstLetter;
 	
 	@Override
 	public SortedSet<String> getChildren() {
-		SortedSet<EncodedArtistBean> encodedArtistBeans = getEncodedArtistDao().findByFirstLetter(getFirstLetter());
+		SortedSet<EncodedArtistBean> encodedArtistBeans = getEncodedArtistDao().findByFirstLetter(getFirstLetter().charAt(0));
 		SortedSet<String> artistNames = new TreeSet<String>();
 		CollectionUtils.collect(
 			encodedArtistBeans,
@@ -38,7 +41,14 @@ public class FirstLetterOfArtistPathComponent extends AbstractPathComponent impl
 	@Override
 	public void setPathComponent(String pathComponent) throws PathNotFoundException {
 		Collection<String> firstLetters = 
-			CollectionUtils.collect(getEncodedArtistDao().getAll(), new FirstLetterOfArtistTransformer());
+			CollectionUtils.collect(
+					getEncodedService().getAllFirstLettersOfArtists(),
+					new Transformer<Character, String>() {
+						@Override
+						public String transform(Character c) {
+							return c.toString();
+						}
+					});
 		if (!firstLetters.contains(pathComponent)) {
 			throw new PathNotFoundException(pathComponent);
 		}
@@ -64,6 +74,15 @@ public class FirstLetterOfArtistPathComponent extends AbstractPathComponent impl
 
 	public void setFirstLetter(String firstLetter) {
 		i_firstLetter = firstLetter;
+	}
+
+	public EncodedService getEncodedService() {
+		return i_encodedService;
+	}
+
+	@Required
+	public void setEncodedService(EncodedService encodedService) {
+		i_encodedService = encodedService;
 	}
 
 }

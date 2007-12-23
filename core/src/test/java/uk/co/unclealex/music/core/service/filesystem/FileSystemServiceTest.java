@@ -34,6 +34,8 @@ public class FileSystemServiceTest extends CoreSpringTest {
 		String path = "/ogg/N/Napalm Death/Scum/24 - Your Achievement_ (Bonus Track).ogg";
 		EncodedTrackBean encodedTrackBean =
 			fileSystemService.findByPath(path);
+		assertTrue("The track should exist.", fileSystemService.objectExists(path));
+		fileSystemService.getModificationDate(path);
 		assertEquals("The wrong track title was returned", "Your Achievement_ (Bonus Track)", encodedTrackBean.getTitle());
 		assertEquals("The wrong track number was returned", 24, encodedTrackBean.getTrackNumber().intValue());
 		assertFalse("The track was identified as a directory", fileSystemService.isDirectory(path));
@@ -74,12 +76,17 @@ public class FileSystemServiceTest extends CoreSpringTest {
 			}
 		}
 	}
+	
 	public void testDirectory(String dir, String... children) throws PathNotFoundException {
 		FileSystemService fileSystemService = getFileSystemService();
 		for (String path : new String[] { dir, "/" + dir, dir + "/", "/" + dir + "/" }) {
 			assertTrue(
+					"The directory " + path + " was reported as not existing.",
+					fileSystemService.objectExists(path));
+			assertTrue(
 					"The directory " + path + " was not recognised as a directory.",
 					fileSystemService.isDirectory(path));
+			assertEquals("The directory " + path + " did not have length 0", 0, fileSystemService.getLength(dir).longValue());
 			assertEquals("The directory " + path + " had the wrong children.", Arrays
 					.asList(children), fileSystemService.getChildren(path));
 			try {
@@ -90,6 +97,7 @@ public class FileSystemServiceTest extends CoreSpringTest {
 			catch (PathNotFoundException e) {
 				// Expected!!
 			}
+			fileSystemService.getModificationDate(path);
 		}
 	}
 

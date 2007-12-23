@@ -16,4 +16,6 @@ public interface FileSystemService {
 	public Date getModificationDate(String path) throws PathNotFoundException;
 	
 	public SortedSet<String> getChildren(String directory) throws PathNotFoundException;
+
+	public Long getLength(String path) throws PathNotFoundException;
 }

@@ -42,7 +42,7 @@ public class HibernateEncodedArtistDao extends
 	}
 
 	@Override
-	public SortedSet<EncodedArtistBean> findByFirstLetter(String firstLetter) {
+	public SortedSet<EncodedArtistBean> findByFirstLetter(char firstLetter) {
 		Query query = getSession().createQuery("from encodedArtistBean where identifier like :firstLetter");
 		query.setString("firstLetter", firstLetter + "%");
 		return asSortedSet(query);

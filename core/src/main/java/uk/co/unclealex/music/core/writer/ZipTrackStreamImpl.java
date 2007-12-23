@@ -24,14 +24,15 @@ public class ZipTrackStreamImpl implements ZipTrackStream {
 	
 	@Override
 	public OutputStream createStream(EncodedTrackBean encodedTrackBean, String title) throws IOException {
+		int length = encodedTrackBean.getLength();
 		ZipOutputStream zipOutputStream = getZipOutputStream();
-		for (ZipEntry entry : createEntries(title)) {
+		for (ZipEntry entry : createEntries(title, length)) {
 			zipOutputStream.putNextEntry(entry);
 		}
 		return zipOutputStream;
 	}
 
-	protected List<ZipEntry> createEntries(String title) {
+	protected List<ZipEntry> createEntries(String title, int length) {
 		title = title.replace(File.pathSeparatorChar, IOUtils.DIR_SEPARATOR_UNIX);
 		if (title.startsWith(DIR_SEPARATOR_UNIX_STRING)) {
 			title = title.substring(1);
@@ -45,15 +46,21 @@ public class ZipTrackStreamImpl implements ZipTrackStream {
 			for (String part : StringUtils.split(directory, IOUtils.DIR_SEPARATOR_UNIX)) {
 				currentDirectory += part + IOUtils.DIR_SEPARATOR_UNIX;
 				if (!directories.contains(currentDirectory)) {
-					entries.add(new ZipEntry(currentDirectory));
+					entries.add(createZipEntry(currentDirectory, 0));
 					directories.add(currentDirectory);
 				}
 			}
 		}
-		entries.add(new ZipEntry(title));
+		entries.add(createZipEntry(title, length));
 		return entries;
 	}
 	
+	protected ZipEntry createZipEntry(String name, int size) {
+		ZipEntry entry = new ZipEntry(name);
+		entry.setSize(size);
+		return entry;
+	}
+
 	@Override
 	public void closeStream() {
 		// Do nothing

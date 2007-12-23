@@ -1,7 +1,11 @@
 package uk.co.unclealex.music.core.service;
 
 import java.util.Collection;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
+import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.Transformer;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
@@ -51,6 +55,22 @@ public class EncodedServiceImpl implements EncodedService {
 			encodedArtistDao.store(encodedArtistBean);
 		}
 		return encodedArtistBean;
+	}
+	
+	@Override
+	public SortedSet<Character> getAllFirstLettersOfArtists() {
+		SortedSet<EncodedArtistBean> encodedArtistBeans = getEncodedArtistDao().getAll();
+		SortedSet<Character> firstLetters = new TreeSet<Character>();
+		CollectionUtils.collect(
+			encodedArtistBeans, 
+			new Transformer<EncodedArtistBean, Character>() {
+				@Override
+				public Character transform(EncodedArtistBean encodedArtistBean) {
+					return encodedArtistBean.getIdentifier().charAt(0);
+				}
+			},
+			firstLetters);
+		return firstLetters;
 	}
 	
 	@Override
