@@ -4,6 +4,7 @@ import java.util.SortedSet;
 
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.core.model.EncodedBean;
 
 public interface EncodedService {
 
@@ -17,4 +18,8 @@ public interface EncodedService {
 	 * @return The number of albums removed.
 	 */
 	public int removeEmptyAlbumsAndArtists();
+	
+	public void updateAllFilenames();
+	
+	public void injectFilename(EncodedBean encodedBean);
 }

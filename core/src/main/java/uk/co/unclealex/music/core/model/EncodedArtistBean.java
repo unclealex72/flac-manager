@@ -33,6 +33,12 @@ public class EncodedArtistBean extends IdentifiableBean<EncodedArtistBean, Strin
 	}
 
 	@Override
+	@NotNull
+	public String getFilename() {
+		return super.getFilename();
+	}
+	
+	@Override
 	public String toString() {
 		return getName();
 	}

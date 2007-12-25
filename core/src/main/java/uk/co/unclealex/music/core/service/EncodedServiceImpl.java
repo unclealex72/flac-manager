@@ -15,9 +15,13 @@ import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.core.dao.EncodedArtistDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.KeyedDao;
+import uk.co.unclealex.music.core.model.AbstractEncodedBean;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.core.model.EncodedBean;
+import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.IdentifiableBean;
+import uk.co.unclealex.music.core.visitor.EncodedVisitor;
 
 @Service
 @Transactional
@@ -28,7 +32,7 @@ public class EncodedServiceImpl implements EncodedService {
 	private EncodedAlbumDao i_encodedAlbumDao;
 	private EncodedArtistDao i_encodedArtistDao;
 	private EncodedTrackDao i_encodedTrackDao;
-	
+
 	@Override
 	public EncodedAlbumBean findOrCreateAlbum(
 			EncodedArtistBean encodedArtistBean, String identifier, String title) {
@@ -38,6 +42,7 @@ public class EncodedServiceImpl implements EncodedService {
 			encodedAlbumBean = new EncodedAlbumBean();
 			encodedAlbumBean.setEncodedArtistBean(encodedArtistBean);
 			encodedAlbumBean.setTitle(title);
+			injectFilename(encodedAlbumBean);
 			encodedAlbumBean.setIdentifier(identifier);
 			encodedAlbumDao.store(encodedAlbumBean);
 		}
@@ -51,6 +56,7 @@ public class EncodedServiceImpl implements EncodedService {
 		if (encodedArtistBean == null) {
 			encodedArtistBean = new EncodedArtistBean();
 			encodedArtistBean.setName(name);
+			injectFilename(encodedArtistBean);
 			encodedArtistBean.setIdentifier(identifier);
 			encodedArtistDao.store(encodedArtistBean);
 		}
@@ -91,7 +97,49 @@ public class EncodedServiceImpl implements EncodedService {
 		}
 		return cnt;
 	}
-		
+
+	@Override
+	public void injectFilename(EncodedBean encodedBean) {
+		FilenameExtractingEncodedVisitor visitor = new FilenameExtractingEncodedVisitor();
+		encodedBean.accept(visitor);
+		encodedBean.setFilename(new ValidFilenameTransformer().transform(visitor.filename));
+	}
+	
+	protected class FilenameExtractingEncodedVisitor extends EncodedVisitor {
+		public String filename;
+		@Override
+		public void visit(EncodedAlbumBean encodedAlbumBean) {
+			filename = encodedAlbumBean.getTitle();
+		}
+		@Override
+		public void visit(EncodedArtistBean encodedArtistBean) {
+			filename = encodedArtistBean.getName();
+		}
+		@Override
+		public void visit(EncodedTrackBean encodedTrackBean) {
+			filename = encodedTrackBean.getTitle();
+		}		
+	}
+	
+	@Override
+	public void updateAllFilenames() {
+		updateAllFilenames(getEncodedArtistDao());
+		updateAllFilenames(getEncodedAlbumDao());
+		updateAllFilenames(getEncodedTrackDao());
+	}
+	
+	public <E extends AbstractEncodedBean<E>> void updateAllFilenames(KeyedDao<E> dao) {
+		for (E encodedBean : dao.getAll()) {
+			String oldFilename = encodedBean.getFilename();
+			injectFilename(encodedBean);
+			String newFilename = encodedBean.getFilename();
+			if (!newFilename.equals(oldFilename)) {
+				log.info("Updating '" + oldFilename + "' to '" + newFilename + "'");
+				dao.store(encodedBean);
+			}
+		}
+	}
+	
 	public EncodedAlbumDao getEncodedAlbumDao() {
 		return i_encodedAlbumDao;
 	}

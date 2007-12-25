@@ -27,6 +27,7 @@ import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
+import uk.co.unclealex.music.core.service.EncodedService;
 import uk.co.unclealex.music.core.service.TrackDataStreamIteratorFactory;
 import uk.co.unclealex.music.core.service.TrackStreamService;
 import uk.co.unclealex.music.encoder.model.FlacAlbumBean;
@@ -42,6 +43,7 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 	private TrackDataDao i_trackDataDao;
 	private TrackStreamService i_trackStreamService;
 	private TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
+	private EncodedService i_encodedService;
 	
 	@Transactional(rollbackFor=IOException.class)
 	public int encode(
@@ -129,6 +131,9 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 			newEncodedTrackBean.setEncoderBean(encoderBean);
 			newEncodedTrackBean.setTimestamp(new Date().getTime());
 			newEncodedTrackBean.setLength(-1);
+			newEncodedTrackBean.setTitle(trackName);
+			newEncodedTrackBean.setTrackNumber(trackNumber);
+			getEncodedService().injectFilename(newEncodedTrackBean);
 			SortedSet<TrackDataBean> trackDataBeans = newEncodedTrackBean.getTrackDataBeans();
 			if (trackDataBeans != null) {
 				for (TrackDataBean trackDataBean : trackDataBeans) {
@@ -213,5 +218,14 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 	@Required
 	public void setTrackStreamService(TrackStreamService trackStreamService) {
 		i_trackStreamService = trackStreamService;
+	}
+
+	public EncodedService getEncodedService() {
+		return i_encodedService;
+	}
+
+	@Required
+	public void setEncodedService(EncodedService encodedService) {
+		i_encodedService = encodedService;
 	}
 }

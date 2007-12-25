@@ -12,10 +12,6 @@
     http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd"
   default-autowire="byName">
   
-  <bean id="webdavStorage" class="uk.co.unclealex.music.core.spring.MethodLoggingBeanFactory">
-  	<property name="bean" ref="webdavStore"/>
-  	<property name="objectType" value="net.sf.webdav.IWebdavStorage"/>
-  </bean>
 </beans>
 
 

@@ -9,10 +9,10 @@
                     (100 sec in this case) -->
                 <!--parameter name="cache-timeout">100</parameter>
                 <parameter name="cache-mode">full</parameter-->
-                <!-- <nodestore classname="org.apache.slide.simple.store.WebdavStoreAdapter"> -->
+                <nodestore classname="uk.co.unclealex.music.web.webdav.WebdavStoreAdapter">
                 <!-- replace the above line with this one if your Slide version and your store supports macro operations on the store level -->  
-                <nodestore classname="org.apache.slide.simple.store.WebdavStoreMacroAdapter">
-                    <parameter name="callback-store">uk.co.unclealex.music.web.encoded.webdav.WebdavStore</parameter>
+                <!--nodestore classname="org.apache.slide.simple.store.WebdavStoreMacroAdapter"-->
+                    <parameter name="callback-store">uk.co.unclealex.music.web.webdav.WebdavStore</parameter>
                     <!-- this is where all the resources in the /files collection go to -->
                     <!-- adapt to your needs -->
                     <parameter name="rootpath">store</parameter>
@@ -30,9 +30,9 @@
                     <reference store="nodestore"/>
                 </lockstore>
                 <!-- uncomment this if your Slide version and your store supports macro operations on the store level -->  
-    <macrostore>
+    <!--macrostore>
       <reference store="nodestore"/>
-    </macrostore>
+    </macrostore-->
                 <!--lockstore classname="org.apache.slide.store.mem.TransientLockStore"/-->
                 <!--securitystore classname="org.apache.slide.store.mem.TransientSecurityStore"/-->
                 <securitystore>

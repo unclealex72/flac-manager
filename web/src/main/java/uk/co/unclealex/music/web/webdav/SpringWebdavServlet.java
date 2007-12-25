@@ -4,8 +4,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-import net.sf.webdav.WebdavServlet;
-
+import org.apache.slide.webdav.WebdavServlet;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 

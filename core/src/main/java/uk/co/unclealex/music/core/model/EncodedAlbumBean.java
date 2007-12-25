@@ -35,6 +35,12 @@ public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String>
 	}
 
 	@Override
+	@NotNull
+	public String getFilename() {
+		return super.getFilename();
+	}
+	
+	@Override
 	public String toString() {
 		return getTitle();
 	}

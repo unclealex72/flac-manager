@@ -5,96 +5,105 @@ import java.security.Principal;
 import java.util.Date;
 import java.util.Hashtable;
 
-import net.sf.webdav.IWebdavStorage;
-import net.sf.webdav.exceptions.WebdavException;
-
+import org.apache.commons.transaction.util.LoggerFacade;
+import org.apache.slide.common.Service;
+import org.apache.slide.common.ServiceAccessException;
+import org.apache.slide.common.ServiceParameterErrorException;
+import org.apache.slide.common.ServiceParameterMissingException;
+import org.apache.slide.lock.ObjectLockedException;
+import org.apache.slide.security.AccessDeniedException;
+import org.apache.slide.security.UnauthenticatedException;
+import org.apache.slide.simple.store.BasicWebdavStore;
+import org.apache.slide.structure.ObjectAlreadyExistsException;
+import org.apache.slide.structure.ObjectNotFoundException;
 import org.springframework.context.ApplicationContext;
 
-public class WebdavStorageDelegate implements IWebdavStorage {
+public class WebdavStorageDelegate implements BasicWebdavStore {
 
-	private IWebdavStorage i_webdavStorage;
+	private BasicWebdavStore i_webdavStore;
 	
 	public WebdavStorageDelegate() {
 		ApplicationContext applicationContext = SpringWebdavServlet.getApplicationContext();
-		IWebdavStorage webdavStorage = (IWebdavStorage) applicationContext.getBean("webdavStorage", IWebdavStorage.class);
-		setWebdavStorage(webdavStorage);
+		WebdavStore webdavStorage = (WebdavStore) applicationContext.getBean("webdavStore", WebdavStore.class);
+		setWebdavStore(webdavStorage);
 	}
 
+	public void checkAuthentication() throws UnauthenticatedException {
+		i_webdavStore.checkAuthentication();
+	}
+
+	
 	@SuppressWarnings("unchecked")
-	public void begin(Principal principal, Hashtable parameters)
-			throws WebdavException {
-		i_webdavStorage.begin(principal, parameters);
+	public void begin(Service arg0, Principal arg1, Object arg2,
+			LoggerFacade arg3, Hashtable arg4) throws ServiceAccessException,
+			ServiceParameterErrorException, ServiceParameterMissingException {
+		i_webdavStore.begin(arg0, arg1, arg2, arg3, arg4);
 	}
 
-	public void checkAuthentication() throws WebdavException {
-		i_webdavStorage.checkAuthentication();
+	public void commit() throws ServiceAccessException {
+		i_webdavStore.commit();
 	}
 
-	public void commit() throws WebdavException {
-		i_webdavStorage.commit();
+	public void createFolder(String folderUri) throws AccessDeniedException, ObjectAlreadyExistsException, ObjectLockedException, ServiceAccessException {
+		i_webdavStore.createFolder(folderUri);
 	}
 
-	public void createFolder(String folderUri) throws WebdavException {
-		i_webdavStorage.createFolder(folderUri);
+	public void createResource(String resourceUri) throws AccessDeniedException, ObjectAlreadyExistsException, ObjectLockedException, ServiceAccessException {
+		i_webdavStore.createResource(resourceUri);
 	}
 
-	public void createResource(String resourceUri) throws WebdavException {
-		i_webdavStorage.createResource(resourceUri);
+	public String[] getChildrenNames(String folderUri) throws AccessDeniedException, ObjectNotFoundException, ObjectLockedException, ServiceAccessException {
+		return i_webdavStore.getChildrenNames(folderUri);
 	}
 
-	public String[] getChildrenNames(String folderUri) throws WebdavException {
-		return i_webdavStorage.getChildrenNames(folderUri);
+	public Date getCreationDate(String uri) throws AccessDeniedException, ObjectNotFoundException, ObjectLockedException, ServiceAccessException {
+		return i_webdavStore.getCreationDate(uri);
 	}
 
-	public Date getCreationDate(String uri) throws WebdavException {
-		return i_webdavStorage.getCreationDate(uri);
+	public Date getLastModified(String uri) throws AccessDeniedException, ObjectNotFoundException, ObjectLockedException, ServiceAccessException {
+		return i_webdavStore.getLastModified(uri);
 	}
 
-	public Date getLastModified(String uri) throws WebdavException {
-		return i_webdavStorage.getLastModified(uri);
+	public InputStream getResourceContent(String resourceUri) throws AccessDeniedException, ObjectNotFoundException, ObjectLockedException, ServiceAccessException {
+		return i_webdavStore.getResourceContent(resourceUri);
 	}
 
-	public InputStream getResourceContent(String resourceUri)
-			throws WebdavException {
-		return i_webdavStorage.getResourceContent(resourceUri);
+	public long getResourceLength(String resourceUri) throws AccessDeniedException, ObjectNotFoundException, ObjectLockedException, ServiceAccessException {
+		return i_webdavStore.getResourceLength(resourceUri);
 	}
 
-	public long getResourceLength(String resourceUri) throws WebdavException {
-		return i_webdavStorage.getResourceLength(resourceUri);
+	public boolean isFolder(String uri) throws AccessDeniedException, ObjectLockedException, ServiceAccessException {
+		return i_webdavStore.isFolder(uri);
 	}
 
-	public boolean isFolder(String uri) throws WebdavException {
-		return i_webdavStorage.isFolder(uri);
+	public boolean isResource(String uri) throws AccessDeniedException, ObjectLockedException, ServiceAccessException {
+		return i_webdavStore.isResource(uri);
 	}
 
-	public boolean isResource(String uri) throws WebdavException {
-		return i_webdavStorage.isResource(uri);
+	public boolean objectExists(String uri) throws AccessDeniedException, ObjectLockedException, ServiceAccessException {
+		return i_webdavStore.objectExists(uri);
 	}
 
-	public boolean objectExists(String uri) throws WebdavException {
-		return i_webdavStorage.objectExists(uri);
+	public void removeObject(String uri) throws AccessDeniedException, ObjectNotFoundException, ObjectLockedException, ServiceAccessException {
+		i_webdavStore.removeObject(uri);
 	}
 
-	public void removeObject(String uri) throws WebdavException {
-		i_webdavStorage.removeObject(uri);
-	}
-
-	public void rollback() throws WebdavException {
-		i_webdavStorage.rollback();
+	public void rollback() throws ServiceAccessException {
+		i_webdavStore.rollback();
 	}
 
 	public void setResourceContent(String resourceUri, InputStream content,
-			String contentType, String characterEncoding) throws WebdavException {
-		i_webdavStorage.setResourceContent(resourceUri, content, contentType,
+			String contentType, String characterEncoding) throws AccessDeniedException, ObjectNotFoundException, ObjectLockedException, ServiceAccessException {
+		i_webdavStore.setResourceContent(resourceUri, content, contentType,
 				characterEncoding);
 	}
 
-	public IWebdavStorage getWebdavStorage() {
-		return i_webdavStorage;
+	public BasicWebdavStore getWebdavStore() {
+		return i_webdavStore;
 	}
 
-	public void setWebdavStorage(IWebdavStorage webdavStorage) {
-		i_webdavStorage = webdavStorage;
+	public void setWebdavStore(BasicWebdavStore webdavStore) {
+		i_webdavStore = webdavStore;
 	}
 	
 }

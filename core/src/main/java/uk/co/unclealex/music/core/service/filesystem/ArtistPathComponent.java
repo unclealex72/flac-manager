@@ -24,17 +24,17 @@ public class ArtistPathComponent extends AbstractPathComponent implements Visibl
 		Transformer<EncodedAlbumBean, String> transformer = new Transformer<EncodedAlbumBean, String>() {
 			@Override
 			public String transform(EncodedAlbumBean encodedAlbumBean) {
-				return encodedAlbumBean.getTitle();
+				return encodedAlbumBean.getFilename();
 			}
 		};
-		SortedSet<String> albumTitles = new TreeSet<String>();
-		CollectionUtils.collect(getEncodedArtistBean().getEncodedAlbumBeans(), transformer, albumTitles);
-		return albumTitles;
+		SortedSet<String> albumFilenames = new TreeSet<String>();
+		CollectionUtils.collect(getEncodedArtistBean().getEncodedAlbumBeans(), transformer, albumFilenames);
+		return albumFilenames;
 	}
 
 	@Override
 	public void setPathComponent(final String pathComponent) throws PathNotFoundException {
-		EncodedArtistBean encodedArtistBean = getEncodedArtistDao().findByName(pathComponent);
+		EncodedArtistBean encodedArtistBean = getEncodedArtistDao().findByFilename(pathComponent);
 		if (encodedArtistBean == null) {
 			throw new PathNotFoundException(pathComponent);
 		}

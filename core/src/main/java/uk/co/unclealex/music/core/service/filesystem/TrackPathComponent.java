@@ -30,14 +30,14 @@ public class TrackPathComponent extends AbstractPathComponent implements Visible
 		Context context = getContext();
 		if (matcher.matches()) {
 			int trackNumber = Integer.parseInt(matcher.group(1));
-			String title = matcher.group(2);
+			String filename = matcher.group(2);
 			String extension = matcher.group(3);
 			EncoderBean encoderBean = context.getEncoderBean();
 			if (extension.equals(encoderBean.getExtension())) {
 				EncodedTrackBean encodedTrackBean = 
 					getEncodedTrackDao().findByAlbumAndEncoderBeanAndTrackNumber(
 							context.getEncodedAlbumBean(), encoderBean, trackNumber);
-				if (encodedTrackBean != null && title.equals(encodedTrackBean.getTitle())) {
+				if (encodedTrackBean != null && filename.equals(encodedTrackBean.getFilename())) {
 					context.setEncodedTrackBean(encodedTrackBean);
 					return;
 				}

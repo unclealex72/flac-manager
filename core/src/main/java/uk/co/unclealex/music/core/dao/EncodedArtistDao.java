@@ -12,5 +12,5 @@ public interface EncodedArtistDao extends KeyedDao<EncodedArtistBean> {
 
 	public SortedSet<EncodedArtistBean> findByFirstLetter(char firstLetter);
 
-	public EncodedArtistBean findByName(String name);
+	public EncodedArtistBean findByFilename(String filename);
 }

@@ -75,6 +75,7 @@ public class EncoderServiceImpl implements EncoderService {
 		if (!getAtomicCurrentlyEncoding().compareAndSet(false, true)) {
 			throw new AlreadyEncodingException();
 		}
+		log.info("Initiating encoding with " + maximumThreads + " threads.");
 		final SingleEncoderService singleEncoderService = getSingleEncoderService();
 		final SortedMap<EncodingCommandBean, Throwable> errors =
 			Collections.synchronizedSortedMap(new TreeMap<EncodingCommandBean, Throwable>());

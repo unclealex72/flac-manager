@@ -1,7 +1,7 @@
 package uk.co.unclealex.music.core.model;
 
 public abstract class IdentifiableBean<T extends IdentifiableBean<T, I>, I extends Comparable<I>>
-		extends KeyedBean<T> implements Identifiable<I> {
+		extends AbstractEncodedBean<T> implements Identifiable<I> {
 
 	private I i_identifier;
 

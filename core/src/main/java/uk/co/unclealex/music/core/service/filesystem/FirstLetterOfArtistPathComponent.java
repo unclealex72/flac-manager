@@ -31,7 +31,7 @@ public class FirstLetterOfArtistPathComponent extends AbstractPathComponent impl
 			new Transformer<EncodedArtistBean, String>() {
 				@Override
 				public String transform(EncodedArtistBean encodedArtistBean) {
-					return encodedArtistBean.getName();
+					return encodedArtistBean.getFilename();
 				}
 			},
 			artistNames);

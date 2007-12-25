@@ -17,6 +17,7 @@ import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.service.EncodedService;
 import uk.co.unclealex.music.core.service.TrackStreamService;
 
 @Service
@@ -26,6 +27,7 @@ public class TrackImporterImpl implements TrackImporter {
 	private static final Logger log = Logger.getLogger(TrackImporterImpl.class);
 	
 	private TrackStreamService i_trackStreamService;
+	private EncodedService i_encodedService;
 	private EncodedArtistDao i_encodedArtistDao;
 	private EncodedAlbumDao i_encodedAlbumDao;
 	private EncodedTrackDao i_encodedTrackDao;
@@ -42,6 +44,7 @@ public class TrackImporterImpl implements TrackImporter {
 		encodedTrackBean.setTimestamp(lastModifiedMillis);
 		encodedTrackBean.setTrackNumber(trackNumber);
 		encodedTrackBean.setTitle(title);
+		getEncodedService().injectFilename(encodedTrackBean);
 		encodedTrackBean.setLength(0);
 		encodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
 		encodedTrackDao.store(encodedTrackBean);
@@ -88,6 +91,15 @@ public class TrackImporterImpl implements TrackImporter {
 	@Required
 	public void setEncodedAlbumDao(EncodedAlbumDao encodedAlbumDao) {
 		i_encodedAlbumDao = encodedAlbumDao;
+	}
+
+	public EncodedService getEncodedService() {
+		return i_encodedService;
+	}
+
+	@Required
+	public void setEncodedService(EncodedService encodedService) {
+		i_encodedService = encodedService;
 	}
 
 }

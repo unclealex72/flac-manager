@@ -35,9 +35,9 @@ public class HibernateEncodedArtistDao extends
 	}
 
 	@Override
-	public EncodedArtistBean findByName(String name) {
+	public EncodedArtistBean findByFilename(String filename) {
 		EncodedArtistBean artistBean = createExampleBean();
-		artistBean.setName(name);
+		artistBean.setFilename(filename);
 		return uniqueResult(createCriteria(artistBean));
 	}
 

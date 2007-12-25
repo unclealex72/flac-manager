@@ -23,7 +23,7 @@ import uk.co.unclealex.music.core.visitor.EncodedVisitor;
 		name="encoded_tracks",
 		uniqueConstraints = {@UniqueConstraint(columnNames={"url", "encoderBean_id"})})
 @Entity(name="encodedTrackBean")
-public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> implements EncodedBean {
+public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> implements EncodedBean {
 
 	private String i_flacUrl;
 	private EncoderBean i_encoderBean;
@@ -57,6 +57,12 @@ public class EncodedTrackBean extends KeyedBean<EncodedTrackBean> implements Enc
 		return super.getId();
 	}
 
+	@Override
+	@NotNull
+	public String getFilename() {
+		return super.getFilename();
+	}
+	
 	@Override
 	public void accept(EncodedVisitor encodedVisitor) {
 		encodedVisitor.visit(this);

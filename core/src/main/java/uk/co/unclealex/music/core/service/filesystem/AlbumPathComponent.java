@@ -35,23 +35,23 @@ public class AlbumPathComponent extends AbstractPathComponent implements Visible
 				if (trackNumber < 10) {
 					buffer.append('0');
 				}
-				buffer.append(trackNumber).append(" - ").append(encodedTrackBean.getTitle()).append('.').append(extension);
+				buffer.append(trackNumber).append(" - ").append(encodedTrackBean.getFilename()).append('.').append(extension);
 				return buffer.toString();
 			}
 		};
-		SortedSet<String> trackTitles = new TreeSet<String>();
+		SortedSet<String> trackFilenames = new TreeSet<String>();
 		Context context = getContext();
 		EncodedAlbumBean encodedAlbumBean = context.getEncodedAlbumBean();
 		CollectionUtils.collect(
 				getEncodedTrackDao().findByAlbumAndEncoderBean(encodedAlbumBean, encoderBean), 
-				transformer, trackTitles);
-		return trackTitles;
+				transformer, trackFilenames);
+		return trackFilenames;
 	}
 
 	@Override
 	public void setPathComponent(final String pathComponent) throws PathNotFoundException {
 		EncodedAlbumBean encodedAlbumBean = 
-			getEncodedAlbumDao().findByArtistAndTitle(getContext().getEncodedArtistBean(), pathComponent);
+			getEncodedAlbumDao().findByArtistAndFilename(getContext().getEncodedArtistBean(), pathComponent);
 		if (encodedAlbumBean == null) {
 			throw new PathNotFoundException(pathComponent);
 		}

@@ -8,8 +8,8 @@
   <context-root>/music</context-root>
 
   <resource-ref>
-    <res-ref-name>music</res-ref-name>
-    <jndi-name>java:/comp/env/music</jndi-name>
+    <res-ref-name>jdbc/music</res-ref-name>
+    <jndi-name>java:/jdbc/music</jndi-name>
   </resource-ref>
 
 </jboss-web>
