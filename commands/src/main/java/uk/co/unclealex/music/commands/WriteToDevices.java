@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.core.mains;
+package uk.co.unclealex.music.commands;
 
 import org.springframework.transaction.annotation.Transactional;
 
