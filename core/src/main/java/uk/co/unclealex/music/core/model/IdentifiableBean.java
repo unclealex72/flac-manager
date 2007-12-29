@@ -6,9 +6,7 @@ public abstract class IdentifiableBean<T extends IdentifiableBean<T, I>, I exten
 	private I i_identifier;
 
 	@Override
-	public int compareTo(T o) {
-		return getIdentifier().compareTo(o.getIdentifier());
-	}
+	public abstract int compareTo(T o);
 	
 	/* (non-Javadoc)
 	 * @see uk.co.unclealex.music.core.model.Identifiable#getIdentifier()

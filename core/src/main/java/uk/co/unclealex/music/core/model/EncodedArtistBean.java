@@ -1,5 +1,6 @@
 package uk.co.unclealex.music.core.model;
 
+import java.util.Comparator;
 import java.util.SortedSet;
 
 import javax.persistence.Column;
@@ -21,9 +22,22 @@ import uk.co.unclealex.music.core.visitor.EncodedVisitor;
 @Entity(name="encodedArtistBean")
 public class EncodedArtistBean extends IdentifiableBean<EncodedArtistBean, String> implements EncodedBean {
 
+	protected static final Comparator<EncodedArtistBean> ENCODED_ARTIST_COMPARATOR =
+		new Comparator<EncodedArtistBean>() {
+			@Override
+			public int compare(EncodedArtistBean o1, EncodedArtistBean o2) {
+				return o1.getIdentifier().compareTo(o2.getIdentifier());
+			}
+	};
+	
 	private String i_name;
 	private SortedSet<EncodedAlbumBean> i_encodedAlbumBeans;
 	private SortedSet<OwnerBean> i_ownerBeans;
+	
+	@Override
+	public int compareTo(EncodedArtistBean o) {
+		return ENCODED_ARTIST_COMPARATOR.compare(this, o);
+	}
 	
 	@Override
 	@Id

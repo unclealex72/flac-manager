@@ -1,5 +1,6 @@
 package uk.co.unclealex.music.core.model;
 
+import java.util.Comparator;
 import java.util.SortedSet;
 
 import javax.persistence.Column;
@@ -12,6 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.apache.commons.collections15.ComparatorUtils;
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 import org.hibernate.validator.NotNull;
@@ -22,10 +24,32 @@ import uk.co.unclealex.music.core.visitor.EncodedVisitor;
 @Entity(name="encodedAlbumBean")
 public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String> implements EncodedBean {
 
+	protected static final Comparator<EncodedAlbumBean> ENCODED_ALBUM_COMPARATOR =
+		ComparatorUtils.chainedComparator(
+			new Comparator<EncodedAlbumBean>() {
+				@Override
+				public int compare(EncodedAlbumBean o1, EncodedAlbumBean o2) {
+					return 
+						EncodedArtistBean.ENCODED_ARTIST_COMPARATOR.compare(
+								o1.getEncodedArtistBean(), o2.getEncodedArtistBean());
+				}
+			},
+			new Comparator<EncodedAlbumBean>() {
+				@Override
+				public int compare(EncodedAlbumBean o1, EncodedAlbumBean o2) {
+					return o1.getIdentifier().compareTo(o2.getIdentifier());
+				}
+			});
+	
 	private String i_title;
 	private SortedSet<EncodedTrackBean> i_encodedTrackBeans;
 	private EncodedArtistBean i_encodedArtistBean;
 	private SortedSet<OwnerBean> i_ownerBeans;
+	
+	@Override
+	public int compareTo(EncodedAlbumBean o) {
+		return ENCODED_ALBUM_COMPARATOR.compare(this, o);
+	}
 	
 	@Override
 	@Id
