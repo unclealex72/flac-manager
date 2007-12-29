@@ -128,6 +128,7 @@ public class DeviceServiceImpl implements DeviceService {
 	@Override
 	public void removeMusicFolders(DeviceBean deviceBean, File deviceDirectory) throws IOException {
 		if (deviceBean.isDeletingRequired()) {
+			log.info("Removing music folders for device " + deviceBean.getDescription());
 			removeMusicFolders(deviceBean.getEncoderBean().getExtension(), deviceDirectory);
 		}
 	}
@@ -230,6 +231,7 @@ public class DeviceServiceImpl implements DeviceService {
 	protected void registerIoException(IOException exception,
 			DeviceBean deviceBean,
 			Map<DeviceBean, Collection<WritingListener>> writingListeners) {
+		log.error("Device " + deviceBean.getDescription() + " caused an exception.", exception);
 		Collection<WritingListener> listeners = writingListeners.get(deviceBean);
 		if (listeners != null) {
 			for (WritingListener writingListener : listeners) {

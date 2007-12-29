@@ -19,9 +19,7 @@ import uk.co.unclealex.music.core.model.AbstractEncodedBean;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.EncodedBean;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.IdentifiableBean;
-import uk.co.unclealex.music.core.visitor.EncodedVisitor;
 
 @Service
 @Transactional
@@ -32,7 +30,8 @@ public class EncodedServiceImpl implements EncodedService {
 	private EncodedAlbumDao i_encodedAlbumDao;
 	private EncodedArtistDao i_encodedArtistDao;
 	private EncodedTrackDao i_encodedTrackDao;
-
+	private FilenameService i_filenameService;
+	
 	@Override
 	public EncodedAlbumBean findOrCreateAlbum(
 			EncodedArtistBean encodedArtistBean, String identifier, String title) {
@@ -100,26 +99,9 @@ public class EncodedServiceImpl implements EncodedService {
 
 	@Override
 	public void injectFilename(EncodedBean encodedBean) {
-		FilenameExtractingEncodedVisitor visitor = new FilenameExtractingEncodedVisitor();
-		encodedBean.accept(visitor);
-		encodedBean.setFilename(new ValidFilenameTransformer().transform(visitor.filename));
+		encodedBean.setFilename(getFilenameService().createFilename(encodedBean));
 	}
 	
-	protected class FilenameExtractingEncodedVisitor extends EncodedVisitor {
-		public String filename;
-		@Override
-		public void visit(EncodedAlbumBean encodedAlbumBean) {
-			filename = encodedAlbumBean.getTitle();
-		}
-		@Override
-		public void visit(EncodedArtistBean encodedArtistBean) {
-			filename = encodedArtistBean.getName();
-		}
-		@Override
-		public void visit(EncodedTrackBean encodedTrackBean) {
-			filename = encodedTrackBean.getTitle();
-		}		
-	}
 	
 	@Override
 	public void updateAllFilenames() {
@@ -162,7 +144,17 @@ public class EncodedServiceImpl implements EncodedService {
 		return i_encodedTrackDao;
 	}
 
+	@Required
 	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
 		i_encodedTrackDao = encodedTrackDao;
+	}
+
+	public FilenameService getFilenameService() {
+		return i_filenameService;
+	}
+
+	@Required
+	public void setFilenameService(FilenameService filenameService) {
+		i_filenameService = filenameService;
 	}
 }
