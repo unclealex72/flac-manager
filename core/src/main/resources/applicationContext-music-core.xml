@@ -68,9 +68,21 @@
 			<value>${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
 		</property>
 	</bean>
+
+	<bean id="fileSystemTitleFormats" class="org.springframework.beans.factory.config.ListFactoryBean">
+		<property name="sourceList">
+			<list>
+				<value>${ext}/${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
+			</list>
+		</property>
+	</bean>
 	
 	<bean id="titleFormat" factory-bean="titleFormatFactory" factory-method="getDefaultTitleFormat"/>
-			
+	
+	<bean id="slimserverConfigFile" class="java.io.File">
+		<constructor-arg value="/etc/slimserver/slimserver.pref"/>
+	</bean>
+	
   <context:component-scan
   	base-package="uk.co.unclealex.music"
   	name-generator="uk.co.unclealex.music.core.spring.BeanNameGenerator"

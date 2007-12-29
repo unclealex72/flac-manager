@@ -130,6 +130,15 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
+       <plugin>
+         <artifactId>maven-surefire-plugin</artifactId>
+         <configuration>
+           <excludes>
+           	<exclude>**/*Impl.java</exclude>
+           	<exclude>**/amazon/**/*.java</exclude>
+           </excludes>
+         </configuration>
+       </plugin>
 		</plugins>
 	</build>
 

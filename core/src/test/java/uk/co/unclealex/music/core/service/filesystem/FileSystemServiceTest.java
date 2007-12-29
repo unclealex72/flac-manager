@@ -8,6 +8,7 @@ import uk.co.unclealex.music.core.model.EncodedTrackBean;
 public class FileSystemServiceTest extends CoreSpringTest {
 
 	private FileSystemService i_fileSystemService;
+	private FileSystemCache i_fileSystemCache;
 	
 	public void testRoot() throws PathNotFoundException {
 		testDirectory("", "mp3", "ogg");
@@ -22,7 +23,7 @@ public class FileSystemServiceTest extends CoreSpringTest {
 	}
 
 	public void testArtist() throws PathNotFoundException {
-		testDirectory("mp3/S/S.O.D.", "Speak English Or Die");
+		testDirectory("mp3/S/S.O.D", "Speak English Or Die");
 	}
 
 	public void testAlbum() throws PathNotFoundException {
@@ -31,13 +32,21 @@ public class FileSystemServiceTest extends CoreSpringTest {
 
 	public void testTrack() throws PathNotFoundException {
 		FileSystemService fileSystemService = getFileSystemService();
+		fileSystemService.rebuildCache();
 		String path = "/ogg/N/Napalm Death/Scum/24 - Your Achievement_ (Bonus Track).ogg";
 		EncodedTrackBean encodedTrackBean =
 			fileSystemService.findByPath(path);
 		assertTrue("The track should exist.", fileSystemService.objectExists(path));
-		fileSystemService.getModificationDate(path);
-		assertEquals("The wrong track title was returned", "Your Achievement_ (Bonus Track)", encodedTrackBean.getTitle());
-		assertEquals("The wrong track number was returned", 24, encodedTrackBean.getTrackNumber().intValue());
+		assertEquals(
+				"The wrong track modification time was returned.", 
+				encodedTrackBean.getTimestamp().longValue(), 
+				fileSystemService.getModificationDate(path).getTime());
+		assertEquals(
+				"The wrong track length was returned.", 
+				encodedTrackBean.getLength().longValue(), 
+				fileSystemService.getLength(path).longValue());
+		assertEquals("The wrong track title was returned.", "Your Achievement_ (Bonus Track)", encodedTrackBean.getTitle());
+		assertEquals("The wrong track number was returned.", 24, encodedTrackBean.getTrackNumber().intValue());
 		assertFalse("The track was identified as a directory", fileSystemService.isDirectory(path));
 		path += "/";
 		assertFalse("The track followed by a slash was identified as a directory", fileSystemService.isDirectory(path));
@@ -52,7 +61,9 @@ public class FileSystemServiceTest extends CoreSpringTest {
 	
 	public void testInvalidDirectory() {
 		try {
-			assertFalse("An invalid directory was identified as a directory", getFileSystemService().isDirectory("/mp3/One"));
+			FileSystemService fileSystemService = getFileSystemService();
+			fileSystemService.rebuildCache();
+			assertFalse("An invalid directory was identified as a directory", fileSystemService.isDirectory("/mp3/One"));
 		}
 		catch (PathNotFoundException e) {
 			// This is allowable
@@ -60,6 +71,8 @@ public class FileSystemServiceTest extends CoreSpringTest {
 	}
 
 	public void testInvalidFile() {
+		FileSystemService fileSystemService = getFileSystemService();
+		fileSystemService.rebuildCache();
 		String[] paths = new String[] {
 				"/ogg/N/Napalm Death/Scum/25 - Your Achievement_ (Bonus Track).ogg",
 				"/ogg/N/Napalm Death/Scum/24 - Your Achievement_ (Bonus Track).mp3",
@@ -68,7 +81,7 @@ public class FileSystemServiceTest extends CoreSpringTest {
 		};
 		for (String path : paths) {
 			try {
-				getFileSystemService().findByPath(path);
+				fileSystemService.findByPath(path);
 				fail(path + " should not be identified as a track.");
 			}
 			catch (PathNotFoundException e) {
@@ -79,6 +92,7 @@ public class FileSystemServiceTest extends CoreSpringTest {
 	
 	public void testDirectory(String dir, String... children) throws PathNotFoundException {
 		FileSystemService fileSystemService = getFileSystemService();
+		fileSystemService.rebuildCache();
 		for (String path : new String[] { dir, "/" + dir, dir + "/", "/" + dir + "/" }) {
 			assertTrue(
 					"The directory " + path + " was reported as not existing.",
@@ -107,5 +121,13 @@ public class FileSystemServiceTest extends CoreSpringTest {
 
 	public void setFileSystemService(FileSystemService fileSystemService) {
 		i_fileSystemService = fileSystemService;
+	}
+
+	public FileSystemCache getFileSystemCache() {
+		return i_fileSystemCache;
+	}
+
+	public void setFileSystemCache(FileSystemCache fileSystemCache) {
+		i_fileSystemCache = fileSystemCache;
 	}
 }

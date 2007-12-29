@@ -7,6 +7,8 @@ import uk.co.unclealex.music.core.model.EncodedTrackBean;
 
 public interface FileSystemService {
 
+	public void rebuildCache();
+
 	public EncodedTrackBean findByPath(String path) throws PathNotFoundException;
 	
 	public boolean isDirectory(String path) throws PathNotFoundException;
