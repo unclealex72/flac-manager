@@ -13,6 +13,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
@@ -26,19 +28,20 @@ public class FileSlimServerConfig implements SlimServerConfig {
 
 	private List<String> i_definiteArticles = new LinkedList<String>();
 	private boolean i_initialised = false;
-	private File i_configFile;
+	private File i_slimserverConfigFile;
 	
 	/**
 	 * Read a slimserver configuration file. Currently, only single line properties are supported. 
 	 * @param in
 	 * @throws IOException
 	 */
+	@PostConstruct
 	public void initialise() throws IOException {
 		if (i_initialised) {
 			throw new IllegalStateException("This configuration has already been initialised.");
 		}
 		i_initialised = true;
-		FileReader in = new FileReader(getConfigFile());
+		FileReader in = new FileReader(getSlimserverConfigFile());
 		Map<String, String> properties = new HashMap<String, String>();
 		BufferedReader bIn = new BufferedReader(in);
 		String line;
@@ -70,13 +73,13 @@ public class FileSlimServerConfig implements SlimServerConfig {
 		return i_initialised;
 	}
 
-	@Required
-	public File getConfigFile() {
-		return i_configFile;
+	public File getSlimserverConfigFile() {
+		return i_slimserverConfigFile;
 	}
 
-	public void setConfigFile(File configFile) {
-		i_configFile = configFile;
+	@Required
+	public void setSlimserverConfigFile(File configFile) {
+		i_slimserverConfigFile = configFile;
 	}
 	
 	
