@@ -1,5 +1,7 @@
 package uk.co.unclealex.music.commands;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -10,7 +12,14 @@ public abstract class Main {
 
 	public abstract void execute() throws Exception;
 	
-	protected abstract List<String> getContextLocations();
+	protected List<String> getContextLocations() {
+		String[] locationsArray = new String[] {
+				"applicationContext-music-core-jdbc-direct.xml", "applicationContext-music-encoder-jdbc-direct.xml"
+		};
+		List<String> locationsList = new ArrayList<String>(locationsArray.length);
+		locationsList.addAll(Arrays.asList(locationsArray));
+		return locationsList;
+	}
 	
 	public static void execute(Main main) throws Exception {
 		ApplicationContext applicationContext =

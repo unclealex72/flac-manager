@@ -3,11 +3,10 @@ package uk.co.unclealex.music.commands;
 import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.music.core.initialise.Initialiser;
-import uk.co.unclealex.music.core.mains.Main;
 import uk.co.unclealex.music.encoder.initialise.Importer;
 import uk.co.unclealex.music.encoder.service.EncoderService;
 
-public class Initialise extends EncoderMain {
+public class Initialise extends Main {
 
 	private Importer i_importer;
 	private Initialiser i_initialiser;

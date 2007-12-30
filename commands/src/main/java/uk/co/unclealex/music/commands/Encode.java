@@ -2,11 +2,10 @@ package uk.co.unclealex.music.commands;
 
 import org.springframework.beans.factory.annotation.Required;
 
-import uk.co.unclealex.music.core.mains.Main;
 import uk.co.unclealex.music.core.service.EncodedService;
 import uk.co.unclealex.music.encoder.service.EncoderService;
 
-public class Encode extends EncoderMain {
+public class Encode extends Main {
 
 	private EncoderService i_encoderService;
 	private EncodedService i_encodedService;
@@ -15,6 +14,7 @@ public class Encode extends EncoderMain {
 	public void execute() throws Exception {
 		getEncoderService().encodeAllAndRemoveDeleted();
 		getEncodedService().updateAllFilenames();
+		getEncoderService().updateOwnership();
 	}
 	
 	public static void main(String[] args) throws Exception {
