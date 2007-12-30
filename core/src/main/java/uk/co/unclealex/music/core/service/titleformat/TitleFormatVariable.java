@@ -1,7 +1,7 @@
 package uk.co.unclealex.music.core.service.titleformat;
 
 public enum TitleFormatVariable {
-	ARTIST("artist"), ALBUM("album"), TRACK("track"), TITLE("title"), EXTENSION("ext");
+	ARTIST("artist"), ALBUM("album"), TRACK("track"), TITLE("title"), EXTENSION("ext"), OWNER("owner"), DEVICE("device");
 	
 	private String i_substitutionVariable;
 	

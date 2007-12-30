@@ -5,7 +5,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.SortedSet;
 import java.util.TreeMap;
 
 import org.apache.commons.collections15.ComparatorUtils;
@@ -14,7 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
+import uk.co.unclealex.music.core.dao.OwnerDao;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.core.model.OwnerBean;
+import uk.co.unclealex.music.core.service.OwnerService;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
 import uk.co.unclealex.music.core.util.Tree;
@@ -26,6 +28,8 @@ public class FileSystemCacheImpl implements FileSystemCache {
 
 	private SortedMap<String, Tree<PathInformationBean>> i_nodesByPath; 
 	private EncodedTrackDao i_encodedTrackDao;
+	private OwnerService i_ownerService;
+	private OwnerDao i_ownerDao;
 	private TitleFormatServiceFactory i_titleFormatServiceFactory;
 	
 	@Override
@@ -34,11 +38,19 @@ public class FileSystemCacheImpl implements FileSystemCache {
 			new TreeMap<String, Tree<PathInformationBean>>();
 		setNodesByPath(nodesByPath);
 		TitleFormatServiceFactory factory = getTitleFormatServiceFactory();
-		SortedSet<EncodedTrackBean> encodedTrackBeans = getEncodedTrackDao().getAll();
 		for (String titleFormat : titleFormats) {
 			TitleFormatService titleFormatService = factory.createTitleFormatService(titleFormat);
-			for (EncodedTrackBean encodedTrackBean : encodedTrackBeans) {
-				addToCache(titleFormatService.getTitle(encodedTrackBean), encodedTrackBean, nodesByPath);
+			if (titleFormatService.isOwnerRequired()) {
+				for (OwnerBean ownerBean : getOwnerDao().getAll()) {
+					for (EncodedTrackBean encodedTrackBean : getOwnerService().getOwnedEncodedTracks(ownerBean)) {
+						addToCache(titleFormatService.getTitle(encodedTrackBean, ownerBean), encodedTrackBean, nodesByPath);
+					}
+				}					
+			}
+			else {
+				for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
+					addToCache(titleFormatService.getTitle(encodedTrackBean), encodedTrackBean, nodesByPath);
+				}				
 			}
 		}
 		if (!nodesByPath.isEmpty()) {
@@ -141,9 +153,28 @@ public class FileSystemCacheImpl implements FileSystemCache {
 		return i_titleFormatServiceFactory;
 	}
 
+	@Required
 	public void setTitleFormatServiceFactory(
 			TitleFormatServiceFactory titleFormatServiceFactory) {
 		i_titleFormatServiceFactory = titleFormatServiceFactory;
+	}
+
+	public OwnerService getOwnerService() {
+		return i_ownerService;
+	}
+
+	@Required
+	public void setOwnerService(OwnerService ownerService) {
+		i_ownerService = ownerService;
+	}
+
+	public OwnerDao getOwnerDao() {
+		return i_ownerDao;
+	}
+
+	@Required
+	public void setOwnerDao(OwnerDao ownerDao) {
+		i_ownerDao = ownerDao;
 	}
 
 }

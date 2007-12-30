@@ -54,10 +54,19 @@ public class HibernateEncodedTrackDao extends
 	public SortedSet<? extends EncodedTrackBean> findByArtistAndEncoderBean(
 			EncodedArtistBean encodedArtistBean, EncoderBean encoderBean) {
 		Query query = getSession().createQuery(
-		"select tr from encodedAlbumBean al join al.encodedTrackBeans tr " +
-		"where al.encodedArtistBean = :encodedArtistBean and tr.encoderBean = :encoderBean");
+			"select tr from encodedAlbumBean al join al.encodedTrackBeans tr " +
+			"where al.encodedArtistBean = :encodedArtistBean and tr.encoderBean = :encoderBean");
 		query.setEntity("encodedArtistBean", encodedArtistBean);
 		query.setEntity("encoderBean", encoderBean);
+		return asSortedSet(query);
+	}
+
+@Override
+	public SortedSet<? extends EncodedTrackBean> findByArtist(EncodedArtistBean encodedArtistBean) {
+		Query query = getSession().createQuery(
+			"select tr from encodedAlbumBean al join al.encodedTrackBeans tr " +
+			"where al.encodedArtistBean = :encodedArtistBean");
+		query.setEntity("encodedArtistBean", encodedArtistBean);
 		return asSortedSet(query);
 	}
 

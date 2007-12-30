@@ -55,7 +55,7 @@ public class Substitutor {
 	}
 	
 	protected void substitute(TitleFormatVariable variable, SubsBuilder subsBuilder) {
-		Pattern pattern = Pattern.compile("\\$\\{(?:([0-9]+):)?" + variable + "\\}");
+		Pattern pattern = createPattern(variable);
 		Matcher matcher;
 		while ((matcher = pattern.matcher(getText())).find()) {
 			Integer length = null;
@@ -67,6 +67,14 @@ public class Substitutor {
 			}
 			setText(matcher.replaceFirst(subsBuilder.getObjectAsString(length)));
 		}
+	}
+	
+	protected Pattern createPattern(TitleFormatVariable variable) {
+		return Pattern.compile("\\$\\{(?:([0-9]+):)?" + variable + "\\}");
+	}
+	
+	public boolean isTitleFormatVariableRequired(TitleFormatVariable variable) {
+		return createPattern(variable).matcher(getText()).find();
 	}
 	
 	private interface SubsBuilder {

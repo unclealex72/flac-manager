@@ -73,7 +73,7 @@
 	<bean id="fileSystemTitleFormats" class="org.springframework.beans.factory.config.ListFactoryBean">
 		<property name="sourceList">
 			<list>
-				<value>${ext}/${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
+				<value>${owner}/${ext}/${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
 			</list>
 		</property>
 	</bean>

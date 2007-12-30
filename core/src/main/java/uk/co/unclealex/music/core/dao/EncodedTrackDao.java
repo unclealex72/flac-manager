@@ -24,4 +24,6 @@ public interface EncodedTrackDao extends KeyedDao<EncodedTrackBean> {
 	public EncodedTrackBean findByAlbumAndEncoderBeanAndTrackNumber(
 			EncodedAlbumBean encodedAlbumBean, EncoderBean encoderBean,
 			int trackNumber);
+
+	public SortedSet<? extends EncodedTrackBean> findByArtist(EncodedArtistBean encodedArtistBean);
 }

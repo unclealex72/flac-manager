@@ -26,21 +26,69 @@ public class OwnerServiceImpl implements OwnerService {
 	private OwnerDao i_ownerDao;
 	
 	@Override
-	public SortedSet<EncodedTrackBean> getOwnedEncodedTracks(OwnerBean ownerBean, final EncoderBean encoderBean) {
+	public SortedSet<EncodedTrackBean> getOwnedEncodedTracks(final OwnerBean ownerBean, final EncoderBean encoderBean) {
+		final EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
+		OwnerSearcher ownerSearcher = new OwnerSearcher() {
+			@Override
+			public SortedSet<? extends EncodedTrackBean> findAll() {
+				return encodedTrackDao.findByEncoderBean(encoderBean);
+			}
+			@Override
+			public SortedSet<? extends EncodedTrackBean> findByArtist(
+					EncodedArtistBean encodedArtistBean) {
+				return encodedTrackDao.findByArtistAndEncoderBean(encodedArtistBean, encoderBean);
+			}
+			@Override
+			public SortedSet<? extends EncodedTrackBean> findByAlbum(
+					EncodedAlbumBean encodedAlbumBean) {
+				return encodedTrackDao.findByAlbumAndEncoderBean(encodedAlbumBean, encoderBean);
+			}
+		};
+		return getOwnedEncodedTracks(ownerBean, ownerSearcher);
+	}
+	
+	@Override
+	public SortedSet<EncodedTrackBean> getOwnedEncodedTracks(final OwnerBean ownerBean) {
+		final EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
+		OwnerSearcher ownerSearcher = new OwnerSearcher() {
+			@Override
+			public SortedSet<? extends EncodedTrackBean> findAll() {
+				return encodedTrackDao.getAll();
+			}
+			@Override
+			public SortedSet<? extends EncodedTrackBean> findByArtist(
+					EncodedArtistBean encodedArtistBean) {
+				return encodedTrackDao.findByArtist(encodedArtistBean);
+			}
+			@Override
+			public SortedSet<? extends EncodedTrackBean> findByAlbum(
+					EncodedAlbumBean encodedAlbumBean) {
+				return encodedAlbumBean.getEncodedTrackBeans();
+			}
+		};
+		return getOwnedEncodedTracks(ownerBean, ownerSearcher);
+	}
+
+	protected SortedSet<EncodedTrackBean> getOwnedEncodedTracks(OwnerBean ownerBean, OwnerSearcher ownerSearcher) {
 		SortedSet<EncodedTrackBean> encodedTrackBeans = new TreeSet<EncodedTrackBean>();
-		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
 		if (ownerBean.isOwnsAll()) {
-			encodedTrackBeans.addAll(encodedTrackDao.findByEncoderBean(encoderBean));
+			encodedTrackBeans.addAll(ownerSearcher.findAll());
 		}
 		else {
 			for (EncodedArtistBean encodedArtistBean : ownerBean.getEncodedArtistBeans()) {
-				encodedTrackBeans.addAll(encodedTrackDao.findByArtistAndEncoderBean(encodedArtistBean, encoderBean));
+				encodedTrackBeans.addAll(ownerSearcher.findByArtist(encodedArtistBean));
 			}			
 			for (EncodedAlbumBean encodedAlbumBean : ownerBean.getEncodedAlbumBeans()) {
-				encodedTrackBeans.addAll(encodedTrackDao.findByAlbumAndEncoderBean(encodedAlbumBean, encoderBean));
+				encodedTrackBeans.addAll(ownerSearcher.findByAlbum(encodedAlbumBean));
 			}
 		}
 		return encodedTrackBeans;
+	}
+
+	protected interface OwnerSearcher {
+		public SortedSet<? extends EncodedTrackBean> findByArtist(EncodedArtistBean encodedArtistBean);
+		public SortedSet<? extends EncodedTrackBean> findByAlbum(EncodedAlbumBean encodedAlbumBean);
+		public SortedSet<? extends EncodedTrackBean> findAll();
 	}
 	
 	@Override
