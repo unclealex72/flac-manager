@@ -18,4 +18,5 @@ public interface EncoderService {
 
 	public boolean isCurrentlyEncoding();
 
+	public void updateOwnership();
 }

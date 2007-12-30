@@ -1,10 +1,13 @@
 package uk.co.unclealex.music.encoder.service;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -13,10 +16,17 @@ import java.util.TreeSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.filefilter.DelegateFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
@@ -25,11 +35,14 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
+import uk.co.unclealex.music.core.dao.FileSystemCacheDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
+import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.service.EncodedService;
+import uk.co.unclealex.music.core.service.OwnerService;
 import uk.co.unclealex.music.encoder.dao.FlacTrackDao;
 import uk.co.unclealex.music.encoder.model.FlacAlbumBean;
 import uk.co.unclealex.music.encoder.model.FlacTrackBean;
@@ -50,7 +63,9 @@ public class EncoderServiceImpl implements EncoderService {
 	private EncodedService i_encodedService;
 	private FlacTrackDao i_flacTrackDao;
 	private SingleEncoderService i_singleEncoderService;
-	private FlacTrackService i_flacTrackService;
+	private FlacService i_flacService;
+	private OwnerService i_ownerService;
+	private FileSystemCacheDao i_fileSystemCacheDao;
 	
 	private AtomicBoolean i_atomicCurrentlyEncoding = new AtomicBoolean(false);
 	private Set<EncodingEventListener> i_encodingEventListeners = new HashSet<EncodingEventListener>();
@@ -128,6 +143,7 @@ public class EncoderServiceImpl implements EncoderService {
 			throw new MultipleEncodingException(errors, totalCount);
 		}
 		updateMissingAlbumInformation();
+		updateOwnership();
 		return totalCount;
 	}
 
@@ -173,21 +189,78 @@ public class EncoderServiceImpl implements EncoderService {
 	@Override
 	public int encodeAllAndRemoveDeleted() throws AlreadyEncodingException,
 			MultipleEncodingException, CurrentlyScanningException, IOException {
-		return encodeAll() + removeDeleted();
+		int changeCount = encodeAll() + removeDeleted();
+		if (changeCount != 0) {
+			log.info("There were " + changeCount + " changes so a file system cache rebuild is required.");
+			getFileSystemCacheDao().setRebuildRequired(true);
+		}
+		return changeCount;
 	}
 	
 	@Override
 	public void updateMissingAlbumInformation() {
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
 		FlacTrackDao flacTrackDao = getFlacTrackDao();
-		FlacTrackService flactrackService = getFlacTrackService();
+		FlacService flacService = getFlacService();
 		for (EncodedTrackBean encodedTrackBean : encodedTrackDao.findTracksWithoutAnAlbum()) {
 			String flacUrl = encodedTrackBean.getFlacUrl();
 			FlacAlbumBean flacAlbumBean = flacTrackDao.findByUrl(flacUrl).getFlacAlbumBean();
-			EncodedAlbumBean encodedAlbumBean = flactrackService.findOrCreateEncodedAlbumBean(flacAlbumBean);
+			EncodedAlbumBean encodedAlbumBean = flacService.findOrCreateEncodedAlbumBean(flacAlbumBean);
 			encodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
 			encodedTrackDao.store(encodedTrackBean);
 			log.info("Updated album information for " + flacUrl);
+		}
+	}
+	
+	@Override
+	public void updateOwnership() {
+		final Map<String, SortedSet<EncodedAlbumBean>> albumsByOwner = new HashMap<String, SortedSet<EncodedAlbumBean>>();
+		final Map<String, SortedSet<EncodedArtistBean>> artistsByOwner = new HashMap<String, SortedSet<EncodedArtistBean>>();
+		final FlacService flacService = getFlacService();
+		final FlacTrackDao flacTrackDao = getFlacTrackDao();
+		String rootDirectory = StringUtils.removeStart(getFlacService().getRootUrl(), "file://");
+		final int rootDepth = StringUtils.split(rootDirectory, "/").length;
+		final Pattern pattern = Pattern.compile("owner\\.(.+)");
+		FileFilter filter = new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				String path = file.getAbsolutePath();
+				String name = FilenameUtils.getName(path);
+				String dir = FilenameUtils.getFullPath(path);
+				Matcher matcher = pattern.matcher(name);
+				if (matcher.matches()) {
+					String owner = matcher.group(1);
+					int depth = StringUtils.split(dir, "/").length - rootDepth;
+					FlacTrackBean flacTrackBean = flacTrackDao.findTrackStartingWith("file://" + dir);
+					if (flacTrackBean != null) {
+						FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
+						EncodedAlbumBean encodedAlbumBean = flacService.findOrCreateEncodedAlbumBean(flacAlbumBean);
+						if (depth == 1) {
+							add(owner, artistsByOwner, encodedAlbumBean.getEncodedArtistBean(), new TreeSet<EncodedArtistBean>());
+						}
+						else if (depth == 2) {
+							add(owner, albumsByOwner, encodedAlbumBean, new TreeSet<EncodedAlbumBean>());
+						}
+					}
+				}
+				return false; 
+			}
+			
+			protected <E extends Comparable<E>> void add(
+					String owner, Map<String, SortedSet<E>> map, E element, SortedSet<E> empty) {
+				SortedSet<E> existing = map.get(owner);
+				if (existing == null) {
+					map.put(owner, empty);
+					existing = empty;
+				}
+				existing.add(element);
+			}
+		};
+		FileUtils.listFiles(new File(rootDirectory), new DelegateFileFilter(filter), TrueFileFilter.INSTANCE);
+		SortedSet<String> owners = new TreeSet<String>(albumsByOwner.keySet());
+		owners.addAll(artistsByOwner.keySet());
+		for (String owner : owners) {
+			getOwnerService().updateOwnership(owner, artistsByOwner.get(owner), albumsByOwner.get(owner));
 		}
 	}
 	
@@ -283,13 +356,13 @@ public class EncoderServiceImpl implements EncoderService {
 		i_encodedService = encodedService;
 	}
 
-	public FlacTrackService getFlacTrackService() {
-		return i_flacTrackService;
+	public FlacService getFlacService() {
+		return i_flacService;
 	}
 
 	@Required
-	public void setFlacTrackService(FlacTrackService flactrackService) {
-		i_flacTrackService = flactrackService;
+	public void setFlacService(FlacService flacService) {
+		i_flacService = flacService;
 	}
 
 	public EncodedAlbumDao getEncodedAlbumDao() {
@@ -299,6 +372,24 @@ public class EncoderServiceImpl implements EncoderService {
 	@Required
 	public void setEncodedAlbumDao(EncodedAlbumDao encodedAlbumDao) {
 		i_encodedAlbumDao = encodedAlbumDao;
+	}
+
+	public OwnerService getOwnerService() {
+		return i_ownerService;
+	}
+
+	@Required
+	public void setOwnerService(OwnerService ownerService) {
+		i_ownerService = ownerService;
+	}
+
+	public FileSystemCacheDao getFileSystemCacheDao() {
+		return i_fileSystemCacheDao;
+	}
+
+	@Required
+	public void setFileSystemCacheDao(FileSystemCacheDao fileSystemCacheDao) {
+		i_fileSystemCacheDao = fileSystemCacheDao;
 	}
 
 }

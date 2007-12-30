@@ -5,7 +5,6 @@ import java.util.SortedSet;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 
-import uk.co.unclealex.music.encoder.dao.FlacTrackDao;
 import uk.co.unclealex.music.encoder.model.FlacTrackBean;
 
 public class TestFlacTrackDao implements FlacTrackDao {
@@ -45,6 +44,17 @@ public class TestFlacTrackDao implements FlacTrackDao {
 			});
 	}
 
+	@Override
+	public FlacTrackBean findTrackStartingWith(final String url) {
+		return CollectionUtils.find(getAll(),
+				new Predicate<FlacTrackBean>() {
+					@Override
+					public boolean evaluate(FlacTrackBean flacTrackBean) {
+						return flacTrackBean.getUrl().startsWith(url);
+					}
+				});
+	}
+	
 	@Override
 	public void flush() {
 		// Do nothing

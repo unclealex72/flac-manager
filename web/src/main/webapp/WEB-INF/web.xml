@@ -94,6 +94,7 @@
 		<param-name>contextConfigLocation</param-name>
 		<param-value>
 			classpath:applicationContext-music-core.xml
+			classpath:applicationContext-music-core-listener.xml
 			classpath:applicationContext-music-web.xml
 		</param-value>
 	</context-param>

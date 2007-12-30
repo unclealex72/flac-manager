@@ -47,6 +47,7 @@
 				<value>uk.co.unclealex.music.core.model.EncodedArtistBean</value>
 				<value>uk.co.unclealex.music.core.model.OwnerBean</value>
 				<value>uk.co.unclealex.music.core.model.DeviceBean</value>
+				<value>uk.co.unclealex.music.core.model.FileSystemCacheBean</value>
 			</list>
 		</property>
 	</bean>

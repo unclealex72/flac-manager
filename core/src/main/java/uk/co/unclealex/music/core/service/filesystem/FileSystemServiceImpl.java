@@ -5,8 +5,6 @@ import java.util.Date;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Required;
@@ -22,11 +20,9 @@ public class FileSystemServiceImpl implements FileSystemService {
 
 	private Collection<String> i_fileSystemTitleFormats;
 	private FileSystemCache i_fileSystemCache;
-	private Object i_cacheLock = new Object();
 	private EncodedTrackDao i_encodedTrackDao;
 	
 	@Override
-	@PostConstruct
 	public void rebuildCache() {
 		new Callback<Object>() {
 			@Override
@@ -159,18 +155,14 @@ public class FileSystemServiceImpl implements FileSystemService {
 		public E execute(String path) throws PathNotFoundException {
 			path = StringUtils.removeStart(
 					StringUtils.trimToEmpty(FilenameUtils.normalizeNoEndSeparator(path)), "/");
-			synchronized (getCacheLock()) {
-				return doInCache(getFileSystemCache(), path);
-			}
+			return doInCache(getFileSystemCache(), path);
 		}
 
 		public void execute() {
-			synchronized (getCacheLock()) {
-				doInCache(getFileSystemCache());
-			}
+			doInCache(getFileSystemCache());
 		}
 	}
-
+	
 	public Collection<String> getFileSystemTitleFormats() {
 		return i_fileSystemTitleFormats;
 	}
@@ -187,10 +179,6 @@ public class FileSystemServiceImpl implements FileSystemService {
 	@Required
 	public void setFileSystemCache(FileSystemCache fileSystemCache) {
 		i_fileSystemCache = fileSystemCache;
-	}
-
-	public Object getCacheLock() {
-		return i_cacheLock;
 	}
 
 	public EncodedTrackDao getEncodedTrackDao() {
