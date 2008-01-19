@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.model.DeviceBean;
-import uk.co.unclealex.music.core.spring.Prototype;
+import uk.co.unclealex.spring.Prototype;
 
 @Transactional
 @Prototype

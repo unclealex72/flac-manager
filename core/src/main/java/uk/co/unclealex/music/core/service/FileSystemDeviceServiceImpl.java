@@ -16,7 +16,7 @@ import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.OwnerDao;
 import uk.co.unclealex.music.core.model.DeviceBean;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatFactory;
-import uk.co.unclealex.music.core.spring.Prototype;
+import uk.co.unclealex.spring.Prototype;
 
 @Prototype
 public class FileSystemDeviceServiceImpl extends DeviceServiceImpl {

@@ -12,7 +12,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.spring.Prototype;
+import uk.co.unclealex.spring.Prototype;
 
 @Prototype
 public class ZipTrackStreamImpl implements ZipTrackStream {

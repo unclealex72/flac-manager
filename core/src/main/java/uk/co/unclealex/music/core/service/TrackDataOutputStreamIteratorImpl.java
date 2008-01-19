@@ -12,7 +12,7 @@ import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
-import uk.co.unclealex.music.core.spring.Prototype;
+import uk.co.unclealex.spring.Prototype;
 
 @Transactional
 @Prototype

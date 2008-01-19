@@ -4,8 +4,8 @@ import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.OwnerBean;
-import uk.co.unclealex.music.core.spring.Prototype;
 import uk.co.unclealex.music.core.substitutor.Substitutor;
+import uk.co.unclealex.spring.Prototype;
 
 @Prototype
 public class TitleFormatServiceImpl implements TitleFormatService {
