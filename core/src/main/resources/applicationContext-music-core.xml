@@ -26,7 +26,7 @@
 		<property name="properties">
 			<props>
 				<prop key="hibernate.dialect">
-					uk.co.unclealex.music.core.hibernate.LongBlobOnlyMySQL5Dialect
+					uk.co.unclealex.hibernate.LongBlobOnlyMySQL5Dialect
 				</prop>
 				<prop key="hibernate.hbm2ddl.auto">update</prop>
 				<prop key="hibernate.show_sql">false</prop>
@@ -56,7 +56,7 @@
 		<property name="sessionFactory" ref="musicSessionFactory"/>
 	</bean>
 
-	<bean id="hibernateSessionExecutor" class="uk.co.unclealex.music.core.hibernate.HibernateSessionExecutor">
+	<bean id="hibernateSessionExecutor" class="uk.co.unclealex.hibernate.HibernateSessionExecutor">
 		<property name="sessionFactory" ref="musicSessionFactory"/>
 	</bean>
 	
@@ -86,8 +86,8 @@
 	
   <context:component-scan
   	base-package="uk.co.unclealex.music"
-  	name-generator="uk.co.unclealex.music.core.spring.BeanNameGenerator"
-  	scope-resolver="uk.co.unclealex.music.core.spring.AnnotationScopeMetadataResolver"/>
+  	name-generator="uk.co.unclealex.spring.BeanNameGenerator"
+  	scope-resolver="uk.co.unclealex.spring.AnnotationScopeMetadataResolver"/>
 
 </beans>
 
