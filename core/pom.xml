@@ -76,6 +76,11 @@
 		</dependency>
 		<dependency>
 			<groupId>uk.co.unclealex</groupId>
+			<artifactId>tree</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>uk.co.unclealex</groupId>
 			<artifactId>hibernate-support</artifactId>
 			<version>1.0.0</version>
 		</dependency>

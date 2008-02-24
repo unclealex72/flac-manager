@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Required;
 import uk.co.unclealex.music.core.service.EncodedService;
 import uk.co.unclealex.music.encoder.service.EncoderService;
 
+@uk.co.unclealex.spring.Main
 public class Encode extends Main {
 
 	private EncoderService i_encoderService;

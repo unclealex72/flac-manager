@@ -3,7 +3,7 @@ package uk.co.unclealex.music.commands;
 import uk.co.unclealex.music.core.service.DeviceService;
 import uk.co.unclealex.music.core.service.EncodedService;
 
-@uk.co.unclealex.music.core.spring.Main
+@uk.co.unclealex.spring.Main
 public class WriteToDevices extends Main {
 
 	private DeviceService i_deviceService;
