@@ -19,8 +19,8 @@ import uk.co.unclealex.music.core.model.OwnerBean;
 import uk.co.unclealex.music.core.service.OwnerService;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
-import uk.co.unclealex.music.core.util.Tree;
-import uk.co.unclealex.music.core.util.TreeSetTree;
+import uk.co.unclealex.tree.Tree;
+import uk.co.unclealex.tree.TreeSetTree;
 
 @Service
 @Transactional
@@ -33,7 +33,7 @@ public class FileSystemCacheImpl implements FileSystemCache {
 	private TitleFormatServiceFactory i_titleFormatServiceFactory;
 	
 	@Override
-	public void createCache(Collection<String> titleFormats) {
+	public synchronized void createCache(Collection<String> titleFormats) {
 		TreeMap<String, Tree<PathInformationBean>> nodesByPath = 
 			new TreeMap<String, Tree<PathInformationBean>>();
 		setNodesByPath(nodesByPath);
@@ -126,7 +126,7 @@ public class FileSystemCacheImpl implements FileSystemCache {
 	}
 	
 	@Override
-	public PathInformationBean findPath(String path) {
+	public synchronized PathInformationBean findPath(String path) {
 		Tree<PathInformationBean> node = getNodesByPath().get(path);
 		return node==null?null:node.getValue();
 	}

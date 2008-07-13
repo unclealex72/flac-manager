@@ -18,6 +18,8 @@ import org.apache.slide.structure.ObjectAlreadyExistsException;
 import org.apache.slide.structure.ObjectNotFoundException;
 import org.springframework.context.ApplicationContext;
 
+import uk.co.unclealex.webdav.SpringWebdavServlet;
+
 public class WebdavStorageDelegate implements BasicWebdavStore {
 
 	private BasicWebdavStore i_webdavStore;

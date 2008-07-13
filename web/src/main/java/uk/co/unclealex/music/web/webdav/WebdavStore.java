@@ -23,6 +23,8 @@ import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.service.TrackStreamService;
 import uk.co.unclealex.music.core.service.filesystem.FileSystemService;
 import uk.co.unclealex.music.core.service.filesystem.PathNotFoundException;
+import uk.co.unclealex.webdav.SpringWebdavServlet;
+import uk.co.unclealex.webdav.WebdavStoreAdapter;
 
 @Component
 public class WebdavStore implements BasicWebdavStore {

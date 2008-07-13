@@ -16,8 +16,7 @@
     <!--                          -->
     <!-- Declare the SMTPAppender -->
     <!--                          -->
-    <appender name="EMAIL"  class="org.apache.log4j.net.SMTPAppender">
-        <!-- <param name="BufferSize" value="512" /> -->
+    <!-- appender name="EMAIL"  class="org.apache.log4j.net.SMTPAppender">
         <param name="SMTPHost" value="smtp.entadsl.com" />
         <param name="From" value="alex.jones@unclealex.co.uk" />
         <param name="To" value="alex.jones@unclealex.co.uk" />
@@ -30,7 +29,7 @@
             <param name="LevelMin" value="ERROR"/>
             <param name="LevelMax" value="FATAL"/>
         </filter>
-    </appender>
+    </appender -->
 
     <!--                           -->
     <!-- setup log4j's root logger -->
