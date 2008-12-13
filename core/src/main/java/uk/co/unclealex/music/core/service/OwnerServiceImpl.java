@@ -104,10 +104,7 @@ public class OwnerServiceImpl implements OwnerService {
 		}
 		// Filter out any albums owned by any of the given artists
 		for (EncodedArtistBean encodedArtistBean : encodedArtistBeans) {
-			SortedSet<EncodedAlbumBean> existingEncodedAlbumBeans = encodedArtistBean.getEncodedAlbumBeans();
-			if (existingEncodedAlbumBeans != null) {
-				encodedAlbumBeans.removeAll(existingEncodedAlbumBeans);
-			}
+			encodedAlbumBeans.removeAll(encodedArtistBean.getEncodedAlbumBeans());
 		}
 		OwnerBean ownerBean = getOwnerDao().findByName(ownerName);
 		Collection<EncodedArtistBean> ownedEncodedArtistBeans = ownerBean.getEncodedArtistBeans();

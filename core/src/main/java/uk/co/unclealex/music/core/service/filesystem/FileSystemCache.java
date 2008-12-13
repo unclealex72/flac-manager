@@ -6,5 +6,5 @@ public interface FileSystemCache {
 
 	public void createCache(Collection<String> titleFormats);
 	
-	public PathInformationBean findPath(String path);	
+	public PathInformationBean findPath(String path);
 }

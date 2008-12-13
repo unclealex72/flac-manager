@@ -36,7 +36,7 @@ public class HibernateFlacTrackDao extends HibernateKeyedReadOnlyDao<FlacTrackBe
 	@SuppressWarnings("unchecked")
 	@Override
 	public FlacTrackBean findTrackStartingWith(String url) {
-		Query query = getSession().createQuery("from FlacTrackBean where url like :url");
+		Query query = getSession().createQuery("from FlacTrackBean where url like :url and type = 'flc'");
 		query.setString("url", url + "%");
 		Iterator<FlacTrackBean> iter = query.iterate();
 		return iter.hasNext()?iter.next():null;

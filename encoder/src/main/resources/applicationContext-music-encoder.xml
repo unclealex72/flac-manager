@@ -19,6 +19,7 @@
 					org.hibernate.dialect.MySQLInnoDBDialect
 				</prop>
 				<prop key="hibernate.hbm2ddl.auto">none</prop>
+				<!-- prop key="hibernate.show_sql">true</prop -->
 			</props>
 		</property>
 		<property name="annotatedClasses">

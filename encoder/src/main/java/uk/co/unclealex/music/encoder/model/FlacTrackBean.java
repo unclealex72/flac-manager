@@ -11,11 +11,14 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.Filter;
+
 import uk.co.unclealex.music.encoder.visitor.FlacVisitor;
 
 @Entity
 @org.hibernate.annotations.Entity(mutable=false)
 @Table(name="tracks")
+@Filter(name="flac", condition="where type = 'flc'")
 public class FlacTrackBean extends AbstractFlacBean<FlacTrackBean> {
 
 	private static String s_urlPrefix = "file://";
