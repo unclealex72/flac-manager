@@ -2,12 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>uk.co.unclealex</groupId>
-    <artifactId>music</artifactId>
+    <groupId>uk.co.unclealex.music</groupId>
+    <artifactId>parent</artifactId>
     <version>2.4-SNAPSHOT</version>
   </parent>
-  <groupId>uk.co.unclealex</groupId>
-  <artifactId>music-commands</artifactId>
+	<groupId>uk.co.unclealex.music</groupId>
+  <artifactId>commands</artifactId>
   <name>Music Command Line Interface</name>
   <url>http://maven.apache.org</url>
   <build>
@@ -31,8 +31,8 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>uk.co.unclealex</groupId>
-      <artifactId>music-encoder</artifactId>
+      <groupId>uk.co.unclealex.music</groupId>
+      <artifactId>encoder</artifactId>
       <version>${version}</version>
     </dependency>
     <dependency>

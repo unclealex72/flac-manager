@@ -3,14 +3,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>uk.co.unclealex</groupId>
+  <groupId>uk.co.unclealex.music</groupId>
+  <artifactId>parent</artifactId>
   <version>2.4-SNAPSHOT</version>
-  <artifactId>music</artifactId>
   <packaging>pom</packaging>
   <modules>
-    <module>music-core</module>
-    <module>music-commands</module>
-    <module>music-encoder</module>
-    <module>music-web</module>
+    <module>core</module>
+    <module>commands</module>
+    <module>encoder</module>
+    <module>web</module>
   </modules>
 </project>
