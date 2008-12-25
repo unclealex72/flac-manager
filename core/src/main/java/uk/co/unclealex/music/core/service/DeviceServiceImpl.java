@@ -52,18 +52,28 @@ public class DeviceServiceImpl implements DeviceService {
 	private EncodedTrackDao i_encodedTrackDao;
 	private TitleFormatServiceFactory i_titleFormatServiceFactory;
 	private DevicesWriterFactory i_devicesWriterFactory;
+	
 	@Override
 	public SortedMap<DeviceBean, String> findDevicesAndFiles() throws IOException {
 		SortedMap<DeviceBean, String> devicesAndFiles = new TreeMap<DeviceBean, String>();
-		ProcessResult processResult = getProcessService().run(new ProcessBuilder("lsscsi"), true);
-		List<String> lines = readStream(new StringReader(processResult.getOutput()));
+		ProcessResult lsscsiProcessResult = getProcessService().run(new ProcessBuilder("lsscsi"), true);
+		List<String> lsscsiLines = readStream(new StringReader(lsscsiProcessResult.getOutput()));
 		for (DeviceBean deviceBean : getDeviceDao().getAll()) {
-			String line = findLineContainingString(lines, deviceBean.getIdentifier());
+			String line = findLineContainingString(lsscsiLines, deviceBean.getIdentifier());
 			if (line != null) {
-				String[] parts = StringUtils.split(line, ' ');
-				String file = parts[parts.length - 1] + "1";
-				log.info("Found " + deviceBean.getFullDescription() + " at location " + file);
-				devicesAndFiles.put(deviceBean, file);
+				int openingSquareBracket = line.indexOf('[');
+				int closingSquareBracket = line.indexOf(']');
+				String scsiDevice = line.substring(openingSquareBracket + 1, closingSquareBracket - openingSquareBracket);
+				File scsiDirectory = new File("/sys/bus/scsi/devices/" + scsiDevice + "/block/");
+				if (scsiDirectory.isDirectory()) {
+					// This directory should contain exactly one file, the block name of the device.
+					String[] blockDevices = scsiDirectory.list();
+					if (blockDevices.length == 1) {
+						String blockFile = "/dev/" + blockDevices[0] + "1";
+						log.info("Found " + deviceBean.getFullDescription() + " at location " + blockFile);
+						devicesAndFiles.put(deviceBean, blockFile);
+					}
+				}
 			}
 		}
 		return devicesAndFiles;
