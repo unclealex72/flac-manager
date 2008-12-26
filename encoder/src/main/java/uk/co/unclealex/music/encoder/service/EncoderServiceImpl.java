@@ -36,16 +36,16 @@ import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.FileSystemCacheDao;
+import uk.co.unclealex.music.core.dao.FlacTrackDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.model.FlacAlbumBean;
+import uk.co.unclealex.music.core.model.FlacTrackBean;
 import uk.co.unclealex.music.core.service.EncodedService;
 import uk.co.unclealex.music.core.service.OwnerService;
-import uk.co.unclealex.music.encoder.dao.FlacTrackDao;
-import uk.co.unclealex.music.encoder.model.FlacAlbumBean;
-import uk.co.unclealex.music.encoder.model.FlacTrackBean;
 
 @Service
 @Transactional

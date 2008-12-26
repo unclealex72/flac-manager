@@ -5,7 +5,8 @@ import java.util.SortedSet;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 
-import uk.co.unclealex.music.encoder.model.FlacTrackBean;
+import uk.co.unclealex.music.core.dao.FlacTrackDao;
+import uk.co.unclealex.music.core.model.FlacTrackBean;
 
 public class TestFlacTrackDao implements FlacTrackDao {
 

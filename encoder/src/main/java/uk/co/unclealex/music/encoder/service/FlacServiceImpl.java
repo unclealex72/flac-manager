@@ -7,13 +7,13 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.music.core.dao.FlacArtistDao;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.core.model.FlacAlbumBean;
+import uk.co.unclealex.music.core.model.FlacArtistBean;
+import uk.co.unclealex.music.core.model.FlacTrackBean;
 import uk.co.unclealex.music.core.service.EncodedService;
-import uk.co.unclealex.music.encoder.dao.FlacArtistDao;
-import uk.co.unclealex.music.encoder.model.FlacAlbumBean;
-import uk.co.unclealex.music.encoder.model.FlacArtistBean;
-import uk.co.unclealex.music.encoder.model.FlacTrackBean;
 
 @Service
 @Transactional

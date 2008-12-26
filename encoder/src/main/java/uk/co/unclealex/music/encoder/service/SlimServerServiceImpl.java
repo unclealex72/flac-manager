@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.core.SlimServerConfig;
-import uk.co.unclealex.music.encoder.dao.SlimServerInformationDao;
-import uk.co.unclealex.music.encoder.model.SlimServerInformationBean;
+import uk.co.unclealex.music.core.dao.SlimServerInformationDao;
+import uk.co.unclealex.music.core.model.SlimServerInformationBean;
 
 @Service
 public class SlimServerServiceImpl implements SlimServerService {

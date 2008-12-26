@@ -17,5 +17,13 @@
 		<property name="username" value="music"/>
 		<property name="password" value="mu51c"/>
 	</bean>
+	
+	<bean id="flacDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql://localhost/slimserver"/>
+		<property name="username" value="slimserver"/>
+		<property name="password" value="slimserver"/>
+	</bean>	
+
 </beans>
 

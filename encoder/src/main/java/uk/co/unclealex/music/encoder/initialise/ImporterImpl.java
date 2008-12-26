@@ -21,11 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
+import uk.co.unclealex.music.core.dao.FlacTrackDao;
 import uk.co.unclealex.music.core.initialise.TrackImporter;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.encoder.dao.FlacTrackDao;
-import uk.co.unclealex.music.encoder.model.FlacTrackBean;
+import uk.co.unclealex.music.core.model.FlacTrackBean;
 import uk.co.unclealex.music.encoder.service.EncoderService;
 
 @Service

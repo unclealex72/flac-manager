@@ -7,31 +7,6 @@
        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.0.xsd"
 	default-autowire="byName">
 
-	<jee:jndi-lookup id="flacDataSource"
-		jndi-name="jdbc/slimserver" resource-ref="true" proxy-interface="javax.sql.DataSource"/>
-		
-	<bean id="flacSessionFactory"
-		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
-		<property name="dataSource" ref="flacDataSource" />
-		<property name="hibernateProperties">
-			<props>
-				<prop key="hibernate.dialect">
-					org.hibernate.dialect.MySQLInnoDBDialect
-				</prop>
-				<prop key="hibernate.hbm2ddl.auto">none</prop>
-				<!-- prop key="hibernate.show_sql">true</prop -->
-			</props>
-		</property>
-		<property name="annotatedClasses">
-			<list>
-				<value>uk.co.unclealex.music.encoder.model.FlacArtistBean</value>
-				<value>uk.co.unclealex.music.encoder.model.FlacAlbumBean</value>
-				<value>uk.co.unclealex.music.encoder.model.FlacTrackBean</value>
-				<value>uk.co.unclealex.music.encoder.model.SlimServerInformationBean</value>
-			</list>
-		</property>
-	</bean>
-	
 	<bean id="maximumThreads" class="java.lang.Integer">
 		<constructor-arg value="8"/>
 	</bean>

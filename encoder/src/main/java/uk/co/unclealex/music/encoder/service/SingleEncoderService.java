@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.encoder.model.FlacTrackBean;
+import uk.co.unclealex.music.core.model.FlacTrackBean;
 
 public interface SingleEncoderService extends Serializable {
 

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>uk.co.unclealex.music</groupId>
+    <artifactId>parent</artifactId>
+    <version>2.4-SNAPSHOT</version>
+  </parent>
+	<groupId>uk.co.unclealex.music</groupId>
+	<artifactId>album-covers</artifactId>
+	<name>Music Album Covers</name>
+	<url>http://maven.apache.org</url>
+	<packaging>jar</packaging>
+	<dependencies>
+			<dependency>
+			<groupId>uk.co.unclealex.music</groupId>
+			<artifactId>core</artifactId>
+			<version>${version}</version>
+		</dependency>
+	
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<version>1.8.0.7</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<!-- 
+		<repositories>
+		<repository>
+		<id>codehaus</id>
+		<name>Codehaus maven repository</name>
+		<url>http://repository.codehaus.org/</url>
+		</repository>
+		</repositories>
+	-->
+
+</project>

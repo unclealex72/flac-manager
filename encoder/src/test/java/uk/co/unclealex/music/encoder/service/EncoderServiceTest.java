@@ -20,17 +20,17 @@ import org.apache.commons.io.output.NullOutputStream;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
+import uk.co.unclealex.music.core.dao.FlacTrackDao;
+import uk.co.unclealex.music.core.dao.SlimServerInformationDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.model.FlacTrackBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
 import uk.co.unclealex.music.core.service.TrackStreamService;
 import uk.co.unclealex.music.encoder.EncoderSpringTest;
-import uk.co.unclealex.music.encoder.dao.FlacTrackDao;
-import uk.co.unclealex.music.encoder.dao.SlimServerInformationDao;
 import uk.co.unclealex.music.encoder.dao.TestFlacProvider;
 import uk.co.unclealex.music.encoder.dao.TestSlimServerInformationDao;
-import uk.co.unclealex.music.encoder.model.FlacTrackBean;
 
 public class EncoderServiceTest extends EncoderSpringTest {
 

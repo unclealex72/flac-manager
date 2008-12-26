@@ -1,7 +1,7 @@
 package uk.co.unclealex.music.encoder.service;
 
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
-import uk.co.unclealex.music.encoder.model.FlacAlbumBean;
+import uk.co.unclealex.music.core.model.FlacAlbumBean;
 
 public interface FlacService {
 

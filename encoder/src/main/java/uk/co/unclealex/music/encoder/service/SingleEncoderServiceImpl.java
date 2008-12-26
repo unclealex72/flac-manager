@@ -26,12 +26,12 @@ import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.core.model.FlacAlbumBean;
+import uk.co.unclealex.music.core.model.FlacTrackBean;
 import uk.co.unclealex.music.core.model.TrackDataBean;
 import uk.co.unclealex.music.core.service.EncodedService;
 import uk.co.unclealex.music.core.service.TrackDataStreamIteratorFactory;
 import uk.co.unclealex.music.core.service.TrackStreamService;
-import uk.co.unclealex.music.encoder.model.FlacAlbumBean;
-import uk.co.unclealex.music.encoder.model.FlacTrackBean;
 
 @Service
 @Transactional

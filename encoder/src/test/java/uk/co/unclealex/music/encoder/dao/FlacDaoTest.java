@@ -15,10 +15,12 @@ import org.apache.commons.collections15.Transformer;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.lang.StringUtils;
 
+import uk.co.unclealex.music.core.dao.FlacArtistDao;
+import uk.co.unclealex.music.core.dao.FlacTrackDao;
+import uk.co.unclealex.music.core.model.FlacAlbumBean;
+import uk.co.unclealex.music.core.model.FlacArtistBean;
+import uk.co.unclealex.music.core.model.FlacTrackBean;
 import uk.co.unclealex.music.encoder.EncoderSpringTest;
-import uk.co.unclealex.music.encoder.model.FlacAlbumBean;
-import uk.co.unclealex.music.encoder.model.FlacArtistBean;
-import uk.co.unclealex.music.encoder.model.FlacTrackBean;
 
 public class FlacDaoTest extends EncoderSpringTest {
 
