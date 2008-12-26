@@ -14,7 +14,7 @@ public abstract class Main {
 	
 	protected List<String> getContextLocations() {
 		String[] locationsArray = new String[] {
-				"applicationContext-music-core-jdbc-direct.xml", "applicationContext-music-encoder-jdbc-direct.xml"
+				"applicationContext-music-core-jdbc-direct.xml"
 		};
 		List<String> locationsList = new ArrayList<String>(locationsArray.length);
 		locationsList.addAll(Arrays.asList(locationsArray));
