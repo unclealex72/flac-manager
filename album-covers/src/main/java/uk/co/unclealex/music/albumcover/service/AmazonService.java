@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.albumcover;
+package uk.co.unclealex.music.albumcover.service;
 
 import com.amazon.webservices.awsecommerceservice._2008_10_06.AWSECommerceServicePortType;
 

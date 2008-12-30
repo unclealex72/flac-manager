@@ -47,6 +47,7 @@
 				<value>uk.co.unclealex.music.core.model.EncodedArtistBean</value>
 				<value>uk.co.unclealex.music.core.model.OwnerBean</value>
 				<value>uk.co.unclealex.music.core.model.DeviceBean</value>
+				<value>uk.co.unclealex.music.core.model.AlbumCoverBean</value>
 				<value>uk.co.unclealex.music.core.model.FileSystemCacheBean</value>
 			</list>
 		</property>
@@ -106,7 +107,7 @@
 	<bean id="titleFormat" factory-bean="titleFormatFactory" factory-method="getDefaultTitleFormat"/>
 	
 	<bean id="slimserverConfigFile" class="java.io.File">
-		<constructor-arg value="/etc/slimserver/slimserver.pref"/>
+		<constructor-arg value="/var/lib/squeezecenter/prefs/server.prefs"/>
 	</bean>
 	
   <context:component-scan

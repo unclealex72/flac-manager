@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.albumcover.model;
+package uk.co.unclealex.music.core.model;
 
 public enum AlbumCoverSize {
 	LARGE, MEDIUM, SMALL, TINY;

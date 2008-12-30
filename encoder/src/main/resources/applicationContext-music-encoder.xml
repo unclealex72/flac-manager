@@ -7,7 +7,7 @@
        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.0.xsd"
 	default-autowire="byName">
 	
-	<import resource="classpath*:applicationContext-music-core.xml"/>
+	<import resource="classpath*:applicationContext-music-album-covers.xml"/>
 	
 	<bean id="maximumThreads" class="java.lang.Integer">
 		<constructor-arg value="8"/>

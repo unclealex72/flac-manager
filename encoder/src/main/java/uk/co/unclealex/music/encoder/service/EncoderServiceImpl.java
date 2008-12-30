@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.music.albumcover.service.AlbumCoverService;
 import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
@@ -66,6 +67,7 @@ public class EncoderServiceImpl implements EncoderService {
 	private FlacService i_flacService;
 	private OwnerService i_ownerService;
 	private FileSystemCacheDao i_fileSystemCacheDao;
+	private AlbumCoverService i_albumCoverService;
 	
 	private AtomicBoolean i_atomicCurrentlyEncoding = new AtomicBoolean(false);
 	private Set<EncodingEventListener> i_encodingEventListeners = new HashSet<EncodingEventListener>();
@@ -84,6 +86,7 @@ public class EncoderServiceImpl implements EncoderService {
 	
 	public int encodeAll(int maximumThreads)
 	throws AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException, IOException {
+		AlbumCoverService albumCoverService = getAlbumCoverService();
 		if (getSlimServerService().isScanning()) {
 			throw new CurrentlyScanningException();
 		}
@@ -91,6 +94,7 @@ public class EncoderServiceImpl implements EncoderService {
 			throw new AlreadyEncodingException();
 		}
 		log.info("Initiating encoding with " + maximumThreads + " threads.");
+		final Set<FlacAlbumBean> flacAlbumBeans = new TreeSet<FlacAlbumBean>();
 		final SingleEncoderService singleEncoderService = getSingleEncoderService();
 		final SortedMap<EncodingCommandBean, Throwable> errors =
 			Collections.synchronizedSortedMap(new TreeMap<EncodingCommandBean, Throwable>());
@@ -104,8 +108,10 @@ public class EncoderServiceImpl implements EncoderService {
 					EncodedTrackBean encodedTrackBean =  
 						singleEncoderService.encode(encodingCommandBean, commandCache);
 					if (encodedTrackBean != null) {
+						FlacTrackBean flacTrackBean = encodingCommandBean.getFlacTrackBean();
+						flacAlbumBeans.add(flacTrackBean.getFlacAlbumBean());
 						for (EncodingEventListener encodingEventListener : getEncodingEventListeners()) {
-							encodingEventListener.afterTrackEncoded(encodedTrackBean, encodingCommandBean.getFlacTrackBean());
+							encodingEventListener.afterTrackEncoded(encodedTrackBean, flacTrackBean);
 						}
 					}
 				}
@@ -144,6 +150,8 @@ public class EncoderServiceImpl implements EncoderService {
 		}
 		updateMissingAlbumInformation();
 		updateOwnership();
+		albumCoverService.downloadAndSaveCoversForAlbums(flacAlbumBeans);
+		albumCoverService.purgeCovers();
 		return totalCount;
 	}
 
@@ -390,6 +398,14 @@ public class EncoderServiceImpl implements EncoderService {
 	@Required
 	public void setFileSystemCacheDao(FileSystemCacheDao fileSystemCacheDao) {
 		i_fileSystemCacheDao = fileSystemCacheDao;
+	}
+
+	public AlbumCoverService getAlbumCoverService() {
+		return i_albumCoverService;
+	}
+
+	public void setAlbumCoverService(AlbumCoverService albumCoverService) {
+		i_albumCoverService = albumCoverService;
 	}
 
 }

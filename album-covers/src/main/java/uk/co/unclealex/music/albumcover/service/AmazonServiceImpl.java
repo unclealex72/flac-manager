@@ -1,11 +1,9 @@
-package uk.co.unclealex.music.albumcover;
+package uk.co.unclealex.music.albumcover.service;
 
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.xml.ws.Holder;
-
-import org.springframework.stereotype.Service;
 
 import com.amazon.webservices.awsecommerceservice._2008_10_06.AWSECommerceService;
 import com.amazon.webservices.awsecommerceservice._2008_10_06.AWSECommerceServicePortType;
@@ -89,7 +87,6 @@ import com.amazon.webservices.awsecommerceservice._2008_10_06.VehicleSearchReque
 import com.amazon.webservices.awsecommerceservice._2008_10_06.VehicleSearchResponse;
 import com.amazon.webservices.awsecommerceservice._2008_10_06.VehicleYears;
 
-@Service
 public class AmazonServiceImpl implements AmazonService {
 
 	private String i_accessKey;
