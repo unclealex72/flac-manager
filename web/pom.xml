@@ -174,6 +174,11 @@
 		</dependency>
 	</dependencies>
 
+  <scm>
+  	<url>scm:svn:http://hurst/svn/trunk/personal/Music/web</url>
+  	<connection>scm:svn:http://hurst/svn/trunk/personal/Music/web</connection>
+  </scm>
+
 	<!-- 
 		<repositories>
 		<repository>

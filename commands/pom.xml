@@ -29,6 +29,11 @@
       <version>${version}</version>
     </dependency>
     <dependency>
+      <groupId>uk.co.unclealex.music</groupId>
+      <artifactId>album-covers</artifactId>
+      <version>${version}</version>
+    </dependency>
+    <dependency>
       <groupId>uk.co.unclealex</groupId>
       <artifactId>spring-support</artifactId>
       <version>1.0.0</version>
@@ -72,6 +77,17 @@
       <artifactId>activation</artifactId>
       <version>1.1</version>
     </dependency>
+    <dependency>
+    	<groupId>commons-dbcp</groupId>
+    	<artifactId>commons-dbcp</artifactId>
+    	<version>1.2.2</version>
+    </dependency>
   </dependencies>
+  
+  <scm>
+  	<url>scm:svn:http://hurst/svn/trunk/personal/Music/commands</url>
+  	<connection>scm:svn:http://hurst/svn/trunk/personal/Music/commands</connection>
+  </scm>
+
 </project>
 

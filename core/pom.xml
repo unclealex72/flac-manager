@@ -113,6 +113,11 @@
 		</dependency>
 	</dependencies>
 
+  <scm>
+  	<url>scm:svn:http://hurst/svn/trunk/personal/Music/core</url>
+  	<connection>scm:svn:http://hurst/svn/trunk/personal/Music/core</connection>
+  </scm>
+
 	<!-- 
 		<repositories>
 		<repository>

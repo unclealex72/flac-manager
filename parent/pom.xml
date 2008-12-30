@@ -5,6 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>uk.co.unclealex.music</groupId>
   <artifactId>parent</artifactId>
+  <name>Flac Music Manager And Encoder</name>
   <version>2.4-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
@@ -14,6 +15,10 @@
     <module>../music-web</module>
     <module>../music-album-covers</module>
   </modules>
+  <scm>
+  	<url>scm:svn:http://hurst/svn/trunk/personal/Music/parent</url>
+  	<connection>scm:svn:http://hurst/svn/trunk/personal/Music/parent</connection>
+  </scm>
 
 	<build>
 		<plugins>

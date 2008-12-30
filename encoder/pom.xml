@@ -14,7 +14,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>uk.co.unclealex.music</groupId>
-			<artifactId>core</artifactId>
+			<artifactId>album-covers</artifactId>
 			<version>${version}</version>
 		</dependency>
 		<dependency>
@@ -42,6 +42,11 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+  <scm>
+  	<url>scm:svn:http://hurst/svn/trunk/personal/Music/encoder</url>
+  	<connection>scm:svn:http://hurst/svn/trunk/personal/Music/encoder</connection>
+  </scm>
 
 	<!-- 
 		<repositories>
