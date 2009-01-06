@@ -19,14 +19,6 @@ public class HibernateOwnerDao extends HibernateKeyedDao<OwnerBean>
 	}
 
 	@Override
-	public OwnerBean findOwnerByNameAndPassword(String username, String encodedPassword) {
-		OwnerBean exampleBean = createExampleBean();
-		exampleBean.setName(username);
-		exampleBean.setPasswordHash(encodedPassword);
-		return findByExample(exampleBean);
-	}
-	
-	@Override
 	public OwnerBean findByName(String name) {
 		OwnerBean exampleBean = createExampleBean();
 		exampleBean.setName(name);

@@ -8,11 +8,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
@@ -20,31 +18,16 @@ import org.hibernate.validator.Length;
 import org.hibernate.validator.NotEmpty;
 import org.hibernate.validator.NotNull;
 
-import uk.co.unclealex.acegi.User;
-
 @Table(name="owners")
 @Entity
-public class OwnerBean extends KeyedBean<OwnerBean> implements User {
+public class OwnerBean extends KeyedBean<OwnerBean> {
 
 	private String i_name;
-	private String i_passwordHash;
 	
 	private Boolean i_ownsAll;
 	private SortedSet<EncodedArtistBean> i_encodedArtistBeans;
 	private SortedSet<EncodedAlbumBean> i_encodedAlbumBeans;
 	private SortedSet<DeviceBean> i_deviceBeans;
-	
-	@Override
-	@Transient
-	public String getUsername() {
-		return getName();
-	}
-	
-	@Override
-	@Transient
-	public String getPassword() {
-		return getPasswordHash();
-	}
 	
 	@Override
 	public String toString() {
@@ -90,15 +73,6 @@ public class OwnerBean extends KeyedBean<OwnerBean> implements User {
 
 	public void setOwnsAll(Boolean ownsAll) {
 		i_ownsAll = ownsAll;
-	}
-
-	@Lob
-	public String getPasswordHash() {
-		return i_passwordHash;
-	}
-
-	public void setPasswordHash(String passwordHash) {
-		i_passwordHash = passwordHash;
 	}
 
 	@ManyToMany(cascade=CascadeType.PERSIST)
