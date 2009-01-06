@@ -32,7 +32,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>2.5</version>
+			<version>${spring-version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -42,20 +42,5 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-  <scm>
-  	<url>scm:svn:http://hurst/svn/trunk/personal/Music/encoder</url>
-  	<connection>scm:svn:http://hurst/svn/trunk/personal/Music/encoder</connection>
-  </scm>
-
-	<!-- 
-		<repositories>
-		<repository>
-		<id>codehaus</id>
-		<name>Codehaus maven repository</name>
-		<url>http://repository.codehaus.org/</url>
-		</repository>
-		</repositories>
-	-->
 
 </project>

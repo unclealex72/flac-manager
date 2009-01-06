@@ -16,6 +16,10 @@
     <module>album-covers</module>
   </modules>
 
+  <properties>
+  	<spring-version>2.5.6</spring-version>
+  </properties>
+
   <scm>
   	<url>scm:svn:http://hurst/svn/trunk/personal/Music</url>
   	<connection>scm:svn:http://hurst/svn/trunk/personal/Music</connection>
