@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>uk.co.unclealex</groupId>
 			<artifactId>image-support</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>1.0</version>
 		</dependency>
 	
 		<dependency>
@@ -36,20 +36,5 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-  <scm>
-  	<url>scm:svn:http://hurst/svn/trunk/personal/Music/album-covers</url>
-  	<connection>scm:svn:http://hurst/svn/trunk/personal/Music/album-covers</connection>
-  </scm>
-
-	<!-- 
-		<repositories>
-		<repository>
-		<id>codehaus</id>
-		<name>Codehaus maven repository</name>
-		<url>http://repository.codehaus.org/</url>
-		</repository>
-		</repositories>
-	-->
 
 </project>

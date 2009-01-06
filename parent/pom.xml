@@ -9,16 +9,26 @@
   <version>2.4-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
-    <module>../music-core</module>
-    <module>../music-commands</module>
-    <module>../music-encoder</module>
-    <module>../music-web</module>
-    <module>../music-album-covers</module>
+    <module>core</module>
+    <module>commands</module>
+    <module>encoder</module>
+    <module>web</module>
+    <module>album-covers</module>
   </modules>
+
   <scm>
-  	<url>scm:svn:http://hurst/svn/trunk/personal/Music/parent</url>
-  	<connection>scm:svn:http://hurst/svn/trunk/personal/Music/parent</connection>
+  	<url>scm:svn:http://hurst/svn/trunk/personal/Music</url>
+  	<connection>scm:svn:http://hurst/svn/trunk/personal/Music</connection>
   </scm>
+
+  <distributionManagement>
+      <repository>
+        <id>default</id>
+        <name>Default repository</name>
+        <url>file:///home/alex/.m2/repository</url>
+      </repository>
+    </distributionManagement>
+
 
 	<build>
 		<plugins>
