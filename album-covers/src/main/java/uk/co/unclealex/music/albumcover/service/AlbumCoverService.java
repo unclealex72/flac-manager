@@ -2,9 +2,12 @@ package uk.co.unclealex.music.albumcover.service;
 
 import java.awt.Dimension;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.SortedSet;
+
+import org.apache.commons.collections15.Predicate;
 
 import uk.co.unclealex.music.core.model.AlbumCoverBean;
 import uk.co.unclealex.music.core.model.AlbumCoverSize;
@@ -28,9 +31,15 @@ public interface AlbumCoverService {
 	
 	public void purgeCovers();
 	
-	public AlbumCoverBean saveAndSelectCover(FlacAlbumBean flacAlbumBean, String imageUrl, AlbumCoverSize albumCoverSize) throws IOException;
+	public AlbumCoverBean saveAndSelectCover(FlacAlbumBean flacAlbumBean, String imageUrl, InputStream urlInputStream, AlbumCoverSize albumCoverSize) throws IOException;
 
-	public void selectAlbumCover(AlbumCoverBean albumCoverBean);
+	public void selectAlbumCover(AlbumCoverBean albumCoverBean) throws IOException;
 
 	public void resizeCover(AlbumCoverBean albumCoverBean, Dimension maximumSize, String extension, OutputStream out) throws IOException;
+	
+	public Predicate<FlacAlbumBean> createAlbumHasCoverPredicate();
+	
+	public SortedSet<FlacAlbumBean> findAlbumsWithoutCovers();
+
+	public void createThumbnails() throws IOException;
 }

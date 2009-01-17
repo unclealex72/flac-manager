@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +21,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.xml.ws.Holder;
 
@@ -28,6 +30,7 @@ import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
@@ -42,14 +45,14 @@ import uk.co.unclealex.music.core.model.AlbumCoverSize;
 import uk.co.unclealex.music.core.model.FlacAlbumBean;
 import uk.co.unclealex.music.core.service.FlacAlbumService;
 
-import com.amazon.webservices.awsecommerceservice._2008_10_06.Errors;
-import com.amazon.webservices.awsecommerceservice._2008_10_06.ImageSet;
-import com.amazon.webservices.awsecommerceservice._2008_10_06.Item;
-import com.amazon.webservices.awsecommerceservice._2008_10_06.ItemSearchRequest;
-import com.amazon.webservices.awsecommerceservice._2008_10_06.Items;
-import com.amazon.webservices.awsecommerceservice._2008_10_06.OperationRequest;
-import com.amazon.webservices.awsecommerceservice._2008_10_06.Errors.Error;
-import com.amazon.webservices.awsecommerceservice._2008_10_06.Item.ImageSets;
+import com.amazon.webservices.awsecommerceservice.Errors;
+import com.amazon.webservices.awsecommerceservice.ImageSet;
+import com.amazon.webservices.awsecommerceservice.Item;
+import com.amazon.webservices.awsecommerceservice.ItemSearchRequest;
+import com.amazon.webservices.awsecommerceservice.Items;
+import com.amazon.webservices.awsecommerceservice.OperationRequest;
+import com.amazon.webservices.awsecommerceservice.Errors.Error;
+import com.amazon.webservices.awsecommerceservice.Item.ImageSets;
 
 @Service
 @Transactional
@@ -63,6 +66,32 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	private FlacAlbumDao i_flacAlbumDao;
 	private AlbumCoverDao i_albumCoverDao;
 	private ImageService i_imageService;
+	private Predicate<FlacAlbumBean> i_albumHasCoversPredicate;
+	private int i_thumbnailSize = 50;
+	
+	@PostConstruct
+	public void initialise() {
+		Predicate<FlacAlbumBean> albumHasCoversPredicate = new Predicate<FlacAlbumBean>() {
+			@Override
+			public boolean evaluate(FlacAlbumBean flacAlbumBean) {
+				String pathForFlacAlbum = getFlacAlbumService().getPathForFlacAlbum(flacAlbumBean);
+				return getAlbumCoverDao().albumPathHasCovers(pathForFlacAlbum);
+			}
+		};
+		setAlbumHasCoversPredicate(albumHasCoversPredicate);
+	}
+	
+	@Override
+	public Predicate<FlacAlbumBean> createAlbumHasCoverPredicate() {
+		return getAlbumHasCoversPredicate();
+	}
+	
+	@Override
+	public SortedSet<FlacAlbumBean> findAlbumsWithoutCovers() {
+		SortedSet<FlacAlbumBean> albumsWithoutCovers = new TreeSet<FlacAlbumBean>();
+		CollectionUtils.selectRejected(getFlacAlbumDao().getAll(), getAlbumHasCoversPredicate(), albumsWithoutCovers);
+		return albumsWithoutCovers;
+	}
 	
 	@Override
 	public SortedSet<AlbumCoverBean> downloadCoversForAlbum(FlacAlbumBean flacAlbumBean) {
@@ -120,7 +149,7 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 							if (foundUrls.add(url)) {
 								log.info("Found " + url + " for album " + flacAlbumBean.getTitle() + " by " + flacAlbumBean.getFlacArtistBean().getName());
 								try {
-									downloadAndStoreAlbumCover(albumCoverBean, flacAlbumPath, url, isFirst);
+									downloadAndStoreAlbumCover(albumCoverBean, flacAlbumPath, url, null, isFirst);
 								} catch (IOException e) {
 									log.error("Url " + url + " could not be downloaded.");
 								}
@@ -136,19 +165,48 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	}
 
 	protected void downloadAndStoreAlbumCover(AlbumCoverBean albumCoverBean,
-			String flacAlbumPath, String url, boolean selected) throws IOException {
+			String flacAlbumPath, String url, InputStream urlInputStream, boolean selected) throws IOException {
 		albumCoverBean.setUrl(url);
-		albumCoverBean.setCover(downloadUrl(url));
+		byte[] cover = downloadUrl(url, urlInputStream);
+		albumCoverBean.setCover(cover);
+		byte[] thumbnail = createThumbnail(cover);
+		albumCoverBean.setThumbnail(thumbnail);
 		albumCoverBean.setExtension(FilenameUtils.getExtension(url));
 		albumCoverBean.setFlacAlbumPath(flacAlbumPath);
 		Date now = new Date();
 		albumCoverBean.setDateDownloaded(now);
 		if (selected) {
-			albumCoverBean.setDateSelected(now);
+			selectAlbumCover(albumCoverBean, now);
 		}
-		getAlbumCoverDao().store(albumCoverBean);
+		else {
+			getAlbumCoverDao().store(albumCoverBean);
+		}
 	}
 
+	protected byte[] createThumbnail(byte[] cover) throws IOException {
+		Color background = new Color(0, 0, 0, 0);
+		BufferedImage sourceImage = ImageIO.read(new ByteArrayInputStream(cover));
+		BufferedImage thumbnailImage =
+			getImageService().resize(
+				sourceImage, new Dimension(getThumbnailSize(), getThumbnailSize()), background);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ImageIO.write(thumbnailImage, "png", out);
+		out.close();
+		return out.toByteArray();
+	}
+
+	@Override
+	public void createThumbnails() throws IOException {
+		AlbumCoverDao albumCoverDao = getAlbumCoverDao();
+		for (AlbumCoverBean albumCoverBean : albumCoverDao.getAll()) {
+			if (albumCoverBean.getThumbnail() == null) {
+				log.info("Creating thumbnail for " + albumCoverBean.getFlacAlbumPath());
+				albumCoverBean.setThumbnail(createThumbnail(albumCoverBean.getCover()));
+				albumCoverDao.store(albumCoverBean);
+			}
+		}
+	}
+	
 	@Override
 	public void saveSelectedAlbumCovers() {
 		for (FlacAlbumBean flacAlbumBean : getFlacAlbumDao().getAll()) {
@@ -162,30 +220,34 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	}
 
 	protected void saveSelectedAlbumCover(FlacAlbumBean flacAlbumBean) throws IOException {
-		String album = flacAlbumBean.getTitle() + " by " + flacAlbumBean.getFlacArtistBean().getName();
 		AlbumCoverBean albumCoverBean = findSelectedCoverForFlacAlbum(flacAlbumBean);
 		if (albumCoverBean != null) {
-			File f = new File(albumCoverBean.getFlacAlbumPath(), "cover." + albumCoverBean.getExtension());
-			log.info("Saving cover for album " + album + " to " + f);
-			OutputStream out = null;
-			try {
-				out = new FileOutputStream(f);
-				IOUtils.copy(new ByteArrayInputStream(albumCoverBean.getCover()), out);
-			}
-			finally {
-				IOUtils.closeQuietly(out);
-			}
+			saveAlbumCoverBean(albumCoverBean);
+		}
+	}
+
+	protected void saveAlbumCoverBean(AlbumCoverBean albumCoverBean)
+			throws FileNotFoundException, IOException {
+		File f = new File(albumCoverBean.getFlacAlbumPath(), "cover." + albumCoverBean.getExtension());
+		log.info("Saving " + f);
+		OutputStream out = null;
+		try {
+			out = new FileOutputStream(f);
+			IOUtils.copy(new ByteArrayInputStream(albumCoverBean.getCover()), out);
+		}
+		finally {
+			IOUtils.closeQuietly(out);
 		}
 	}
 
 	@Override
 	public void downloadAndSaveCoversForAlbums(Collection<FlacAlbumBean> flacAlbumBeans) {
 		for (FlacAlbumBean flacAlbumBean : flacAlbumBeans) {
-			downloadAndSaveCoversForAlbums(flacAlbumBean);
+			downloadAndSaveCoversForAlbum(flacAlbumBean);
 		}
 	}
 	
-	protected void downloadAndSaveCoversForAlbums(FlacAlbumBean flacAlbumBean) {
+	protected void downloadAndSaveCoversForAlbum(FlacAlbumBean flacAlbumBean) {
 		// Dont do anything if covers already exist.
 		SortedSet<AlbumCoverBean> findCoversForAlbum = findCoversForAlbum(flacAlbumBean);
 		if (findCoversForAlbum != null && !findCoversForAlbum.isEmpty()) {
@@ -211,15 +273,25 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	}
 
 	@Override
-	public void selectAlbumCover(AlbumCoverBean albumCoverBean) {
+	@Transactional(rollbackFor=IOException.class)
+	public void selectAlbumCover(AlbumCoverBean albumCoverBean) throws IOException {
+		selectAlbumCover(albumCoverBean, new Date());
+	}
+	
+	protected void selectAlbumCover(AlbumCoverBean albumCoverBean, Date now) throws IOException {
 		if (albumCoverBean.getDateSelected() != null) {
 			return;
 		}
-		Date now = new Date();
-		for (AlbumCoverBean existingAlbumCoverBean : getAlbumCoverDao().getCoversForAlbumPath(albumCoverBean.getFlacAlbumPath())) {
-			boolean selected = existingAlbumCoverBean.getId().equals(albumCoverBean.getId());
+		AlbumCoverDao albumCoverDao = getAlbumCoverDao();
+		SortedSet<AlbumCoverBean> coversForAlbumPath = 
+			new TreeSet<AlbumCoverBean>(albumCoverDao.getCoversForAlbumPath(albumCoverBean.getFlacAlbumPath()));
+		coversForAlbumPath.add(albumCoverBean);
+		for (AlbumCoverBean existingAlbumCoverBean : coversForAlbumPath) {
+			boolean selected = ObjectUtils.equals(existingAlbumCoverBean.getId(), albumCoverBean.getId());
 			existingAlbumCoverBean.setDateSelected(selected?now:null);
+			albumCoverDao.store(existingAlbumCoverBean);
 		}
+		saveAlbumCoverBean(albumCoverBean);
 	}
 	
 	@Override
@@ -237,11 +309,11 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 		return getAlbumCoverDao().getCoversForAlbumPath(getPathForFlacAlbum(flacAlbumBean));
 	}
 	
-	protected byte[] downloadUrl(String url) throws IOException {
+	protected byte[] downloadUrl(String url, InputStream urlInputStream) throws IOException {
 		InputStream in = null;
 		try { 
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			in = new URL(url).openStream();
+			in = urlInputStream==null?new URL(url).openStream():urlInputStream;
 			IOUtils.copy(in, out);
 			out.close();
 			return out.toByteArray();
@@ -277,7 +349,7 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	@Override
 	@Transactional(rollbackFor=IOException.class)
 	public AlbumCoverBean saveAndSelectCover(FlacAlbumBean flacAlbumBean,
-			String imageUrl, AlbumCoverSize albumCoverSize) throws IOException {
+			String imageUrl, InputStream urlInputStream, AlbumCoverSize albumCoverSize) throws IOException {
 		AlbumCoverBean albumCoverBean = new AlbumCoverBean();
 		albumCoverBean.setAlbumCoverSize(albumCoverSize);
 		AlbumCoverDao albumCoverDao = getAlbumCoverDao();
@@ -287,7 +359,7 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 			selectedAlbumCoverBean.setDateSelected(null);
 			albumCoverDao.store(selectedAlbumCoverBean);
 		}
-		downloadAndStoreAlbumCover(albumCoverBean, albumPath, imageUrl, true);
+		downloadAndStoreAlbumCover(albumCoverBean, albumPath, imageUrl, urlInputStream, true);
 		return albumCoverBean;
 	}
 	
@@ -352,6 +424,23 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	@Required
 	public void setImageService(ImageService imageService) {
 		i_imageService = imageService;
+	}
+
+	public Predicate<FlacAlbumBean> getAlbumHasCoversPredicate() {
+		return i_albumHasCoversPredicate;
+	}
+
+	public void setAlbumHasCoversPredicate(
+			Predicate<FlacAlbumBean> albumHasCoversPredicate) {
+		i_albumHasCoversPredicate = albumHasCoversPredicate;
+	}
+
+	public int getThumbnailSize() {
+		return i_thumbnailSize;
+	}
+
+	public void setThumbnailSize(int thumbnailSize) {
+		i_thumbnailSize = thumbnailSize;
 	}
 
 }

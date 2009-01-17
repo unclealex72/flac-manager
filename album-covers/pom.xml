@@ -37,4 +37,27 @@
 		</dependency>
 	</dependencies>
 
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>jaxws-maven-plugin</artifactId>
+				<groupId>org.codehaus.mojo</groupId>
+				<version>1.11</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>wsimport</goal>
+            </goals>
+          </execution>
+        </executions>
+				<configuration>
+					<wsdlUrls>
+						<wsdlUrl>http://webservices.amazon.com/AWSECommerceService/AWSECommerceService.wsdl</wsdlUrl>
+					</wsdlUrls>
+					<packageName>com.amazon.webservices.awsecommerceservice</packageName>
+					<keep>true</keep>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
