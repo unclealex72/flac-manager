@@ -23,8 +23,21 @@ public class EncoderBean extends KeyedBean<EncoderBean> {
 	private String i_extension;
 	private String i_command;
 	private String i_magicNumber;
+	private String i_contentType;
 	private SortedSet<EncodedTrackBean> i_encodedTrackBeans;
 	private SortedSet<DeviceBean> i_deviceBeans;
+
+	public EncoderBean() {
+		// Auto-generated constructor stub
+	}
+	
+	public EncoderBean(String extension, String command, String magicNumber, String contentType) {
+		super();
+		i_extension = extension;
+		i_command = command;
+		i_magicNumber = magicNumber;
+		i_contentType = contentType;
+	}
 
 	@Override
 	@Id
@@ -82,5 +95,14 @@ public class EncoderBean extends KeyedBean<EncoderBean> {
 
 	public void setMagicNumber(String magicNumber) {
 		i_magicNumber = magicNumber;
+	}
+
+	@NotEmpty(message="You must supply a content type.")
+	public String getContentType() {
+		return i_contentType;
+	}
+
+	public void setContentType(String contentType) {
+		i_contentType = contentType;
 	}
 }

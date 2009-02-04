@@ -18,8 +18,12 @@ public interface OwnerService {
 	
 	public SortedSet<EncodedTrackBean> getOwnedEncodedTracks(final OwnerBean ownerBean);
 
+	public SortedSet<OwnerBean> getOwners(EncodedAlbumBean encodedAlbumBean);
+	
 	public void updateOwnership(
 			String ownerName,
 			Collection<EncodedArtistBean> encodedArtistBeans, Collection<EncodedAlbumBean> encodedAlbumBeans);
+
+	public void clearOwnership();
 
 }

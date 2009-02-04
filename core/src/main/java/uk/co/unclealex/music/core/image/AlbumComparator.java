@@ -23,7 +23,6 @@ public class AlbumComparator implements Comparator<Album> {
 	 */
 	public AlbumComparator() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	/**

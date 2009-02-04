@@ -1,5 +1,6 @@
 package uk.co.unclealex.music.core.dao;
 
+import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,10 +21,12 @@ public class HibernateOwnerDao extends HibernateKeyedDao<OwnerBean>
 
 	@Override
 	public OwnerBean findByName(String name) {
-		OwnerBean exampleBean = createExampleBean();
-		exampleBean.setName(name);
-		return findByExample(exampleBean);
+		Query query =
+			getSession().createQuery("from OwnerBean where lower(name) = lower(:name)").
+			setString("name", name);
+		return uniqueResult(query);
 	}
+	
 	@Override
 	public OwnerBean createExampleBean() {
 		return new OwnerBean();

@@ -3,15 +3,18 @@ package uk.co.unclealex.music.core.model;
 import java.util.Comparator;
 import java.util.Date;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 @Entity(name="albumCoverBean")
 @Table(name="covers")
@@ -20,12 +23,14 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 	private static final Comparator<AlbumCoverBean> COMPARATOR = new AlbumCoverComparator();
 
 	private String i_url;
-	private byte[] i_cover;
+	private PictureBean i_coverPictureBean;
+	private PictureBean i_thumbnailPictureBean;
 	private AlbumCoverSize i_albumCoverSize;
 	private String i_flacAlbumPath;
-	private String i_extension;
 	private Date i_dateDownloaded;
 	private Date i_dateSelected;
+	private int i_coverLength;
+	private int i_thumbnailLength;
 	
 	@Override
 	@Id
@@ -48,7 +53,40 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 	public int compareTo(AlbumCoverBean o) {
 		return COMPARATOR.compare(this, o);
 	}
+
+	@Transient
+	public String getExtension() {
+		return "png";
+	}
 	
+	@Transient
+	public byte[] getCover() {
+		PictureBean coverPictureBean = getCoverPictureBean();
+		return coverPictureBean==null?null:coverPictureBean.getPicture();
+	}
+	
+	public void setCover(byte[] cover) {
+		setCoverLength(cover.length);
+		PictureBean coverPictureBean = getCoverPictureBean();
+		if (coverPictureBean == null) {
+			setCoverPictureBean(new PictureBean(cover));
+		}
+	}
+
+	@Transient
+	public byte[] getThumbnail() {
+		PictureBean thumbnailPictureBean = getThumbnailPictureBean();
+		return thumbnailPictureBean==null?null:thumbnailPictureBean.getPicture();
+	}
+
+	public void setThumbnail(byte[] thumbnail) {
+		setThumbnailLength(thumbnail.length);
+		PictureBean thumbnailPictureBean = getThumbnailPictureBean();
+		if (thumbnailPictureBean == null) {
+			setThumbnailPictureBean(new PictureBean(thumbnail));
+		}
+	}
+
 	@Column(nullable=false)
 	public String getUrl() {
 		return i_url;
@@ -56,15 +94,6 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 
 	public void setUrl(String url) {
 		i_url = url;
-	}
-
-	@Lob
-	public byte[] getCover() {
-		return i_cover;
-	}
-
-	public void setCover(byte[] cover) {
-		i_cover = cover;
 	}
 
 	@Column(nullable=false)
@@ -87,15 +116,6 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 	}
 	
 	@Column(nullable=false)
-	public String getExtension() {
-		return i_extension;
-	}
-
-	public void setExtension(String extension) {
-		i_extension = extension;
-	}
-
-	@Column(nullable=false)
 	public Date getDateDownloaded() {
 		return i_dateDownloaded;
 	}
@@ -110,5 +130,41 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 
 	public void setDateSelected(Date dateSelected) {
 		i_dateSelected = dateSelected;
-	}	
+	}
+	
+	@ManyToOne(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
+	protected PictureBean getCoverPictureBean() {
+		return i_coverPictureBean;
+	}
+
+	protected void setCoverPictureBean(PictureBean coverPictureBean) {
+		i_coverPictureBean = coverPictureBean;
+	}
+
+	@ManyToOne(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
+	protected PictureBean getThumbnailPictureBean() {
+		return i_thumbnailPictureBean;
+	}
+
+	protected void setThumbnailPictureBean(PictureBean thumbnailPictureBean) {
+		i_thumbnailPictureBean = thumbnailPictureBean;
+	}
+
+	public int getCoverLength() {
+		return i_coverLength;
+	}
+
+	public void setCoverLength(int coverLength) {
+		i_coverLength = coverLength;
+	}
+
+	public int getThumbnailLength() {
+		return i_thumbnailLength;
+	}
+
+	public void setThumbnailLength(int thumbnailLength) {
+		i_thumbnailLength = thumbnailLength;
+	}
+
+
 }

@@ -32,7 +32,7 @@ public class Substitutor {
 						if (length == null || length >= value.length()) {
 							return value;
 						}
-						return value.substring(0, length);
+						return value.substring(0, length).replace('/', '_');
 					}
 				});
 		return this;

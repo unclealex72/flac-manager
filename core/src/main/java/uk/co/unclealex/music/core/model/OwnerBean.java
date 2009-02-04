@@ -28,6 +28,16 @@ public class OwnerBean extends KeyedBean<OwnerBean> {
 	private SortedSet<EncodedArtistBean> i_encodedArtistBeans;
 	private SortedSet<EncodedAlbumBean> i_encodedAlbumBeans;
 	private SortedSet<DeviceBean> i_deviceBeans;
+
+	public OwnerBean() {
+		// Auto-generated constructor stub
+	}
+	
+	public OwnerBean(String name, Boolean ownsAll) {
+		super();
+		i_name = name;
+		i_ownsAll = ownsAll;
+	}
 	
 	@Override
 	public String toString() {

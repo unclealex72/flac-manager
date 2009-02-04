@@ -4,10 +4,13 @@ import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.OwnerDao;
@@ -18,12 +21,23 @@ import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.OwnerBean;
 
 @Service
+@Transactional
 public class OwnerServiceImpl implements OwnerService {
 
 	private static Log log = LogFactory.getLog(OwnerServiceImpl.class);
 	
 	private EncodedTrackDao i_encodedTrackDao;
 	private OwnerDao i_ownerDao;
+	
+	@Override
+	public void clearOwnership() {
+		OwnerDao ownerDao = getOwnerDao();
+		for (OwnerBean ownerBean : ownerDao.getAll()) {
+			ownerBean.getEncodedAlbumBeans().clear();
+			ownerBean.getEncodedArtistBeans().clear();
+			ownerDao.store(ownerBean);
+		}
+	}
 	
 	@Override
 	public SortedSet<EncodedTrackBean> getOwnedEncodedTracks(final OwnerBean ownerBean, final EncoderBean encoderBean) {
@@ -95,7 +109,6 @@ public class OwnerServiceImpl implements OwnerService {
 	public void updateOwnership(String ownerName,
 			Collection<EncodedArtistBean> encodedArtistBeans,
 			Collection<EncodedAlbumBean> encodedAlbumBeans) {
-		log.info("Updating ownership.");
 		if (encodedArtistBeans == null) {
 			encodedArtistBeans = new TreeSet<EncodedArtistBean>();
 		}
@@ -110,6 +123,7 @@ public class OwnerServiceImpl implements OwnerService {
 			}
 		}
 		OwnerBean ownerBean = getOwnerDao().findByName(ownerName);
+		log.info("Updating ownership for " + ownerBean.getName() + ".");
 		Collection<EncodedArtistBean> ownedEncodedArtistBeans = ownerBean.getEncodedArtistBeans();
 		if (encodedArtistBeans != null) {
 			ownedEncodedArtistBeans.retainAll(encodedArtistBeans);
@@ -121,6 +135,27 @@ public class OwnerServiceImpl implements OwnerService {
 			ownedEncodedAlbumBeans.addAll(encodedAlbumBeans);
 		}
 		getOwnerDao().store(ownerBean);
+	}
+	
+	@Override
+	public SortedSet<OwnerBean> getOwners(EncodedAlbumBean encodedAlbumBean) {
+		SortedSet<OwnerBean> albumOwnerBeans = encodedAlbumBean.getOwnerBeans();
+		SortedSet<OwnerBean> ownerBeans = new TreeSet<OwnerBean>();
+		if (albumOwnerBeans != null) {
+			ownerBeans.addAll(albumOwnerBeans);
+		}
+		SortedSet<OwnerBean> artistOwnerBeans = encodedAlbumBean.getEncodedArtistBean().getOwnerBeans();
+		if (artistOwnerBeans != null) {
+			ownerBeans.addAll(artistOwnerBeans);
+		}
+		Predicate<OwnerBean> predicate = new Predicate<OwnerBean>() {
+			@Override
+			public boolean evaluate(OwnerBean ownerBean) {
+				return Boolean.TRUE.equals(ownerBean.isOwnsAll());
+			}
+		};
+		CollectionUtils.select(getOwnerDao().getAll(), predicate, ownerBeans);
+		return ownerBeans;
 	}
 	
 	public EncodedTrackDao getEncodedTrackDao() {

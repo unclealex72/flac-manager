@@ -46,8 +46,8 @@ public class InitialiserImpl implements Initialiser {
 		log.info("Initialising defaults.");
 		OwnerBean alex = createOwnerBean("Alex", false);
 		OwnerBean trevor = createOwnerBean("Trevor", true);
-		EncoderBean mp3Encoder = createEncoderBean("mp3", "flac2mp3.sh", "494433");
-		EncoderBean oggEncoder = createEncoderBean("ogg", "flac2ogg.sh", "4f676753");
+		EncoderBean mp3Encoder = createEncoderBean("mp3", "flac2mp3.sh", "494433", "audio/mpeg3");
+		EncoderBean oggEncoder = createEncoderBean("ogg", "flac2ogg.sh", "4f676753", "audio/ogg");
 		DeviceBean toughDrive = createDeviceBean("MHV2040AH", "ToughDrive Car HardDrive", alex, mp3Encoder);
 		DeviceBean iriver120 = createDeviceBean("MK2004GAL", "iRiver", alex, oggEncoder);
 		DeviceBean iriver140 = createDeviceBean("MK2004GAH", "iRiver", trevor, oggEncoder);
@@ -72,7 +72,7 @@ public class InitialiserImpl implements Initialiser {
 		return ownerBean;
 	}
 
-	protected EncoderBean createEncoderBean(String extension, String command, String magicNumber) throws IOException {
+	protected EncoderBean createEncoderBean(String extension, String command, String magicNumber, String contentType) throws IOException {
 		EncoderBean encoderBean = new EncoderBean();
 		InputStream in = getClass().getResourceAsStream(command);
 		StringWriter writer = new StringWriter();
@@ -81,6 +81,7 @@ public class InitialiserImpl implements Initialiser {
 		encoderBean.setCommand(writer.toString());
 		encoderBean.setExtension(extension);
 		encoderBean.setMagicNumber(magicNumber);
+		encoderBean.setContentType(contentType);
 		encoderBean.setEncodedTrackBeans(new TreeSet<EncodedTrackBean>());
 		encoderBean.setDeviceBeans(new TreeSet<DeviceBean>());
 		return encoderBean;

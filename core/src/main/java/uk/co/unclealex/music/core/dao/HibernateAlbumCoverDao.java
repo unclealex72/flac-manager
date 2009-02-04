@@ -28,12 +28,29 @@ public class HibernateAlbumCoverDao extends
 
 	@Override
 	public SortedSet<AlbumCoverBean> getCoversForAlbumPath(String albumPath) {
+		return asSortedSet(createWithAlbumPathQuery(albumPath));
+	}
+
+	protected Query createWithAlbumPathQuery(String albumPath) {
 		Query query = getSession().createQuery(
 				"from albumCoverBean where flacAlbumPath = :albumPath").
 			setString("albumPath", albumPath);
-		return asSortedSet(query);
+		return query;
 	}
 	
+	@Override
+	public SortedSet<AlbumCoverBean> getSelected() {
+		Query query = getSession().createQuery(
+			"from albumCoverBean where dateSelected is not null");
+		return asSortedSet(query);
+	}
+		
+	@Override
+	public boolean albumPathHasCovers(String albumPath) {
+		Query query = createWithAlbumPathQuery(albumPath);
+		return query.iterate().hasNext();
+	}
+
 	@Override
 	public AlbumCoverBean findSelectedCoverForAlbumPath(String albumPath) {
 		Query query = getSession().createQuery(

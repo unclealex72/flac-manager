@@ -8,5 +8,9 @@ public interface AlbumCoverDao extends KeyedDao<AlbumCoverBean> {
 
 	public SortedSet<AlbumCoverBean> getCoversForAlbumPath(String albumPath);
 
+	public boolean albumPathHasCovers(String albumPath);
+	
 	public AlbumCoverBean findSelectedCoverForAlbumPath(String albumPath);
+	
+	public SortedSet<AlbumCoverBean> getSelected();
 }

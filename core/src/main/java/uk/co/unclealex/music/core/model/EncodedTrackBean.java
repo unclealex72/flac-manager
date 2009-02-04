@@ -1,6 +1,5 @@
 package uk.co.unclealex.music.core.model;
 
-import java.util.Comparator;
 import java.util.SortedSet;
 
 import javax.persistence.CascadeType;
@@ -14,7 +13,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.commons.collections15.ComparatorUtils;
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 import org.hibernate.validator.NotNull;
@@ -26,57 +24,6 @@ import uk.co.unclealex.music.core.visitor.EncodedVisitor;
 		uniqueConstraints = {@UniqueConstraint(columnNames={"url", "encoderBean_id"})})
 @Entity(name="encodedTrackBean")
 public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> implements EncodedBean {
-
-	private static final Comparator<EncodedTrackBean> ENCODER_COMPARATOR = 
-		new Comparator<EncodedTrackBean>() {
-		@Override
-		public int compare(EncodedTrackBean o1, EncodedTrackBean o2) {
-			return o1.getEncoderBean().compareTo(o2.getEncoderBean());
-		}
-	};
-	private static final Comparator<EncodedTrackBean> ALBUM_COMPARATOR =
-		new Comparator<EncodedTrackBean>() {
-		@Override
-		public int compare(EncodedTrackBean o1, EncodedTrackBean o2) {
-			return 
-				ComparatorUtils.nullHighComparator(
-					EncodedAlbumBean.ENCODED_ALBUM_COMPARATOR).compare(
-							o1.getEncodedAlbumBean(), 
-							o2.getEncodedAlbumBean());
-		}
-	};
-	private static final Comparator<EncodedTrackBean> TRACK_NUMBER_COMPARATOR =
-		new Comparator<EncodedTrackBean>() {
-		@Override
-		public int compare(EncodedTrackBean o1, EncodedTrackBean o2) {
-			return o1.getTrackNumber().compareTo(o2.getTrackNumber());
-		}
-	};
-
-	private static final Comparator<EncodedTrackBean> URL_COMPARATOR =
-		new Comparator<EncodedTrackBean>() {
-		@Override
-		public int compare(EncodedTrackBean o1, EncodedTrackBean o2) {
-			return o1.getFlacUrl().compareTo(o2.getFlacUrl());
-		}
-	};
-	
-	protected static final Comparator<EncodedTrackBean> ENCODED_TRACK_BEAN_COMPARATOR = 
-		new Comparator<EncodedTrackBean>() {
-		@Override
-		public int compare(EncodedTrackBean o1, EncodedTrackBean o2) {
-			int cmp = ENCODER_COMPARATOR.compare(o1, o2);
-			if (cmp != 0) {
-				return cmp;
-			}
-			cmp = ALBUM_COMPARATOR.compare(o1, o2);
-			if (cmp != 0) {
-				return cmp;
-			}
-			cmp = TRACK_NUMBER_COMPARATOR.compare(o1, o2);
-			return cmp != 0?cmp:URL_COMPARATOR.compare(o1, o2);
-		}
-	};
 
 	private String i_flacUrl;
 	private EncoderBean i_encoderBean;
@@ -94,7 +41,8 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 	
 	@Override
 	public int compareTo(EncodedTrackBean o) {
-		return ENCODED_TRACK_BEAN_COMPARATOR.compare(this, o);
+		int cmp = getFlacUrl().compareTo(o.getFlacUrl());
+		return cmp==0?getEncoderBean().getExtension().compareTo(o.getEncoderBean().getExtension()):cmp;
 	}
 	
 	@Override

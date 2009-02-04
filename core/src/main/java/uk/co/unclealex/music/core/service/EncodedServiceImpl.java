@@ -82,8 +82,8 @@ public class EncodedServiceImpl implements EncodedService {
 	public int removeEmptyAlbumsAndArtists() {
 		EncodedAlbumDao encodedAlbumDao = getEncodedAlbumDao();
 		EncodedArtistDao encodedArtistDao = getEncodedArtistDao();
-		int cnt = remove("artist", encodedAlbumDao, encodedAlbumDao.findAllEmptyAlbums());
-		remove("album", encodedArtistDao, encodedArtistDao.findAllEmptyArtists());
+		int cnt = remove("album", encodedAlbumDao, encodedAlbumDao.findAllEmptyAlbums());
+		remove("artist", encodedArtistDao, encodedArtistDao.findAllEmptyArtists());
 		return cnt;
 	}
 	

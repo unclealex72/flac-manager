@@ -21,6 +21,22 @@ public class DeviceBean extends KeyedBean<DeviceBean> {
 	private OwnerBean i_ownerBean;
 	private EncoderBean i_encoderBean;	
 	
+	public DeviceBean() {
+		// Auto-generated constructor stub
+	}
+	
+	public DeviceBean(String identifier, String description,
+			String titleFormat, Boolean deletingRequired, OwnerBean ownerBean,
+			EncoderBean encoderBean) {
+		super();
+		i_identifier = identifier;
+		i_description = description;
+		i_titleFormat = titleFormat;
+		i_deletingRequired = deletingRequired;
+		i_ownerBean = ownerBean;
+		i_encoderBean = encoderBean;
+	}
+
 	@Override
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
