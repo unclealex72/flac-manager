@@ -12,48 +12,36 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-15" />
     <title>
-    	<s:property value="letter"/> : <s:property value="encodedArtist.name"/>
+    	Albums
     </title>
   </head>
   
   <body>
-  	<p>
-  		<s:form action="addalbums" method="get">
-  			<s:hidden name="letter"/>
-  			<s:hidden name="encodedArtist"/>
-  			<table border="0">
-  				<tr>
-  					<td><s:submit value="Add"/></td><td/>
-  				</tr>	
-  				<s:iterator value="encodedAlbumBeans">
-	  				<tr>
-	  					<td>
-	  						<c:set var="id"><s:property value="id"/></c:set>
-	  						<input type="checkbox" name="items" value="${id}" />
-	  					</td>
-		  				<td>
-		  					<c:set var="link">
-			  					<s:url action="tracks" includeParams="none">
-			  						<s:param name="letter" value="letter"/>
-			  						<s:param name="encodedAlbum" value="id"/>
-			  					</s:url>
-			  				</c:set>
-			  				<a href="${link}"><s:property value="title"/></a>
-		  					<c:set var="link">
-			  					<s:url action="addalbums" includeParams="get">
-			  						<s:param name="items" value="id"/>
-			  					</s:url>
-			  				</c:set>
-			  				(<a href="${link}">add</a>)
-		  				</td>
-	  				</tr>
-  				</s:iterator>
-  				<tr>
-  					<td><s:submit value="Add"/></td><td/>
-  				</tr>	
-  			</table>
-  		</s:form>
-  	</p>
+  	<s:iterator value="albumBeansWithSelectedCoverByArtistBean.entrySet()">
+  		<h1><s:property value="key.name"/></h1>
+  		<ol>
+				<s:iterator value="value">
+					<li>
+						<s:if test="albumCoverBean != null">
+							<s:push value="albumCoverBean">
+								<c:set var="img">
+									<s:url value="/thumbnail/%{id}.png" includeParams="none"/>
+								</c:set>
+								<img src="${img}" align="middle"/>
+							</s:push>
+						</s:if>
+						<s:push value="flacAlbumBean">
+						  <c:set var="link">
+						  	<s:url action="album">
+						  		<s:param name="flacAlbumBean" value="id"/>
+						  	</s:url>
+						  </c:set>
+						  <a href="${link}"><s:property value="title"/></a>
+					  </s:push>
+					</li>
+				</s:iterator>
+			</ol>
+  	</s:iterator>
   </body>
   </html>
 </jsp:root>

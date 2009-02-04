@@ -29,7 +29,7 @@
 	</filter>
  
  	<filter>
-		<filter-name>hibernate</filter-name>
+		<filter-name>hibernate-music</filter-name>
 		<filter-class>
 			org.springframework.orm.hibernate3.support.OpenSessionInViewFilter
 		</filter-class>
@@ -43,19 +43,29 @@
 		</init-param>
 	</filter>
 
-	<filter>
-		<filter-name>download</filter-name>
-		<filter-class>uk.co.unclealex.music.web.filter.ZipDownloadFilter</filter-class>
+ 	<filter>
+		<filter-name>hibernate-flac</filter-name>
+		<filter-class>
+			org.springframework.orm.hibernate3.support.OpenSessionInViewFilter
+		</filter-class>
+		<init-param>
+			<param-name>singleSession</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<init-param>
+			<param-name>sessionFactoryBeanName</param-name>
+			<param-value>flacSessionFactory</param-value>
+		</init-param>
 	</filter>
- 
+
 	<filter-mapping>
-		<filter-name>hibernate</filter-name>
+		<filter-name>hibernate-music</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
 	<filter-mapping>
-		<filter-name>download</filter-name>
-		<url-pattern>*.zip</url-pattern>
+		<filter-name>hibernate-flac</filter-name>
+		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
 	<filter-mapping>
@@ -94,7 +104,7 @@
 		<param-name>contextConfigLocation</param-name>
 		<param-value>
 			classpath:applicationContext-music-core.xml
-			classpath:applicationContext-music-core-listener.xml
+			classpath:applicationContext-music-album-covers.xml
 			classpath:applicationContext-music-web.xml
 		</param-value>
 	</context-param>
@@ -107,204 +117,107 @@
 		<load-on-startup>10</load-on-startup>
 	</servlet>
 
-    <!-- Definition and configuration of Slide's WebDAV servlet. -->
     <servlet>
-        <display-name>Slide DAV Server</display-name>
-        <servlet-name>webdav</servlet-name>
+        <display-name>Album Covers DAV Server</display-name>
+        <servlet-name>covers</servlet-name>
         <servlet-class>
         	uk.co.unclealex.music.web.webdav.SpringWebdavServlet
         </servlet-class>
         <init-param>
-            <description>
-                Path to the domain configuration file, relative to the path of the
-                web application.
-                The default is '/Domain.xml'.
-            </description>
-            <param-name>domain</param-name>
-            <param-value>/WEB-INF/Domain.xml</param-value>
+        	<param-name>repository-manager</param-name>
+        	<param-value>coversRepositoryManager</param-value>
         </init-param>
         <init-param>
-            <description>
-                Name of the Slide namespace that should be accessed by this servlet.
-                If this parameter is provided, make sure the corresponding namespace
-                is defined in the domain configuration file. Otherwise, the default
-                namespace will be used, if one exists.
-            </description>
-            <param-name>namespace</param-name>
-            <param-value>slide</param-value>
+        	<param-name>missing-auth-mapping</param-name>
+        	<param-value>x:x</param-value>
         </init-param>
         <init-param>
-            <description>
-                 Scope of the Slide namespace that should be exposed by this servlet.
-                 For example, if you want to expose only the /files collection via
-                 WebDAV, set this parameter to '/files'. In that case, any URLs of the
-                 form '/context-path/servlet-path/*' will be mapped to '/files/*'
-                 in the Slide namespace.
-                 The default value is an empty string.
-            </description>
-            <param-name>scope</param-name>
-            <param-value/>
+        	<param-name>resource-config</param-name>
+        	<param-value>/WEB-INF/config.xml</param-value>
         </init-param>
-        <init-param>
-            <description>
-                 This init-parameter determines the depth limit for PROPFIND and other
-                 methods, to avoid performance hits on the server for requests with
-                 infinite depth. A value of -1 turns off depth limitation. 
-                 The default value is '3'.
-            </description>
-            <param-name>depth-limit</param-name>
-            <param-value>3</param-value>
-        </init-param>
-        <init-param>
-            <description>
-                The MIME type that should be used for resources of unknown type. For
-                example, if a WebDAV client uploads a file (via PUT) without specifying
-                the Content-Type header, the MIME type defined here will be used.
-                The default value is 'application/octet-stream'.
-            </description>
-            <param-name>default-mime-type</param-name>
-            <param-value>application/octet-stream</param-value>
-        </init-param>
-        <init-param>
-            <description>
-                By default, the WebDAV servlet is mapped as default servlet of the
-                web application context (the url-pattern in servlet-mapping is '/').
-                If you want to change that mapping so the servlet is no longer the
-                default servlet, you must change this initialization parameter to
-                indicate the situation to the servlet, by setting it to 'false'.
-                The default value is 'true'.
-            </description>
-            <param-name>default-servlet</param-name>
-            <param-value>false</param-value>
-        </init-param>
-        <init-param>
-            <description>
-                 Use the 'directory-browsing' init-parameter to turn off generation of
-                 HTML index pages that enable browsing of collections (by setting this
-                 parameter to 'false'), or to specify a web-app relative path to a
-                 template resource (a JSP page, for example) which should handle
-                 generation of the HTML index page. In the latter case, you can use a
-                 JSP page at WEB-INF/index.jsp by specifying '/WEB-INF/index.jsp' as
-                 value of this parameter.
-                 The default value is 'true'.
-            </description>
-            <param-name>directory-browsing</param-name>
-            <param-value>true</param-value>
-        </init-param>
-        <init-param>
-            <description>
-                Use this parameter to hide ACL information in generated HTML index pages.
-                (see parameter "directory-browsing")
-                The default value is 'true'.
-            </description>
-            <param-name>directory-browsing-hide-acl</param-name>
-            <param-value>true</param-value>
-        </init-param>
-        <init-param>
-            <description>
-                Use this parameter to hide locking information in generated HTML index pages.
-                (see parameter "directory-browsing")
-                The default value is 'true'.
-            </description>
-            <param-name>directory-browsing-hide-locks</param-name>
-            <param-value>true</param-value>
-        </init-param>
-        <init-param>
-            <description>
-                If set to false, the PropFindMethod will first create a (large) JDOM 
-                document in memory and then write it to the response stream. 
-                If set true, the PropFindMethod will write results to the stream as
-                soon as they are available. This will reduce memory consumption
-                in the case of large responses (PROPFIND on many resources).
-                The output of these two variants differ slightly, since in optimized 
-                mode the D:DAV namespace is declared in the multistatus element AND
-                in all response elements. Since this is still a valid XML document
-                it shouldn't be a problem, but in case you encounter any diffculties
-                this switch provides a way to get around it. 
-            </description>
-            <param-name>optimizePropfindOutput</param-name>
-            <param-value>true</param-value>
-        </init-param>
-        <init-param>
-            <param-name>debug</param-name>
-            <param-value>0</param-value>
-        </init-param>
-        <init-param>
-            <description>
-            According to RFC3253 (DeltaV), RFCxxxx (ACL) and RFCxxxx (Binding),
-            a DAV:allprop PROPFIND should not return any of the properties defined
-            in any of that documents.
-            For testing purposes, the specified behaviour can be disabled by 
-            setting this parameter "true".
-            </description>
-            <param-name>extendedAllprop</param-name>
-            <param-value>false</param-value>
-        </init-param>
-        <init-param>
-            <description>
-                As proposed on February 08, 2003 by Lisa Dusseault in 
-                w3c-dist-auth-request@w3.org, the DAV:lockdiscovery property should 
-                include an element DAV:principal-URL with the semantics of the 
-                WebDAV/ACL specification. This feature is switched-off
-        by default as it lead to compatibility problems with MacOS X client.
-            </description>
-            <param-name>lockdiscoveryIncludesPrincipalURL</param-name>
-            <param-value>false</param-value>
-        </init-param>
-        <init-param>
-            <description>
-                This parameter controls whether modifying properties via 
-                PROPPATCH causes the last modification date of the 
-                resource to be updated or not.
-            </description>
-            <param-name>updateLastModified</param-name>
-            <param-value>true</param-value>
-        </init-param>
-        <!--init-param>
-            <param-name>path-mapper-hook</param-name>
-            <param-value>mypackage.MyPathMapperHook</param-value>
-            <description>
-                You can configure a hook class that maps the HttpServletRequest
-                to the path passed to the Slide core. Have a look at the mapper
-                interface in org.apache.slide.webdav.util.PathMapper for more
-                information.
-            </description>
-        </init-param-->
-        <!--init-param>
-            <param-name>authentication-header</param-name>
-            <param-value>Basic realm="Slide DAV Server"</param-value>
-            <description>
-                This parameter allows you to configure the authentication
-                header that is set when Slide asks the client for
-                (re-)authentication. 
-            </description>
-        </init-param-->
         <load-on-startup>1</load-on-startup>
-        <!-- Uncomment this to get authentication -->
     </servlet>
-    <!-- The mapping for the Slide WebDAV servlet.
-       If you change the mapping so that the servlet isn't the default servlet
-       anymore, make sure to set the init-parameter 'default-servlet' to
-       'false'. -->
+
+    <!-- Webdav. -->
+    <servlet>
+        <display-name>Encoded Files DAV Server</display-name>
+        <servlet-name>encoded</servlet-name>
+        <servlet-class>
+        	uk.co.unclealex.music.web.webdav.SpringWebdavServlet
+        </servlet-class>
+        <init-param>
+        	<param-name>repository-manager</param-name>
+        	<param-value>encodedRepositoryManager</param-value>
+        </init-param>
+        <init-param>
+        	<param-name>missing-auth-mapping</param-name>
+        	<param-value>x:x</param-value>
+        </init-param>
+        <init-param>
+        	<param-name>resource-config</param-name>
+        	<param-value>/WEB-INF/config.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
        
-    <servlet-mapping>
-        <servlet-name>webdav</servlet-name>
-        <url-pattern>/dav/*</url-pattern>
-    </servlet-mapping>
+		<servlet>
+			<servlet-name>thumbnail</servlet-name>
+			<servlet-class>uk.co.unclealex.music.web.servlet.PictureServlet</servlet-class>
+			<init-param>
+				<param-name>transformer</param-name>
+				<param-value>thumbnailTransformer</param-value>
+			</init-param>
+		</servlet>
+	
+		<servlet>
+			<servlet-name>cover</servlet-name>
+			<servlet-class>uk.co.unclealex.music.web.servlet.PictureServlet</servlet-class>
+			<init-param>
+				<param-name>transformer</param-name>
+				<param-value>coverTransformer</param-value>
+			</init-param>
+		</servlet>
 
-    <servlet-mapping>
-        <servlet-name>webdav</servlet-name>
-        <url-pattern>/dav/*</url-pattern>
-    </servlet-mapping>
+		<servlet-mapping>
+			<servlet-name>cover</servlet-name>
+			<url-pattern>/cover/*</url-pattern>
+		</servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>webdav</servlet-name>
-        <url-pattern>/dav</url-pattern>
-    </servlet-mapping>
+		<servlet-mapping>
+			<servlet-name>thumbnail</servlet-name>
+			<url-pattern>/thumbnail/*</url-pattern>
+		</servlet-mapping>
+		
+		<servlet-mapping>
+			<servlet-name>encoded</servlet-name>
+			<url-pattern>/encoded/*</url-pattern>
+		</servlet-mapping>
+
+		<servlet-mapping>
+			<servlet-name>encoded</servlet-name>
+			<url-pattern>/encoded</url-pattern>
+		</servlet-mapping>
+
+		<servlet-mapping>
+			<servlet-name>covers</servlet-name>
+			<url-pattern>/covers/*</url-pattern>
+		</servlet-mapping>
+
+		<servlet-mapping>
+			<servlet-name>covers</servlet-name>
+			<url-pattern>/covers</url-pattern>
+		</servlet-mapping>
 
 	<resource-ref>
 		<description>Encoded Music Database</description>
 		<res-ref-name>jdbc/music</res-ref-name>
+		<res-type>javax.sql.DataSource</res-type>
+		<res-auth>Container</res-auth>
+	</resource-ref>
+
+	<resource-ref>
+		<description>Slimserver Database</description>
+		<res-ref-name>jdbc/slimserver</res-ref-name>
 		<res-type>javax.sql.DataSource</res-type>
 		<res-auth>Container</res-auth>
 	</resource-ref>

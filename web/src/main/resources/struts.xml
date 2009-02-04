@@ -9,150 +9,85 @@
 		
 		<interceptors>
 			<interceptor
-				name="execAndWait"
-				class="uk.co.unclealex.music.web.interceptor.HibernateSessionExecuteAndWaitInterceptor"/>			
-			<interceptor
 				name="prepareAfter"
 				class="uk.co.unclealex.music.web.interceptor.PrepareAfterInterceptor"/>			
 
-			<interceptor-stack name="scopedStack">
-        <interceptor-ref name="exception"/>
-        <interceptor-ref name="alias"/>
-        <interceptor-ref name="servletConfig"/>
-        <interceptor-ref name="prepare"/>
-        <interceptor-ref name="prepareAfter"/>
-        <interceptor-ref name="i18n"/>
-		    <interceptor-ref name="scope">
-		    	<param name="key">cart:</param>
-	        <param name="session">sessionDownloadCartBean</param>
-	        <param name="autoCreateSession">true</param>
-		    </interceptor-ref>
-        <interceptor-ref name="chain"/>
-        <interceptor-ref name="staticParams"/>
-        <interceptor-ref name="params">
-          <param name="excludeParams">dojo\..*</param>
-        </interceptor-ref>
-        <interceptor-ref name="conversionError"/>
-        <interceptor-ref name="workflow">
-            <param name="excludeMethods">input,back,cancel,browse</param>
-        </interceptor-ref>
-		</interceptor-stack>
+            <interceptor-stack name="myStack">
+                <interceptor-ref name="exception"/>
+                <interceptor-ref name="alias"/>
+                <interceptor-ref name="servletConfig"/>
+                <interceptor-ref name="i18n"/>
+                <interceptor-ref name="chain"/>
+                <interceptor-ref name="debugging"/>
+                <interceptor-ref name="profiling"/>
+                <interceptor-ref name="scopedModelDriven"/>
+                <interceptor-ref name="modelDriven"/>
+                <interceptor-ref name="fileUpload"/>
+                <interceptor-ref name="checkbox"/>
+                <interceptor-ref name="staticParams"/>
+                <interceptor-ref name="params">
+                  <param name="excludeParams">dojo\..*</param>
+                </interceptor-ref>
+                <interceptor-ref name="conversionError"/>
+                <interceptor-ref name="prepare"/>
+                <interceptor-ref name="validation">
+                    <param name="excludeMethods">input,back,cancel,browse</param>
+                </interceptor-ref>
+                <interceptor-ref name="workflow">
+                    <param name="excludeMethods">input,back,cancel,browse</param>
+                </interceptor-ref>
+            </interceptor-stack>
 		</interceptors>
 		
-		<default-interceptor-ref name="scopedStack"/>
+		<default-interceptor-ref name="myStack"/>
 
 		<action name="index"
-			class="uk.co.unclealex.music.web.actions.EncodedAction">
-			<result name="success" type="redirect">/html/index.html</result>
+			class="uk.co.unclealex.music.web.actions.BaseAction">
+			<result name="success" type="redirect">/html/missing.html</result>
 		</action>
 
 	</package>
 	
 	<package name="html" extends="default" namespace="/html">
 			
-		<action name="index"
-			class="uk.co.unclealex.music.web.actions.EncodedAction">
-			<result name="success">/WEB-INF/pages/index.jsp</result>
-		</action>
-
-		<action name="manage-devices"
-			class="uk.co.unclealex.music.web.actions.ManageDevicesAction">
-			<result name="success">/WEB-INF/pages/manage-devices.jsp</result>
-		</action>
-
-		<action name="device-download"
-			class="uk.co.unclealex.music.web.actions.EncodedAction">
-			<result name="success">/WEB-INF/pages/device-downloading.jsp</result>
-		</action>
-
-		<action name="edit-owner"
-			class="uk.co.unclealex.music.web.actions.EditOwnerAction">
-			<result name="success">/WEB-INF/pages/owner.jsp</result>
+		<action name="missing"
+			class="uk.co.unclealex.music.web.actions.MissingCoversAction">
+			<result name="success">/WEB-INF/pages/albums.jsp</result>
 		</action>
 
 		<action name="artists"
 			class="uk.co.unclealex.music.web.actions.ArtistsAction">
 			<result name="success">/WEB-INF/pages/artists.jsp</result>
 		</action>
-		
-		<action name="albums"
-			class="uk.co.unclealex.music.web.actions.AlbumsAction">
+
+		<action name="albumsforartist"
+			class="uk.co.unclealex.music.web.actions.AlbumsForArtistAction">
 			<result name="success">/WEB-INF/pages/albums.jsp</result>
 		</action>
 
-		<action name="tracks"
-			class="uk.co.unclealex.music.web.actions.TracksAction">
-			<result name="success">/WEB-INF/pages/tracks.jsp</result>
-		</action>
-
-		<action name="addartists"
-			class="uk.co.unclealex.music.web.actions.AddArtistsToCartAction">
-			<result name="success" type="chain">
-				<param name="actionName">artists</param>
-				<param name="namespace">/html</param>
-				<param name="method">execute</param>
-			</result>
-		</action>
-
-		<action name="addalbums"
-			class="uk.co.unclealex.music.web.actions.AddAlbumsToCartAction">
-			<result name="success" type="chain">
-				<param name="actionName">albums</param>
-				<param name="namespace">/html</param>
-				<param name="method">execute</param>
-			</result>			
-		</action>
-
-		<action name="addtracks"
-			class="uk.co.unclealex.music.web.actions.AddTracksToCartAction">
-			<result name="success" type="chain">
-				<param name="actionName">tracks</param>
-				<param name="namespace">/html</param>			
-				<param name="method">execute</param>
-			</result>
-		</action>
-
-		<action name="clearcart"
-			class="uk.co.unclealex.music.web.actions.ClearCartAction">
-			<result name="success" type="redirect">/html/index.html</result>
-		</action>
-
-		<action name="downloadcart"
-			class="uk.co.unclealex.music.web.actions.EncodedAction">
-			<result name="success">/WEB-INF/pages/download-cart.jsp</result>
-		</action>
-	</package>
-	
-	<package name="ajax" namespace="/ajax" extends="default">
-
-		<action name="devicedownload"
-			class="uk.co.unclealex.music.web.actions.DeviceDownloadAction">
-			<interceptor-ref name="defaultStack" />
-			<interceptor-ref name="execAndWait" />
-			<result name="success">/WEB-INF/ajax/device-finished.jsp</result>
-			<result name="error">/WEB-INF/ajax/device-errored.jsp</result>
-			<result name="wait">/WEB-INF/ajax/device-progress.jsp</result>			
-			<result name="alreadywriting">/WEB-INF/ajax/device-used.jsp</result>
+		<action name="album"
+			class="uk.co.unclealex.music.web.actions.AlbumAction">
+			<result name="success">/WEB-INF/pages/album.jsp</result>
+			<result name="input">/WEB-INF/pages/album.jsp</result>
 		</action>
 		
-		<action name="removeartist"
-			class="uk.co.unclealex.music.web.actions.RemoveArtistFromCartAction">
-			<result name="success">/WEB-INF/ajax/cart.jsp</result>
+		<action name="select"
+			class="uk.co.unclealex.music.web.actions.SelectAlbumCoverAction">
+			<result name="success" type="redirect">/html/album.html?flacAlbumBean=${flacAlbumBean.id}</result>
+			<result name="input">/WEB-INF/pages/album.jsp</result>
 		</action>
 
-		<action name="removealbum"
-			class="uk.co.unclealex.music.web.actions.RemoveAlbumFromCartAction">
-			<result name="success">/WEB-INF/ajax/cart.jsp</result>
+		<action name="download"
+			class="uk.co.unclealex.music.web.actions.DownloadAlbumCoverAction">
+			<result name="success" type="redirect">/html/album.html?flacAlbumBean=${flacAlbumBean.id}</result>
+			<result name="input">/WEB-INF/pages/album.jsp</result>
 		</action>
 
-		<action name="removetrack"
-			class="uk.co.unclealex.music.web.actions.RemoveTrackFromCartAction">
-			<result name="success">/WEB-INF/ajax/cart.jsp</result>
+		<action name="upload"
+			class="uk.co.unclealex.music.web.actions.UploadAlbumCoverAction">
+			<result name="success" type="redirect">/html/album.html?flacAlbumBean=${flacAlbumBean.id}</result>
+			<result name="input">/WEB-INF/pages/album.jsp</result>
 		</action>
 
-		<action name="clearcart"
-			class="uk.co.unclealex.music.web.actions.ClearCartAction">
-			<result name="success">/WEB-INF/ajax/cart.jsp</result>
-		</action>
-	</package>
+	</package>	
 </struts>

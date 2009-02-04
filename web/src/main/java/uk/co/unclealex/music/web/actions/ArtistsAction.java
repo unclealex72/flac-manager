@@ -1,39 +1,35 @@
 package uk.co.unclealex.music.web.actions;
 
 import java.util.SortedSet;
-import java.util.TreeSet;
 
-import uk.co.unclealex.music.core.model.EncodedArtistBean;
-import uk.co.unclealex.music.core.model.EncodedBean;
-import uk.co.unclealex.music.core.visitor.EncodedVisitor;
-import uk.co.unclealex.music.core.visitor.NoOpEncodedVisitor;
+import uk.co.unclealex.music.core.dao.FlacArtistDao;
+import uk.co.unclealex.music.core.model.FlacArtistBean;
 
-public class ArtistsAction extends LetterAwareAction {
+import com.opensymphony.xwork2.Preparable;
 
-	private SortedSet<EncodedArtistBean> i_encodedArtistBeans;
+public class ArtistsAction extends BaseAction implements Preparable {
 
+	private SortedSet<FlacArtistBean> i_flacArtistBeans;
+	private FlacArtistDao i_flacArtistDao;
+	
 	@Override
-	public String execute() {
-		final SortedSet<EncodedArtistBean> encodedArtistBeans = 
-			new TreeSet<EncodedArtistBean>(getEncodedArtistDao().findByFirstLetter(getLetter()));
-		EncodedVisitor removeArtistVisitor = new NoOpEncodedVisitor() {
-			@Override
-			public void visit(EncodedArtistBean encodedArtistBean) {
-				encodedArtistBeans.remove(encodedArtistBean);
-			}
-		};
-		for (EncodedBean encodedBean : getDownloadCartBean().getSelections()) {
-			encodedBean.accept(removeArtistVisitor);
-		}
-		setEncodedArtistBeans(encodedArtistBeans);
-		return SUCCESS;
+	public void prepare() {
+		setFlacArtistBeans(getFlacArtistDao().getAll());
 	}
-	
-	public SortedSet<EncodedArtistBean> getEncodedArtistBeans() {
-		return i_encodedArtistBeans;
+
+	public SortedSet<FlacArtistBean> getFlacArtistBeans() {
+		return i_flacArtistBeans;
 	}
-	public void setEncodedArtistBeans(SortedSet<EncodedArtistBean> encodedArtistBeans) {
-		i_encodedArtistBeans = encodedArtistBeans;
+
+	public void setFlacArtistBeans(SortedSet<FlacArtistBean> flacArtistBeans) {
+		i_flacArtistBeans = flacArtistBeans;
 	}
-	
+
+	public FlacArtistDao getFlacArtistDao() {
+		return i_flacArtistDao;
+	}
+
+	public void setFlacArtistDao(FlacArtistDao flacArtistDao) {
+		i_flacArtistDao = flacArtistDao;
+	}
 }
