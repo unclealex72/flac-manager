@@ -33,8 +33,8 @@ public class DeviceServiceTest extends CoreSpringTest {
 	private static final String YOUR_ACHIEVEMENT = "N/Napalm Death/Scum/24 - Your Achievement_ (Bonus Track)";
 	private static final String DEAD = "N/Napalm Death/Scum/25 - Dead (Bonus Track)";
 	private static final String YOU_SUFFER = "N/Napalm Death/From Enslavement To Obliteration/12 - You Suffer";
-	private static final String JIMI_HENDRIX = "S/S.O.D./Speak English Or Die/20 - The Ballad Of Jimi Hendrix";
-	private static final String DIAMONDS_AND_RUST = "S/S.O.D./Speak English Or Die/21 - Diamonds And Rust (Extended Version)";
+	private static final String JIMI_HENDRIX = "S/S.O.D/Speak English Or Die/20 - The Ballad Of Jimi Hendrix";
+	private static final String DIAMONDS_AND_RUST = "S/S.O.D/Speak English Or Die/21 - Diamonds And Rust (Extended Version)";
 	private static final String BOHEMIAN_RHAPSODY = "Q/Queen/A Night At The Opera/09 - Bohemian Rhapsody";
 	private static final String DATA_FILE_A = "data/data_a.txt";
 	private static final String DATA_FILE_B = "data/data_b.txt";

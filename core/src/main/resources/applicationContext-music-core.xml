@@ -25,31 +25,36 @@
 		class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="properties">
 			<props>
+				<!-- 
 				<prop key="hibernate.dialect">
 					uk.co.unclealex.hibernate.LongBlobOnlyMySQL5Dialect
 				</prop>
+				-->
 				<prop key="hibernate.hbm2ddl.auto">update</prop>
 				<prop key="hibernate.show_sql">false</prop>
 			</props>
 		</property>
 	</bean>
 
-	<bean id="musicSessionFactory"
-		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
-		<property name="dataSource" ref="musicDataSource"/>
-		<property name="hibernateProperties" ref="musicHibernateProperties"/>
-		<property name="annotatedClasses">
-			<list>
-				<value>uk.co.unclealex.music.core.model.EncodedTrackBean</value>
-				<value>uk.co.unclealex.music.core.model.TrackDataBean</value>
-				<value>uk.co.unclealex.music.core.model.EncoderBean</value>
-				<value>uk.co.unclealex.music.core.model.EncodedAlbumBean</value>
-				<value>uk.co.unclealex.music.core.model.EncodedArtistBean</value>
-				<value>uk.co.unclealex.music.core.model.OwnerBean</value>
-				<value>uk.co.unclealex.music.core.model.DeviceBean</value>
-				<value>uk.co.unclealex.music.core.model.AlbumCoverBean</value>
-				<value>uk.co.unclealex.music.core.model.FileSystemCacheBean</value>
-			</list>
+	<bean id="musicSessionFactory" class="uk.co.unclealex.spring.SessionDuringStartupSessionFactoryBean">
+		<property name="sessionFactory">
+			<bean class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+				<property name="dataSource" ref="musicDataSource"/>
+				<property name="hibernateProperties" ref="musicHibernateProperties"/>
+				<property name="annotatedClasses">
+					<list>
+						<value>uk.co.unclealex.music.core.model.EncodedTrackBean</value>
+						<value>uk.co.unclealex.music.core.model.TrackDataBean</value>
+						<value>uk.co.unclealex.music.core.model.EncoderBean</value>
+						<value>uk.co.unclealex.music.core.model.EncodedAlbumBean</value>
+						<value>uk.co.unclealex.music.core.model.EncodedArtistBean</value>
+						<value>uk.co.unclealex.music.core.model.OwnerBean</value>
+						<value>uk.co.unclealex.music.core.model.DeviceBean</value>
+						<value>uk.co.unclealex.music.core.model.AlbumCoverBean</value>
+						<value>uk.co.unclealex.music.core.model.PictureBean</value>
+					</list>
+				</property>
+			</bean>
 		</property>
 	</bean>
 
@@ -110,6 +115,28 @@
 		<constructor-arg value="/var/lib/squeezecenter/prefs/server.prefs"/>
 	</bean>
 	
+	<bean id="abstractRepositoryManager" class="uk.co.unclealex.music.core.service.filesystem.RepositoryManagerImpl" abstract="true">
+		<property name="baseDirectory" value="/home/java/music"/>
+	</bean>
+	
+	<bean id="coversRepositoryManager" parent="abstractRepositoryManager">
+		<property name="repositoryAdaptor">
+			<bean class="uk.co.unclealex.music.core.service.filesystem.CoversRepositoryAdaptor"/>
+		</property>
+		<property name="repositoryRootPath" value="covers"/>
+		<property name="inputStreamFactory" ref="coversInputStreamFactory"/>
+	</bean>
+	
+	<bean id="encodedRepositoryManager" parent="abstractRepositoryManager">
+		<property name="repositoryAdaptor">
+			<bean class="uk.co.unclealex.music.core.service.filesystem.EncodedRepositoryAdaptor">
+				<property name="titleFormats" ref="fileSystemTitleFormats"/>
+			</bean>
+		</property>
+		<property name="repositoryRootPath" value="encoded"/>
+		<property name="inputStreamFactory" ref="encodedInputStreamFactory"/>
+	</bean>
+
   <context:component-scan
   	base-package="uk.co.unclealex.music"
   	name-generator="uk.co.unclealex.spring.BeanNameGenerator"
