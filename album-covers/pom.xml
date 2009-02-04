@@ -24,6 +24,17 @@
 		</dependency>
 	
 		<dependency>
+			<groupId>javax.jai</groupId>
+			<artifactId>imageio</artifactId>
+			<version>1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.jai</groupId>
+			<artifactId>clibwrapper</artifactId>
+			<version>1.1</version>
+		</dependency>
+		
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>3.8.1</version>

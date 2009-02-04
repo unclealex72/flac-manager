@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.SortedSet;
 
+import javax.jcr.RepositoryException;
+
 import org.apache.commons.collections15.Predicate;
 
 import uk.co.unclealex.music.core.model.AlbumCoverBean;
@@ -31,9 +33,10 @@ public interface AlbumCoverService {
 	
 	public void purgeCovers();
 	
-	public AlbumCoverBean saveAndSelectCover(FlacAlbumBean flacAlbumBean, String imageUrl, InputStream urlInputStream, AlbumCoverSize albumCoverSize) throws IOException;
+	public AlbumCoverBean saveAndSelectCover(
+			FlacAlbumBean flacAlbumBean, String imageUrl, InputStream urlInputStream, AlbumCoverSize albumCoverSize) throws RepositoryException, IOException;
 
-	public void selectAlbumCover(AlbumCoverBean albumCoverBean) throws IOException;
+	public void selectAlbumCover(AlbumCoverBean albumCoverBean) throws RepositoryException;
 
 	public void resizeCover(AlbumCoverBean albumCoverBean, Dimension maximumSize, String extension, OutputStream out) throws IOException;
 	
