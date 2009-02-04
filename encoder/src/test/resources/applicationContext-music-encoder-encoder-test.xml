@@ -4,6 +4,13 @@
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd"
   default-autowire="byName">
 
+	<bean id="flacDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+			<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+			<property name="url" value="jdbc:mysql://localhost/slimserver"/>
+			<property name="username" value="slimserver"/>
+			<property name="password" value="slimserver"/>
+	</bean>
+
 	<bean id="hibernateProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="properties">
   		<props>
@@ -29,6 +36,6 @@
 		<property name="password" value=""/>
 	</bean>
 	
-	<bean id="deviceService" class="uk.co.unclealex.music.core.service.TestDeviceService"/>
+	<bean id="deviceService" class="uk.co.unclealex.music.encoder.service.TestDeviceService"/>
 </beans>
 

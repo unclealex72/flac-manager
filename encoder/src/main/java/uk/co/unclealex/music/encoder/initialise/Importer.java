@@ -6,4 +6,6 @@ import java.io.IOException;
 public interface Importer {
 
 	public void importTracks() throws IOException;
+
+	public void exportTracks() throws IOException;
 }

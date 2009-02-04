@@ -27,9 +27,9 @@
 		<constructor-arg value="32768"/>
 	</bean>
 	
-	<bean id="deviceService" class="uk.co.unclealex.music.core.service.TestDeviceService"/>
+	<bean id="deviceService" class="uk.co.unclealex.music.encoder.service.TestDeviceService"/>
 	
-	<bean id="slimServerConfig" class="uk.co.unclealex.music.core.TestSlimServerConfig">
+	<bean id="slimServerConfig" class="uk.co.unclealex.music.encoder.TestSlimServerConfig">
 		<property name="definiteArticles">
 			<list>
 				<value>The</value>

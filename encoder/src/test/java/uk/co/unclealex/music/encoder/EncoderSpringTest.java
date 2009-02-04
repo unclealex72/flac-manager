@@ -21,9 +21,10 @@ public abstract class EncoderSpringTest extends SpringTest {
 	@Override
 	protected String[] getConfigLocations() {
 		return new String[] {
+			"classpath*:applicationContext-music-encoder-encoder-test.xml",
+			"classpath*:applicationContext-music-album-covers.xml",
 			"classpath*:applicationContext-music-core.xml",
 			"classpath*:applicationContext-music-core-test.xml",
-			"classpath*:applicationContext-music-encoder-encoder-test.xml",
 			"classpath*:applicationContext-music-encoder-flac-test.xml"
 		};
 	}

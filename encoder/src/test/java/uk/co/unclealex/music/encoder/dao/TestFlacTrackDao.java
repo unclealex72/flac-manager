@@ -4,6 +4,7 @@ import java.util.SortedSet;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
+import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.music.core.dao.FlacTrackDao;
 import uk.co.unclealex.music.core.model.FlacTrackBean;
@@ -76,6 +77,7 @@ public class TestFlacTrackDao implements FlacTrackDao {
 		return i_testFlacProvider;
 	}
 
+	@Required
 	public void setTestFlacProvider(TestFlacProvider testFlacProvider) {
 		i_testFlacProvider = testFlacProvider;
 	}

@@ -32,7 +32,7 @@ import uk.co.unclealex.music.encoder.EncoderSpringTest;
 import uk.co.unclealex.music.encoder.dao.TestFlacProvider;
 import uk.co.unclealex.music.encoder.dao.TestSlimServerInformationDao;
 
-public class EncoderServiceTest extends EncoderSpringTest {
+public abstract class EncoderServiceTest extends EncoderSpringTest {
 
 	public static final int SIMULTANEOUS_THREADS = 1;
 	

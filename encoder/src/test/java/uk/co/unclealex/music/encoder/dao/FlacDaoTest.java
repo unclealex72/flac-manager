@@ -22,7 +22,7 @@ import uk.co.unclealex.music.core.model.FlacArtistBean;
 import uk.co.unclealex.music.core.model.FlacTrackBean;
 import uk.co.unclealex.music.encoder.EncoderSpringTest;
 
-public class FlacDaoTest extends EncoderSpringTest {
+public abstract class FlacDaoTest extends EncoderSpringTest {
 
 	private FlacTrackDao i_flacTrackDao;
 	private FlacArtistDao i_flacArtistDao;

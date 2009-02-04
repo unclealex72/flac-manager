@@ -1,19 +1,15 @@
 package uk.co.unclealex.music.encoder.initialise;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.io.OutputStream;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
@@ -26,6 +22,7 @@ import uk.co.unclealex.music.core.initialise.TrackImporter;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.FlacTrackBean;
+import uk.co.unclealex.music.core.service.TrackStreamService;
 import uk.co.unclealex.music.encoder.service.EncoderService;
 
 @Service
@@ -34,14 +31,12 @@ public class ImporterImpl implements Importer {
 
 	private static final Logger log = Logger.getLogger(ImporterImpl.class);
 	
-	private static final String FLAC_FILE_BASE = "/mnt/multimedia/flac/";
-	private static final String FLAC_URL_BASE = "file://" + FLAC_FILE_BASE;
-
 	private EncoderDao i_encoderDao;
 	private EncodedTrackDao i_encodedTrackDao;
 	private EncoderService i_encoderService;
 	private FlacTrackDao i_flacTrackDao;
 	private TrackImporter i_trackImporter;
+	private TrackStreamService i_trackStreamService;
 	
 	public void importTracks() throws IOException {
 		TrackImporter trackImporter = getTrackImporter();
@@ -49,22 +44,32 @@ public class ImporterImpl implements Importer {
 		File baseDir = new File("/home/converted");
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
 		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
-			SortedMap<File, FlacTrackBean> tracksByFile = new TreeMap<File, FlacTrackBean>();
-			File base = new File(new File(baseDir, encoderBean.getExtension()), "raw");
-			collect(base, tracksByFile, encoderBean.getExtension());
-			for (Map.Entry<File, FlacTrackBean> entry : tracksByFile.entrySet()) {
-				File file = entry.getKey();
-				FlacTrackBean flacTrackBean = entry.getValue();
-				if (flacTrackBean != null) {
+			final String extension = encoderBean.getExtension();
+			FilenameFilter filter = new FilenameFilter() {
+				@Override
+				public boolean accept(File dir, String name) {
+					return name.matches("[0-9]+\\." + extension);
+				}
+			};
+			for (File file : baseDir.listFiles(filter)) {
+				int flacTrackId = Integer.parseInt(FilenameUtils.getBaseName(file.getName()));
+				FlacTrackBean flacTrackBean = getFlacTrackDao().findById(flacTrackId);
+				if (flacTrackBean == null) {
+					log.info("Ignoring " + file + " as it does not correspond to a flac track.");
+				}
+				else {
 					String url = flacTrackBean.getUrl();
 					EncodedTrackBean encodedTrackBean =
 						encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
-					if (encodedTrackBean == null) {
+					if (encodedTrackBean != null) {
+						log.info("Ignoring " + file + " as it has already been converted.");
+					}
+					else {
 						InputStream in = new FileInputStream(file);
 						trackImporter.importTrack(
 							in, encoderBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), flacTrackBean.getTrackNumber(), 
 							file.lastModified(), null);
-						in.close();
+						in.close();						
 					}
 				}
 			}
@@ -72,54 +77,35 @@ public class ImporterImpl implements Importer {
 		getEncoderService().updateMissingAlbumInformation();
 	}
 	
-	protected void collect(File base, SortedMap<File, FlacTrackBean> tracksByFile, final String ext) throws IOException {
-		File[] files = base.listFiles(new FileFilter() {
-				@Override
-				public boolean accept(File file) {
-					return file.isDirectory() || file.getName().endsWith("." + ext);
-				}
-			});
-		for (File file : files) {
-			if (file.isDirectory()) {
-				collect(file, tracksByFile, ext);
+	@Override
+	public void exportTracks() throws IOException {
+		FlacTrackDao flacTrackDao = getFlacTrackDao();
+		TrackStreamService trackStreamService = getTrackStreamService();
+		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
+			String flacUrl = encodedTrackBean.getFlacUrl();
+			String extension = encodedTrackBean.getEncoderBean().getExtension();
+			FlacTrackBean flacTrackBean = flacTrackDao.findByUrl(flacUrl);
+			if (flacTrackBean == null) {
+				log.info("Ignoring " + extension + " version of " + flacUrl + " as it is not a valid flac track.");
 			}
 			else {
-				tracksByFile.put(file, extractFlacTrackBean(file, ext));
+				InputStream trackInputStream = trackStreamService.getTrackInputStream(encodedTrackBean);
+				String filename = flacTrackBean.getId() + "." + encodedTrackBean.getEncoderBean().getExtension();
+				File file = new File(new File("/home/converted"), filename);
+				if (file.exists()) {
+					log.info("Ignoring " + encodedTrackBean + " as it has already been exported.");
+				}
+				else {
+					log.info("Exporting " + encodedTrackBean + " to " + file);
+					OutputStream fileOutputStream = new FileOutputStream(file);
+					IOUtils.copy(trackInputStream, fileOutputStream);
+					trackInputStream.close();
+					fileOutputStream.close();
+				}
 			}
 		}
 	}
-
 	
-	protected FlacTrackBean extractFlacTrackBean(File file, String ext) throws IOException {
-		List<String> parts = new ArrayList<String>(Arrays.asList(StringUtils.split(file.getCanonicalPath(), '/')));
-		Collections.reverse(parts);
-		String trackAndTitle = parts.get(0).toLowerCase();
-		trackAndTitle = trackAndTitle.substring(0, trackAndTitle.lastIndexOf('.'));
-		String album = sanitise(parts.get(1));
-		String artist = sanitise(parts.get(2)).toLowerCase();
-		String[] trackAndTitleArray = StringUtils.split(trackAndTitle, "-", 2);
-		String track = trackAndTitleArray[0].trim();
-		String title = sanitise(trackAndTitleArray[1].trim());
-		String url = FLAC_URL_BASE + artist + "/" + album + "/" + track + "_" + title + ".flac";
-		FlacTrackBean flacTrackBean = getFlacTrackDao().findByUrl(url);
-
-		if (flacTrackBean == null) {
-			url = FLAC_URL_BASE + "the_" + artist + "/" + album + "/" + track + "_" + title + ".flac";
-			flacTrackBean = getFlacTrackDao().findByUrl(url);
-		}
-		return flacTrackBean;
-	}
-
-	protected String sanitise(String str) {
-		StringBuffer buff = new StringBuffer();
-		for (char c : str.toCharArray()) {
-			if (Character.isLetterOrDigit(c) || Character.isWhitespace(c)) {
-				buff.append(c);
-			}
-		}
-		return buff.toString().toLowerCase().replace(' ', '_');
-	}
-
 	public FlacTrackDao getFlacTrackDao() {
 		return i_flacTrackDao;
 	}
@@ -163,5 +149,13 @@ public class ImporterImpl implements Importer {
 	@Required
 	public void setEncoderService(EncoderService encoderService) {
 		i_encoderService = encoderService;
+	}
+
+	public TrackStreamService getTrackStreamService() {
+		return i_trackStreamService;
+	}
+
+	public void setTrackStreamService(TrackStreamService trackStreamService) {
+		i_trackStreamService = trackStreamService;
 	}
 }

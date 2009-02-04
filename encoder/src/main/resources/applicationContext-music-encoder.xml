@@ -9,6 +9,14 @@
 	
 	<import resource="classpath*:applicationContext-music-album-covers.xml"/>
 	
+	<bean id="encoderService" class="uk.co.unclealex.music.encoder.service.EncoderServiceImpl">
+		<property name="encodingEventListeners">
+			<list>
+				<bean class="uk.co.unclealex.music.encoder.service.RepositoryEncodingEventListener"/>
+			</list>
+		</property>
+	</bean>
+	
 	<bean id="maximumThreads" class="java.lang.Integer">
 		<constructor-arg value="8"/>
 	</bean>

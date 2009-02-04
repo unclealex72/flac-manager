@@ -3,21 +3,25 @@ package uk.co.unclealex.music.encoder.service;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.jcr.RepositoryException;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
@@ -36,7 +40,6 @@ import uk.co.unclealex.music.albumcover.service.AlbumCoverService;
 import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.dao.FileSystemCacheDao;
 import uk.co.unclealex.music.core.dao.FlacTrackDao;
 import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
@@ -45,8 +48,11 @@ import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.FlacAlbumBean;
 import uk.co.unclealex.music.core.model.FlacTrackBean;
+import uk.co.unclealex.music.core.service.CommandWorker;
 import uk.co.unclealex.music.core.service.EncodedService;
+import uk.co.unclealex.music.core.service.FlacService;
 import uk.co.unclealex.music.core.service.OwnerService;
+import uk.co.unclealex.music.core.service.filesystem.RepositoryManager;
 
 @Service
 @Transactional
@@ -66,11 +72,11 @@ public class EncoderServiceImpl implements EncoderService {
 	private SingleEncoderService i_singleEncoderService;
 	private FlacService i_flacService;
 	private OwnerService i_ownerService;
-	private FileSystemCacheDao i_fileSystemCacheDao;
 	private AlbumCoverService i_albumCoverService;
+	private RepositoryManager i_encodedRepositoryManager;
 	
 	private AtomicBoolean i_atomicCurrentlyEncoding = new AtomicBoolean(false);
-	private Set<EncodingEventListener> i_encodingEventListeners = new HashSet<EncodingEventListener>();
+	private List<EncodingEventListener> i_encodingEventListeners = new ArrayList<EncodingEventListener>();
 
 	@Override
 	public void registerEncodingEventListener(
@@ -100,14 +106,16 @@ public class EncoderServiceImpl implements EncoderService {
 			Collections.synchronizedSortedMap(new TreeMap<EncodingCommandBean, Throwable>());
 		final SortedMap<EncoderBean, File> commandCache = new TreeMap<EncoderBean, File>();
 		final BlockingQueue<EncodingCommandBean> encodingCommandBeans = new LinkedBlockingQueue<EncodingCommandBean>();
-		EncodingWorker[] workers = new EncodingWorker[maximumThreads];
+		List<CommandWorker<EncodingCommandBean>> workers = new ArrayList<CommandWorker<EncodingCommandBean>>(maximumThreads);
+		final List<EncodedTrackBean> newEncodedTrackBeans = new Vector<EncodedTrackBean>();
 		for (int idx = 0; idx < maximumThreads; idx++) {
-			workers[idx] = new EncodingWorker(encodingCommandBeans, errors) {
+			CommandWorker<EncodingCommandBean> worker = new CommandWorker<EncodingCommandBean>(encodingCommandBeans, errors) {
 				@Override
 				protected void process(EncodingCommandBean encodingCommandBean) throws IOException {
 					EncodedTrackBean encodedTrackBean =  
 						singleEncoderService.encode(encodingCommandBean, commandCache);
 					if (encodedTrackBean != null) {
+						newEncodedTrackBeans.add(encodedTrackBean);
 						FlacTrackBean flacTrackBean = encodingCommandBean.getFlacTrackBean();
 						flacAlbumBeans.add(flacTrackBean.getFlacAlbumBean());
 						for (EncodingEventListener encodingEventListener : getEncodingEventListeners()) {
@@ -116,7 +124,8 @@ public class EncoderServiceImpl implements EncoderService {
 					}
 				}
 			};
-			workers[idx].start();
+			worker.start();
+			workers.add(worker);
 		}
 		SortedSet<EncoderBean> allEncoderBeans = getEncoderDao().getAll();
 		for (EncoderBean encoderBean : allEncoderBeans) {
@@ -127,11 +136,11 @@ public class EncoderServiceImpl implements EncoderService {
 				encodingCommandBeans.offer(new EncodingCommandBean(encoderBean, flacTrackBean));
 			}
 		}
-		for (EncodingWorker worker : workers) {
-			encodingCommandBeans.offer(worker.getEndOfWorkBean());
+		for (int idx = 0; idx < maximumThreads; idx++) {
+			encodingCommandBeans.offer(new EncodingCommandBean());
 		}
 		int totalCount = 0;
-		for (EncodingWorker worker : workers) {
+		for (CommandWorker<EncodingCommandBean> worker : workers) {
 			try {
 				worker.join();
 			}
@@ -148,8 +157,19 @@ public class EncoderServiceImpl implements EncoderService {
 		if (!errors.isEmpty()) {
 			throw new MultipleEncodingException(errors, totalCount);
 		}
+		getEncodedService().updateAllFilenames();
 		updateMissingAlbumInformation();
 		updateOwnership();
+		
+		RepositoryManager repositoryManager = getEncodedRepositoryManager();
+		for (EncodedTrackBean encodedTrackBean : newEncodedTrackBeans) {
+			try {
+				repositoryManager.add(encodedTrackBean.getId());
+			}
+			catch (RepositoryException e) {
+				log.warn("Could not store encoded track " + encodedTrackBean, e);
+			}
+		}
 		albumCoverService.downloadAndSaveCoversForAlbums(flacAlbumBeans);
 		albumCoverService.purgeCovers();
 		return totalCount;
@@ -197,11 +217,8 @@ public class EncoderServiceImpl implements EncoderService {
 	@Override
 	public int encodeAllAndRemoveDeleted() throws AlreadyEncodingException,
 			MultipleEncodingException, CurrentlyScanningException, IOException {
-		int changeCount = encodeAll() + removeDeleted();
-		if (changeCount != 0) {
-			log.info("There were " + changeCount + " changes so a file system cache rebuild is required.");
-			getFileSystemCacheDao().setRebuildRequired(true);
-		}
+		int changeCount = removeDeleted() + encodeAll();
+		log.info("There were " + changeCount + " changes.");
 		return changeCount;
 	}
 	
@@ -225,7 +242,6 @@ public class EncoderServiceImpl implements EncoderService {
 		final Map<String, SortedSet<EncodedAlbumBean>> albumsByOwner = new HashMap<String, SortedSet<EncodedAlbumBean>>();
 		final Map<String, SortedSet<EncodedArtistBean>> artistsByOwner = new HashMap<String, SortedSet<EncodedArtistBean>>();
 		final FlacService flacService = getFlacService();
-		final FlacTrackDao flacTrackDao = getFlacTrackDao();
 		String rootDirectory = StringUtils.removeStart(getFlacService().getRootUrl(), "file://");
 		final int rootDepth = StringUtils.split(rootDirectory, "/").length;
 		final Pattern pattern = Pattern.compile("owner\\.(.+)");
@@ -239,9 +255,8 @@ public class EncoderServiceImpl implements EncoderService {
 				if (matcher.matches()) {
 					String owner = matcher.group(1);
 					int depth = StringUtils.split(dir, "/").length - rootDepth;
-					FlacTrackBean flacTrackBean = flacTrackDao.findTrackStartingWith("file://" + dir);
-					if (flacTrackBean != null) {
-						FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
+					FlacAlbumBean flacAlbumBean = getFlacService().findFlacAlbumByPath(dir);
+					if (flacAlbumBean != null) {
 						EncodedAlbumBean encodedAlbumBean = flacService.findOrCreateEncodedAlbumBean(flacAlbumBean);
 						if (depth == 1) {
 							add(owner, artistsByOwner, encodedAlbumBean.getEncodedArtistBean(), new TreeSet<EncodedArtistBean>());
@@ -337,12 +352,12 @@ public class EncoderServiceImpl implements EncoderService {
 		i_encodedTrackDao = encodedTrackDao;
 	}
 
-	public Set<EncodingEventListener> getEncodingEventListeners() {
+	public List<EncodingEventListener> getEncodingEventListeners() {
 		return i_encodingEventListeners;
 	}
 
 	public void setEncodingEventListeners(
-			Set<EncodingEventListener> encodingEventListeners) {
+			List<EncodingEventListener> encodingEventListeners) {
 		i_encodingEventListeners = encodingEventListeners;
 	}
 
@@ -391,21 +406,23 @@ public class EncoderServiceImpl implements EncoderService {
 		i_ownerService = ownerService;
 	}
 
-	public FileSystemCacheDao getFileSystemCacheDao() {
-		return i_fileSystemCacheDao;
-	}
-
-	@Required
-	public void setFileSystemCacheDao(FileSystemCacheDao fileSystemCacheDao) {
-		i_fileSystemCacheDao = fileSystemCacheDao;
-	}
-
 	public AlbumCoverService getAlbumCoverService() {
 		return i_albumCoverService;
 	}
 
+	@Required
 	public void setAlbumCoverService(AlbumCoverService albumCoverService) {
 		i_albumCoverService = albumCoverService;
+	}
+
+	public RepositoryManager getEncodedRepositoryManager() {
+		return i_encodedRepositoryManager;
+	}
+
+	@Required
+	public void setEncodedRepositoryManager(
+			RepositoryManager encodedRepositoryManager) {
+		i_encodedRepositoryManager = encodedRepositoryManager;
 	}
 
 }
