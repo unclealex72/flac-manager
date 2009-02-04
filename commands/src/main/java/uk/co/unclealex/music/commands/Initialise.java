@@ -18,7 +18,7 @@ public class Initialise extends Main {
 		getInitialiser().initialise();
 		getImporter().importTracks();
 		EncoderService encoderService = getEncoderService();
-		encoderService.encodeAll(8);
+		encoderService.encodeAll(1);
 		encoderService.removeDeleted();
 	}
 	
