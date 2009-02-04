@@ -12,8 +12,8 @@
     <module>core</module>
     <module>commands</module>
     <module>encoder</module>
-    <module>web</module>
     <module>album-covers</module>
+    <module>web</module>
   </modules>
 
   <properties>
