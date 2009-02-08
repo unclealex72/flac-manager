@@ -6,6 +6,8 @@
   <version>2.5-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
+    <module>base</module>
+    <module>test</module>
     <module>core</module>
     <module>commands</module>
     <module>encoder</module>
@@ -15,6 +17,8 @@
 
   <properties>
   	<spring-version>2.5.6</spring-version>
+  	<derby-version>10.4.2.0</derby-version>
+  	<jackrabbit-version>1.5.2</jackrabbit-version>
   </properties>
 
   <scm>
