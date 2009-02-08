@@ -14,12 +14,14 @@ import org.apache.jackrabbit.webdav.DavResourceFactory;
 import org.apache.jackrabbit.webdav.server.AbstractWebdavServlet;
 import org.apache.jackrabbit.webdav.simple.ResourceFactoryImpl;
 import org.apache.jackrabbit.webdav.simple.SimpleWebdavServlet;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import uk.co.unclealex.music.core.service.filesystem.RepositoryManager;
 
 public class SpringWebdavServlet extends SimpleWebdavServlet {
+	
+	public static ApplicationContext APPLICATION_CONTEXT;
 	
 	private Repository i_repository;
 	private SessionProvider i_sessionProvider;
@@ -28,7 +30,8 @@ public class SpringWebdavServlet extends SimpleWebdavServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		WebApplicationContext applicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(config.getServletContext());
+		ApplicationContext applicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(config.getServletContext());
+		APPLICATION_CONTEXT = applicationContext;
 		String repositoryManagerName = getInitParameter("repository-manager");
 		if (repositoryManagerName == null) {
 			throw new ServletException(

@@ -24,8 +24,11 @@ public abstract class AbstractServlet extends HttpServlet {
 		try {
 			doInit(config);
 		} 
-		catch (Exception e) {
-			throw new ServletException(e);
+		catch (Throwable t) {
+			if (t instanceof ServletException) {
+				throw (ServletException) t;
+			}
+			throw new ServletException(t);
 		}
 	}
 	

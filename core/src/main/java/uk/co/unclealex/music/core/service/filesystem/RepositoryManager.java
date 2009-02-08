@@ -7,7 +7,6 @@ import javax.jcr.Node;
 import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 
-import uk.co.unclealex.music.core.io.KnownLengthOutputStream;
 
 public interface RepositoryManager {
 
@@ -18,7 +17,7 @@ public interface RepositoryManager {
 	public void refresh();
 	public Repository getRepository();
 	
-	public void stream(Node node, KnownLengthOutputStream<?> out) throws IOException, RepositoryException;
+	public int getObjectId(Node node) throws IOException, RepositoryException;
 	public long getLength(Node node) throws RepositoryException;
 	public void add(int id) throws RepositoryException;
 	public int remove(int id) throws RepositoryException;

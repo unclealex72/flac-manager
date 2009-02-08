@@ -37,8 +37,6 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.io.DataExtractor;
-import uk.co.unclealex.music.core.io.InputStreamCopier;
-import uk.co.unclealex.music.core.io.KnownLengthOutputStream;
 
 @Transactional
 public class RepositoryManagerImpl<E> implements RepositoryManager {
@@ -51,7 +49,6 @@ public class RepositoryManagerImpl<E> implements RepositoryManager {
 	private Repository i_repository;
 	private String i_baseDirectory;
 	
-	private InputStreamCopier i_inputStreamCopier;
 	private RepositoryAdaptor<E> i_repositoryAdaptor;
 	private DataExtractor i_dataExtractor;
 
@@ -256,10 +253,9 @@ public class RepositoryManagerImpl<E> implements RepositoryManager {
 	}
 
 	@Override
-	public void stream(Node node, KnownLengthOutputStream<?> out) throws RepositoryException, IOException {
+	public int getObjectId(Node node) throws RepositoryException, IOException {
 		Property property = node.getProperty(PROPERTY_ID);
-		int id = (int) property.getValue().getLong();
-		getInputStreamCopier().copy(getDataExtractor(), id, out);
+		return (int) property.getValue().getLong();
 	}
 
 	@Override
@@ -328,14 +324,5 @@ public class RepositoryManagerImpl<E> implements RepositoryManager {
 
 	public Lock getLock() {
 		return i_lock;
-	}
-
-	public InputStreamCopier getInputStreamCopier() {
-		return i_inputStreamCopier;
-	}
-
-	@Required
-	public void setInputStreamCopier(InputStreamCopier inputStreamCopier) {
-		i_inputStreamCopier = inputStreamCopier;
 	}
 }
