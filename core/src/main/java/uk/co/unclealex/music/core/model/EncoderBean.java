@@ -3,11 +3,11 @@ package uk.co.unclealex.music.core.model;
 import java.util.SortedSet;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -61,7 +61,7 @@ public class EncoderBean extends KeyedBean<EncoderBean> {
 		i_encodedTrackBeans = encodedTrackBeans;
 	}
 
-	@Lob
+	@Column(length=1024)
 	public String getCommand() {
 		return i_command;
 	}

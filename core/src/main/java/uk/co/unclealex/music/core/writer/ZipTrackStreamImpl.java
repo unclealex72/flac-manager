@@ -24,7 +24,7 @@ public class ZipTrackStreamImpl implements ZipTrackStream {
 	
 	@Override
 	public OutputStream createStream(EncodedTrackBean encodedTrackBean, String title) throws IOException {
-		int length = encodedTrackBean.getLength();
+		int length = encodedTrackBean.getTrackData().getLength();
 		ZipOutputStream zipOutputStream = getZipOutputStream();
 		for (ZipEntry entry : createEntries(title, length)) {
 			zipOutputStream.putNextEntry(entry);

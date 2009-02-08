@@ -164,8 +164,8 @@
 			<servlet-name>thumbnail</servlet-name>
 			<servlet-class>uk.co.unclealex.music.web.servlet.PictureServlet</servlet-class>
 			<init-param>
-				<param-name>transformer</param-name>
-				<param-value>thumbnailTransformer</param-value>
+				<param-name>inputStreamFactory</param-name>
+				<param-value>albumThumbnailIdInputStreamFactory</param-value>
 			</init-param>
 		</servlet>
 	
@@ -173,8 +173,8 @@
 			<servlet-name>cover</servlet-name>
 			<servlet-class>uk.co.unclealex.music.web.servlet.PictureServlet</servlet-class>
 			<init-param>
-				<param-name>transformer</param-name>
-				<param-value>coverTransformer</param-value>
+				<param-name>inputStreamFactory</param-name>
+				<param-value>albumCoverIdInputStreamFactory</param-value>
 			</init-param>
 		</servlet>
 

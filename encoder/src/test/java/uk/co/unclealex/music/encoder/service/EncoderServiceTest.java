@@ -1,8 +1,8 @@
 package uk.co.unclealex.music.encoder.service;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,35 +15,40 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.NullInputStream;
+import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.commons.io.output.NullOutputStream;
+import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.FlacTrackDao;
 import uk.co.unclealex.music.core.dao.SlimServerInformationDao;
-import uk.co.unclealex.music.core.dao.TrackDataDao;
+import uk.co.unclealex.music.core.io.DataExtractor;
+import uk.co.unclealex.music.core.io.DataInjector;
+import uk.co.unclealex.music.core.io.InputStreamCopier;
+import uk.co.unclealex.music.core.io.KnownLengthInputStream;
+import uk.co.unclealex.music.core.io.KnownLengthOutputStream;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.FlacTrackBean;
-import uk.co.unclealex.music.core.model.TrackDataBean;
-import uk.co.unclealex.music.core.service.TrackStreamService;
 import uk.co.unclealex.music.encoder.EncoderSpringTest;
 import uk.co.unclealex.music.encoder.dao.TestFlacProvider;
 import uk.co.unclealex.music.encoder.dao.TestSlimServerInformationDao;
 
-public abstract class EncoderServiceTest extends EncoderSpringTest {
+public class EncoderServiceTest extends EncoderSpringTest {
 
 	public static final int SIMULTANEOUS_THREADS = 1;
 	
 	private FlacTrackDao i_flacTrackDao;
 	private SlimServerInformationDao i_slimServerInformationDao;
-	private TrackStreamService i_trackStreamService;
 	private EncoderService i_encoderService;
 	private SingleEncoderService i_singleEncoderService;
 	private EncoderDao i_encoderDao;
 	private EncodedTrackDao i_encodedTrackDao;
-	private TrackDataDao i_trackDataDao;
+	private DataExtractor i_encodedTrackDataExtractor;
+	private InputStreamCopier i_inputStreamCopier;
+	private DataInjector<EncodedTrackBean> i_encodedTrackDataInjector;
 	
 	public void testMagicNumber() throws IOException {
 		SingleEncoderService singleEncoderService = getSingleEncoderService();
@@ -64,7 +69,8 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 				boolean succeeded = true;
 				int expectedLength = 0;
 				try {
-					expectedLength = singleEncoderService.encode(encodingCommandBean, new TreeMap<EncoderBean, File>()).getLength();
+					EncodedTrackBean encodedTrackBean = singleEncoderService.encode(encodingCommandBean, new TreeMap<EncoderBean, File>());
+					expectedLength = encodedTrackBean.getTrackData().getLength();
 				}
 				catch (IOException e) {
 					succeeded = false;
@@ -72,8 +78,9 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 				if (succeeded) {
 					EncodedTrackBean encodedTrackBean = 
 						encodedTrackDao.findByUrlAndEncoderBean(flacTrackBean.getUrl(), encoderBean);
-					InputStream in = getTrackStreamService().getTrackInputStream(encodedTrackBean);
-					int actualLength = IOUtils.copy(in, new NullOutputStream());
+					KnownLengthCountingOutputStream out = new KnownLengthCountingOutputStream();
+					getInputStreamCopier().copy(getEncodedTrackDataExtractor(), encodedTrackBean.getId(), out);
+					int actualLength = out.getCount();
 					assertEquals(
 							"Encoded bean for url " + url + " and encoding " + encoderBean.getExtension() + " has the wrong length.",
 							expectedLength, actualLength);
@@ -81,6 +88,23 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 			}
 		}
 	}
+	
+	protected class KnownLengthCountingOutputStream extends KnownLengthOutputStream<CountingOutputStream> {
+		
+		public KnownLengthCountingOutputStream() {
+			super(new CountingOutputStream(new NullOutputStream()));
+		}
+		
+		@Override
+		protected void setLength(int length) throws IOException {
+			// Ignore
+		}
+		
+		public int getCount() {
+			return getOut().getCount();
+		}
+	}
+	
 	protected class MagicNumberCheckingEncodingClosure implements EncodingClosure {
 		private String magicNumber;
 		private int length;
@@ -92,7 +116,7 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 			extension = encoderBean.getExtension();
 		}
 		
-		public void process(InputStream in) throws IOException {
+		public void process(KnownLengthInputStream in) throws IOException {
 			StringBuffer buffer = new StringBuffer();
 			int data;
 			while ((data = in.read()) != -1) {
@@ -214,28 +238,6 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 		SortedSet<EncoderUrlPair> actualSuccesses = new TreeSet<EncoderUrlPair>();
 		CollectionUtils.collect(allEncodedTracks, EncoderUrlPair.ENCODED_TRACK_TRANSFORMER, actualSuccesses);
 		assertEquals("The wrong encodings succeeded.", expectedSuccesses, actualSuccesses);
-		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
-			SortedSet<TrackDataBean> trackDataBeans = encodedTrackBean.getTrackDataBeans();
-			assertNotNull(
-					"The " + encodedTrackBean.getEncoderBean().getExtension() + " encoding of " + 
-					encodedTrackBean.getFlacUrl() + " is null.",
-					trackDataBeans);
-			assertFalse(
-					"The " + encodedTrackBean.getEncoderBean().getExtension() + " encoding of " + 
-					encodedTrackBean.getFlacUrl() + " is empty.",
-					trackDataBeans.isEmpty());
-		}
-		int maximumTrackDataLength = getTrackStreamService().getMaximumTrackDataLength();
-		for (TrackDataBean trackDataBean : getTrackDataDao().getAll()) {
-			int length = trackDataBean.getTrack().length;
-			if (length > maximumTrackDataLength) {
-				EncodedTrackBean encodedTrackBean = trackDataBean.getEncodedTrackBean();
-				fail(
-					"Track " + trackDataBean.getSequence() + " for encoding " + 
-					encodedTrackBean.getEncoderBean().getExtension() + " and url " + encodedTrackBean.getFlacUrl() + 
-					" is too long (" + length + " instead of " + maximumTrackDataLength + ")");
-			}
-		}
 	}
 	
 	public void testOverwriteOlder() throws IOException, SQLException {
@@ -248,7 +250,6 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 
 	public void testOverwrite(long time, boolean isOverwrite) throws IOException, SQLException {
 		SingleEncoderService singleEncoderService = getSingleEncoderService();
-		TrackDataDao trackDataDao = getTrackDataDao();
 		EncodingCommandBean encodingCommandBean = getFirstEncodingCommandBean();
 		EncoderBean encoderBean = encodingCommandBean.getEncoderBean();
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
@@ -257,40 +258,22 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 		encodedTrackBean.setEncoderBean(encoderBean);
 		encodedTrackBean.setFlacUrl(url);
 		encodedTrackBean.setTimestamp(time);
-		encodedTrackBean.setLength(0);
-		SortedSet<TrackDataBean> trackDataBeans = new TreeSet<TrackDataBean>();
-		TrackDataBean trackDataBean = new TrackDataBean();
-		trackDataBean.setEncodedTrackBean(encodedTrackBean);
-		trackDataBean.setSequence(0);
-		trackDataBean.setTrack(new byte[0]);
-		trackDataBeans.add(trackDataBean);
-		encodedTrackBean.setTrackDataBeans(trackDataBeans);
-		encodedTrackDao.store(encodedTrackBean);
-		int oldTrackDataBeanId = trackDataBean.getId();
+		KnownLengthInputStream in = new KnownLengthInputStream(new NullInputStream(0), 0);
+		getEncodedTrackDataInjector().injectData(encodedTrackBean, in);
 		boolean written = (singleEncoderService.encode(encodingCommandBean, new TreeMap<EncoderBean, File>()) != null);
 		EncodedTrackBean newEncodedTrackBean = encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
+		KnownLengthCountingOutputStream out = new KnownLengthCountingOutputStream();
+		getInputStreamCopier().copy(getEncodedTrackDataExtractor(), newEncodedTrackBean.getId(), out);
 		assertEquals(
 				"The old track id and new track id should be the same",
 				encodedTrackBean.getId(), newEncodedTrackBean.getId());
 		if (isOverwrite) {
 			assertTrue("The track should have been overwritten.", written);
-			trackDataBeans = newEncodedTrackBean.getTrackDataBeans();
-			assertNotNull("New track data should exist.", trackDataBeans);
-			assertFalse("New track data should exist.", trackDataBeans.isEmpty());
-			int totalSize = 0;
-			for (TrackDataBean dataBean : trackDataBeans) {
-				totalSize += dataBean.getTrack().length;
-			}
-			assertFalse("The track data should not be empty.", totalSize == 0);
+			assertFalse("The track data should not be empty.", out.getCount() == 0);
 		}
 		else {
 			assertFalse("The track should not have been overwritten.", written);
-			trackDataBean = trackDataDao.findByEncodedTrackBeanAndSequence(newEncodedTrackBean, 0);
-			assertNotNull("The old track data should still exist.", trackDataBean);
-			assertEquals(
-					"The new track data should have the same id as the old track data.", 
-					oldTrackDataBeanId, trackDataBean.getId().intValue());
-			assertEquals("The track data should be empty.", trackDataBean.getTrack().length, 0);
+			assertEquals("The track data should be empty.", out.getCount(), 0);
 		}
 	}
 
@@ -308,24 +291,13 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 		trackToRemove.setFlacUrl("dummy");
 		trackToRemove.setEncoderBean(getEncoderDao().getAll().first());
 		trackToRemove.setTimestamp(0L);
-		trackToRemove.setLength(0);
-		SortedSet<TrackDataBean> trackDataBeans = new TreeSet<TrackDataBean>();
-		for (int idx = 0; idx < 2; idx++) {
-			TrackDataBean trackDataBean = new TrackDataBean();
-			trackDataBean.setEncodedTrackBean(trackToRemove);
-			trackDataBean.setSequence(idx);
-			trackDataBean.setTrack(new byte[0]);
-			trackDataBeans.add(trackDataBean);
-		}
-		trackToRemove.setTrackDataBeans(trackDataBeans);
+		trackToRemove.setFilename("");
+		getEncodedTrackDataInjector().injectData(trackToRemove, new KnownLengthInputStream(new ByteArrayInputStream(new byte[0]), 0));
 		encodedTrackDao.store(trackToRemove);
-		int expectedTrackDataBeans = getTrackDataDao().getAll().size() - 2;
 		assertEquals("The wrong number of stale tracks was reported.", 1, encoderService.removeDeleted());
 		assertEquals(
 				"The wrong tracks were left untouched after deleting stale tracks.",
 				expectedBeans, encodedTrackDao.getAll());
-		assertEquals("The wrong number of track data beans were reported after deleting stale tracks.",
-				expectedTrackDataBeans, getTrackDataDao().getAll().size());
 	}
 	
 	public void testAbortOnScan() throws IOException {
@@ -357,6 +329,11 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 		FlacTrackBean flacTrackBean = getFlacTrackDao().getAll().first();
 		EncoderBean encoderBean = getEncoderDao().getAll().first();
 		return new EncodingCommandBean(encoderBean, flacTrackBean);
+	}
+	
+	@Override
+	protected String[] getExtraConfigLocations() {
+		return new String[] { "classpath*:applicationContext-music-encoder-flac-test.xml" };
 	}
 	
 	public EncoderDao getEncoderDao() {
@@ -400,14 +377,6 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 		i_slimServerInformationDao = slimServerInformationDao;
 	}
 
-	public TrackDataDao getTrackDataDao() {
-		return i_trackDataDao;
-	}
-
-	public void setTrackDataDao(TrackDataDao trackDataDao) {
-		i_trackDataDao = trackDataDao;
-	}
-
 	public SingleEncoderService getSingleEncoderService() {
 		return i_singleEncoderService;
 	}
@@ -416,11 +385,29 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 		i_singleEncoderService = singleEncoderService;
 	}
 
-	public TrackStreamService getTrackStreamService() {
-		return i_trackStreamService;
+	public InputStreamCopier getInputStreamCopier() {
+		return i_inputStreamCopier;
 	}
 
-	public void setTrackStreamService(TrackStreamService trackStreamService) {
-		i_trackStreamService = trackStreamService;
+	public void setInputStreamCopier(InputStreamCopier inputStreamCopier) {
+		i_inputStreamCopier = inputStreamCopier;
+	}
+
+	public DataInjector<EncodedTrackBean> getEncodedTrackDataInjector() {
+		return i_encodedTrackDataInjector;
+	}
+
+	@Required
+	public void setEncodedTrackDataInjector(
+			DataInjector<EncodedTrackBean> encodedTrackDataInjector) {
+		i_encodedTrackDataInjector = encodedTrackDataInjector;
+	}
+
+	public DataExtractor getEncodedTrackDataExtractor() {
+		return i_encodedTrackDataExtractor;
+	}
+
+	public void setEncodedTrackDataExtractor(DataExtractor encodedTrackDataExtractor) {
+		i_encodedTrackDataExtractor = encodedTrackDataExtractor;
 	}
 }

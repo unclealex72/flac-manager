@@ -99,6 +99,7 @@ public class OwnerServiceImpl implements OwnerService {
 		return encodedTrackBeans;
 	}
 
+	@Transactional
 	protected interface OwnerSearcher {
 		public SortedSet<? extends EncodedTrackBean> findByArtist(EncodedArtistBean encodedArtistBean);
 		public SortedSet<? extends EncodedTrackBean> findByAlbum(EncodedAlbumBean encodedAlbumBean);

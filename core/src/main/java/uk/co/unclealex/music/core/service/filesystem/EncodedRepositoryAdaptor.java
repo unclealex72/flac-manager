@@ -50,7 +50,7 @@ public class EncodedRepositoryAdaptor extends AbstractKeyedRepositoryAdaptor<Enc
 			final String title, EncodedTrackBean encodedTrackBean) {
 		return new FileCommandBean(
 			encodedTrackBean.getId(), title, new Date(encodedTrackBean.getTimestamp()), 
-			encodedTrackBean.getLength(), encodedTrackBean.getEncoderBean().getContentType()); 
+			encodedTrackBean.getTrackData().getLength(), encodedTrackBean.getEncoderBean().getContentType()); 
 	}
 
 	@Override

@@ -186,29 +186,13 @@ public class DeviceServiceImpl implements DeviceService {
 		}
 		
 		final TrackWritingException trackWritingException = new TrackWritingException();
-		List<Thread> threads = new LinkedList<Thread>();
-		for (final DevicesWriter devicesWriter : devicesWritersByEncoderBean.values()) {
-			Thread thread = new Thread() {
-				@Override
-				public void run() {
-					try {
-						devicesWriter.write();
-					}
-					catch (TrackWritingException e) {
-						trackWritingException.registerExceptions(e);
-					}
-				}
-			};
-			threads.add(thread);
-			thread.start();
-		}
-		for (Thread thread : threads) {
+		for (DevicesWriter devicesWriter : devicesWritersByEncoderBean.values()) {
 			try {
-				thread.join();
+				devicesWriter.write();
 			}
-			catch (InterruptedException e) {
-				log.warn("A track writing thread was interrupted.", e);
-			}
+			catch (TrackWritingException e) {
+				trackWritingException.registerExceptions(e);
+			};
 		}
 		if (trackWritingException.requiresThrowing()) {
 			throw trackWritingException;

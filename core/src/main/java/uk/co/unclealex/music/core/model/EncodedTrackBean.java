@@ -1,22 +1,20 @@
 package uk.co.unclealex.music.core.model;
 
-import java.util.SortedSet;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
-import org.hibernate.annotations.Sort;
-import org.hibernate.annotations.SortType;
+import org.hibernate.annotations.Columns;
+import org.hibernate.annotations.Type;
 import org.hibernate.validator.NotNull;
 
+import uk.co.unclealex.music.core.io.KnownLengthInputStream;
 import uk.co.unclealex.music.core.visitor.EncodedVisitor;
 
 @Table(
@@ -27,12 +25,11 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 
 	private String i_flacUrl;
 	private EncoderBean i_encoderBean;
-	private Integer i_length;
 	private Long i_timestamp;
 	private String i_title;
 	private Integer i_trackNumber;
 	
-	private SortedSet<TrackDataBean> i_trackDataBeans;
+	private KnownLengthInputStream i_trackData;
 	private EncodedAlbumBean i_encodedAlbumBean;
 	
 	public EncodedTrackBean() {
@@ -78,6 +75,7 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 	}
 
 	@Column(name="url")
+	@NotNull
 	public String getFlacUrl() {
 		return i_flacUrl;
 	}
@@ -95,15 +93,6 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 		i_timestamp = timestamp;
 	}
 
-	@NotNull(message="You must explicitly set the length of track data.")
-	public Integer getLength() {
-		return i_length;
-	}
-
-	public void setLength(Integer length) {
-		i_length = length;
-	}
-
 	@ManyToOne
 	public EncodedAlbumBean getEncodedAlbumBean() {
 		return i_encodedAlbumBean;
@@ -113,16 +102,7 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 		i_encodedAlbumBean = encodedAlbumBean;
 	}
 
-	@OneToMany(mappedBy="encodedTrackBean", targetEntity=TrackDataBean.class, cascade = CascadeType.ALL)
-	@Sort(type=SortType.NATURAL)
-	public SortedSet<TrackDataBean> getTrackDataBeans() {
-		return i_trackDataBeans;
-	}
-
-	public void setTrackDataBeans(SortedSet<TrackDataBean> trackDataBeans) {
-		i_trackDataBeans = trackDataBeans;
-	}
-
+	@NotNull
 	public String getTitle() {
 		return i_title;
 	}
@@ -131,12 +111,28 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 		i_title = title;
 	}
 
+	@NotNull
 	public Integer getTrackNumber() {
 		return i_trackNumber;
 	}
 
 	public void setTrackNumber(Integer trackNumber) {
 		i_trackNumber = trackNumber;
+	}
+
+	@Lob
+	@NotNull
+	@Type(type="uk.co.unclealex.music.core.io.BlobUserType")
+	@Columns(columns = {
+	    @Column(name="trackData", length=Integer.MAX_VALUE),
+	    @Column(name="trackDataLength")
+	})
+	public KnownLengthInputStream getTrackData() {
+		return i_trackData;
+	}
+
+	public void setTrackData(KnownLengthInputStream trackData) {
+		i_trackData = trackData;
 	}
 
 }

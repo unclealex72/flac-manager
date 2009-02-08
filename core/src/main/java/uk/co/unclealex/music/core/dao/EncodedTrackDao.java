@@ -1,7 +1,9 @@
 package uk.co.unclealex.music.core.dao;
 
+import java.io.IOException;
 import java.util.SortedSet;
 
+import uk.co.unclealex.music.core.io.KnownLengthInputStreamCallback;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
@@ -26,4 +28,6 @@ public interface EncodedTrackDao extends KeyedDao<EncodedTrackBean> {
 			int trackNumber);
 
 	public SortedSet<? extends EncodedTrackBean> findByArtist(EncodedArtistBean encodedArtistBean);
+
+	public void streamTrackData(int id, KnownLengthInputStreamCallback callback) throws IOException;
 }

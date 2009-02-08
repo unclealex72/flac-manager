@@ -41,7 +41,6 @@ import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.FlacTrackDao;
-import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
@@ -65,7 +64,6 @@ public class EncoderServiceImpl implements EncoderService {
 	private SlimServerService i_slimServerService;
 	private EncodedTrackDao i_encodedTrackDao;
 	private EncodedAlbumDao i_encodedAlbumDao;
-	private TrackDataDao i_trackDataDao;
 	private EncoderDao i_encoderDao;
 	private EncodedService i_encodedService;
 	private FlacTrackDao i_flacTrackDao;
@@ -186,7 +184,6 @@ public class EncoderServiceImpl implements EncoderService {
 			},
 			urls);
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		TrackDataDao trackDataDao = getTrackDataDao();
 		SortedSet<EncodedTrackBean> extraTracks = new TreeSet<EncodedTrackBean>();
 		extraTracks.addAll(
 			CollectionUtils.selectRejected(
@@ -200,9 +197,6 @@ public class EncoderServiceImpl implements EncoderService {
 		for (EncodedTrackBean encodedTrackBean : extraTracks) {
 			for (EncodingEventListener encodingEventListener : encodingEventListeners) {
 				encodingEventListener.beforeTrackRemoved(encodedTrackBean);
-			}
-			for (int id : trackDataDao.getIdsForEncodedTrackBean(encodedTrackBean)) {
-				trackDataDao.removeById(id);
 			}
 			encodedTrackDao.remove(encodedTrackBean);
 			log.info(
@@ -359,15 +353,6 @@ public class EncoderServiceImpl implements EncoderService {
 	public void setEncodingEventListeners(
 			List<EncodingEventListener> encodingEventListeners) {
 		i_encodingEventListeners = encodingEventListeners;
-	}
-
-	public TrackDataDao getTrackDataDao() {
-		return i_trackDataDao;
-	}
-
-	@Required
-	public void setTrackDataDao(TrackDataDao trackDataDao) {
-		i_trackDataDao = trackDataDao;
 	}
 
 	public EncodedService getEncodedService() {

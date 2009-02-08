@@ -1,9 +1,10 @@
 package uk.co.unclealex.music.encoder.service;
 
 import java.io.IOException;
-import java.io.InputStream;
+
+import uk.co.unclealex.music.core.io.KnownLengthInputStream;
 
 public interface EncodingClosure {
 
-	public void process(InputStream in) throws IOException;
+	public void process(KnownLengthInputStream in) throws IOException;
 }

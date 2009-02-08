@@ -2,7 +2,6 @@ package uk.co.unclealex.music.core.service.filesystem;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.Calendar;
 import java.util.Collection;
@@ -27,7 +26,6 @@ import javax.jcr.ValueFormatException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
 
-import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.core.RepositoryImpl;
@@ -37,6 +35,10 @@ import org.apache.jackrabbit.core.config.RepositoryConfig;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
+
+import uk.co.unclealex.music.core.io.DataExtractor;
+import uk.co.unclealex.music.core.io.InputStreamCopier;
+import uk.co.unclealex.music.core.io.KnownLengthOutputStream;
 
 @Transactional
 public class RepositoryManagerImpl<E> implements RepositoryManager {
@@ -49,8 +51,9 @@ public class RepositoryManagerImpl<E> implements RepositoryManager {
 	private Repository i_repository;
 	private String i_baseDirectory;
 	
+	private InputStreamCopier i_inputStreamCopier;
 	private RepositoryAdaptor<E> i_repositoryAdaptor;
-	private Transformer<Integer, InputStream> i_inputStreamFactory;
+	private DataExtractor i_dataExtractor;
 
 	@PostConstruct
 	public void initialise() throws IOException, URISyntaxException, RepositoryException {
@@ -253,10 +256,10 @@ public class RepositoryManagerImpl<E> implements RepositoryManager {
 	}
 
 	@Override
-	public InputStream createInputStream(Node node) throws RepositoryException {
+	public void stream(Node node, KnownLengthOutputStream<?> out) throws RepositoryException, IOException {
 		Property property = node.getProperty(PROPERTY_ID);
 		int id = (int) property.getValue().getLong();
-		return getInputStreamFactory().transform(id);
+		getInputStreamCopier().copy(getDataExtractor(), id, out);
 	}
 
 	@Override
@@ -305,14 +308,13 @@ public class RepositoryManagerImpl<E> implements RepositoryManager {
 		i_repository = repository;
 	}
 
-	public Transformer<Integer, InputStream> getInputStreamFactory() {
-		return i_inputStreamFactory;
+	public DataExtractor getDataExtractor() {
+		return i_dataExtractor;
 	}
 
 	@Required
-	public void setInputStreamFactory(
-			Transformer<Integer, InputStream> inputStreamFactory) {
-		i_inputStreamFactory = inputStreamFactory;
+	public void setDataExtractor(DataExtractor dataExtractor) {
+		i_dataExtractor = dataExtractor;
 	}
 
 	public String getBaseDirectory() {
@@ -326,5 +328,14 @@ public class RepositoryManagerImpl<E> implements RepositoryManager {
 
 	public Lock getLock() {
 		return i_lock;
+	}
+
+	public InputStreamCopier getInputStreamCopier() {
+		return i_inputStreamCopier;
+	}
+
+	@Required
+	public void setInputStreamCopier(InputStreamCopier inputStreamCopier) {
+		i_inputStreamCopier = inputStreamCopier;
 	}
 }

@@ -37,7 +37,7 @@ public class TrackWriterTest extends CoreSpringTest {
 			writer.write(encodedTrackBean);
 			expectedFileNamesAndSizes.put(
 					titleFormatService.getTitle(encodedTrackBean),
-					encodedTrackBean.getLength());
+					encodedTrackBean.getTrackData().getLength());
 		}
 		
 		int run = 1;

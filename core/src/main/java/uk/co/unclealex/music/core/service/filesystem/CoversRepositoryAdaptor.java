@@ -25,7 +25,7 @@ public class CoversRepositoryAdaptor extends AbstractKeyedRepositoryAdaptor<Albu
 		if (flacAlbumBean != null) {
 			String path = flacAlbumBean.getFlacArtistBean().getName() + "/" + flacAlbumBean.getTitle() + "." + albumCoverBean.getExtension();
 			return Collections.singleton(
-				new FileCommandBean(albumCoverBean.getId(), path, albumCoverBean.getDateSelected(), albumCoverBean.getCoverLength(), null));
+				new FileCommandBean(albumCoverBean.getId(), path, albumCoverBean.getDateSelected(), albumCoverBean.getCover().getLength(), null));
 		}
 		else {
 			return new HashSet<FileCommandBean>();

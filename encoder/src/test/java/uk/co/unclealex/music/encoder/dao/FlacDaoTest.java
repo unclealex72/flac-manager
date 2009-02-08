@@ -22,26 +22,26 @@ import uk.co.unclealex.music.core.model.FlacArtistBean;
 import uk.co.unclealex.music.core.model.FlacTrackBean;
 import uk.co.unclealex.music.encoder.EncoderSpringTest;
 
-public abstract class FlacDaoTest extends EncoderSpringTest {
+public class FlacDaoTest extends EncoderSpringTest {
 
 	private FlacTrackDao i_flacTrackDao;
 	private FlacArtistDao i_flacArtistDao;
 	private DataSource i_flacDataSource;
 	
 	public void testFindByUrl() {
-		String url = "file:///mnt/multimedia/flac/queen/queen_ii/10_funny_how_love_is.flac";
+		String url = "file:///mnt/multimedia/flac/napalm_death/from_enslavement_to_obliteration/12_you_suffer.flac";
 		FlacTrackBean flacTrackBean = getFlacTrackDao().findByUrl(url);
 		FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
 		FlacArtistBean flacArtistBean = flacAlbumBean.getFlacArtistBean();
 		
 		assertEquals("The wrong url was returned.", url, flacTrackBean.getUrl());
-		assertEquals("The wrong track code was returned.", "FUNNY HOW LOVE IS", flacTrackBean.getCode());
-		assertEquals("The wrong album code was returned.", "QUEEN II", flacAlbumBean.getCode());
-		assertEquals("The wrong track code was returned.", "QUEEN", flacArtistBean.getCode());
+		assertEquals("The wrong track code was returned.", "YOU SUFFER", flacTrackBean.getCode());
+		assertEquals("The wrong album code was returned.", "FROM ENSLAVEMENT TO OBLITERATION", flacAlbumBean.getCode());
+		assertEquals("The wrong artist code was returned.", "NAPALM DEATH", flacArtistBean.getCode());
 		
-		assertEquals("The wrong track title was returned.", "Funny How Love Is", flacTrackBean.getTitle());
-		assertEquals("The wrong album title was returned.", "Queen II", flacAlbumBean.getTitle());
-		assertEquals("The wrong artist was returned.", "Queen", flacArtistBean.getName());
+		assertEquals("The wrong track title was returned.", "You Suffer", flacTrackBean.getTitle());
+		assertEquals("The wrong album title was returned.", "From Enslavement To Obliteration", flacAlbumBean.getTitle());
+		assertEquals("The wrong artist was returned.", "Napalm Death", flacArtistBean.getName());
 	}
 
 	public void testFindAll() throws SQLException {
@@ -139,6 +139,11 @@ public abstract class FlacDaoTest extends EncoderSpringTest {
 		};
 	}
 
+	@Override
+	protected String[] getExtraConfigLocations() {
+		return new String[] { "classpath*:applicationContext-music-core-flac-hibernate-direct.xml" };
+	}
+	
 	public FlacTrackDao getFlacTrackDao() {
 		return i_flacTrackDao;
 	}

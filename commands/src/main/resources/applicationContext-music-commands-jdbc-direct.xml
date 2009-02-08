@@ -10,7 +10,10 @@
        default-autowire="byName">
 
 	<import resource="classpath*:applicationContext-music-core.xml"/>
+	<import resource="classpath*:applicationContext-music-core-flac-hibernate-direct.xml"/>
+	<import resource="classpath*:applicationContext-music-core-music-hibernate.xml"/>
 
+<!-- 	
 	<bean id="musicDataSource" class="uk.co.unclealex.music.commands.pool.PooledDataSource">
 		<property name="dataSource">
 			<bean class="org.springframework.jdbc.datasource.DriverManagerDataSource">
@@ -21,8 +24,7 @@
 			</bean>		
 		</property>
 	</bean>
-	
-	<!-- 
+ 
 	<bean id="musicDataSource" class="uk.co.unclealex.music.commands.pool.PooledDataSource">
 		<property name="dataSource">
 			<bean class="org.springframework.jdbc.datasource.DriverManagerDataSource">
@@ -33,8 +35,15 @@
 			</bean>		
 		</property>
 	</bean>
-	-->
+-->
 	
+	<bean id="musicDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="org.postgresql.Driver"/>
+		<property name="url" value="jdbc:postgresql://localhost/music"/>
+		<property name="username" value="music"/>
+		<property name="password" value="mu51c"/>
+	</bean>
+
 	<bean id="flacDataSource" class="uk.co.unclealex.music.commands.pool.PooledDataSource">
 		<property name="dataSource">
 			<bean class="org.springframework.jdbc.datasource.DriverManagerDataSource">

@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -29,6 +31,7 @@ public class TestFlacProvider {
 	private SortedSet<FlacArtistBean> i_allFlacArtistBeans = new TreeSet<FlacArtistBean>();
 	private int i_index;
 	
+	@PostConstruct
 	public void initialise() {
 		String[] urls = new String[] {
 				"file:///mnt/multimedia/flac/napalm_death/from_enslavement_to_obliteration/12_you_suffer.flac",
@@ -37,7 +40,7 @@ public class TestFlacProvider {
 				"file:///mnt/multimedia/flac/napalm_death/scum/25_dead_bonus_track.flac",
 				"file:///mnt/multimedia/flac/sod/speak_english_or_die/20_the_ballad_of_jimi_hendrix.flac",
 				"file:///mnt/multimedia/flac/sod/speak_english_or_die/21_diamonds_and_rust_extended_version.flac",
-				"file:///mnt/multimedia/flac/brutal_truth/sounds_of_the_animal_kingdomkill_trend_suicide/09_callous.flac",
+				"file:///mnt/multimedia/flac/brutal_truth/sounds_of_the_animal_kingdom__kill_trend_suicide/09_callous.flac",
 				"file:///mnt/multimedia/flac/brutal_truth/extreme_conditions_demand_extreme_responses/07_collateral_damage.flac"
 		};
 		for (String url : urls) {

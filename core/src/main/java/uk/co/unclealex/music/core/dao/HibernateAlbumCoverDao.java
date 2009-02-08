@@ -1,5 +1,6 @@
 package uk.co.unclealex.music.core.dao;
 
+import java.io.IOException;
 import java.util.SortedSet;
 
 import org.hibernate.Query;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.music.core.io.KnownLengthInputStreamCallback;
 import uk.co.unclealex.music.core.model.AlbumCoverBean;
 
 @Repository
@@ -16,6 +18,8 @@ import uk.co.unclealex.music.core.model.AlbumCoverBean;
 public class HibernateAlbumCoverDao extends
 		HibernateKeyedDao<AlbumCoverBean> implements AlbumCoverDao {
 
+	private Streamer i_streamer;
+	
 	@Autowired
 	public HibernateAlbumCoverDao(@Qualifier("musicSessionFactory") SessionFactory sessionFactory) {
 		super(sessionFactory);
@@ -58,4 +62,28 @@ public class HibernateAlbumCoverDao extends
 			setString("albumPath", albumPath);
 		return uniqueResult(query);
 	}
+
+	@Override
+	public void streamCover(int id, KnownLengthInputStreamCallback callback) throws IOException {
+		streamField("cover", id, callback);
+	}
+	
+	@Override
+	public void streamThumbnail(int id, KnownLengthInputStreamCallback callback) throws IOException {
+		streamField("thumbnail", id, callback);
+	}
+	
+	protected void streamField(String fieldName, int id, KnownLengthInputStreamCallback callback)
+			throws IOException {
+		getStreamer().stream(getSession(), "trackData", "albumCoverBean", id, callback);
+	}
+	
+	public Streamer getStreamer() {
+		return i_streamer;
+	}
+
+	public void setStreamer(Streamer streamer) {
+		i_streamer = streamer;
+	}
+
 }

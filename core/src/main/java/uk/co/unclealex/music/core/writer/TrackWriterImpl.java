@@ -1,7 +1,6 @@
 package uk.co.unclealex.music.core.writer;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,31 +12,29 @@ import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
+import org.apache.commons.io.output.NullOutputStream;
+import org.apache.commons.io.output.TeeOutputStream;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.dao.TrackDataDao;
+import uk.co.unclealex.music.core.io.DataExtractor;
+import uk.co.unclealex.music.core.io.InputStreamCopier;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.service.TrackDataStreamIteratorFactory;
-import uk.co.unclealex.music.core.service.TrackStreamService;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
 import uk.co.unclealex.spring.Prototype;
 
 @Prototype
-@Transactional(readOnly=true)
+@Transactional
 public class TrackWriterImpl implements TrackWriter {
 
-  private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
-
-	private TrackDataDao i_trackDataDao;
 	private EncodedTrackDao i_encodedTrackDao;
 	private TitleFormatServiceFactory i_titleFormatServiceFactory;
-	private TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
-	private TrackStreamService i_trackStreamService;
-
+	private DataExtractor i_encodedTrackDataExtractor;
 	private Map<TrackStream, TitleFormatService> i_titleFormatServicesByTrackStream;
+	private InputStreamCopier i_inputStreamCopier;
+	
 	private TrackWritingException i_trackWritingException = new TrackWritingException();
 	private Map<TrackStream, Set<WritingListener>> i_writingListenersByTrackStream = 
 		new HashMap<TrackStream, Set<WritingListener>>();
@@ -150,25 +147,16 @@ public class TrackWriterImpl implements TrackWriter {
 			}
 		}
 		if (!outputStreamsByTrackStream.isEmpty()) {
-			InputStream in = getTrackStreamService().getTrackInputStream(encodedTrackBean);
-	    int count = 0;
-	    byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-			try {
-				int n;
-				while (-1 != (n = in.read(buffer))) {
-					for (TrackStream trackStream : getTrackStreams(isApplicableTrackStream)) {
-						OutputStream outputStream = outputStreamsByTrackStream.get(trackStream);
-						if (outputStream != null) {
-							try {
-								outputStream.write(buffer, 0, n);
-							}
-							catch (IOException e) {
-								registerIoException(trackStream, e);
-							}
-						}
-					}
-	        count += n;
+			OutputStream out = new NullOutputStream();
+			for (TrackStream applicableTrackStream : getTrackStreams(isApplicableTrackStream)) {
+				OutputStream nextOut = outputStreamsByTrackStream.get(applicableTrackStream);
+				if (nextOut != null) {
+					out = new TeeOutputStream(out, nextOut);
 				}
+			}
+			int count = 0;
+			try {
+				getInputStreamCopier().copy(getEncodedTrackDataExtractor(), encodedTrackBean.getId(), out);
 			}
 			catch (IOException e) {
 				registerIoException(e);
@@ -185,12 +173,6 @@ public class TrackWriterImpl implements TrackWriter {
 						registerIoException(trackStream, e);
 					}
 				}
-			}
-			try {
-				in.close();
-			}
-			catch (IOException e) {
-				registerIoException(e);
 			}
 		}
 		return titlesByTrackStream;
@@ -282,38 +264,13 @@ public class TrackWriterImpl implements TrackWriter {
 		return writingListeners == null?new HashSet<WritingListener>():writingListeners;
 	}
 	
-	@Required
-	public TrackDataDao getTrackDataDao() {
-		return i_trackDataDao;
-	}
-
-	public void setTrackDataDao(TrackDataDao trackDataDao) {
-		i_trackDataDao = trackDataDao;
-	}
-
 	public EncodedTrackDao getEncodedTrackDao() {
 		return i_encodedTrackDao;
 	}
-
+	
+	@Required
 	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
 		i_encodedTrackDao = encodedTrackDao;
-	}
-
-	public TrackDataStreamIteratorFactory getTrackDataStreamIteratorFactory() {
-		return i_trackDataStreamIteratorFactory;
-	}
-
-	public void setTrackDataStreamIteratorFactory(
-			TrackDataStreamIteratorFactory trackDataStreamIteratorFactory) {
-		i_trackDataStreamIteratorFactory = trackDataStreamIteratorFactory;
-	}
-
-	public TrackStreamService getTrackStreamService() {
-		return i_trackStreamService;
-	}
-
-	public void setTrackStreamService(TrackStreamService singleEncoderService) {
-		i_trackStreamService = singleEncoderService;
 	}
 
 	public Map<TrackStream, TitleFormatService> getTitleFormatServicesByTrackStream() {
@@ -346,8 +303,28 @@ public class TrackWriterImpl implements TrackWriter {
 		return i_titleFormatServiceFactory;
 	}
 
+	@Required
 	public void setTitleFormatServiceFactory(
 			TitleFormatServiceFactory titleFormatServiceFactory) {
 		i_titleFormatServiceFactory = titleFormatServiceFactory;
+	}
+
+	public InputStreamCopier getInputStreamCopier() {
+		return i_inputStreamCopier;
+	}
+
+	@Required
+	public void setInputStreamCopier(
+			InputStreamCopier inputStreamCopier) {
+		i_inputStreamCopier = inputStreamCopier;
+	}
+
+	public DataExtractor getEncodedTrackDataExtractor() {
+		return i_encodedTrackDataExtractor;
+	}
+
+	@Required
+	public void setEncodedTrackDataExtractor(DataExtractor encodedTrackDataExtractor) {
+		i_encodedTrackDataExtractor = encodedTrackDataExtractor;
 	}
 }

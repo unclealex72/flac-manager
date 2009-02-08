@@ -6,10 +6,11 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
   default-autowire="byName">
 
+	<import resource="applicationContext-music-core-music-hibernate.xml"/>
+	
 	<bean id="musicHibernateProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="properties">
   		<props>
-        <prop key="hibernate.dialect">org.hibernate.dialect.HSQLDialect</prop>
         <prop key="hibernate.hbm2ddl.auto">update</prop>
         <prop key="hibernate.show_sql">true</prop>
      </props>		
@@ -17,23 +18,10 @@
 	</bean>
 
 	<bean id="musicDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName" value="org.hsqldb.jdbcDriver"/>
-		<property name="url" value="jdbc:hsqldb:."/>
-		<property name="username" value="sa"/>
-		<property name="password" value=""/>
+		<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+		<property name="url" value="jdbc:derby:/tmp/music-temp-db-dir;create=true"/>
 	</bean>
 
-	<bean id="flacDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-		<property name="url" value="jdbc:mysql://localhost/slimserver"/>
-		<property name="username" value="slimserver"/>
-		<property name="password" value="slimserver"/>
-	</bean>	
-	
-	<bean id="maximumTrackDataLength" class="java.lang.Integer">
-		<constructor-arg value="32768"/>
-	</bean>
-	
 	<bean id="deviceService" class="uk.co.unclealex.music.core.service.TestDeviceService"/>
 	
 	<bean id="slimServerConfig" class="uk.co.unclealex.music.core.TestSlimServerConfig">

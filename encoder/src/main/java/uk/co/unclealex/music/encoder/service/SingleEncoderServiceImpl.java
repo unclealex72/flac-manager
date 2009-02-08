@@ -1,49 +1,42 @@
 package uk.co.unclealex.music.encoder.service;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.dao.TrackDataDao;
+import uk.co.unclealex.music.core.io.DataInjector;
+import uk.co.unclealex.music.core.io.KnownLengthInputStream;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.FlacAlbumBean;
 import uk.co.unclealex.music.core.model.FlacTrackBean;
-import uk.co.unclealex.music.core.model.TrackDataBean;
 import uk.co.unclealex.music.core.service.EncodedService;
-import uk.co.unclealex.music.core.service.TrackDataStreamIteratorFactory;
-import uk.co.unclealex.music.core.service.TrackStreamService;
+import uk.co.unclealex.music.encoder.io.DeleteOnClosingFileInputStream;
 
 @Service
-@Transactional
+@Transactional(propagation=Propagation.REQUIRES_NEW)
 public class SingleEncoderServiceImpl implements SingleEncoderService, Serializable {
 
 	private static Logger log = Logger.getLogger(SingleEncoderServiceImpl.class);
 
 	private EncodedTrackDao i_encodedTrackDao;
-	private TrackDataDao i_trackDataDao;
-	private TrackStreamService i_trackStreamService;
-	private TrackDataStreamIteratorFactory i_trackDataStreamIteratorFactory;
 	private EncodedService i_encodedService;
+	private DataInjector<EncodedTrackBean> i_encodedTrackDataInjector;
 	
 	@Transactional(rollbackFor=IOException.class)
 	public int encode(
@@ -66,17 +59,19 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 		ProcessBuilder builder = new ProcessBuilder(command);
 		Process process = builder.start();
 		int returnValue;
-		InputStream in = null;
+		KnownLengthInputStream in = null;
 		try {
 			try {
 				returnValue = process.waitFor();
 				if (returnValue != 0) {
 					StringWriter error = new StringWriter();
 					IOUtils.copy(process.getErrorStream(), error);
+					error.write("\n");
+					IOUtils.copy(process.getInputStream(), error);
 					throw new IOException(
 							"The process " + StringUtils.join(command, ' ') + " failed with exit code " + returnValue + "\n" + error);
 				}
-				in = new FileInputStream(tempFile);
+				in = new KnownLengthInputStream(new DeleteOnClosingFileInputStream(tempFile), (int) tempFile.length());
 				closure.process(in);
 				if (log.isDebugEnabled()) {
 					log.debug("Finished " + StringUtils.join(command, ' '));
@@ -90,7 +85,6 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 		}
 		finally {
 			IOUtils.closeQuietly(in);
-			tempFile.delete();
 		}
 	}
 
@@ -107,8 +101,6 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 
 	@Transactional(rollbackFor=IOException.class)
 	public EncodedTrackBean encode(EncodingCommandBean encodingCommandBean, Map<EncoderBean, File> commandCache) throws IOException {
-		TrackDataDao trackDataDao = getTrackDataDao();
-
 		EncoderBean encoderBean = encodingCommandBean.getEncoderBean();
 		FlacTrackBean flacTrackBean = encodingCommandBean.getFlacTrackBean();
 		
@@ -130,31 +122,21 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 			newEncodedTrackBean.setFlacUrl(url);
 			newEncodedTrackBean.setEncoderBean(encoderBean);
 			newEncodedTrackBean.setTimestamp(new Date().getTime());
-			newEncodedTrackBean.setLength(-1);
 			newEncodedTrackBean.setTitle(trackName);
 			newEncodedTrackBean.setTrackNumber(trackNumber);
 			getEncodedService().injectFilename(newEncodedTrackBean);
-			SortedSet<TrackDataBean> trackDataBeans = newEncodedTrackBean.getTrackDataBeans();
-			if (trackDataBeans != null) {
-				for (TrackDataBean trackDataBean : trackDataBeans) {
-					trackDataDao.remove(trackDataBean);
-				}
-			}
-			newEncodedTrackBean.setTrackDataBeans(new TreeSet<TrackDataBean>());
-			encodedTrackDao.store(newEncodedTrackBean);
 			try {	
 				EncodingClosure closure = new EncodingClosure() {
-					public void process(InputStream in) throws IOException {
-						OutputStream out = getTrackStreamService().getTrackOutputStream(newEncodedTrackBean);
-						int length = IOUtils.copy(in, out);
-						out.close();
-						newEncodedTrackBean.setLength(length);
+					public void process(KnownLengthInputStream in) throws IOException {
+						getEncodedTrackDataInjector().injectData(newEncodedTrackBean, in);
+						encodedTrackDao.store(newEncodedTrackBean);
+						// Make triply sure that the new track bean is fully persisted so the encoded file can be safely deleted.
+						encodedTrackDao.flush();
+						encodedTrackDao.dismiss(newEncodedTrackBean);
+						encodedTrackDao.findById(newEncodedTrackBean.getId());
 					}
 				};
 				encode(encoderBean, flacTrackBean, closure, commandCache);
-				encodedTrackDao.store(newEncodedTrackBean);
-				encodedTrackDao.flush();
-				encodedTrackDao.dismiss(newEncodedTrackBean);
 				retval = newEncodedTrackBean;
 			}
 			catch (IOException e) {
@@ -192,34 +174,6 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 		i_encodedTrackDao = encodedTrackDao;
 	}
 
-	public TrackDataDao getTrackDataDao() {
-		return i_trackDataDao;
-	}
-
-	@Required
-	public void setTrackDataDao(TrackDataDao trackDataDao) {
-		i_trackDataDao = trackDataDao;
-	}
-
-	public TrackDataStreamIteratorFactory getTrackDataStreamIteratorFactory() {
-		return i_trackDataStreamIteratorFactory;
-	}
-
-	@Required
-	public void setTrackDataStreamIteratorFactory(
-			TrackDataStreamIteratorFactory trackDataStreamIteratorFactory) {
-		i_trackDataStreamIteratorFactory = trackDataStreamIteratorFactory;
-	}
-
-	public TrackStreamService getTrackStreamService() {
-		return i_trackStreamService;
-	}
-
-	@Required
-	public void setTrackStreamService(TrackStreamService trackStreamService) {
-		i_trackStreamService = trackStreamService;
-	}
-
 	public EncodedService getEncodedService() {
 		return i_encodedService;
 	}
@@ -227,5 +181,15 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 	@Required
 	public void setEncodedService(EncodedService encodedService) {
 		i_encodedService = encodedService;
+	}
+
+	public DataInjector<EncodedTrackBean> getEncodedTrackDataInjector() {
+		return i_encodedTrackDataInjector;
+	}
+
+	@Required
+	public void setEncodedTrackDataInjector(
+			DataInjector<EncodedTrackBean> encodedTrackDataInjector) {
+		i_encodedTrackDataInjector = encodedTrackDataInjector;
 	}
 }

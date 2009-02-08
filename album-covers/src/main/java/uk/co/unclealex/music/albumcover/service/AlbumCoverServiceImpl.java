@@ -42,7 +42,11 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.co.unclealex.image.service.ImageService;
 import uk.co.unclealex.music.core.dao.AlbumCoverDao;
 import uk.co.unclealex.music.core.dao.FlacAlbumDao;
-import uk.co.unclealex.music.core.dao.PictureDao;
+import uk.co.unclealex.music.core.io.DataExtractor;
+import uk.co.unclealex.music.core.io.DataInjector;
+import uk.co.unclealex.music.core.io.KnownLengthByteArrayInputStream;
+import uk.co.unclealex.music.core.io.KnownLengthInputStream;
+import uk.co.unclealex.music.core.io.KnownLengthInputStreamCallback;
 import uk.co.unclealex.music.core.model.AlbumCoverBean;
 import uk.co.unclealex.music.core.model.AlbumCoverSize;
 import uk.co.unclealex.music.core.model.FlacAlbumBean;
@@ -70,11 +74,13 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	private FlacService i_flacService;
 	private FlacAlbumDao i_flacAlbumDao;
 	private AlbumCoverDao i_albumCoverDao;
-	private PictureDao i_pictureDao;
 	private ImageService i_imageService;
 	private Predicate<FlacAlbumBean> i_albumHasCoversPredicate;
 	private int i_thumbnailSize = 50;
 	private RepositoryManager i_coversRepositoryManager;
+	private DataInjector<AlbumCoverBean> i_albumCoverDataInjector;
+	private DataInjector<AlbumCoverBean> i_albumThumbnailDataInjector;
+	private DataExtractor i_albumCoverDataExtractor;
 	
 	@PostConstruct
 	public void initialise() {
@@ -181,9 +187,8 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 			String flacAlbumPath, String url, InputStream urlInputStream, boolean selected) throws RepositoryException, IOException {
 		albumCoverBean.setUrl(url);
 		byte[] cover = downloadUrl(url, urlInputStream);
-		albumCoverBean.setCover(cover);
-		byte[] thumbnail = createThumbnail(cover);
-		albumCoverBean.setThumbnail(thumbnail);
+		getAlbumCoverDataInjector().injectData(albumCoverBean, new KnownLengthByteArrayInputStream(cover));
+		getAlbumThumbnailDataInjector().injectData(albumCoverBean, new KnownLengthByteArrayInputStream(createThumbnail(cover)));
 		albumCoverBean.setFlacAlbumPath(flacAlbumPath);
 		Date now = new Date();
 		albumCoverBean.setDateDownloaded(now);
@@ -204,18 +209,6 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 		return writePng(thumbnailImage);
 	}
 
-	@Override
-	public void createThumbnails() throws IOException {
-		AlbumCoverDao albumCoverDao = getAlbumCoverDao();
-		for (AlbumCoverBean albumCoverBean : albumCoverDao.getAll()) {
-			if (albumCoverBean.getThumbnail() == null) {
-				log.info("Creating thumbnail for " + albumCoverBean.getFlacAlbumPath());
-				albumCoverBean.setThumbnail(createThumbnail(albumCoverBean.getCover()));
-				albumCoverDao.store(albumCoverBean);
-			}
-		}
-	}
-	
 	@Override
 	public void saveSelectedAlbumCovers() {
 		for (FlacAlbumBean flacAlbumBean : getFlacAlbumDao().getAll()) {
@@ -404,9 +397,23 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	
 	@Override
 	public void resizeCover(AlbumCoverBean albumCoverBean, Dimension maximumSize, String extension, OutputStream out) throws IOException {
-		BufferedImage sourceImage = ImageIO.read(new ByteArrayInputStream(albumCoverBean.getCover()));
+		DataExtractor dataExtractor = getAlbumCoverDataExtractor();
+		class ResizeCoverCallback implements KnownLengthInputStreamCallback {
+			BufferedImage sourceImage;
+			@Override
+			public void execute(KnownLengthInputStream in) throws IOException {
+				try {
+					sourceImage = ImageIO.read(in);
+				}
+				finally {
+					IOUtils.closeQuietly(in);
+				}
+			}
+		};
+		ResizeCoverCallback callback = new ResizeCoverCallback();
+		dataExtractor.extractData(albumCoverBean.getId(), callback);
 		Color transparent = new Color(0, 0, 0, 0);
-		BufferedImage targetImage = getImageService().resize(sourceImage, maximumSize, transparent);
+		BufferedImage targetImage = getImageService().resize(callback.sourceImage, maximumSize, transparent);
 		ImageIO.write(targetImage, extension, out);
 	}
 	
@@ -491,13 +498,32 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 		i_coversRepositoryManager = coversRepositoryManager;
 	}
 
-	public PictureDao getPictureDao() {
-		return i_pictureDao;
+	public DataInjector<AlbumCoverBean> getAlbumCoverDataInjector() {
+		return i_albumCoverDataInjector;
 	}
 
 	@Required
-	public void setPictureDao(PictureDao pictureDao) {
-		i_pictureDao = pictureDao;
+	public void setAlbumCoverDataInjector(
+			DataInjector<AlbumCoverBean> albumCoverDataInjector) {
+		i_albumCoverDataInjector = albumCoverDataInjector;
 	}
 
+	public DataInjector<AlbumCoverBean> getAlbumThumbnailDataInjector() {
+		return i_albumThumbnailDataInjector;
+	}
+
+	@Required
+	public void setAlbumThumbnailDataInjector(
+			DataInjector<AlbumCoverBean> albumThumbnailDataInjector) {
+		i_albumThumbnailDataInjector = albumThumbnailDataInjector;
+	}
+
+	public DataExtractor getAlbumCoverDataExtractor() {
+		return i_albumCoverDataExtractor;
+	}
+
+	@Required
+	public void setAlbumCoverDataExtractor(DataExtractor albumCoverDataExtractor) {
+		i_albumCoverDataExtractor = albumCoverDataExtractor;
+	}
 }

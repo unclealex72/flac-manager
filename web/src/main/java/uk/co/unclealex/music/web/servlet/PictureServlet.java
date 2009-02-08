@@ -1,41 +1,47 @@
 package uk.co.unclealex.music.web.servlet;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+
+import uk.co.unclealex.music.core.io.InputStreamCopier;
+import uk.co.unclealex.music.core.io.InputStreamFactory;
+import uk.co.unclealex.music.core.io.KnownLengthOutputStream;
 
 public class PictureServlet extends AbstractServlet {
 
-	private Transformer<Integer, byte[]> i_transformer;
+	private InputStreamFactory<Integer> i_inputStreamFactory;
+	private InputStreamCopier<Integer> i_inputStreamCopier;
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void doInit(ServletConfig config) {
-		String transformerBeanName = config.getInitParameter("transformer");
-		Transformer<Integer, byte[]> transformer = (Transformer<Integer, byte[]>) getApplicationContext().getBean(transformerBeanName);
-		setTransformer(transformer);
+		String inputStreamFactoryName = config.getInitParameter("inputStreamFactory");
+		InputStreamFactory<Integer> inputStreamFactory = 
+			(InputStreamFactory<Integer>) getApplicationContext().getBean(inputStreamFactoryName);
+		setEncodedTrackDataExtractor(inputStreamFactory);
 	}
 	
 	@Override
-	public void doService(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+	public void doService(HttpServletRequest req, final HttpServletResponse resp) throws IOException {
 		String requestURI = req.getRequestURI();
 		String requestString = FilenameUtils.getBaseName(requestURI);
 		String extension = FilenameUtils.getExtension(requestURI);
 		int albumCoverId = Integer.parseInt(requestString);
 		resp.setContentType("image/" + extension);
-		byte[] image = getTransformer().transform(albumCoverId);
-		resp.setContentLength(image.length);
-		ServletOutputStream out = resp.getOutputStream();
-		IOUtils.copy(new ByteArrayInputStream(image), out);
+		KnownLengthOutputStream out = new KnownLengthOutputStream(resp.getOutputStream()) {
+			@Override
+			protected void setLength(int length) throws IOException {
+				resp.setContentLength(length);
+			}
+		};
+		getInputStreamCopier().copy(getInputStreamFactory(), albumCoverId, out);
 		out.close();
 	}
 
@@ -44,11 +50,23 @@ public class PictureServlet extends AbstractServlet {
 		return AutowireCapableBeanFactory.AUTOWIRE_NO;
 	}
 	
-	public Transformer<Integer, byte[]> getTransformer() {
-		return i_transformer;
+	public InputStreamCopier<Integer> getInputStreamCopier() {
+		return i_inputStreamCopier;
 	}
 
-	public void setTransformer(Transformer<Integer, byte[]> transformer) {
-		i_transformer = transformer;
+	@Required
+	public void setInputStreamCopier(
+			InputStreamCopier<Integer> inputStreamCopier) {
+		i_inputStreamCopier = inputStreamCopier;
+	}
+
+	public InputStreamFactory<Integer> getInputStreamFactory() {
+		return i_inputStreamFactory;
+	}
+
+	@Required
+	public void setInputStreamFactory(
+			InputStreamFactory<Integer> inputStreamFactory) {
+		i_inputStreamFactory = inputStreamFactory;
 	}
 }

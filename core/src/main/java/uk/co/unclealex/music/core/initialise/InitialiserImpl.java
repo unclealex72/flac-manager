@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.music.core.dao.AlbumCoverDao;
 import uk.co.unclealex.music.core.dao.DeviceDao;
 import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.core.dao.EncodedArtistDao;
@@ -18,7 +19,6 @@ import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.KeyedDao;
 import uk.co.unclealex.music.core.dao.OwnerDao;
-import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.model.DeviceBean;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
 import uk.co.unclealex.music.core.model.EncodedArtistBean;
@@ -39,8 +39,7 @@ public class InitialiserImpl implements Initialiser {
 	private EncodedTrackDao i_encodedTrackDao;
 	private EncodedAlbumDao i_encodedAlbumDao;
 	private EncodedArtistDao i_encodedArtistDao;
-	private TrackDataDao i_trackDataDao;
-
+	private AlbumCoverDao i_albumCoverDao;
 	
 	public void initialise() throws IOException {
 		log.info("Initialising defaults.");
@@ -102,10 +101,7 @@ public class InitialiserImpl implements Initialiser {
 
 	@Override
 	public void clear() {
-		TrackDataDao trackDataDao = getTrackDataDao();
-		for (int id : trackDataDao.getAllIds()) {
-			trackDataDao.removeById(id);
-		}
+		removeAll(getAlbumCoverDao());
 		removeAll(getEncodedTrackDao());
 		removeAll(getEncodedAlbumDao());
 		removeAll(getEncodedArtistDao());
@@ -174,12 +170,11 @@ public class InitialiserImpl implements Initialiser {
 		i_encodedArtistDao = encodedArtistDao;
 	}
 
-	public TrackDataDao getTrackDataDao() {
-		return i_trackDataDao;
+	public AlbumCoverDao getAlbumCoverDao() {
+		return i_albumCoverDao;
 	}
 
-	@Required
-	public void setTrackDataDao(TrackDataDao trackDataDao) {
-		i_trackDataDao = trackDataDao;
+	public void setAlbumCoverDao(AlbumCoverDao albumCoverDao) {
+		i_albumCoverDao = albumCoverDao;
 	}
 }

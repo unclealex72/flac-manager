@@ -43,6 +43,4 @@ public interface AlbumCoverService {
 	public Predicate<FlacAlbumBean> createAlbumHasCoverPredicate();
 	
 	public SortedSet<FlacAlbumBean> findAlbumsWithoutCovers();
-
-	public void createThumbnails() throws IOException;
 }

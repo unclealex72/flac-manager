@@ -13,7 +13,6 @@ import uk.co.unclealex.music.core.dao.EncodedArtistDao;
 import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.OwnerDao;
-import uk.co.unclealex.music.core.dao.TrackDataDao;
 import uk.co.unclealex.music.core.initialise.Initialiser;
 import uk.co.unclealex.music.core.initialise.TrackImporter;
 import uk.co.unclealex.music.core.model.EncodedAlbumBean;
@@ -26,7 +25,6 @@ public abstract class CoreSpringTest extends SpringTest {
 
 	private Initialiser i_initialiser;
 	private TrackImporter i_trackImporter;
-	private TrackDataDao i_trackDataDao;
 	private EncodedService i_encodedService;
 	private EncoderDao i_encoderDao;
 	private EncodedTrackDao i_encodedTrackDao;
@@ -47,7 +45,9 @@ public abstract class CoreSpringTest extends SpringTest {
 	
 	@Override
 	protected void onSetUpBeforeTransaction() throws Exception {
-		getInitialiser().initialise();
+		Initialiser initialiser = getInitialiser();
+		initialiser.clear();
+		initialiser.initialise();
 		EncodedService encodedService = getEncodedService();
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
 		
@@ -74,7 +74,7 @@ public abstract class CoreSpringTest extends SpringTest {
 				String url = "music/" + track + "." + encoderBean.getExtension();
 				InputStream in = classLoader.getResourceAsStream(url);
 				EncodedTrackBean encodedTrackBean = 
-					trackImporter.importTrack(in, encoderBean, title, url, trackNumber, encodingTime, encodedAlbumBean);
+					trackImporter.importTrack(in, in.available(), encoderBean, title, url, trackNumber, encodingTime, encodedAlbumBean);
 				encodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
 				encodedTrackDao.store(encodedTrackBean);
 			}
@@ -102,7 +102,9 @@ public abstract class CoreSpringTest extends SpringTest {
 
 	@Override
 	protected String[] getConfigLocations() {
-		return new String[] { "applicationContext-music-core.xml", "applicationContext-music-core-test.xml" }; 
+		return new String[] {
+			"applicationContext-music-core.xml", "applicationContext-music-core-test.xml", 
+			"applicationContext-music-core-flac-hibernate-direct.xml" }; 
 	}
 
 	public Initialiser getInitialiser() {
@@ -185,14 +187,4 @@ public abstract class CoreSpringTest extends SpringTest {
 	public void setDeviceDao(DeviceDao deviceDao) {
 		i_deviceDao = deviceDao;
 	}
-
-	public TrackDataDao getTrackDataDao() {
-		return i_trackDataDao;
-	}
-
-	@Required
-	public void setTrackDataDao(TrackDataDao trackDataDao) {
-		i_trackDataDao = trackDataDao;
-	}
-
 }

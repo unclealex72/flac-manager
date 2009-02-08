@@ -10,6 +10,6 @@ import uk.co.unclealex.music.core.model.EncoderBean;
 public interface TrackImporter {
 
 	public EncodedTrackBean importTrack(
-			InputStream in, EncoderBean encoderBean, String title, 
-			String url, int trackNumber, long lastModifiedMillis, EncodedAlbumBean encodedAlbumBean) throws IOException;	
+			InputStream in, int length, EncoderBean encoderBean, 
+			String title, String url, int trackNumber, long lastModifiedMillis, EncodedAlbumBean encodedAlbumBean) throws IOException;	
 }

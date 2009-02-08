@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
@@ -19,10 +18,11 @@ import uk.co.unclealex.music.core.dao.EncodedTrackDao;
 import uk.co.unclealex.music.core.dao.EncoderDao;
 import uk.co.unclealex.music.core.dao.FlacTrackDao;
 import uk.co.unclealex.music.core.initialise.TrackImporter;
+import uk.co.unclealex.music.core.io.DataExtractor;
+import uk.co.unclealex.music.core.io.InputStreamCopier;
 import uk.co.unclealex.music.core.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.model.EncoderBean;
 import uk.co.unclealex.music.core.model.FlacTrackBean;
-import uk.co.unclealex.music.core.service.TrackStreamService;
 import uk.co.unclealex.music.encoder.service.EncoderService;
 
 @Service
@@ -36,7 +36,8 @@ public class ImporterImpl implements Importer {
 	private EncoderService i_encoderService;
 	private FlacTrackDao i_flacTrackDao;
 	private TrackImporter i_trackImporter;
-	private TrackStreamService i_trackStreamService;
+	private DataExtractor i_encodedTrackDataExtractor;
+	private InputStreamCopier i_inputStreamCopier;
 	
 	public void importTracks() throws IOException {
 		TrackImporter trackImporter = getTrackImporter();
@@ -67,8 +68,8 @@ public class ImporterImpl implements Importer {
 					else {
 						InputStream in = new FileInputStream(file);
 						trackImporter.importTrack(
-							in, encoderBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), flacTrackBean.getTrackNumber(), 
-							file.lastModified(), null);
+							in, (int) file.length(), encoderBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), 
+							flacTrackBean.getTrackNumber(), file.lastModified(), null);
 						in.close();						
 					}
 				}
@@ -80,7 +81,7 @@ public class ImporterImpl implements Importer {
 	@Override
 	public void exportTracks() throws IOException {
 		FlacTrackDao flacTrackDao = getFlacTrackDao();
-		TrackStreamService trackStreamService = getTrackStreamService();
+		DataExtractor encodedTrackDataExtractor = getEncodedTrackDataExtractor();
 		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
 			String flacUrl = encodedTrackBean.getFlacUrl();
 			String extension = encodedTrackBean.getEncoderBean().getExtension();
@@ -89,7 +90,6 @@ public class ImporterImpl implements Importer {
 				log.info("Ignoring " + extension + " version of " + flacUrl + " as it is not a valid flac track.");
 			}
 			else {
-				InputStream trackInputStream = trackStreamService.getTrackInputStream(encodedTrackBean);
 				String filename = flacTrackBean.getId() + "." + encodedTrackBean.getEncoderBean().getExtension();
 				File file = new File(new File("/home/converted"), filename);
 				if (file.exists()) {
@@ -98,8 +98,7 @@ public class ImporterImpl implements Importer {
 				else {
 					log.info("Exporting " + encodedTrackBean + " to " + file);
 					OutputStream fileOutputStream = new FileOutputStream(file);
-					IOUtils.copy(trackInputStream, fileOutputStream);
-					trackInputStream.close();
+					getInputStreamCopier().copy(encodedTrackDataExtractor, encodedTrackBean.getId(), fileOutputStream);
 					fileOutputStream.close();
 				}
 			}
@@ -151,11 +150,21 @@ public class ImporterImpl implements Importer {
 		i_encoderService = encoderService;
 	}
 
-	public TrackStreamService getTrackStreamService() {
-		return i_trackStreamService;
+	public DataExtractor getEncodedTrackDataExtractor() {
+		return i_encodedTrackDataExtractor;
 	}
 
-	public void setTrackStreamService(TrackStreamService trackStreamService) {
-		i_trackStreamService = trackStreamService;
+	@Required
+	public void setEncodedTrackDataExtractor(DataExtractor encodedTrackDataExtractor) {
+		i_encodedTrackDataExtractor = encodedTrackDataExtractor;
+	}
+
+	public InputStreamCopier getInputStreamCopier() {
+		return i_inputStreamCopier;
+	}
+
+	@Required
+	public void setInputStreamCopier(InputStreamCopier inputStreamCopier) {
+		i_inputStreamCopier = inputStreamCopier;
 	}
 }
