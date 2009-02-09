@@ -7,13 +7,15 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.dao.KeyedReadOnlyDao;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.model.OwnerBean;
-import uk.co.unclealex.music.core.service.OwnerService;
-import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
-import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.base.dao.EncodedTrackDao;
+import uk.co.unclealex.music.base.dao.KeyedReadOnlyDao;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.OwnerBean;
+import uk.co.unclealex.music.base.service.OwnerService;
+import uk.co.unclealex.music.base.service.filesystem.FileCommandBean;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryAdaptor;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatServiceFactory;
 
 @Transactional
 public class EncodedRepositoryAdaptor extends AbstractKeyedRepositoryAdaptor<EncodedTrackBean> implements RepositoryAdaptor<EncodedTrackBean> {

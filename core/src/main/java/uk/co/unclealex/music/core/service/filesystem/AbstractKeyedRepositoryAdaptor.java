@@ -2,8 +2,9 @@ package uk.co.unclealex.music.core.service.filesystem;
 
 import java.util.Set;
 
-import uk.co.unclealex.music.core.dao.KeyedReadOnlyDao;
-import uk.co.unclealex.music.core.model.KeyedBean;
+import uk.co.unclealex.music.base.dao.KeyedReadOnlyDao;
+import uk.co.unclealex.music.base.model.KeyedBean;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryAdaptor;
 
 public abstract class AbstractKeyedRepositoryAdaptor<T extends KeyedBean<T>> implements RepositoryAdaptor<T> {
 

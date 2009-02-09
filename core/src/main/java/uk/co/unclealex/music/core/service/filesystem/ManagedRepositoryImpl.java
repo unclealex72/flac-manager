@@ -5,6 +5,9 @@ import javax.jcr.RepositoryException;
 import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.config.RepositoryConfig;
 
+import uk.co.unclealex.music.base.service.filesystem.ManagedRepository;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
+
 public class ManagedRepositoryImpl extends RepositoryImpl implements ManagedRepository {
 
 	private RepositoryManager i_repositoryManager;

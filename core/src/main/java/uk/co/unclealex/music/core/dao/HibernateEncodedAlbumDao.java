@@ -9,8 +9,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.model.EncodedAlbumBean;
-import uk.co.unclealex.music.core.model.EncodedArtistBean;
+import uk.co.unclealex.music.base.dao.EncodedAlbumDao;
+import uk.co.unclealex.music.base.model.EncodedAlbumBean;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
 
 @Repository
 @Transactional

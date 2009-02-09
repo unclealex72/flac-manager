@@ -4,7 +4,7 @@ import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 
-import uk.co.unclealex.music.core.model.KeyedBean;
+import uk.co.unclealex.music.base.model.KeyedBean;
 
 public abstract class HibernateKeyedDao<T extends KeyedBean<T>> extends HibernateKeyedReadOnlyDao<T> {
 

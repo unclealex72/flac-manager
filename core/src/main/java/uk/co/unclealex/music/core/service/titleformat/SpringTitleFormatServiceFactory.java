@@ -5,7 +5,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
-import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.base.model.DeviceBean;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatFactory;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatServiceFactory;
 
 @Service
 public class SpringTitleFormatServiceFactory implements ApplicationContextAware, TitleFormatServiceFactory {

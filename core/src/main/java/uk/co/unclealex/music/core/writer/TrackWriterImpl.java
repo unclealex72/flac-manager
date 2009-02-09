@@ -17,12 +17,16 @@ import org.apache.commons.io.output.TeeOutputStream;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.io.DataExtractor;
-import uk.co.unclealex.music.core.io.InputStreamCopier;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
-import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.base.dao.EncodedTrackDao;
+import uk.co.unclealex.music.base.io.DataExtractor;
+import uk.co.unclealex.music.base.io.InputStreamCopier;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.base.writer.TrackStream;
+import uk.co.unclealex.music.base.writer.TrackWriter;
+import uk.co.unclealex.music.base.writer.TrackWritingException;
+import uk.co.unclealex.music.base.writer.WritingListener;
 import uk.co.unclealex.spring.Prototype;
 
 @Prototype

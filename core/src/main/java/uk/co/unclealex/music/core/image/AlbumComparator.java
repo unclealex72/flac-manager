@@ -9,6 +9,8 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
+import uk.co.unclealex.music.base.image.Album;
+
 /**
  * @author alex
  *

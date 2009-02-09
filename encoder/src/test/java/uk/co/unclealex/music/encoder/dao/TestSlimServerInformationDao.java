@@ -2,8 +2,8 @@ package uk.co.unclealex.music.encoder.dao;
 
 import java.util.Map;
 
-import uk.co.unclealex.music.core.dao.SlimServerInformationDao;
-import uk.co.unclealex.music.core.model.SlimServerInformationBean;
+import uk.co.unclealex.music.base.dao.SlimServerInformationDao;
+import uk.co.unclealex.music.base.model.SlimServerInformationBean;
 
 public class TestSlimServerInformationDao implements SlimServerInformationDao {
 

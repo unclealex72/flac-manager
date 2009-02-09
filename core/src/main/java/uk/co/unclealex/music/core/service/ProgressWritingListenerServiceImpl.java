@@ -7,9 +7,10 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.stereotype.Service;
 
-import uk.co.unclealex.music.core.model.DeviceBean;
+import uk.co.unclealex.music.base.model.DeviceBean;
+import uk.co.unclealex.music.base.service.ProgressWritingListenerService;
+import uk.co.unclealex.music.base.writer.WritingListener;
 import uk.co.unclealex.music.core.writer.ProgressWritingListener;
-import uk.co.unclealex.music.core.writer.WritingListener;
 
 @Service
 public class ProgressWritingListenerServiceImpl implements ProgressWritingListenerService {

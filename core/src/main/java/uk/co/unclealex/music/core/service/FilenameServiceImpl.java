@@ -8,12 +8,13 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.SlimServerConfig;
-import uk.co.unclealex.music.core.model.EncodedAlbumBean;
-import uk.co.unclealex.music.core.model.EncodedArtistBean;
-import uk.co.unclealex.music.core.model.EncodedBean;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.visitor.EncodedVisitor;
+import uk.co.unclealex.music.base.SlimServerConfig;
+import uk.co.unclealex.music.base.model.EncodedAlbumBean;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
+import uk.co.unclealex.music.base.model.EncodedBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.service.FilenameService;
+import uk.co.unclealex.music.base.visitor.EncodedVisitor;
 
 @Service
 @Transactional

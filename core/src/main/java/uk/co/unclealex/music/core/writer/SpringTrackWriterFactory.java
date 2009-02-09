@@ -12,7 +12,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
-import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.base.writer.FileTrackStream;
+import uk.co.unclealex.music.base.writer.TrackStream;
+import uk.co.unclealex.music.base.writer.TrackWriter;
+import uk.co.unclealex.music.base.writer.TrackWriterFactory;
 
 @Service
 public class SpringTrackWriterFactory implements TrackWriterFactory, ApplicationContextAware {

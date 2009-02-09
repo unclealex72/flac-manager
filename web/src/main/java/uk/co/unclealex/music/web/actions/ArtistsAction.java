@@ -2,8 +2,8 @@ package uk.co.unclealex.music.web.actions;
 
 import java.util.SortedSet;
 
-import uk.co.unclealex.music.core.dao.FlacArtistDao;
-import uk.co.unclealex.music.core.model.FlacArtistBean;
+import uk.co.unclealex.music.base.dao.FlacArtistDao;
+import uk.co.unclealex.music.base.model.FlacArtistBean;
 
 import com.opensymphony.xwork2.Preparable;
 

@@ -36,7 +36,10 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.io.DataExtractor;
+import uk.co.unclealex.music.base.io.DataExtractor;
+import uk.co.unclealex.music.base.service.filesystem.FileCommandBean;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryAdaptor;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
 
 @Transactional
 public class RepositoryManagerImpl<E> implements RepositoryManager {

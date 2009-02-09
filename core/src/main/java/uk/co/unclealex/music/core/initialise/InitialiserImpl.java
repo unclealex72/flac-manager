@@ -11,21 +11,22 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.dao.AlbumCoverDao;
-import uk.co.unclealex.music.core.dao.DeviceDao;
-import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
-import uk.co.unclealex.music.core.dao.EncodedArtistDao;
-import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.dao.KeyedDao;
-import uk.co.unclealex.music.core.dao.OwnerDao;
-import uk.co.unclealex.music.core.model.DeviceBean;
-import uk.co.unclealex.music.core.model.EncodedAlbumBean;
-import uk.co.unclealex.music.core.model.EncodedArtistBean;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.model.KeyedBean;
-import uk.co.unclealex.music.core.model.OwnerBean;
+import uk.co.unclealex.music.base.dao.AlbumCoverDao;
+import uk.co.unclealex.music.base.dao.DeviceDao;
+import uk.co.unclealex.music.base.dao.EncodedAlbumDao;
+import uk.co.unclealex.music.base.dao.EncodedArtistDao;
+import uk.co.unclealex.music.base.dao.EncodedTrackDao;
+import uk.co.unclealex.music.base.dao.EncoderDao;
+import uk.co.unclealex.music.base.dao.KeyedDao;
+import uk.co.unclealex.music.base.dao.OwnerDao;
+import uk.co.unclealex.music.base.initialise.Initialiser;
+import uk.co.unclealex.music.base.model.DeviceBean;
+import uk.co.unclealex.music.base.model.EncodedAlbumBean;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.KeyedBean;
+import uk.co.unclealex.music.base.model.OwnerBean;
 
 @Service
 @Transactional

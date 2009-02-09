@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 
-import uk.co.unclealex.music.core.SlimServerConfig;
-import uk.co.unclealex.music.core.dao.SlimServerInformationDao;
-import uk.co.unclealex.music.core.model.SlimServerInformationBean;
+import uk.co.unclealex.music.base.SlimServerConfig;
+import uk.co.unclealex.music.base.dao.SlimServerInformationDao;
+import uk.co.unclealex.music.base.model.SlimServerInformationBean;
 
 @Service
 public class SlimServerServiceImpl implements SlimServerService {

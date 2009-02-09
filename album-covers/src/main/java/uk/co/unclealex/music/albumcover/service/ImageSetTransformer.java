@@ -3,8 +3,8 @@ package uk.co.unclealex.music.albumcover.service;
 import org.apache.commons.collections15.Transformer;
 import org.springframework.stereotype.Service;
 
-import uk.co.unclealex.music.core.model.AlbumCoverBean;
-import uk.co.unclealex.music.core.model.AlbumCoverSize;
+import uk.co.unclealex.music.base.model.AlbumCoverBean;
+import uk.co.unclealex.music.base.model.AlbumCoverSize;
 
 import com.amazon.webservices.awsecommerceservice.Image;
 import com.amazon.webservices.awsecommerceservice.ImageSet;

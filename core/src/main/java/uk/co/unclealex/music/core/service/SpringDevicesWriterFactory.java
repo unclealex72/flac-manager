@@ -4,6 +4,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
+import uk.co.unclealex.music.base.service.DevicesWriter;
+import uk.co.unclealex.music.base.service.DevicesWriterFactory;
+
 @Service
 public class SpringDevicesWriterFactory implements DevicesWriterFactory,
 		ApplicationContextAware {

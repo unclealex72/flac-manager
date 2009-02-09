@@ -1,8 +1,8 @@
 package uk.co.unclealex.music.core.model;
 
 import junit.framework.TestCase;
-import uk.co.unclealex.music.core.model.DeviceBean;
-import uk.co.unclealex.music.core.model.OwnerBean;
+import uk.co.unclealex.music.base.model.DeviceBean;
+import uk.co.unclealex.music.base.model.OwnerBean;
 
 public class KeyedBeanTest extends TestCase {
 

@@ -19,6 +19,8 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 
+import uk.co.unclealex.music.base.SlimServerConfig;
+
 /**
  * @author alex
  *
@@ -29,7 +31,7 @@ public class FileSlimServerConfig implements SlimServerConfig {
 	private List<String> i_definiteArticles = new LinkedList<String>();
 	private boolean i_initialised = false;
 	private File i_slimserverConfigFile;
-	
+
 	/**
 	 * Read a slimserver configuration file. Currently, only single line properties are supported. 
 	 * @param in

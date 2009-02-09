@@ -1,8 +1,8 @@
 package uk.co.unclealex.music.web.converter;
 
-import uk.co.unclealex.music.core.dao.AlbumCoverDao;
-import uk.co.unclealex.music.core.dao.KeyedReadOnlyDao;
-import uk.co.unclealex.music.core.model.AlbumCoverBean;
+import uk.co.unclealex.music.base.dao.AlbumCoverDao;
+import uk.co.unclealex.music.base.dao.KeyedReadOnlyDao;
+import uk.co.unclealex.music.base.model.AlbumCoverBean;
 
 import com.opensymphony.xwork2.conversion.annotations.Conversion;
 

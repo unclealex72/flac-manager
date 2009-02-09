@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.unclealex.music.core.initialise.Initialiser;
+import uk.co.unclealex.music.base.initialise.Initialiser;
 
 public abstract class EncoderSpringTest extends SpringTest {
 

@@ -12,13 +12,14 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.dao.OwnerDao;
-import uk.co.unclealex.music.core.model.EncodedAlbumBean;
-import uk.co.unclealex.music.core.model.EncodedArtistBean;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.model.OwnerBean;
+import uk.co.unclealex.music.base.dao.EncodedTrackDao;
+import uk.co.unclealex.music.base.dao.OwnerDao;
+import uk.co.unclealex.music.base.model.EncodedAlbumBean;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.OwnerBean;
+import uk.co.unclealex.music.base.service.OwnerService;
 
 @Service
 @Transactional

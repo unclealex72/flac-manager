@@ -11,11 +11,11 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 import org.springframework.beans.factory.annotation.Required;
 
-import uk.co.unclealex.music.core.dao.DeviceDao;
-import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.dao.OwnerDao;
-import uk.co.unclealex.music.core.model.DeviceBean;
-import uk.co.unclealex.music.core.service.titleformat.TitleFormatFactory;
+import uk.co.unclealex.music.base.dao.DeviceDao;
+import uk.co.unclealex.music.base.dao.EncoderDao;
+import uk.co.unclealex.music.base.dao.OwnerDao;
+import uk.co.unclealex.music.base.model.DeviceBean;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatFactory;
 import uk.co.unclealex.spring.Prototype;
 
 @Prototype

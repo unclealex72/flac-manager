@@ -4,7 +4,8 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import uk.co.unclealex.music.core.model.AbstractFlacBean;
+import uk.co.unclealex.music.base.dao.CodeDao;
+import uk.co.unclealex.music.base.model.AbstractFlacBean;
 
 public abstract class HibernateCodeDao<T extends AbstractFlacBean<T>> extends HibernateKeyedReadOnlyDao<T> implements CodeDao<T> {
 

@@ -7,11 +7,13 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.dao.AlbumCoverDao;
-import uk.co.unclealex.music.core.dao.KeyedReadOnlyDao;
-import uk.co.unclealex.music.core.model.AlbumCoverBean;
-import uk.co.unclealex.music.core.model.FlacAlbumBean;
-import uk.co.unclealex.music.core.service.FlacService;
+import uk.co.unclealex.music.base.dao.AlbumCoverDao;
+import uk.co.unclealex.music.base.dao.KeyedReadOnlyDao;
+import uk.co.unclealex.music.base.model.AlbumCoverBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.service.FlacService;
+import uk.co.unclealex.music.base.service.filesystem.FileCommandBean;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryAdaptor;
 
 @Transactional
 public class CoversRepositoryAdaptor extends AbstractKeyedRepositoryAdaptor<AlbumCoverBean> implements RepositoryAdaptor<AlbumCoverBean> {

@@ -3,6 +3,8 @@ package uk.co.unclealex.music.core.service.titleformat;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatFactory;
+
 @Service
 public class TitleFormatFactoryImpl implements TitleFormatFactory {
 

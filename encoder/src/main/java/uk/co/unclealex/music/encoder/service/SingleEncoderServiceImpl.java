@@ -18,14 +18,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.io.DataInjector;
-import uk.co.unclealex.music.core.io.KnownLengthInputStream;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.model.FlacAlbumBean;
-import uk.co.unclealex.music.core.model.FlacTrackBean;
-import uk.co.unclealex.music.core.service.EncodedService;
+import uk.co.unclealex.music.base.dao.EncodedTrackDao;
+import uk.co.unclealex.music.base.io.DataInjector;
+import uk.co.unclealex.music.base.io.KnownLengthInputStream;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.service.EncodedService;
 import uk.co.unclealex.music.encoder.io.DeleteOnClosingFileInputStream;
 
 @Service

@@ -5,8 +5,8 @@ import java.util.SortedSet;
 import org.apache.log4j.Logger;
 
 import uk.co.unclealex.music.albumcover.service.AlbumCoverService;
-import uk.co.unclealex.music.core.model.AlbumCoverBean;
-import uk.co.unclealex.music.core.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.AlbumCoverBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
 
 import com.opensymphony.xwork2.ActionSupport;
 

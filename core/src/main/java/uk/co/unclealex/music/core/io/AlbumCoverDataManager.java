@@ -6,8 +6,11 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.dao.AlbumCoverDao;
-import uk.co.unclealex.music.core.model.AlbumCoverBean;
+import uk.co.unclealex.music.base.dao.AlbumCoverDao;
+import uk.co.unclealex.music.base.io.DataManager;
+import uk.co.unclealex.music.base.io.KnownLengthInputStream;
+import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
+import uk.co.unclealex.music.base.model.AlbumCoverBean;
 
 @Service
 @Transactional

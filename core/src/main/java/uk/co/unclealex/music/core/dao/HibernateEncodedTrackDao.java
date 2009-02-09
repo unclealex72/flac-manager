@@ -13,11 +13,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.io.KnownLengthInputStreamCallback;
-import uk.co.unclealex.music.core.model.EncodedAlbumBean;
-import uk.co.unclealex.music.core.model.EncodedArtistBean;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.model.EncoderBean;
+import uk.co.unclealex.music.base.dao.EncodedTrackDao;
+import uk.co.unclealex.music.base.dao.Streamer;
+import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
+import uk.co.unclealex.music.base.model.EncodedAlbumBean;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
 
 @Repository
 @Transactional

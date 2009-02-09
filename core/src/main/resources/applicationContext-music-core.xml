@@ -16,7 +16,7 @@
 	<bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor"/>
 	 -->
 	 
-	<bean id="titleFormatFactory" class="uk.co.unclealex.music.core.service.titleformat.TitleFormatFactoryImpl">
+	<bean id="titleFormatFactory" class="uk.co.unclealex.music.base.service.titleformat.TitleFormatFactoryImpl">
 		<property name="defaultTitleFormat">
 			<value>${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
 		</property>
@@ -36,13 +36,13 @@
 		<constructor-arg value="/var/lib/squeezecenter/prefs/server.prefs"/>
 	</bean>
 	
-	<bean id="abstractRepositoryManager" class="uk.co.unclealex.music.core.service.filesystem.RepositoryManagerImpl" abstract="true">
+	<bean id="abstractRepositoryManager" class="uk.co.unclealex.music.base.service.filesystem.RepositoryManagerImpl" abstract="true">
 		<property name="baseDirectory" value="/home/java/music"/>
 	</bean>
 	
 	<bean id="coversRepositoryManager" parent="abstractRepositoryManager">
 		<property name="repositoryAdaptor">
-			<bean class="uk.co.unclealex.music.core.service.filesystem.CoversRepositoryAdaptor"/>
+			<bean class="uk.co.unclealex.music.base.service.filesystem.CoversRepositoryAdaptor"/>
 		</property>
 		<property name="repositoryRootPath" value="covers"/>
 		<property name="dataExtractor" ref="albumCoverDataExtractor"/>
@@ -50,7 +50,7 @@
 	
 	<bean id="encodedRepositoryManager" parent="abstractRepositoryManager">
 		<property name="repositoryAdaptor">
-			<bean class="uk.co.unclealex.music.core.service.filesystem.EncodedRepositoryAdaptor">
+			<bean class="uk.co.unclealex.music.base.service.filesystem.EncodedRepositoryAdaptor">
 				<property name="titleFormats" ref="fileSystemTitleFormats"/>
 			</bean>
 		</property>

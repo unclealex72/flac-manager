@@ -11,9 +11,9 @@ import javax.jcr.RepositoryException;
 
 import org.apache.commons.collections15.Predicate;
 
-import uk.co.unclealex.music.core.model.AlbumCoverBean;
-import uk.co.unclealex.music.core.model.AlbumCoverSize;
-import uk.co.unclealex.music.core.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.AlbumCoverBean;
+import uk.co.unclealex.music.base.model.AlbumCoverSize;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
 
 public interface AlbumCoverService {
 

@@ -1,8 +1,8 @@
 package uk.co.unclealex.music.web.converter;
 
-import uk.co.unclealex.music.core.dao.FlacAlbumDao;
-import uk.co.unclealex.music.core.dao.KeyedReadOnlyDao;
-import uk.co.unclealex.music.core.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.dao.FlacAlbumDao;
+import uk.co.unclealex.music.base.dao.KeyedReadOnlyDao;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
 
 import com.opensymphony.xwork2.conversion.annotations.Conversion;
 

@@ -10,10 +10,13 @@ import java.util.TreeMap;
 
 import org.springframework.beans.factory.annotation.Required;
 
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.base.writer.TrackStream;
+import uk.co.unclealex.music.base.writer.TrackWriter;
+import uk.co.unclealex.music.base.writer.TrackWriterFactory;
 import uk.co.unclealex.music.core.CoreSpringTest;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
-import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
 
 public class TrackWriterTest extends CoreSpringTest {
 

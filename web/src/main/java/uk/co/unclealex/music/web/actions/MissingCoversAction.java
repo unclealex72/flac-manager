@@ -3,7 +3,7 @@ package uk.co.unclealex.music.web.actions;
 import java.util.Collection;
 
 import uk.co.unclealex.music.albumcover.service.AlbumCoverService;
-import uk.co.unclealex.music.core.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
 
 public class MissingCoversAction extends AbstractAlbumsAction {
 

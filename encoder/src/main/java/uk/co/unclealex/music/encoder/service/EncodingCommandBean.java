@@ -1,8 +1,8 @@
 package uk.co.unclealex.music.encoder.service;
 
-import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.model.FlacTrackBean;
-import uk.co.unclealex.music.core.service.CommandBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.service.CommandBean;
 
 public class EncodingCommandBean extends CommandBean<EncodingCommandBean> {
 

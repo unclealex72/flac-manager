@@ -13,10 +13,10 @@ import org.apache.jackrabbit.server.io.IOHandler;
 import org.apache.jackrabbit.server.io.ImportContext;
 import org.apache.jackrabbit.webdav.DavResource;
 
-import uk.co.unclealex.music.core.io.DataExtractor;
-import uk.co.unclealex.music.core.io.InputStreamCopier;
-import uk.co.unclealex.music.core.io.KnownLengthOutputStream;
-import uk.co.unclealex.music.core.service.filesystem.RepositoryManager;
+import uk.co.unclealex.music.base.io.DataExtractor;
+import uk.co.unclealex.music.base.io.InputStreamCopier;
+import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
 
 public class MusicHandler extends DefaultHandler implements IOHandler {
 
@@ -67,7 +67,7 @@ public class MusicHandler extends DefaultHandler implements IOHandler {
             int id = (int) p.getLong();
             KnownLengthOutputStream<OutputStream> out = new KnownLengthOutputStream<OutputStream>(context.getOutputStream()) {
             	@Override
-            	protected void setLength(int length) throws IOException {
+            	public void setLength(int length) throws IOException {
             		// Do nothing
             	}
             };

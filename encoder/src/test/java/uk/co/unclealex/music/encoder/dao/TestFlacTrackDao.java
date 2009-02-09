@@ -6,8 +6,8 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 import org.springframework.beans.factory.annotation.Required;
 
-import uk.co.unclealex.music.core.dao.FlacTrackDao;
-import uk.co.unclealex.music.core.model.FlacTrackBean;
+import uk.co.unclealex.music.base.dao.FlacTrackDao;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
 
 public class TestFlacTrackDao implements FlacTrackDao {
 

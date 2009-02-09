@@ -9,11 +9,11 @@ import java.util.TreeMap;
 
 import org.apache.commons.io.FileUtils;
 
-import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.dao.OwnerDao;
-import uk.co.unclealex.music.core.model.DeviceBean;
-import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.service.DeviceService;
+import uk.co.unclealex.music.base.dao.EncoderDao;
+import uk.co.unclealex.music.base.dao.OwnerDao;
+import uk.co.unclealex.music.base.model.DeviceBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.service.DeviceService;
 import uk.co.unclealex.music.core.service.DeviceServiceImpl;
 
 public class TestDeviceService extends DeviceServiceImpl implements

@@ -2,7 +2,7 @@ package uk.co.unclealex.music.encoder;
 
 import java.util.List;
 
-import uk.co.unclealex.music.core.SlimServerConfig;
+import uk.co.unclealex.music.base.SlimServerConfig;
 
 public class TestSlimServerConfig implements SlimServerConfig {
 	

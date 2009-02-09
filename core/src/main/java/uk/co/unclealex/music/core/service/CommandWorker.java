@@ -5,6 +5,8 @@ import java.util.concurrent.BlockingQueue;
 
 import org.apache.log4j.Logger;
 
+import uk.co.unclealex.music.base.service.CommandBean;
+
 
 public abstract class CommandWorker<E extends CommandBean<E>> extends Thread {
 

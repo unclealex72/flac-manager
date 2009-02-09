@@ -22,9 +22,9 @@
 		<property name="url" value="jdbc:derby:/tmp/music-temp-db-dir;create=true"/>
 	</bean>
 
-	<bean id="deviceService" class="uk.co.unclealex.music.core.service.TestDeviceService"/>
+	<bean id="deviceService" class="uk.co.unclealex.music.base.service.TestDeviceService"/>
 	
-	<bean id="slimServerConfig" class="uk.co.unclealex.music.core.TestSlimServerConfig">
+	<bean id="slimServerConfig" class="uk.co.unclealex.music.base.TestSlimServerConfig">
 		<property name="definiteArticles">
 			<list>
 				<value>The</value>
@@ -32,7 +32,7 @@
 		</property>
 	</bean>
 	
-	<bean id="abstractRepositoryManager" class="uk.co.unclealex.music.core.service.filesystem.TestRepositoryManager" abstract="true">
+	<bean id="abstractRepositoryManager" class="uk.co.unclealex.music.base.service.filesystem.TestRepositoryManager" abstract="true">
 		<property name="baseDirectory" value="/"/>
 	</bean>
 	

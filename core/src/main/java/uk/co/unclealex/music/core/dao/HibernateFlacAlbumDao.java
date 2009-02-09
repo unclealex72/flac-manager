@@ -5,8 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import uk.co.unclealex.music.core.model.FlacAlbumBean;
-import uk.co.unclealex.music.core.model.FlacArtistBean;
+import uk.co.unclealex.music.base.dao.FlacAlbumDao;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.FlacArtistBean;
 
 @Repository
 public class HibernateFlacAlbumDao extends HibernateCodeDao<FlacAlbumBean> implements

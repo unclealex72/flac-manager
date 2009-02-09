@@ -2,7 +2,7 @@ package uk.co.unclealex.music.encoder.service;
 
 import org.apache.commons.collections15.Transformer;
 
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
 
 public class EncoderUrlPair implements Comparable<EncoderUrlPair>{
 

@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import uk.co.unclealex.music.core.image.Album;
+import uk.co.unclealex.music.base.image.Album;
+import uk.co.unclealex.music.base.image.SearchManager;
 import uk.co.unclealex.music.core.image.AlbumComparator;
-import uk.co.unclealex.music.core.image.SearchManager;
 
 /**
  * @author alex

@@ -6,7 +6,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
 
-import uk.co.unclealex.music.core.model.SlimServerInformationBean;
+import uk.co.unclealex.music.base.dao.SlimServerInformationDao;
+import uk.co.unclealex.music.base.model.SlimServerInformationBean;
 
 @Repository
 public class HibernateSlimServerInformationDao extends HibernateDaoSupport implements

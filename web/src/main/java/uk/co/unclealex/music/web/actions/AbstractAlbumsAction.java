@@ -7,9 +7,9 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import uk.co.unclealex.music.albumcover.service.AlbumCoverService;
-import uk.co.unclealex.music.core.model.AlbumCoverBean;
-import uk.co.unclealex.music.core.model.FlacAlbumBean;
-import uk.co.unclealex.music.core.model.FlacArtistBean;
+import uk.co.unclealex.music.base.model.AlbumCoverBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.FlacArtistBean;
 import uk.co.unclealex.music.web.model.FlacAlbumWithCoverBean;
 
 import com.opensymphony.xwork2.Preparable;

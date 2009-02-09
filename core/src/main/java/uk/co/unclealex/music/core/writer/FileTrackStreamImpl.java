@@ -7,7 +7,8 @@ import java.io.OutputStream;
 
 import org.apache.commons.lang.ObjectUtils;
 
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.writer.FileTrackStream;
 import uk.co.unclealex.spring.Prototype;
 
 @Prototype

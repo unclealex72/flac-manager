@@ -3,6 +3,8 @@ package uk.co.unclealex.music.core.writer;
 import java.io.IOException;
 import java.util.LinkedList;
 
+import uk.co.unclealex.music.base.writer.Progress;
+import uk.co.unclealex.music.base.writer.WritingListener;
 import uk.co.unclealex.music.core.log.FormattableLogger;
 
 public class ProgressWritingListener implements WritingListener {

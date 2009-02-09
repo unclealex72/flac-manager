@@ -37,21 +37,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.albumcover.service.AlbumCoverService;
-import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
-import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.dao.FlacTrackDao;
-import uk.co.unclealex.music.core.model.EncodedAlbumBean;
-import uk.co.unclealex.music.core.model.EncodedArtistBean;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.model.FlacAlbumBean;
-import uk.co.unclealex.music.core.model.FlacTrackBean;
+import uk.co.unclealex.music.base.dao.EncodedAlbumDao;
+import uk.co.unclealex.music.base.dao.EncodedTrackDao;
+import uk.co.unclealex.music.base.dao.EncoderDao;
+import uk.co.unclealex.music.base.dao.FlacTrackDao;
+import uk.co.unclealex.music.base.model.EncodedAlbumBean;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.service.EncodedService;
+import uk.co.unclealex.music.base.service.FlacService;
+import uk.co.unclealex.music.base.service.OwnerService;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
 import uk.co.unclealex.music.core.service.CommandWorker;
-import uk.co.unclealex.music.core.service.EncodedService;
-import uk.co.unclealex.music.core.service.FlacService;
-import uk.co.unclealex.music.core.service.OwnerService;
-import uk.co.unclealex.music.core.service.filesystem.RepositoryManager;
 
 @Service
 @Transactional

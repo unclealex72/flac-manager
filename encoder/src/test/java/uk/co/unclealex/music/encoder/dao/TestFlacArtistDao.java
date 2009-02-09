@@ -6,8 +6,8 @@ import java.util.TreeSet;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 
-import uk.co.unclealex.music.core.dao.FlacArtistDao;
-import uk.co.unclealex.music.core.model.FlacArtistBean;
+import uk.co.unclealex.music.base.dao.FlacArtistDao;
+import uk.co.unclealex.music.base.model.FlacArtistBean;
 
 public class TestFlacArtistDao implements FlacArtistDao {
 

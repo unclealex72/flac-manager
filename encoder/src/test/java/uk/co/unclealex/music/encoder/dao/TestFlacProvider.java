@@ -16,10 +16,10 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 
-import uk.co.unclealex.music.core.model.AbstractFlacBean;
-import uk.co.unclealex.music.core.model.FlacAlbumBean;
-import uk.co.unclealex.music.core.model.FlacArtistBean;
-import uk.co.unclealex.music.core.model.FlacTrackBean;
+import uk.co.unclealex.music.base.model.AbstractFlacBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.FlacArtistBean;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
 
 public class TestFlacProvider {
 

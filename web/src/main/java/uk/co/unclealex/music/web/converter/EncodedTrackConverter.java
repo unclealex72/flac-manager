@@ -2,9 +2,9 @@ package uk.co.unclealex.music.web.converter;
 
 import com.opensymphony.xwork2.conversion.annotations.Conversion;
 
-import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.dao.KeyedReadOnlyDao;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.dao.EncodedTrackDao;
+import uk.co.unclealex.music.base.dao.KeyedReadOnlyDao;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
 
 @Conversion
 public class EncodedTrackConverter extends KeyedConverter<EncodedTrackBean> {

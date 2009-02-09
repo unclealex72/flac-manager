@@ -8,15 +8,16 @@ import org.hibernate.Session;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.io.KnownLengthInputStream;
-import uk.co.unclealex.music.core.io.KnownLengthInputStreamCallback;
+import uk.co.unclealex.music.base.dao.Streamer;
+import uk.co.unclealex.music.base.io.KnownLengthInputStream;
+import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
 
 @Service
 @Transactional
 public class StreamerImpl implements Streamer {
 
 	/* (non-Javadoc)
-	 * @see uk.co.unclealex.music.core.dao.Streamer#stream(org.hibernate.Session, java.lang.String, java.lang.String, int, uk.co.unclealex.music.core.io.KnownLengthInputStreamCallback)
+	 * @see uk.co.unclealex.music.base.dao.Streamer#stream(org.hibernate.Session, java.lang.String, java.lang.String, int, uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback)
 	 */
 	public void stream(Session session, String fieldName, String entityName, int id, KnownLengthInputStreamCallback callback ) throws IOException {
 		Query query =

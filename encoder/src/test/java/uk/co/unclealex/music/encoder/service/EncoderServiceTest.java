@@ -20,18 +20,18 @@ import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.springframework.beans.factory.annotation.Required;
 
-import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.dao.FlacTrackDao;
-import uk.co.unclealex.music.core.dao.SlimServerInformationDao;
-import uk.co.unclealex.music.core.io.DataExtractor;
-import uk.co.unclealex.music.core.io.DataInjector;
-import uk.co.unclealex.music.core.io.InputStreamCopier;
-import uk.co.unclealex.music.core.io.KnownLengthInputStream;
-import uk.co.unclealex.music.core.io.KnownLengthOutputStream;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.model.FlacTrackBean;
+import uk.co.unclealex.music.base.dao.EncodedTrackDao;
+import uk.co.unclealex.music.base.dao.EncoderDao;
+import uk.co.unclealex.music.base.dao.FlacTrackDao;
+import uk.co.unclealex.music.base.dao.SlimServerInformationDao;
+import uk.co.unclealex.music.base.io.DataExtractor;
+import uk.co.unclealex.music.base.io.DataInjector;
+import uk.co.unclealex.music.base.io.InputStreamCopier;
+import uk.co.unclealex.music.base.io.KnownLengthInputStream;
+import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
 import uk.co.unclealex.music.encoder.EncoderSpringTest;
 import uk.co.unclealex.music.encoder.dao.TestFlacProvider;
 import uk.co.unclealex.music.encoder.dao.TestSlimServerInformationDao;
@@ -96,7 +96,7 @@ public class EncoderServiceTest extends EncoderSpringTest {
 		}
 		
 		@Override
-		protected void setLength(int length) throws IOException {
+		public void setLength(int length) throws IOException {
 			// Ignore
 		}
 		

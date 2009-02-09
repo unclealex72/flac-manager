@@ -17,7 +17,7 @@ import org.apache.jackrabbit.webdav.simple.SimpleWebdavServlet;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import uk.co.unclealex.music.core.service.filesystem.RepositoryManager;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
 
 public class SpringWebdavServlet extends SimpleWebdavServlet {
 	

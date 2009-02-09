@@ -6,7 +6,7 @@ import java.io.IOException;
 
 import javax.jcr.RepositoryException;
 
-import uk.co.unclealex.music.core.model.AlbumCoverSize;
+import uk.co.unclealex.music.base.model.AlbumCoverSize;
 
 public class UploadAlbumCoverAction extends AbstractAlbumCoverAction {
 

@@ -45,13 +45,13 @@
 				<property name="hibernateProperties" ref="musicHibernateProperties"/>
 				<property name="annotatedClasses">
 					<list>
-						<value>uk.co.unclealex.music.core.model.EncodedTrackBean</value>
-						<value>uk.co.unclealex.music.core.model.EncoderBean</value>
-						<value>uk.co.unclealex.music.core.model.EncodedAlbumBean</value>
-						<value>uk.co.unclealex.music.core.model.EncodedArtistBean</value>
-						<value>uk.co.unclealex.music.core.model.OwnerBean</value>
-						<value>uk.co.unclealex.music.core.model.DeviceBean</value>
-						<value>uk.co.unclealex.music.core.model.AlbumCoverBean</value>
+						<value>uk.co.unclealex.music.base.model.EncodedTrackBean</value>
+						<value>uk.co.unclealex.music.base.model.EncoderBean</value>
+						<value>uk.co.unclealex.music.base.model.EncodedAlbumBean</value>
+						<value>uk.co.unclealex.music.base.model.EncodedArtistBean</value>
+						<value>uk.co.unclealex.music.base.model.OwnerBean</value>
+						<value>uk.co.unclealex.music.base.model.DeviceBean</value>
+						<value>uk.co.unclealex.music.base.model.AlbumCoverBean</value>
 					</list>
 				</property>
 			</bean>

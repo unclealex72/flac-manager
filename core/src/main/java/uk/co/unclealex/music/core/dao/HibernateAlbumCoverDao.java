@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.io.KnownLengthInputStreamCallback;
-import uk.co.unclealex.music.core.model.AlbumCoverBean;
+import uk.co.unclealex.music.base.dao.AlbumCoverDao;
+import uk.co.unclealex.music.base.dao.Streamer;
+import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
+import uk.co.unclealex.music.base.model.AlbumCoverBean;
 
 @Repository
 @Transactional

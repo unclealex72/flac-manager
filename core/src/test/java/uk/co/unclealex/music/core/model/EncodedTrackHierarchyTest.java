@@ -11,6 +11,9 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.lang.StringUtils;
 
+import uk.co.unclealex.music.base.model.EncodedAlbumBean;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.core.CoreSpringTest;
 
 public class EncodedTrackHierarchyTest extends CoreSpringTest {

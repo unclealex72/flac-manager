@@ -1,7 +1,7 @@
 package uk.co.unclealex.music.web.model;
 
-import uk.co.unclealex.music.core.model.AlbumCoverBean;
-import uk.co.unclealex.music.core.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.AlbumCoverBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
 
 public class FlacAlbumWithCoverBean implements Comparable<FlacAlbumWithCoverBean> {
 

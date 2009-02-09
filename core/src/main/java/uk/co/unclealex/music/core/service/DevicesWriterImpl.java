@@ -15,16 +15,19 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.model.DeviceBean;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.service.titleformat.TitleFormatService;
-import uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.base.model.DeviceBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.service.DeviceService;
+import uk.co.unclealex.music.base.service.DevicesWriter;
+import uk.co.unclealex.music.base.service.OwnerService;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatServiceFactory;
+import uk.co.unclealex.music.base.writer.TrackStream;
+import uk.co.unclealex.music.base.writer.TrackWriter;
+import uk.co.unclealex.music.base.writer.TrackWriterFactory;
+import uk.co.unclealex.music.base.writer.TrackWritingException;
+import uk.co.unclealex.music.base.writer.WritingListener;
 import uk.co.unclealex.music.core.writer.NoOpWritingListener;
-import uk.co.unclealex.music.core.writer.TrackStream;
-import uk.co.unclealex.music.core.writer.TrackWriter;
-import uk.co.unclealex.music.core.writer.TrackWriterFactory;
-import uk.co.unclealex.music.core.writer.TrackWritingException;
-import uk.co.unclealex.music.core.writer.WritingListener;
 import uk.co.unclealex.spring.Prototype;
 
 @Prototype

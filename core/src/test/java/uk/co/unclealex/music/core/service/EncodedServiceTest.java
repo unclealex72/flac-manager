@@ -5,12 +5,13 @@ import java.util.Collection;
 
 import org.apache.commons.collections15.CollectionUtils;
 
+import uk.co.unclealex.music.base.dao.EncodedAlbumDao;
+import uk.co.unclealex.music.base.dao.EncodedArtistDao;
+import uk.co.unclealex.music.base.dao.KeyedDao;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
+import uk.co.unclealex.music.base.model.IdentifiableBean;
+import uk.co.unclealex.music.base.service.EncodedService;
 import uk.co.unclealex.music.core.CoreSpringTest;
-import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
-import uk.co.unclealex.music.core.dao.EncodedArtistDao;
-import uk.co.unclealex.music.core.dao.KeyedDao;
-import uk.co.unclealex.music.core.model.EncodedArtistBean;
-import uk.co.unclealex.music.core.model.IdentifiableBean;
 import uk.co.unclealex.music.core.util.IdentifiableTransformer;
 
 public class EncodedServiceTest extends CoreSpringTest {

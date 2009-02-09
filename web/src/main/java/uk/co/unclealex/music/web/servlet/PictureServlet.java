@@ -11,9 +11,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 
-import uk.co.unclealex.music.core.io.DataExtractor;
-import uk.co.unclealex.music.core.io.InputStreamCopier;
-import uk.co.unclealex.music.core.io.KnownLengthOutputStream;
+import uk.co.unclealex.music.base.io.DataExtractor;
+import uk.co.unclealex.music.base.io.InputStreamCopier;
+import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
 
 public class PictureServlet extends AbstractServlet {
 
@@ -47,7 +47,7 @@ public class PictureServlet extends AbstractServlet {
 		resp.setContentType("image/" + extension);
 		KnownLengthOutputStream<ServletOutputStream> out = new KnownLengthOutputStream<ServletOutputStream>(resp.getOutputStream()) {
 			@Override
-			protected void setLength(int length) throws IOException {
+			public void setLength(int length) throws IOException {
 				resp.setContentLength(length);
 			}
 		};

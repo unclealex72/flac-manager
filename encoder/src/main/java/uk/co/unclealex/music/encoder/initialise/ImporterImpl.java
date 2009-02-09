@@ -14,15 +14,15 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.dao.FlacTrackDao;
-import uk.co.unclealex.music.core.initialise.TrackImporter;
-import uk.co.unclealex.music.core.io.DataExtractor;
-import uk.co.unclealex.music.core.io.InputStreamCopier;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.model.FlacTrackBean;
+import uk.co.unclealex.music.base.dao.EncodedTrackDao;
+import uk.co.unclealex.music.base.dao.EncoderDao;
+import uk.co.unclealex.music.base.dao.FlacTrackDao;
+import uk.co.unclealex.music.base.initialise.TrackImporter;
+import uk.co.unclealex.music.base.io.DataExtractor;
+import uk.co.unclealex.music.base.io.InputStreamCopier;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
 import uk.co.unclealex.music.encoder.service.EncoderService;
 
 @Service

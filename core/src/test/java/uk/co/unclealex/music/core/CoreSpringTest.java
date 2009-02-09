@@ -7,19 +7,19 @@ import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Required;
 
-import uk.co.unclealex.music.core.dao.DeviceDao;
-import uk.co.unclealex.music.core.dao.EncodedAlbumDao;
-import uk.co.unclealex.music.core.dao.EncodedArtistDao;
-import uk.co.unclealex.music.core.dao.EncodedTrackDao;
-import uk.co.unclealex.music.core.dao.EncoderDao;
-import uk.co.unclealex.music.core.dao.OwnerDao;
-import uk.co.unclealex.music.core.initialise.Initialiser;
-import uk.co.unclealex.music.core.initialise.TrackImporter;
-import uk.co.unclealex.music.core.model.EncodedAlbumBean;
-import uk.co.unclealex.music.core.model.EncodedArtistBean;
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.service.EncodedService;
+import uk.co.unclealex.music.base.dao.DeviceDao;
+import uk.co.unclealex.music.base.dao.EncodedAlbumDao;
+import uk.co.unclealex.music.base.dao.EncodedArtistDao;
+import uk.co.unclealex.music.base.dao.EncodedTrackDao;
+import uk.co.unclealex.music.base.dao.EncoderDao;
+import uk.co.unclealex.music.base.dao.OwnerDao;
+import uk.co.unclealex.music.base.initialise.Initialiser;
+import uk.co.unclealex.music.base.initialise.TrackImporter;
+import uk.co.unclealex.music.base.model.EncodedAlbumBean;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.service.EncodedService;
 
 public abstract class CoreSpringTest extends SpringTest {
 

@@ -2,8 +2,8 @@ package uk.co.unclealex.music.web.actions;
 
 import java.util.Collection;
 
-import uk.co.unclealex.music.core.model.FlacAlbumBean;
-import uk.co.unclealex.music.core.model.FlacArtistBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.FlacArtistBean;
 
 public class AlbumsForArtistAction extends AbstractAlbumsAction {
 

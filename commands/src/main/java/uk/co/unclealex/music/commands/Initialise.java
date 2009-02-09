@@ -2,7 +2,7 @@ package uk.co.unclealex.music.commands;
 
 import org.springframework.beans.factory.annotation.Required;
 
-import uk.co.unclealex.music.core.initialise.Initialiser;
+import uk.co.unclealex.music.base.initialise.Initialiser;
 import uk.co.unclealex.music.encoder.initialise.Importer;
 import uk.co.unclealex.music.encoder.service.EncoderService;
 

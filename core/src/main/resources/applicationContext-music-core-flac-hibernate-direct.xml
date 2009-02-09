@@ -34,10 +34,10 @@
 		</property>
 		<property name="annotatedClasses">
 			<list>
-				<value>uk.co.unclealex.music.core.model.FlacArtistBean</value>
-				<value>uk.co.unclealex.music.core.model.FlacAlbumBean</value>
-				<value>uk.co.unclealex.music.core.model.FlacTrackBean</value>
-				<value>uk.co.unclealex.music.core.model.SlimServerInformationBean</value>
+				<value>uk.co.unclealex.music.base.model.FlacArtistBean</value>
+				<value>uk.co.unclealex.music.base.model.FlacAlbumBean</value>
+				<value>uk.co.unclealex.music.base.model.FlacTrackBean</value>
+				<value>uk.co.unclealex.music.base.model.SlimServerInformationBean</value>
 			</list>
 		</property>
 	</bean>

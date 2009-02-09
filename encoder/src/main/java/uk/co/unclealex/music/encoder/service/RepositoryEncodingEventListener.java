@@ -4,9 +4,9 @@ import javax.jcr.RepositoryException;
 
 import org.apache.log4j.Logger;
 
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.model.FlacTrackBean;
-import uk.co.unclealex.music.core.service.filesystem.RepositoryManager;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
 
 public class RepositoryEncodingEventListener implements EncodingEventListener {
 

@@ -10,11 +10,14 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import uk.co.unclealex.music.base.process.service.ProcessResult;
+import uk.co.unclealex.music.base.process.service.ProcessService;
+
 @Service
 public class ProcessServiceImpl implements ProcessService {
 
 	/* (non-Javadoc)
-	 * @see uk.co.unclealex.music.core.core.process.service.ProcessService#run(java.lang.ProcessBuilder)
+	 * @see uk.co.unclealex.music.base.core.process.service.ProcessService#run(java.lang.ProcessBuilder)
 	 */
 	protected ProcessResult run(
 			ProcessBuilder processBuilder, InputStream in, Reader reader, boolean throwOnNonZeroReturn) throws IOException {

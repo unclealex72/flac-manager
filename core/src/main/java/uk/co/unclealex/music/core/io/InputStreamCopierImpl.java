@@ -7,6 +7,12 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.music.base.io.DataExtractor;
+import uk.co.unclealex.music.base.io.InputStreamCopier;
+import uk.co.unclealex.music.base.io.KnownLengthInputStream;
+import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
+import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
+
 @Transactional
 @Service
 public class InputStreamCopierImpl implements InputStreamCopier {
@@ -31,7 +37,7 @@ public class InputStreamCopierImpl implements InputStreamCopier {
 	public void copy(DataExtractor extractor, int id, OutputStream out) throws IOException {
 		KnownLengthOutputStream<OutputStream> kOut = new KnownLengthOutputStream<OutputStream>(out) {
 			@Override
-			protected void setLength(int length) throws IOException {
+			public void setLength(int length) throws IOException {
 				// Do nothing
 			}
 		};

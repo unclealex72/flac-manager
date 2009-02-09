@@ -2,7 +2,7 @@ package uk.co.unclealex.music.core.util;
 
 import org.apache.commons.collections15.Transformer;
 
-import uk.co.unclealex.music.core.model.Identifiable;
+import uk.co.unclealex.music.base.model.Identifiable;
 
 public class IdentifiableTransformer<I extends Comparable<I>> implements Transformer<Identifiable<I>, I> {
 

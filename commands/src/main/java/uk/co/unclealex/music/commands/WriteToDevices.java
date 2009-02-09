@@ -1,7 +1,7 @@
 package uk.co.unclealex.music.commands;
 
-import uk.co.unclealex.music.core.service.DeviceService;
-import uk.co.unclealex.music.core.service.EncodedService;
+import uk.co.unclealex.music.base.service.DeviceService;
+import uk.co.unclealex.music.base.service.EncodedService;
 
 @uk.co.unclealex.spring.Main
 public class WriteToDevices extends Main {

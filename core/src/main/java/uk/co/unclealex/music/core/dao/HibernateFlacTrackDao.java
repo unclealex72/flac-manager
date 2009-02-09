@@ -10,7 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import uk.co.unclealex.music.core.model.FlacTrackBean;
+import uk.co.unclealex.music.base.dao.FlacTrackDao;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
 
 @Repository
 public class HibernateFlacTrackDao extends HibernateKeyedReadOnlyDao<FlacTrackBean> implements FlacTrackDao {

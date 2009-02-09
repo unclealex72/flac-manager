@@ -2,6 +2,8 @@ package uk.co.unclealex.music.core.writer;
 
 import java.io.IOException;
 
+import uk.co.unclealex.music.base.writer.WritingListener;
+
 public abstract class NoOpWritingListener implements WritingListener {
 
 	@Override

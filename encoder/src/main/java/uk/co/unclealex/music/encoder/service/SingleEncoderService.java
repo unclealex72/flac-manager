@@ -7,9 +7,9 @@ import java.util.Map;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
-import uk.co.unclealex.music.core.model.EncoderBean;
-import uk.co.unclealex.music.core.model.FlacTrackBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
 
 public interface SingleEncoderService extends Serializable {
 

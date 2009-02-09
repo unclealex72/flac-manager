@@ -11,7 +11,7 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
-import uk.co.unclealex.music.core.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.spring.Prototype;
 
 @Prototype
@@ -81,7 +81,7 @@ public class ZipTrackStreamImpl implements ZipTrackStream {
 	}
 
 	/* (non-Javadoc)
-	 * @see uk.co.unclealex.music.core.core.encoded.writer.ZipTrackWriter#setZipOutputStream(java.util.zip.ZipOutputStream)
+	 * @see uk.co.unclealex.music.base.core.encoded.writer.ZipTrackWriter#setZipOutputStream(java.util.zip.ZipOutputStream)
 	 */
 	public void setZipOutputStream(ZipOutputStream zipOutputStream) {
 		i_zipOutputStream = zipOutputStream;

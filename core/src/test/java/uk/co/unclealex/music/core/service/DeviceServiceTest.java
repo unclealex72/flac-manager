@@ -13,13 +13,14 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 
+import uk.co.unclealex.music.base.dao.OwnerDao;
+import uk.co.unclealex.music.base.model.DeviceBean;
+import uk.co.unclealex.music.base.model.EncodedAlbumBean;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
+import uk.co.unclealex.music.base.model.OwnerBean;
+import uk.co.unclealex.music.base.service.DeviceService;
+import uk.co.unclealex.music.base.writer.TrackWritingException;
 import uk.co.unclealex.music.core.CoreSpringTest;
-import uk.co.unclealex.music.core.dao.OwnerDao;
-import uk.co.unclealex.music.core.model.DeviceBean;
-import uk.co.unclealex.music.core.model.EncodedAlbumBean;
-import uk.co.unclealex.music.core.model.EncodedArtistBean;
-import uk.co.unclealex.music.core.model.OwnerBean;
-import uk.co.unclealex.music.core.writer.TrackWritingException;
 
 public class DeviceServiceTest extends CoreSpringTest {
 
