@@ -13,6 +13,8 @@
     <module>encoder</module>
     <module>album-covers</module>
     <module>web</module>
+    <module>repository-server</module>
+    <module>repository-client</module>
   </modules>
 
   <properties>
