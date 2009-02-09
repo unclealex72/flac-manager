@@ -3,7 +3,7 @@ package uk.co.unclealex.music.core.service;
 import java.util.SortedMap;
 
 import uk.co.unclealex.music.core.model.DeviceBean;
-import uk.co.unclealex.music.core.writer.ProgressWritingListener;
+import uk.co.unclealex.music.core.writer.WritingListener;
 
 public interface ProgressWritingListenerService {
 
@@ -12,11 +12,11 @@ public interface ProgressWritingListenerService {
 	 * @param deviceBean
 	 * @return The created listener or null if one already exists.
 	 */
-	public ProgressWritingListener createNewListener(DeviceBean deviceBean);
+	public WritingListener createNewListener(DeviceBean deviceBean);
 	
-	public SortedMap<DeviceBean, ProgressWritingListener> getAllListeners();
+	public SortedMap<DeviceBean, WritingListener> getAllListeners();
 	
-	public void unregisterListener(DeviceBean deviceBean, ProgressWritingListener progressProgressWritingListener);
+	public void unregisterListener(DeviceBean deviceBean, WritingListener writingListener);
 
 	public boolean hasProgressWritingListener(DeviceBean deviceBean);
 }

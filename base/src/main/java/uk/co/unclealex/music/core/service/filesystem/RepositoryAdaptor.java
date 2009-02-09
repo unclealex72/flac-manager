@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.apache.commons.collections15.Transformer;
 
-public interface RepositoryAdaptor<E> extends Transformer<E, Set<FileCommandBean>> {
+public interface RepositoryAdaptor<E> extends Transformer<E, Set<FileCommandBean>>{
 
 	public Set<E> getAllElements();
 	

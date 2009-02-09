@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.core.model.DeviceBean;
 import uk.co.unclealex.music.core.writer.ProgressWritingListener;
+import uk.co.unclealex.music.core.writer.WritingListener;
 
 @Service
 public class ProgressWritingListenerServiceImpl implements ProgressWritingListenerService {
@@ -17,7 +18,7 @@ public class ProgressWritingListenerServiceImpl implements ProgressWritingListen
 		new ConcurrentHashMap<DeviceBean, ProgressWritingListener>();
 	
 	@Override
-	public ProgressWritingListener createNewListener(DeviceBean deviceBean) {
+	public WritingListener createNewListener(DeviceBean deviceBean) {
 		ConcurrentMap<DeviceBean, ProgressWritingListener> progressWritingListeners = getProgressWritingListeners();
 		ProgressWritingListener progressWritingListener = new ProgressWritingListener();
 		if (progressWritingListeners.putIfAbsent(deviceBean, progressWritingListener) == null) {
@@ -29,12 +30,12 @@ public class ProgressWritingListenerServiceImpl implements ProgressWritingListen
 	}
 
 	@Override
-	public SortedMap<DeviceBean, ProgressWritingListener> getAllListeners() {
-		return new TreeMap<DeviceBean, ProgressWritingListener>(getProgressWritingListeners());
+	public SortedMap<DeviceBean, WritingListener> getAllListeners() {
+		return new TreeMap<DeviceBean, WritingListener>(getProgressWritingListeners());
 	}
 
 	@Override
-	public void unregisterListener(DeviceBean deviceBean, ProgressWritingListener progressWritingListener) {
+	public void unregisterListener(DeviceBean deviceBean, WritingListener progressWritingListener) {
 		getProgressWritingListeners().remove(deviceBean, progressWritingListener);
 	}
 

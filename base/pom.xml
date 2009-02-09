@@ -28,6 +28,22 @@
 			<artifactId>jcr</artifactId>
 			<version>1.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>${spring-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>uk.co.unclealex</groupId>
+			<artifactId>hibernate-support</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.collections</groupId>
+			<artifactId>collections-generic</artifactId>
+			<version>4.01</version>
+		</dependency>
+
 	</dependencies>
 
 </project>

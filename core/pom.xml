@@ -13,10 +13,9 @@
 	<packaging>jar</packaging>
 	<dependencies>
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>5.0.5</version>
-			<scope>provided</scope>
+			<groupId>uk.co.unclealex.music</groupId>
+			<artifactId>base</artifactId>
+			<version>${version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-lang</groupId>
@@ -39,11 +38,6 @@
 			<version>3.2</version>
 		</dependency>
 		<dependency>
-			<groupId>net.sourceforge.collections</groupId>
-			<artifactId>collections-generic</artifactId>
-			<version>4.01</version>
-		</dependency>
-		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.13</version>
@@ -51,11 +45,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
-			<version>${spring-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jdbc</artifactId>
 			<version>${spring-version}</version>
 		</dependency>
 		<dependency>
@@ -77,16 +66,6 @@
 			<groupId>uk.co.unclealex</groupId>
 			<artifactId>spring-support</artifactId>
 			<version>${spring-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.co.unclealex</groupId>
-			<artifactId>tree</artifactId>
-			<version>1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.co.unclealex</groupId>
-			<artifactId>hibernate-support</artifactId>
-			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
