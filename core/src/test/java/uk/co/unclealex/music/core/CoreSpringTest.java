@@ -20,6 +20,7 @@ import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.service.EncodedService;
+import uk.co.unclealex.music.test.SpringTest;
 
 public abstract class CoreSpringTest extends SpringTest {
 

@@ -19,6 +19,7 @@ import uk.co.unclealex.music.base.model.EncodedAlbumBean;
 import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.OwnerBean;
 import uk.co.unclealex.music.base.service.DeviceService;
+import uk.co.unclealex.music.base.service.DeviceWriter;
 import uk.co.unclealex.music.base.writer.TrackWritingException;
 import uk.co.unclealex.music.core.CoreSpringTest;
 
@@ -55,6 +56,7 @@ public class DeviceServiceTest extends CoreSpringTest {
 	}
 	
 	private DeviceService i_deviceService;
+	private DeviceWriter i_deviceWriter;
 	
 	@Override
 	protected long getEncodingTime() {
@@ -84,6 +86,7 @@ public class DeviceServiceTest extends CoreSpringTest {
 	
 	public void testWriteToAll() throws IOException, TrackWritingException {
 		DeviceService deviceService = getDeviceService();
+		DeviceWriter deviceWriter = getDeviceWriter();
 		SortedMap<DeviceBean, String> pathsByDeviceBean = deviceService.findDevicesAndFiles();
 		try {
 			for (Map.Entry<DeviceBean, String> entry : pathsByDeviceBean.entrySet()) {
@@ -93,7 +96,7 @@ public class DeviceServiceTest extends CoreSpringTest {
 				createFile(DATA_FILE_A, root, entry.getKey());
 				createFile(DATA_FILE_B, root, entry.getKey());
 			}		
-			deviceService.writeToAllDevices();
+			deviceWriter.writeToAllDevices();
 			for (Map.Entry<DeviceBean, String> entry : pathsByDeviceBean.entrySet()) {
 				DeviceBean deviceBean = entry.getKey();
 				File path = new File(entry.getValue());
@@ -179,5 +182,13 @@ public class DeviceServiceTest extends CoreSpringTest {
 	
 	public void setDeviceService(DeviceService deviceService) {
 		i_deviceService = deviceService;
+	}
+
+	public DeviceWriter getDeviceWriter() {
+		return i_deviceWriter;
+	}
+
+	public void setDeviceWriter(DeviceWriter deviceWriter) {
+		i_deviceWriter = deviceWriter;
 	}
 }

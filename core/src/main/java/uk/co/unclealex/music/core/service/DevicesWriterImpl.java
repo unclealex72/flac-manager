@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.co.unclealex.music.base.model.DeviceBean;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.service.DeviceService;
+import uk.co.unclealex.music.base.service.DeviceWriter;
 import uk.co.unclealex.music.base.service.DevicesWriter;
 import uk.co.unclealex.music.base.service.OwnerService;
 import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
@@ -40,6 +41,7 @@ public class DevicesWriterImpl implements DevicesWriter {
 	private TrackWriterFactory i_trackWriterFactory;
 	private TitleFormatServiceFactory i_titleFormatServiceFactory;
 	private DeviceService i_deviceService;
+	private DeviceWriter i_deviceWriter;
 	
 	private Map<DeviceBean, File> i_deviceDirectories = new TreeMap<DeviceBean, File>();
 	private Map<DeviceBean, Collection<WritingListener>> i_writingListeners = 
@@ -112,7 +114,7 @@ public class DevicesWriterImpl implements DevicesWriter {
 		
 		@Override
 		public void beforeFileWrites() throws IOException {
-			getDeviceService().removeMusicFolders(deviceBean, mountPoint);
+			getDeviceWriter().removeMusicFolders(deviceBean, mountPoint);
 		}
 		
 		@Override
@@ -202,6 +204,14 @@ public class DevicesWriterImpl implements DevicesWriter {
 	@Required
 	public void setDeviceService(DeviceService deviceService) {
 		i_deviceService = deviceService;
+	}
+
+	public DeviceWriter getDeviceWriter() {
+		return i_deviceWriter;
+	}
+
+	public void setDeviceWriter(DeviceWriter deviceWriter) {
+		i_deviceWriter = deviceWriter;
 	}
 
 }

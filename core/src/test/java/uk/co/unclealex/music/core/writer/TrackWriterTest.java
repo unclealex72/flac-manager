@@ -17,6 +17,7 @@ import uk.co.unclealex.music.base.writer.TrackStream;
 import uk.co.unclealex.music.base.writer.TrackWriter;
 import uk.co.unclealex.music.base.writer.TrackWriterFactory;
 import uk.co.unclealex.music.core.CoreSpringTest;
+import uk.co.unclealex.music.test.TestTrackStreamImpl;
 
 public class TrackWriterTest extends CoreSpringTest {
 

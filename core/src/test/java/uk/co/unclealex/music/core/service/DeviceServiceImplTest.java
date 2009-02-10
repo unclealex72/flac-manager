@@ -5,19 +5,20 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import junit.framework.TestCase;
-
 import org.apache.commons.io.FileUtils;
 
-import uk.co.unclealex.music.core.service.DeviceServiceImpl;
+import uk.co.unclealex.music.base.service.DeviceWriter;
+import uk.co.unclealex.music.core.CoreSpringTest;
 
-public class DeviceServiceImplTest extends TestCase {
+public class DeviceServiceImplTest extends CoreSpringTest {
 
+	private DeviceWriter i_deviceWriter;
+	
 	public void testFindMusicFiles() throws IOException {
+		DeviceWriterImpl deviceWriter = (DeviceWriterImpl) getDeviceWriter();
 		String[] paths = { "xyz/123/out.mp3", "xyz/123/time.out", "abc/123/ketchup.sauce"};
 		File dir = createFiles(paths);
 		try {
-			DeviceServiceImpl deviceServiceImpl = new DeviceServiceImpl();
 			Map<File, Boolean> tests = new LinkedHashMap<File, Boolean>();
 			tests.put(new File(dir, "xyz"), true);
 			tests.put(new File(dir, "abc"), false);
@@ -26,9 +27,9 @@ public class DeviceServiceImplTest extends TestCase {
 				assertEquals(
 						"Testing looking for music files in directory " + directory + " failed.",
 						entry.getValue().booleanValue(), 
-						deviceServiceImpl.containsMusicFile(directory, "mp3"));			
+						deviceWriter.containsMusicFile(directory, "mp3"));			
 			}
-			deviceServiceImpl.removeMusicFolders("mp3", dir);
+			deviceWriter.removeMusicFolders("mp3", dir);
 			for (Map.Entry<File, Boolean> entry : tests.entrySet()) {
 				File directory = entry.getKey();
 				assertEquals(
@@ -53,5 +54,13 @@ public class DeviceServiceImplTest extends TestCase {
 			f.createNewFile();
 		}
 		return tempDir;
+	}
+
+	public DeviceWriter getDeviceWriter() {
+		return i_deviceWriter;
+	}
+
+	public void setDeviceWriter(DeviceWriter deviceWriter) {
+		i_deviceWriter = deviceWriter;
 	}
 }
