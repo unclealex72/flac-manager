@@ -17,6 +17,11 @@
 			<artifactId>base</artifactId>
 			<version>${version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springmodules</groupId>
+			<artifactId>springmodules-jcr</artifactId>
+			<version>0.9</version>
+		</dependency>
 	</dependencies>
 
 </project>

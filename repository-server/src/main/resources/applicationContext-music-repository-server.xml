@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+  default-autowire="byName">
+  	
+	<bean id="abstractRepositoryManager" class="uk.co.unclealex.music.repositoryserver.service.filesystem.RepositoryManagerImpl" abstract="true">
+		<property name="baseDirectory" value="/home/java/music"/>
+	</bean>
+	
+	<bean id="abstractRepository" class="org.springmodules.jcr.jackrabbit.TransientRepositoryFactoryBean" abstract="true">
+	  <property name="configuration" value="classpath*:org/apache/jackrabbit/core/repository.xml"/>
+	</bean>
+
+	<bean id="coversRepository" parent="abstractRepository">
+		<property name="homeDir" value="/home/music/repositories/covers"/>
+	</bean>
+	
+	<bean id="encodedRepository" parent="abstractRepository">
+		<property name="homeDir" value="/home/music/repositories/covers"/>
+	</bean>
+
+	<bean id="jcrPassword" class="java.lang.String">
+		<constructor-arg value="alex"/>
+	</bean>
+	
+	<bean id="abstractJcrSessionFactory" class="org.springmodules.jcr.JcrSessionFactory" abstract="true">
+		<property name="credentials">
+			<bean class="javax.jcr.SimpleCredentials">
+				<constructor-arg value="alex"/>
+				<constructor-arg>
+					<bean factory-bean="jcrPassword" factory-method="toCharArray"/>
+				</constructor-arg>
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="coversRepositoryManager" class="uk.co.unclealex.music.repositoryserver.service.filesystem.RepositoryManagerImpl">
+		<property name="repositoryAdaptor">
+			<bean class="uk.co.unclealex.music.repositoryserver.service.filesystem.CoversRepositoryAdaptor"/>
+		</property>
+		<property name="sessionFactory">
+			<bean parent="abstractJcrSessionFactory">
+				<property name="repository" ref="coversRepository"/>
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="encodedRepositoryManager" parent="abstractRepositoryManager">
+		<property name="repositoryAdaptor">
+			<bean class="uk.co.unclealex.music.repositoryserver.service.filesystem.EncodedRepositoryAdaptor">
+				<property name="titleFormats">
+					<bean class="org.springframework.beans.factory.config.ListFactoryBean">
+						<property name="sourceList">
+							<list>
+								<value>${owner}/${ext}/${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
+							</list>
+						</property>
+					</bean>
+				</property>
+			</bean>
+		</property>
+		<property name="sessionFactory">
+			<bean parent="abstractJcrSessionFactory">
+				<property name="repository" ref="encodedRepository"/>
+			</bean>
+		</property>
+	</bean>
+</beans>
+
+
