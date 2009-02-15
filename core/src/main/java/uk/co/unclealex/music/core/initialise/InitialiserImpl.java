@@ -27,6 +27,7 @@ import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.model.KeyedBean;
 import uk.co.unclealex.music.base.model.OwnerBean;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
 
 @Service
 @Transactional
@@ -41,6 +42,8 @@ public class InitialiserImpl implements Initialiser {
 	private EncodedAlbumDao i_encodedAlbumDao;
 	private EncodedArtistDao i_encodedArtistDao;
 	private AlbumCoverDao i_albumCoverDao;
+	private RepositoryManager i_coversRepositoryManager;
+	private RepositoryManager i_encodedRepositoryManager;
 	
 	public void initialise() throws IOException {
 		log.info("Initialising defaults.");
@@ -59,6 +62,11 @@ public class InitialiserImpl implements Initialiser {
 		}
 		for (DeviceBean deviceBean : new DeviceBean[] { toughDrive, iriver120, iriver140 }) {
 			getDeviceDao().store(deviceBean);
+		}
+		for (
+			RepositoryManager repositoryManager : 
+			new RepositoryManager[] { getEncodedRepositoryManager(), getCoversRepositoryManager() }) {
+			repositoryManager.clear();
 		}
 	}
 
@@ -109,6 +117,8 @@ public class InitialiserImpl implements Initialiser {
 		removeAll(getDeviceDao());
 		removeAll(getOwnerDao());
 		removeAll(getEncoderDao());
+		getEncodedRepositoryManager().clear();
+		getCoversRepositoryManager().clear();
 	}
 
 	protected <T extends KeyedBean<T>> void removeAll(KeyedDao<T> dao) {
@@ -177,5 +187,24 @@ public class InitialiserImpl implements Initialiser {
 
 	public void setAlbumCoverDao(AlbumCoverDao albumCoverDao) {
 		i_albumCoverDao = albumCoverDao;
+	}
+
+	public RepositoryManager getCoversRepositoryManager() {
+		return i_coversRepositoryManager;
+	}
+
+	@Required
+	public void setCoversRepositoryManager(RepositoryManager coversRepositoryManager) {
+		i_coversRepositoryManager = coversRepositoryManager;
+	}
+
+	public RepositoryManager getEncodedRepositoryManager() {
+		return i_encodedRepositoryManager;
+	}
+
+	@Required
+	public void setEncodedRepositoryManager(
+			RepositoryManager encodedRepositoryManager) {
+		i_encodedRepositoryManager = encodedRepositoryManager;
 	}
 }

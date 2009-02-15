@@ -57,7 +57,8 @@ public class DeviceWriterImpl implements DeviceWriter {
 		}
 	}
 	
-	protected boolean containsMusicFile(File dir, String extension) {
+	@Override
+	public boolean containsMusicFile(File dir, String extension) {
 		boolean found = false;
 		File[] files = dir.listFiles();
 		for (int idx = 0; !found && idx < files.length; idx++ ) {

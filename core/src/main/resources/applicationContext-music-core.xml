@@ -21,14 +21,6 @@
 			<value>${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
 		</property>
 	</bean>
-
-	<bean id="fileSystemTitleFormats" class="org.springframework.beans.factory.config.ListFactoryBean">
-		<property name="sourceList">
-			<list>
-				<value>${owner}/${ext}/${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
-			</list>
-		</property>
-	</bean>
 	
 	<bean id="titleFormat" factory-bean="titleFormatFactory" factory-method="getDefaultTitleFormat"/>
 	
@@ -36,28 +28,6 @@
 		<constructor-arg value="/var/lib/squeezecenter/prefs/server.prefs"/>
 	</bean>
 	
-	<bean id="abstractRepositoryManager" class="uk.co.unclealex.music.core.service.filesystem.RepositoryManagerImpl" abstract="true">
-		<property name="baseDirectory" value="/home/java/music"/>
-	</bean>
-	
-	<bean id="coversRepositoryManager" parent="abstractRepositoryManager">
-		<property name="repositoryAdaptor">
-			<bean class="uk.co.unclealex.music.core.service.filesystem.CoversRepositoryAdaptor"/>
-		</property>
-		<property name="repositoryRootPath" value="covers"/>
-		<property name="dataExtractor" ref="albumCoverDataExtractor"/>
-	</bean>
-	
-	<bean id="encodedRepositoryManager" parent="abstractRepositoryManager">
-		<property name="repositoryAdaptor">
-			<bean class="uk.co.unclealex.music.core.service.filesystem.EncodedRepositoryAdaptor">
-				<property name="titleFormats" ref="fileSystemTitleFormats"/>
-			</bean>
-		</property>
-		<property name="repositoryRootPath" value="encoded"/>
-		<property name="dataExtractor" ref="encodedTrackDataExtractor"/>
-	</bean>
-
 	<alias name="albumThumbnailDataManager" alias="albumThumbnailDataInjector"/>
 	<alias name="albumCoverDataManager" alias="albumCoverDataInjector"/>
 	<alias name="encodedTrackDataManager" alias="encodedTrackDataInjector"/>

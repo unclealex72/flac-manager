@@ -15,7 +15,7 @@ public class DeviceServiceImplTest extends CoreSpringTest {
 	private DeviceWriter i_deviceWriter;
 	
 	public void testFindMusicFiles() throws IOException {
-		DeviceWriterImpl deviceWriter = (DeviceWriterImpl) getDeviceWriter();
+		DeviceWriter deviceWriter = getDeviceWriter();
 		String[] paths = { "xyz/123/out.mp3", "xyz/123/time.out", "abc/123/ketchup.sauce"};
 		File dir = createFiles(paths);
 		try {

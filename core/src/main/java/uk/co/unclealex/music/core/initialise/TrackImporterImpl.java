@@ -33,11 +33,10 @@ public class TrackImporterImpl implements TrackImporter {
 	private DataInjector<EncodedTrackBean> i_encodedTrackDataInjector;
 	
 	@Override
-	@Transactional(propagation=Propagation.REQUIRES_NEW)
+	@Transactional(propagation=Propagation.REQUIRES_NEW, rollbackFor=IOException.class)
 	public EncodedTrackBean importTrack(
 			InputStream in, int length, EncoderBean encoderBean, 
 			String title, String url, int trackNumber, long lastModifiedMillis, EncodedAlbumBean encodedAlbumBean) throws IOException {
-		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
 		EncodedTrackBean encodedTrackBean = new EncodedTrackBean();
 		encodedTrackBean.setEncoderBean(encoderBean);
 		encodedTrackBean.setFlacUrl(url);
@@ -47,9 +46,7 @@ public class TrackImporterImpl implements TrackImporter {
 		getEncodedService().injectFilename(encodedTrackBean);
 		encodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
 		getEncodedTrackDataInjector().injectData(encodedTrackBean, new KnownLengthInputStream(in, length));
-		encodedTrackDao.store(encodedTrackBean);
 		log.info("Stored " + encoderBean.getExtension() + " of " + url);
-		encodedTrackDao.clear();
 		return encodedTrackBean;
 	}
 
@@ -98,5 +95,4 @@ public class TrackImporterImpl implements TrackImporter {
 			DataInjector<EncodedTrackBean> encodedTrackDataInjector) {
 		i_encodedTrackDataInjector = encodedTrackDataInjector;
 	}
-
 }

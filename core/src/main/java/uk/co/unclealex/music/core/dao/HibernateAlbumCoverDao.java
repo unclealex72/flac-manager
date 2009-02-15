@@ -67,17 +67,17 @@ public class HibernateAlbumCoverDao extends
 
 	@Override
 	public void streamCover(int id, KnownLengthInputStreamCallback callback) throws IOException {
-		streamField("cover", id, callback);
+		streamField("coverBean", id, callback);
 	}
 	
 	@Override
 	public void streamThumbnail(int id, KnownLengthInputStreamCallback callback) throws IOException {
-		streamField("thumbnail", id, callback);
+		streamField("thumbnailBean", id, callback);
 	}
 	
 	protected void streamField(String fieldName, int id, KnownLengthInputStreamCallback callback)
 			throws IOException {
-		getStreamer().stream(getSession(), "trackData", "albumCoverBean", id, callback);
+		getStreamer().stream(getSession(), fieldName, "albumCoverBean", id, callback);
 	}
 	
 	public Streamer getStreamer() {

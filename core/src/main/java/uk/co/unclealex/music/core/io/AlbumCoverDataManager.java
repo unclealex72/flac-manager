@@ -7,14 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.dao.AlbumCoverDao;
-import uk.co.unclealex.music.base.io.DataManager;
+import uk.co.unclealex.music.base.dao.KeyedDao;
 import uk.co.unclealex.music.base.io.KnownLengthInputStream;
 import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
 import uk.co.unclealex.music.base.model.AlbumCoverBean;
 
 @Service
 @Transactional
-public class AlbumCoverDataManager implements DataManager<AlbumCoverBean> {
+public class AlbumCoverDataManager extends AbstractDataManager<AlbumCoverBean> {
 
 	private AlbumCoverDao i_albumCoverDao;
 	
@@ -25,9 +25,14 @@ public class AlbumCoverDataManager implements DataManager<AlbumCoverBean> {
 	}
 
 	@Override
-	public void injectData(AlbumCoverBean albumCoverBean, KnownLengthInputStream data)
+	protected void doInjectData(AlbumCoverBean albumCoverBean, KnownLengthInputStream data)
 			throws IOException {
 		albumCoverBean.setCover(data);
+	}
+	
+	@Override
+	protected KeyedDao<AlbumCoverBean> getDao() {
+		return getAlbumCoverDao();
 	}
 	
 	public AlbumCoverDao getAlbumCoverDao() {

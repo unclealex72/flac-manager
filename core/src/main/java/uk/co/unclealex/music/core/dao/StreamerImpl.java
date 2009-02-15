@@ -21,7 +21,7 @@ public class StreamerImpl implements Streamer {
 	 */
 	public void stream(Session session, String fieldName, String entityName, int id, KnownLengthInputStreamCallback callback ) throws IOException {
 		Query query =
-			session.createQuery("select " + fieldName + " from " + entityName + " where id = :id").
+			session.createQuery("select " + fieldName + ".data from " + entityName + " en where en.id = :id").
 			setInteger("id", id);
 		ScrollableResults scrollableResults = query.scroll();
 		scrollableResults.first();

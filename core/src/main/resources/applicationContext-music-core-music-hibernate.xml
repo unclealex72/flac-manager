@@ -52,6 +52,7 @@
 						<value>uk.co.unclealex.music.base.model.OwnerBean</value>
 						<value>uk.co.unclealex.music.base.model.DeviceBean</value>
 						<value>uk.co.unclealex.music.base.model.AlbumCoverBean</value>
+						<value>uk.co.unclealex.music.base.model.KnownLengthInputStreamBean</value>
 					</list>
 				</property>
 			</bean>

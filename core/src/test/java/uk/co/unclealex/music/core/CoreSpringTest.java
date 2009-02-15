@@ -104,7 +104,7 @@ public abstract class CoreSpringTest extends SpringTest {
 	@Override
 	protected String[] getConfigLocations() {
 		return new String[] {
-			"applicationContext-music-core.xml", "applicationContext-music-core-test.xml", 
+			"applicationContext-music-core.xml", "applicationContext-music-test.xml", 
 			"applicationContext-music-core-flac-hibernate-direct.xml" }; 
 	}
 

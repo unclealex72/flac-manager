@@ -7,14 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.dao.EncodedTrackDao;
-import uk.co.unclealex.music.base.io.DataManager;
+import uk.co.unclealex.music.base.dao.KeyedDao;
 import uk.co.unclealex.music.base.io.KnownLengthInputStream;
 import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 
 @Transactional
 @Service
-public class EncodedTrackDataManager implements DataManager<EncodedTrackBean> {
+public class EncodedTrackDataManager extends AbstractDataManager<EncodedTrackBean> {
 
 	private EncodedTrackDao i_encodedTrackDao;
 	
@@ -24,10 +24,15 @@ public class EncodedTrackDataManager implements DataManager<EncodedTrackBean> {
 	}
 	
 	@Override
-	public void injectData(EncodedTrackBean encodedTrackBean, KnownLengthInputStream data) throws IOException {
+	protected void doInjectData(EncodedTrackBean encodedTrackBean, KnownLengthInputStream data) throws IOException {
 		encodedTrackBean.setTrackData(data);
 	}
 
+	@Override
+	protected KeyedDao<EncodedTrackBean> getDao() {
+		return getEncodedTrackDao();
+	}
+	
 	public EncodedTrackDao getEncodedTrackDao() {
 		return i_encodedTrackDao;
 	}

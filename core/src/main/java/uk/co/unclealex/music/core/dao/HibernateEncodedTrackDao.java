@@ -119,7 +119,7 @@ public class HibernateEncodedTrackDao extends
 	@Override
 	public void streamTrackData(int id, KnownLengthInputStreamCallback callback)
 			throws IOException {
-		getStreamer().stream(getSession(), "trackData", "encodedTrackBean", id, callback);
+		getStreamer().stream(getSession(), "trackDataBean", "encodedTrackBean", id, callback);
 	}
 	
 	public Streamer getStreamer() {
