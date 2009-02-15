@@ -1,9 +1,6 @@
 package uk.co.unclealex.music.base.model;
 
 import java.io.Serializable;
-import java.util.Comparator;
-
-import org.apache.commons.collections15.comparators.NullComparator;
 
 public abstract class KeyedBean<T extends KeyedBean<T>> implements Comparable<T>, Serializable {
 
@@ -13,13 +10,14 @@ public abstract class KeyedBean<T extends KeyedBean<T>> implements Comparable<T>
 	public abstract String toString();
 	
 	public int compareTo(T o) {
-		return
-			new NullComparator<Integer>(
-					new Comparator<Integer>() {
-						public int compare(Integer o1, Integer o2) {
-							return o1.compareTo(o2);
-						}
-					}).compare(getId(), o.getId());
+		Integer id = getId();
+		if (id == null) {
+			return o.getId()==null?0:1;
+		}
+		else {
+			Integer otherId = o.getId();
+			return otherId==null?-1:id - otherId;
+		}
 	}
 
 	@SuppressWarnings("unchecked")

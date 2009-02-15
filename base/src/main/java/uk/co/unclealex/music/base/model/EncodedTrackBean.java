@@ -1,17 +1,17 @@
 package uk.co.unclealex.music.base.model;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import org.hibernate.annotations.Columns;
-import org.hibernate.annotations.Type;
 import org.hibernate.validator.NotNull;
 
 import uk.co.unclealex.music.base.io.KnownLengthInputStream;
@@ -29,7 +29,7 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 	private String i_title;
 	private Integer i_trackNumber;
 	
-	private KnownLengthInputStream i_trackData;
+	private KnownLengthInputStreamBean i_trackDataBean;
 	private EncodedAlbumBean i_encodedAlbumBean;
 	
 	public EncodedTrackBean() {
@@ -65,6 +65,22 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 		encodedVisitor.visit(this);
 	}
 	
+	@Transient
+	public KnownLengthInputStream getTrackData() {
+		return getTrackDataBean().getData();
+	}
+
+	public void setTrackData(KnownLengthInputStream trackData) {
+		KnownLengthInputStreamBean trackDataBean = getTrackDataBean();
+		if (trackDataBean == null) {
+			setTrackDataBean(new KnownLengthInputStreamBean(trackData));
+		}
+		else {
+			trackDataBean.setData(trackData);
+		}
+	}
+
+
 	@ManyToOne
 	public EncoderBean getEncoderBean() {
 		return i_encoderBean;
@@ -120,19 +136,14 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 		i_trackNumber = trackNumber;
 	}
 
-	@Lob
+	@OneToOne(cascade=CascadeType.ALL)
 	@NotNull
-	@Type(type="uk.co.unclealex.music.base.io.BlobUserType")
-	@Columns(columns = {
-	    @Column(name="trackData", length=Integer.MAX_VALUE),
-	    @Column(name="trackDataLength")
-	})
-	public KnownLengthInputStream getTrackData() {
-		return i_trackData;
+	protected KnownLengthInputStreamBean getTrackDataBean() {
+		return i_trackDataBean;
 	}
 
-	public void setTrackData(KnownLengthInputStream trackData) {
-		i_trackData = trackData;
+	protected void setTrackDataBean(KnownLengthInputStreamBean trackDataBean) {
+		i_trackDataBean = trackDataBean;
 	}
 
 }

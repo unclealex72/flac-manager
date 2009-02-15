@@ -3,6 +3,7 @@ package uk.co.unclealex.music.base.model;
 import java.util.Comparator;
 import java.util.Date;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -10,12 +11,10 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.hibernate.annotations.Columns;
-import org.hibernate.annotations.Type;
 import org.hibernate.validator.NotNull;
 
 import uk.co.unclealex.music.base.io.KnownLengthInputStream;
@@ -27,8 +26,8 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 	private static final Comparator<AlbumCoverBean> COMPARATOR = new AlbumCoverComparator();
 
 	private String i_url;
-	private KnownLengthInputStream i_cover;
-	private KnownLengthInputStream i_thumbnail;
+	private KnownLengthInputStreamBean i_coverBean;
+	private KnownLengthInputStreamBean i_thumbnailBean;
 	private AlbumCoverSize i_albumCoverSize;
 	private String i_flacAlbumPath;
 	private Date i_dateDownloaded;
@@ -106,34 +105,54 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 		i_dateSelected = dateSelected;
 	}
 	
-	@Lob
-	@NotNull
-	@Type(type="uk.co.unclealex.music.base.io.BlobUserType")
-	@Columns(columns = {
-	    @Column(name="cover"),
-	    @Column(name="coverLength")
-	})
+	@Transient
 	public KnownLengthInputStream getCover() {
-		return i_cover;
+		return getCoverBean().getData();
 	}
 
 	public void setCover(KnownLengthInputStream cover) {
-		i_cover = cover;
+		KnownLengthInputStreamBean coverBean = getCoverBean();
+		if (coverBean == null) {
+			setCoverBean(new KnownLengthInputStreamBean(cover));
+		}
+		else {
+			coverBean.setData(cover);
+		}
 	}
 
-	@Lob
-	@NotNull
-	@Type(type="uk.co.unclealex.music.base.io.BlobUserType")
-	@Columns(columns = {
-	    @Column(name="thumbnail"),
-	    @Column(name="thumbnailLength")
-	})
+	@Transient
 	public KnownLengthInputStream getThumbnail() {
-		return i_thumbnail;
+		return getThumbnailBean().getData();
 	}
 
 	public void setThumbnail(KnownLengthInputStream thumbnail) {
-		i_thumbnail = thumbnail;
+		KnownLengthInputStreamBean thumbnailBean = getThumbnailBean();
+		if (thumbnailBean == null) {
+			setThumbnailBean(new KnownLengthInputStreamBean(thumbnail));
+		}
+		else {
+			thumbnailBean.setData(thumbnail);
+		}
+	}
+
+	@OneToOne(cascade=CascadeType.ALL)
+	@NotNull
+	public KnownLengthInputStreamBean getCoverBean() {
+		return i_coverBean;
+	}
+
+	public void setCoverBean(KnownLengthInputStreamBean coverBean) {
+		i_coverBean = coverBean;
+	}
+
+	@OneToOne(cascade=CascadeType.ALL)
+	@NotNull
+	public KnownLengthInputStreamBean getThumbnailBean() {
+		return i_thumbnailBean;
+	}
+
+	public void setThumbnailBean(KnownLengthInputStreamBean thumbnailBean) {
+		i_thumbnailBean = thumbnailBean;
 	}
 
 
