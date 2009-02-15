@@ -3,6 +3,7 @@ package uk.co.unclealex.music.commands;
 import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.music.base.initialise.Initialiser;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
 import uk.co.unclealex.music.encoder.initialise.Importer;
 import uk.co.unclealex.music.encoder.service.EncoderService;
 
@@ -11,6 +12,7 @@ public class Initialise extends Main {
 	private Importer i_importer;
 	private Initialiser i_initialiser;
 	private EncoderService i_encoderService;
+	private RepositoryManager i_repositoryManager;
 	
 	@Override
 	public void execute() throws Exception {
@@ -51,6 +53,14 @@ public class Initialise extends Main {
 	@Required
 	public void setInitialiser(Initialiser initialiser) {
 		i_initialiser = initialiser;
+	}
+
+	public RepositoryManager getRepositoryManager() {
+		return i_repositoryManager;
+	}
+
+	public void setRepositoryManager(RepositoryManager repositoryManager) {
+		i_repositoryManager = repositoryManager;
 	}
 
 }

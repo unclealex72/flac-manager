@@ -84,16 +84,21 @@
       <artifactId>activation</artifactId>
       <version>1.1</version>
     </dependency>
-    <dependency>
-    	<groupId>commons-dbcp</groupId>
-    	<artifactId>commons-dbcp</artifactId>
-    	<version>1.2.2</version>
-    </dependency>
-    <dependency>
-    	<groupId>postgresql</groupId>
-    	<artifactId>postgresql</artifactId>
-    	<version>8.3-603.jdbc4</version>
-    </dependency>
+		<dependency>
+			<groupId>org.apache.derby</groupId>
+			<artifactId>derby</artifactId>
+			<version>${derby-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>uk.co.unclealex.music</groupId>
+			<artifactId>repository-client</artifactId>
+			<version>${version}</version>
+		</dependency>
+		<dependency>
+			<groupId>uk.co.unclealex.music</groupId>
+			<artifactId>repository-server</artifactId>
+			<version>${version}</version>
+		</dependency>
   </dependencies>
   
 </project>

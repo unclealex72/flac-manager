@@ -9,9 +9,9 @@
        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd"
        default-autowire="byName">
 
-	<import resource="classpath*:applicationContext-music-encoder.xml"/>
-	<import resource="classpath*:applicationContext-music-core-music-hibernate-direct-embedded.xml"/>
-	<import resource="classpath*:applicationContext-music-repository-server.xml"/>
-	
+	<import resource="classpath*:applicationContext-music-core.xml"/>
+	<import resource="classpath*:applicationContext-music-album-covers.xml"/>
+	<import resource="classpath*:applicationContext-music-core-flac-hibernate-direct.xml"/>
+	<import resource="classpath*:applicationContext-music-repository-client.xml"/>
 </beans>
 

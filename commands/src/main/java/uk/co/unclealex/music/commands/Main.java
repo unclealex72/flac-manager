@@ -12,14 +12,14 @@ public abstract class Main {
 	public abstract void execute() throws Exception;
 	
 	protected List<String> getContextLocations() {
-		List<String> locations = new ArrayList<String>();
+		List<String> locations = new ArrayList<String>(2);
+		locations.add("classpath*:applicationContext-music-commands.xml");
 		String className = getClass().getName();
 		String commandName = className.substring(className.lastIndexOf('.') + 1).toLowerCase();
 		String commandApplicationContext = "applicationContext-music-commands-" + commandName + ".xml";
 		if (getClass().getClassLoader().getResource(commandApplicationContext) != null) {
 			locations.add(commandApplicationContext);
 		}
-		locations.add("classpath*:applicationContext-music-commands-jdbc-direct.xml");
 		return locations;
 	}
 	

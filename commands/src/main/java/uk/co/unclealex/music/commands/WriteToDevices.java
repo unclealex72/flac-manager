@@ -1,30 +1,22 @@
 package uk.co.unclealex.music.commands;
 
-import uk.co.unclealex.music.base.service.DeviceService;
+import uk.co.unclealex.music.base.service.DeviceWriter;
 import uk.co.unclealex.music.base.service.EncodedService;
 
 @uk.co.unclealex.spring.Main
 public class WriteToDevices extends Main {
 
-	private DeviceService i_deviceService;
+	private DeviceWriter i_deviceWriter;
 	private EncodedService i_encodedService;
 	
 	@Override
 	public void execute() throws Exception {
 		getEncodedService().updateAllFilenames();
-		getDeviceService().writeToAllDevices();
+		getDeviceWriter().writeToAllDevices();
 	}
 
 	public static void main(String[] args) throws Exception {
 		Main.execute(new WriteToDevices());
-	}
-
-	public DeviceService getDeviceService() {
-		return i_deviceService;
-	}
-
-	public void setDeviceService(DeviceService deviceService) {
-		i_deviceService = deviceService;
 	}
 
 	public EncodedService getEncodedService() {
@@ -33,5 +25,13 @@ public class WriteToDevices extends Main {
 
 	public void setEncodedService(EncodedService encodedService) {
 		i_encodedService = encodedService;
+	}
+
+	public DeviceWriter getDeviceWriter() {
+		return i_deviceWriter;
+	}
+
+	public void setDeviceWriter(DeviceWriter deviceWriter) {
+		i_deviceWriter = deviceWriter;
 	}
 }
