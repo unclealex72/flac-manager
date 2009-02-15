@@ -372,7 +372,7 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 		try {
 			getCoversRepositoryManager().remove(albumCoverBean.getId());
 		}
-		catch (RepositoryException e) {
+		catch (RuntimeException e) {
 			log.warn("Could not remove album cover " + albumCoverBean.getUrl(), e);
 		}
 		getAlbumCoverDao().remove(albumCoverBean);
