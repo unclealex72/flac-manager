@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoder.dao;
+package uk.co.unclealex.music.test;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -11,8 +11,8 @@ import java.util.TreeSet;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 

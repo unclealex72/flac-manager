@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+  default-autowire="byName">
+  
+  <bean id="coversRepositoryManager" class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+  	<property name="serviceInterface" value="uk.co.unclealex.music.base.service.filesystem.RepositoryManager"/>
+		<property name="serviceUrl" value="http://localhost/music/remoting/coversRepositoryManager.html"/>
+	</bean>
+
+	<bean id="encodedRepositoryManager" class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
+  	<property name="serviceInterface" value="uk.co.unclealex.music.base.service.filesystem.RepositoryManager"/>
+		<property name="serviceUrl" value="http://localhost/music/remoting/encodedRepositoryManager.html"/>
+	</bean>
+</beans>
+
+

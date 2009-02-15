@@ -21,8 +21,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.jcr.RepositoryException;
-
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
@@ -164,7 +162,7 @@ public class EncoderServiceImpl implements EncoderService {
 			try {
 				repositoryManager.add(encodedTrackBean.getId());
 			}
-			catch (RepositoryException e) {
+			catch (RuntimeException e) {
 				log.warn("Could not store encoded track " + encodedTrackBean, e);
 			}
 		}

@@ -129,11 +129,6 @@ public class SingleEncoderServiceImpl implements SingleEncoderService, Serializa
 				EncodingClosure closure = new EncodingClosure() {
 					public void process(KnownLengthInputStream in) throws IOException {
 						getEncodedTrackDataInjector().injectData(newEncodedTrackBean, in);
-						encodedTrackDao.store(newEncodedTrackBean);
-						// Make triply sure that the new track bean is fully persisted so the encoded file can be safely deleted.
-						encodedTrackDao.flush();
-						encodedTrackDao.dismiss(newEncodedTrackBean);
-						encodedTrackDao.findById(newEncodedTrackBean.getId());
 					}
 				};
 				encode(encoderBean, flacTrackBean, closure, commandCache);

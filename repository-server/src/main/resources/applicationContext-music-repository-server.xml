@@ -6,20 +6,16 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
   default-autowire="byName">
   	
-	<bean id="abstractRepositoryManager" class="uk.co.unclealex.music.repositoryserver.service.filesystem.RepositoryManagerImpl" abstract="true">
-		<property name="baseDirectory" value="/home/java/music"/>
-	</bean>
-	
 	<bean id="abstractRepository" class="org.springmodules.jcr.jackrabbit.TransientRepositoryFactoryBean" abstract="true">
-	  <property name="configuration" value="classpath*:org/apache/jackrabbit/core/repository.xml"/>
+	  <property name="configuration" value="classpath:/repository.xml"/>
 	</bean>
 
 	<bean id="coversRepository" parent="abstractRepository">
-		<property name="homeDir" value="/home/music/repositories/covers"/>
+		<property name="homeDir" value="file:/home/java/jackrabbit/covers"/>
 	</bean>
 	
 	<bean id="encodedRepository" parent="abstractRepository">
-		<property name="homeDir" value="/home/music/repositories/covers"/>
+		<property name="homeDir" value="file:/home/java/jackrabbit/encoded"/>
 	</bean>
 
 	<bean id="jcrPassword" class="java.lang.String">
@@ -48,7 +44,7 @@
 		</property>
 	</bean>
 	
-	<bean id="encodedRepositoryManager" parent="abstractRepositoryManager">
+	<bean id="encodedRepositoryManager" class="uk.co.unclealex.music.repositoryserver.service.filesystem.RepositoryManagerImpl">
 		<property name="repositoryAdaptor">
 			<bean class="uk.co.unclealex.music.repositoryserver.service.filesystem.EncodedRepositoryAdaptor">
 				<property name="titleFormats">

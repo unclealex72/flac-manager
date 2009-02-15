@@ -34,7 +34,7 @@ import javax.jcr.version.VersionHistory;
 
 import org.apache.commons.lang.StringUtils;
 
-import uk.co.unclealex.music.core.service.filesystem.Jcr170Escaper;
+import uk.co.unclealex.music.base.service.filesystem.Jcr170Escaper;
 
 public class UnescapingNode implements Node {
 

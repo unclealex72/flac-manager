@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoder;
+package uk.co.unclealex.music.test;
 
 import java.util.List;
 

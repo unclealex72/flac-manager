@@ -43,7 +43,7 @@ import org.apache.jackrabbit.webdav.simple.VersionResourceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.co.unclealex.music.core.service.filesystem.Jcr170Escaper;
+import uk.co.unclealex.music.base.service.filesystem.Jcr170Escaper;
 
 /**
  * EscapingResourceFactoryImpl implements a simple DavResourceFactory

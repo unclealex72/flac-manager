@@ -33,8 +33,8 @@ import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
 import uk.co.unclealex.music.encoder.EncoderSpringTest;
-import uk.co.unclealex.music.encoder.dao.TestFlacProvider;
-import uk.co.unclealex.music.encoder.dao.TestSlimServerInformationDao;
+import uk.co.unclealex.music.test.TestFlacProvider;
+import uk.co.unclealex.music.test.TestSlimServerInformationDao;
 
 public class EncoderServiceTest extends EncoderSpringTest {
 
@@ -258,6 +258,9 @@ public class EncoderServiceTest extends EncoderSpringTest {
 		encodedTrackBean.setEncoderBean(encoderBean);
 		encodedTrackBean.setFlacUrl(url);
 		encodedTrackBean.setTimestamp(time);
+		encodedTrackBean.setFilename("");
+		encodedTrackBean.setTitle("");
+		encodedTrackBean.setTrackNumber(0);
 		KnownLengthInputStream in = new KnownLengthInputStream(new NullInputStream(0), 0);
 		getEncodedTrackDataInjector().injectData(encodedTrackBean, in);
 		boolean written = (singleEncoderService.encode(encodingCommandBean, new TreeMap<EncoderBean, File>()) != null);
@@ -292,8 +295,9 @@ public class EncoderServiceTest extends EncoderSpringTest {
 		trackToRemove.setEncoderBean(getEncoderDao().getAll().first());
 		trackToRemove.setTimestamp(0L);
 		trackToRemove.setFilename("");
+		trackToRemove.setTitle("");
+		trackToRemove.setTrackNumber(0);
 		getEncodedTrackDataInjector().injectData(trackToRemove, new KnownLengthInputStream(new ByteArrayInputStream(new byte[0]), 0));
-		encodedTrackDao.store(trackToRemove);
 		assertEquals("The wrong number of stale tracks was reported.", 1, encoderService.removeDeleted());
 		assertEquals(
 				"The wrong tracks were left untouched after deleting stale tracks.",
@@ -333,7 +337,7 @@ public class EncoderServiceTest extends EncoderSpringTest {
 	
 	@Override
 	protected String[] getExtraConfigLocations() {
-		return new String[] { "classpath*:applicationContext-music-encoder-flac-test.xml" };
+		return new String[] { "classpath*:applicationContext-music-test-flac.xml" };
 	}
 	
 	public EncoderDao getEncoderDao() {

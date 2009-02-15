@@ -22,10 +22,10 @@ public abstract class EncoderSpringTest extends SpringTest {
 	protected String[] getConfigLocations() {
 		List<String> configLocations = new ArrayList<String>();
 		String[] sharedLocations = new String[] {
-			"classpath*:applicationContext-music-encoder-encoder-test.xml",
+			"classpath*:applicationContext-music-encoder.xml",
 			"classpath*:applicationContext-music-album-covers.xml",
 			"classpath*:applicationContext-music-core.xml",
-			"classpath*:applicationContext-music-core-test.xml"
+			"classpath*:applicationContext-music-test.xml"
 		};
 		String[] extraLocations = getExtraConfigLocations();
 		for (String[] locations : new String[][] { sharedLocations, extraLocations }) {

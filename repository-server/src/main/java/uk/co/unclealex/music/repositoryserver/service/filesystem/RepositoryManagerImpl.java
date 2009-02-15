@@ -10,6 +10,7 @@ import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
+import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
@@ -234,13 +235,24 @@ public class RepositoryManagerImpl<E> extends JcrTemplate implements RepositoryM
 		return execute(callback);
 	}
 	
+	@Override
+	public Repository getRepository() {
+		JcrCallback<Repository> callback = new JcrCallback<Repository>() {
+			@Override
+			public Repository doInJcr(Session session) {
+				return session.getRepository();
+			}
+		};
+		return execute(callback);
+	}
+	
 	public RepositoryAdaptor<E> getRepositoryAdaptor() {
 		return i_repositoryAdaptor;
 	}
 
 	@Required
 	public void setRepositoryAdaptor(
-			RepositoryAdaptor<E> pathInformationBeanAdaptor) {
-		i_repositoryAdaptor = pathInformationBeanAdaptor;
+			RepositoryAdaptor<E> repositoryAdaptor) {
+		i_repositoryAdaptor = repositoryAdaptor;
 	}
 }

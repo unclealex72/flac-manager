@@ -7,8 +7,13 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
@@ -23,10 +28,10 @@ import uk.co.unclealex.music.base.io.InputStreamCopier;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
 import uk.co.unclealex.music.encoder.service.EncoderService;
 
 @Service
-@Transactional
 public class ImporterImpl implements Importer {
 
 	private static final Logger log = Logger.getLogger(ImporterImpl.class);
@@ -38,47 +43,63 @@ public class ImporterImpl implements Importer {
 	private TrackImporter i_trackImporter;
 	private DataExtractor i_encodedTrackDataExtractor;
 	private InputStreamCopier i_inputStreamCopier;
+	private RepositoryManager i_encodedRepositoryManager;
 	
 	public void importTracks() throws IOException {
 		TrackImporter trackImporter = getTrackImporter();
 		log.info("Importing tracks.");
 		File baseDir = new File("/home/converted");
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
+		final List<String> extensions = new ArrayList<String>();
+		Map<String, EncoderBean> encodedBeansByExtension = new HashMap<String, EncoderBean>();
 		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
-			final String extension = encoderBean.getExtension();
-			FilenameFilter filter = new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.matches("[0-9]+\\." + extension);
-				}
-			};
-			for (File file : baseDir.listFiles(filter)) {
-				int flacTrackId = Integer.parseInt(FilenameUtils.getBaseName(file.getName()));
-				FlacTrackBean flacTrackBean = getFlacTrackDao().findById(flacTrackId);
-				if (flacTrackBean == null) {
-					log.info("Ignoring " + file + " as it does not correspond to a flac track.");
+			String extension = encoderBean.getExtension();
+			extensions.add(extension);
+			encodedBeansByExtension.put(extension, encoderBean);
+		}
+		FilenameFilter filter = new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.matches("[0-9]+\\.(" + StringUtils.join(extensions, '|') +")");
+			}
+		};
+		File[] files = baseDir.listFiles(filter);
+		int idx = 0;
+		for (File file : files) {
+			log.info("Processing file " + ++idx + " of " + files.length);
+			if (idx % 20 == 0) {
+				System.gc();
+			}
+			String filename = file.getName();
+			int flacTrackId = Integer.parseInt(FilenameUtils.getBaseName(filename));
+			FlacTrackBean flacTrackBean = getFlacTrackDao().findById(flacTrackId);
+			if (flacTrackBean == null) {
+				log.info("Ignoring " + file + " as it does not correspond to a flac track.");
+			}
+			else {
+				String url = flacTrackBean.getUrl();
+				String extension = FilenameUtils.getExtension(filename);
+				EncoderBean encoderBean = encodedBeansByExtension.get(extension);
+				EncodedTrackBean encodedTrackBean =
+					encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
+				if (encodedTrackBean != null) {
+					log.info("Ignoring " + file + " as it has already been converted.");
 				}
 				else {
-					String url = flacTrackBean.getUrl();
-					EncodedTrackBean encodedTrackBean =
-						encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
-					if (encodedTrackBean != null) {
-						log.info("Ignoring " + file + " as it has already been converted.");
-					}
-					else {
-						InputStream in = new FileInputStream(file);
-						trackImporter.importTrack(
-							in, (int) file.length(), encoderBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), 
-							flacTrackBean.getTrackNumber(), file.lastModified(), null);
-						in.close();						
-					}
+					InputStream in = new FileInputStream(file);
+					trackImporter.importTrack(
+						in, (int) file.length(), encoderBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), 
+						flacTrackBean.getTrackNumber(), file.lastModified(), null);
+					in.close();						
 				}
 			}
 		}
 		getEncoderService().updateMissingAlbumInformation();
+		getEncodedRepositoryManager().refresh();
 	}
 	
 	@Override
+	@Transactional
 	public void exportTracks() throws IOException {
 		FlacTrackDao flacTrackDao = getFlacTrackDao();
 		DataExtractor encodedTrackDataExtractor = getEncodedTrackDataExtractor();
@@ -166,5 +187,15 @@ public class ImporterImpl implements Importer {
 	@Required
 	public void setInputStreamCopier(InputStreamCopier inputStreamCopier) {
 		i_inputStreamCopier = inputStreamCopier;
+	}
+
+	public RepositoryManager getEncodedRepositoryManager() {
+		return i_encodedRepositoryManager;
+	}
+
+	@Required
+	public void setEncodedRepositoryManager(
+			RepositoryManager encodedRepositoryManager) {
+		i_encodedRepositoryManager = encodedRepositoryManager;
 	}
 }

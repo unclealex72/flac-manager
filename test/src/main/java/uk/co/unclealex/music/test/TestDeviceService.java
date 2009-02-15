@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.encoder.service;
+package uk.co.unclealex.music.test;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,10 +14,8 @@ import uk.co.unclealex.music.base.dao.OwnerDao;
 import uk.co.unclealex.music.base.model.DeviceBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.service.DeviceService;
-import uk.co.unclealex.music.core.service.DeviceServiceImpl;
 
-public class TestDeviceService extends DeviceServiceImpl implements
-		DeviceService {
+public class TestDeviceService implements DeviceService {
 
 	private static final Map<String, String> OWNERS;
 	static {
