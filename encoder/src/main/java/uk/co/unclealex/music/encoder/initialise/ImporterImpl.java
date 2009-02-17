@@ -8,9 +8,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
@@ -29,6 +39,7 @@ import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
 import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
+import uk.co.unclealex.music.core.service.CommandWorker;
 import uk.co.unclealex.music.encoder.service.EncoderService;
 
 @Service
@@ -46,12 +57,12 @@ public class ImporterImpl implements Importer {
 	private RepositoryManager i_encodedRepositoryManager;
 	
 	public void importTracks() throws IOException {
-		TrackImporter trackImporter = getTrackImporter();
+		final TrackImporter trackImporter = getTrackImporter();
 		log.info("Importing tracks.");
 		File baseDir = new File("/home/converted");
-		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
+		final EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
 		final List<String> extensions = new ArrayList<String>();
-		Map<String, EncoderBean> encodedBeansByExtension = new HashMap<String, EncoderBean>();
+		final Map<String, EncoderBean> encodedBeansByExtension = new HashMap<String, EncoderBean>();
 		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
 			String extension = encoderBean.getExtension();
 			extensions.add(extension);
@@ -64,34 +75,72 @@ public class ImporterImpl implements Importer {
 			}
 		};
 		File[] files = baseDir.listFiles(filter);
-		int idx = 0;
-		for (File file : files) {
-			log.info("Processing file " + ++idx + " of " + files.length);
-			if (idx % 20 == 0) {
-				System.gc();
+		Comparator<File> comparator = new Comparator<File>() {
+			@Override
+			public int compare(File f1, File f2) {
+				String name1 = f1.getName();
+				String name2 = f2.getName();
+				int id1 = Integer.parseInt(FilenameUtils.getBaseName(name1));
+				int id2 = Integer.parseInt(FilenameUtils.getBaseName(name2));
+				return id1==id2?f1.compareTo(f2):id1-id2;
 			}
-			String filename = file.getName();
-			int flacTrackId = Integer.parseInt(FilenameUtils.getBaseName(filename));
-			FlacTrackBean flacTrackBean = getFlacTrackDao().findById(flacTrackId);
-			if (flacTrackBean == null) {
-				log.info("Ignoring " + file + " as it does not correspond to a flac track.");
+		};
+		SortedSet<File> sortedFiles = new TreeSet<File>(comparator);
+		sortedFiles.addAll(Arrays.asList(files));
+		
+		final SortedMap<ImportCommandBean, Throwable> errors =
+			Collections.synchronizedSortedMap(new TreeMap<ImportCommandBean, Throwable>());
+		final BlockingQueue<ImportCommandBean> importCommandBeans = new LinkedBlockingQueue<ImportCommandBean>();
+		int maximumThreads = 1;
+		final ProcessTracker processTracker = new ProcessTracker(sortedFiles.size());
+		List<CommandWorker<ImportCommandBean>> workers = new ArrayList<CommandWorker<ImportCommandBean>>(maximumThreads);
+		for (int idx = 0; idx < maximumThreads; idx++) {
+			CommandWorker<ImportCommandBean> worker = new CommandWorker<ImportCommandBean>(importCommandBeans, errors) {
+				@Override
+				protected void process(ImportCommandBean importCommandBean) throws IOException {
+					File file = importCommandBean.getFile();
+					String filename = file.getName();
+					int flacTrackId = Integer.parseInt(FilenameUtils.getBaseName(filename));
+					FlacTrackBean flacTrackBean = getFlacTrackDao().findById(flacTrackId);
+					if (flacTrackBean == null) {
+						processTracker.ignore(file);
+					}
+					else {
+						String url = flacTrackBean.getUrl();
+						String extension = FilenameUtils.getExtension(filename);
+						EncoderBean encoderBean = encodedBeansByExtension.get(extension);
+						EncodedTrackBean encodedTrackBean =
+							encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
+						if (encodedTrackBean != null) {
+							processTracker.ignore(file);
+						}
+						else {
+							Date start = new Date();
+							InputStream in = new FileInputStream(file);
+							EncodedTrackBean newEncodedTrackBean = trackImporter.importTrack(
+								in, (int) file.length(), encoderBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), 
+								flacTrackBean.getTrackNumber(), file.lastModified(), null);
+							in.close();
+							processTracker.imported(file, newEncodedTrackBean.toString(), start, new Date());
+						}
+					}
+				}
+			};
+			worker.start();
+			workers.add(worker);
+		}
+		for (File file : sortedFiles) {
+			importCommandBeans.offer(new ImportCommandBean(file));
+		}
+		for (int idx = 0; idx < maximumThreads; idx++) {
+			importCommandBeans.offer(new ImportCommandBean());
+		}
+		for (CommandWorker<ImportCommandBean> worker : workers) {
+			try {
+				worker.join();
 			}
-			else {
-				String url = flacTrackBean.getUrl();
-				String extension = FilenameUtils.getExtension(filename);
-				EncoderBean encoderBean = encodedBeansByExtension.get(extension);
-				EncodedTrackBean encodedTrackBean =
-					encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
-				if (encodedTrackBean != null) {
-					log.info("Ignoring " + file + " as it has already been converted.");
-				}
-				else {
-					InputStream in = new FileInputStream(file);
-					trackImporter.importTrack(
-						in, (int) file.length(), encoderBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), 
-						flacTrackBean.getTrackNumber(), file.lastModified(), null);
-					in.close();						
-				}
+			catch (InterruptedException e) {
+				// Do nothing
 			}
 		}
 		getEncoderService().updateMissingAlbumInformation();

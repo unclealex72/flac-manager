@@ -20,7 +20,7 @@
 	
 	<bean id="musicDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
-		<property name="url" value="jdbc:derby:/home/java/derby/music;create=true"/>
+		<property name="url" value="jdbc:derby:/home/java/derby/music"/>
 	</bean>
 		
 </beans>
