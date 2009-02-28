@@ -14,12 +14,14 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import uk.co.unclealex.music.base.io.DataExtractor;
 import uk.co.unclealex.music.base.io.InputStreamCopier;
 import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
+import uk.co.unclealex.music.base.model.AlbumCoverBean;
 
 public class PictureServlet extends AbstractServlet {
 
-	private DataExtractor i_dataExtractor;
-	private InputStreamCopier i_inputStreamCopier;
+	private DataExtractor<AlbumCoverBean> i_dataExtractor;
+	private InputStreamCopier<AlbumCoverBean> i_inputStreamCopier;
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void doInit(ServletConfig config) throws ServletException {
 		String dataExtractorName = config.getInitParameter("dataExtractor");
@@ -31,7 +33,7 @@ public class PictureServlet extends AbstractServlet {
 			throw new ServletException("There is no bean called '" + dataExtractorName + "'");
 		}
 		if (dataExtractor instanceof DataExtractor) {
-			setDataExtractor((DataExtractor) dataExtractor);
+			setDataExtractor((DataExtractor<AlbumCoverBean>) dataExtractor);
 		}
 		else {
 			throw new ServletException("Bean '" + dataExtractorName + "' cannot be cast to " + DataExtractor.class);
@@ -60,20 +62,19 @@ public class PictureServlet extends AbstractServlet {
 		return AutowireCapableBeanFactory.AUTOWIRE_BY_NAME;
 	}
 	
-	public DataExtractor getDataExtractor() {
+	public DataExtractor<AlbumCoverBean> getDataExtractor() {
 		return i_dataExtractor;
 	}
 
-	public void setDataExtractor(DataExtractor dataExtractor) {
+	public void setDataExtractor(DataExtractor<AlbumCoverBean> dataExtractor) {
 		i_dataExtractor = dataExtractor;
 	}
 
-	public InputStreamCopier getInputStreamCopier() {
+	public InputStreamCopier<AlbumCoverBean> getInputStreamCopier() {
 		return i_inputStreamCopier;
 	}
 
-	public void setInputStreamCopier(InputStreamCopier inputStreamCopier) {
+	public void setInputStreamCopier(InputStreamCopier<AlbumCoverBean> inputStreamCopier) {
 		i_inputStreamCopier = inputStreamCopier;
 	}
-
 }

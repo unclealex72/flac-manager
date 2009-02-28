@@ -13,11 +13,11 @@ import uk.co.unclealex.music.base.model.EncodedTrackBean;
 @Transactional
 public class TestTrackStreamImpl implements TestTrackStream {
 
-	private Map<String, Integer> i_fileNamesAndSizes;
+	private Map<String, Long> i_fileNamesAndSizes;
 	private String i_title;
 	private CountingOutputStream i_outputStream;
 	
-	public TestTrackStreamImpl(SortedMap<String, Integer> fileNamesAndSizes) {
+	public TestTrackStreamImpl(SortedMap<String, Long> fileNamesAndSizes) {
 		i_fileNamesAndSizes = fileNamesAndSizes;
 	}
 
@@ -33,7 +33,7 @@ public class TestTrackStreamImpl implements TestTrackStream {
 	public void closeStream() throws IOException {
 		CountingOutputStream outputStream = getOutputStream();
 		outputStream.flush();
-		getFileNamesAndSizes().put(getTitle(), getOutputStream().getCount());
+		getFileNamesAndSizes().put(getTitle(), (long) getOutputStream().getCount());
 		setOutputStream(null);
 	}
 
@@ -48,11 +48,11 @@ public class TestTrackStreamImpl implements TestTrackStream {
 	/* (non-Javadoc)
 	 * @see uk.co.unclealex.music.base.core.encoded.writer.TestTrackWriter#getFileNamesAndSizes()
 	 */
-	public Map<String, Integer> getFileNamesAndSizes() {
+	public Map<String, Long> getFileNamesAndSizes() {
 		return i_fileNamesAndSizes;
 	}
 
-	public void setFileNamesAndSizes(Map<String, Integer> fileNamesAndSizes) {
+	public void setFileNamesAndSizes(Map<String, Long> fileNamesAndSizes) {
 		i_fileNamesAndSizes = fileNamesAndSizes;
 	}
 

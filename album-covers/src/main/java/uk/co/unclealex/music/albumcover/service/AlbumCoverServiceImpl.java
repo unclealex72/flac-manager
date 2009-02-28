@@ -80,7 +80,7 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	private RepositoryManager i_coversRepositoryManager;
 	private DataInjector<AlbumCoverBean> i_albumCoverDataInjector;
 	private DataInjector<AlbumCoverBean> i_albumThumbnailDataInjector;
-	private DataExtractor i_albumCoverDataExtractor;
+	private DataExtractor<AlbumCoverBean> i_albumCoverDataExtractor;
 	
 	@PostConstruct
 	public void initialise() {
@@ -397,7 +397,7 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	
 	@Override
 	public void resizeCover(AlbumCoverBean albumCoverBean, Dimension maximumSize, String extension, OutputStream out) throws IOException {
-		DataExtractor dataExtractor = getAlbumCoverDataExtractor();
+		DataExtractor<AlbumCoverBean> dataExtractor = getAlbumCoverDataExtractor();
 		class ResizeCoverCallback implements KnownLengthInputStreamCallback {
 			BufferedImage sourceImage;
 			@Override
@@ -411,7 +411,7 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 			}
 		};
 		ResizeCoverCallback callback = new ResizeCoverCallback();
-		dataExtractor.extractData(albumCoverBean.getId(), callback);
+		dataExtractor.extractData(albumCoverBean, callback);
 		Color transparent = new Color(0, 0, 0, 0);
 		BufferedImage targetImage = getImageService().resize(callback.sourceImage, maximumSize, transparent);
 		ImageIO.write(targetImage, extension, out);
@@ -518,12 +518,12 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 		i_albumThumbnailDataInjector = albumThumbnailDataInjector;
 	}
 
-	public DataExtractor getAlbumCoverDataExtractor() {
+	public DataExtractor<AlbumCoverBean> getAlbumCoverDataExtractor() {
 		return i_albumCoverDataExtractor;
 	}
 
 	@Required
-	public void setAlbumCoverDataExtractor(DataExtractor albumCoverDataExtractor) {
+	public void setAlbumCoverDataExtractor(DataExtractor<AlbumCoverBean> albumCoverDataExtractor) {
 		i_albumCoverDataExtractor = albumCoverDataExtractor;
 	}
 }

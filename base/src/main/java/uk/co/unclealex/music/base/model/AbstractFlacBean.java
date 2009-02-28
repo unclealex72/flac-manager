@@ -1,5 +1,7 @@
 package uk.co.unclealex.music.base.model;
 
+import uk.co.unclealex.hibernate.model.KeyedBean;
+
 
 public abstract class AbstractFlacBean<T extends AbstractFlacBean<T>> extends KeyedBean<T> implements FlacBean {
 

@@ -17,11 +17,8 @@
 	 -->
 	 
 	<import resource="classpath*:applicationContext-music-core-music-hibernate.xml"/>
-	
-	<bean id="musicDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName" value="org.apache.derby.jdbc.ClientDriver"/>
-		<property name="url" value="jdbc:derby://localhost:1527/music"/>
-	</bean>
+
+	<jee:jndi-lookup id="musicDataSource" jndi-name="jdbc/music"/>
 		
 </beans>
 

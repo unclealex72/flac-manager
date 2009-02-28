@@ -16,6 +16,8 @@ import org.hibernate.annotations.SortType;
 import org.hibernate.validator.Length;
 import org.hibernate.validator.NotEmpty;
 
+import uk.co.unclealex.hibernate.model.KeyedBean;
+
 @Table(name="encoders")
 @Entity
 public class EncoderBean extends KeyedBean<EncoderBean> {

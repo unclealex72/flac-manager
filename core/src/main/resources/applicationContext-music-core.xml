@@ -28,6 +28,10 @@
 		<constructor-arg value="/var/lib/squeezecenter/prefs/server.prefs"/>
 	</bean>
 	
+	<bean id="encodedMusicStorageDirectory" class="uk.co.unclealex.music.core.io.DirectoryFactoryBean">
+		<property name="path" value="/home/java/music/tracks"/>
+	</bean>
+	
 	<alias name="albumThumbnailDataManager" alias="albumThumbnailDataInjector"/>
 	<alias name="albumCoverDataManager" alias="albumCoverDataInjector"/>
 	<alias name="encodedTrackDataManager" alias="encodedTrackDataInjector"/>

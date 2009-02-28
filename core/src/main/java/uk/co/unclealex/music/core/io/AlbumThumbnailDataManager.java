@@ -2,45 +2,25 @@ package uk.co.unclealex.music.core.io;
 
 import java.io.IOException;
 
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.base.dao.AlbumCoverDao;
-import uk.co.unclealex.music.base.dao.KeyedDao;
-import uk.co.unclealex.music.base.io.KnownLengthInputStream;
-import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
+import uk.co.unclealex.hibernate.model.DataBean;
 import uk.co.unclealex.music.base.model.AlbumCoverBean;
 
 @Service
-@Transactional
-public class AlbumThumbnailDataManager extends AbstractDataManager<AlbumCoverBean> {
+@Transactional(rollbackFor=IOException.class)
+public class AlbumThumbnailDataManager extends AbstractAlbumDataManager {
 
-	private AlbumCoverDao i_albumCoverDao;
-	
 	@Override
-	public void extractData(int id,
-			KnownLengthInputStreamCallback callback) throws IOException {
-		getAlbumCoverDao().streamThumbnail(id, callback);
+	protected DataBean getDataBean(AlbumCoverBean keyedBean) {
+		return keyedBean.getThumbnailDataBean();
 	}
 
 	@Override
-	protected void doInjectData(AlbumCoverBean albumCoverBean, KnownLengthInputStream data)
-			throws IOException {
-		albumCoverBean.setThumbnail(data);
+	protected void setDataBean(AlbumCoverBean keyedBean, DataBean dataBean) {
+		keyedBean.setThumbnailDataBean(dataBean);
 	}
+
 	
-	@Override
-	protected KeyedDao<AlbumCoverBean> getDao() {
-		return getAlbumCoverDao();
-	}
-	
-	public AlbumCoverDao getAlbumCoverDao() {
-		return i_albumCoverDao;
-	}
-	
-	@Required
-	public void setAlbumCoverDao(AlbumCoverDao albumCoverDao) {
-		i_albumCoverDao = albumCoverDao;
-	}
 }

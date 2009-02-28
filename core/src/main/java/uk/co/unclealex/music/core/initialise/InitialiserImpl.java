@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.hibernate.model.KeyedBean;
 import uk.co.unclealex.music.base.dao.AlbumCoverDao;
 import uk.co.unclealex.music.base.dao.DeviceDao;
 import uk.co.unclealex.music.base.dao.EncodedAlbumDao;
@@ -25,7 +26,6 @@ import uk.co.unclealex.music.base.model.EncodedAlbumBean;
 import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
-import uk.co.unclealex.music.base.model.KeyedBean;
 import uk.co.unclealex.music.base.model.OwnerBean;
 import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
 

@@ -9,12 +9,11 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
 import org.hibernate.validator.NotNull;
 
-import uk.co.unclealex.music.base.io.KnownLengthInputStream;
+import uk.co.unclealex.hibernate.model.DataBean;
 import uk.co.unclealex.music.base.visitor.EncodedVisitor;
 
 @Table(
@@ -29,7 +28,7 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 	private String i_title;
 	private Integer i_trackNumber;
 	
-	private KnownLengthInputStreamBean i_trackDataBean;
+	private DataBean i_trackDataBean;
 	private EncodedAlbumBean i_encodedAlbumBean;
 	
 	public EncodedTrackBean() {
@@ -65,22 +64,6 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 		encodedVisitor.visit(this);
 	}
 	
-	@Transient
-	public KnownLengthInputStream getTrackData() {
-		return getTrackDataBean().getData();
-	}
-
-	public void setTrackData(KnownLengthInputStream trackData) {
-		KnownLengthInputStreamBean trackDataBean = getTrackDataBean();
-		if (trackDataBean == null) {
-			setTrackDataBean(new KnownLengthInputStreamBean(trackData));
-		}
-		else {
-			trackDataBean.setData(trackData);
-		}
-	}
-
-
 	@ManyToOne
 	public EncoderBean getEncoderBean() {
 		return i_encoderBean;
@@ -136,13 +119,13 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 		i_trackNumber = trackNumber;
 	}
 
-	@OneToOne(cascade=CascadeType.ALL)
 	@NotNull
-	protected KnownLengthInputStreamBean getTrackDataBean() {
+	@OneToOne(cascade=CascadeType.ALL)
+	public DataBean getTrackDataBean() {
 		return i_trackDataBean;
 	}
 
-	protected void setTrackDataBean(KnownLengthInputStreamBean trackDataBean) {
+	public void setTrackDataBean(DataBean trackDataBean) {
 		i_trackDataBean = trackDataBean;
 	}
 

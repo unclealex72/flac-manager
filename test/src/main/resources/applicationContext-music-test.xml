@@ -8,9 +8,14 @@
 
 	<import resource="classpath*:applicationContext-music-core-music-hibernate.xml"/>
 	
+	<bean id="encodedMusicStorageDirectory" class="uk.co.unclealex.music.core.io.DirectoryFactoryBean">
+		<property name="path" value="tracks"/>
+		<property name="temporary" value="true"/>
+	</bean>
+
 	<bean id="musicDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
-		<property name="url" value="jdbc:derby:/tmp/music-temp-db-dir;create=true"/>
+		<property name="driverClassName" value="org.hsqldb.jdbcDriver"/>
+		<property name="url" value="jdbc:hsqldb:mem:aname"/>
 	</bean>
 
 	<bean id="deviceService" class="uk.co.unclealex.music.test.TestDeviceService"/>

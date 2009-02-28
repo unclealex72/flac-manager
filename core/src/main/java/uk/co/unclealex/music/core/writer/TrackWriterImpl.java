@@ -35,9 +35,9 @@ public class TrackWriterImpl implements TrackWriter {
 
 	private EncodedTrackDao i_encodedTrackDao;
 	private TitleFormatServiceFactory i_titleFormatServiceFactory;
-	private DataExtractor i_encodedTrackDataExtractor;
+	private DataExtractor<EncodedTrackBean> i_encodedTrackDataExtractor;
 	private Map<TrackStream, TitleFormatService> i_titleFormatServicesByTrackStream;
-	private InputStreamCopier i_inputStreamCopier;
+	private InputStreamCopier<EncodedTrackBean> i_inputStreamCopier;
 	
 	private TrackWritingException i_trackWritingException = new TrackWritingException();
 	private Map<TrackStream, Set<WritingListener>> i_writingListenersByTrackStream = 
@@ -160,7 +160,7 @@ public class TrackWriterImpl implements TrackWriter {
 			}
 			int count = 0;
 			try {
-				getInputStreamCopier().copy(getEncodedTrackDataExtractor(), encodedTrackBean.getId(), out);
+				getInputStreamCopier().copy(getEncodedTrackDataExtractor(), encodedTrackBean, out);
 			}
 			catch (IOException e) {
 				registerIoException(e);
@@ -313,22 +313,22 @@ public class TrackWriterImpl implements TrackWriter {
 		i_titleFormatServiceFactory = titleFormatServiceFactory;
 	}
 
-	public InputStreamCopier getInputStreamCopier() {
+	public InputStreamCopier<EncodedTrackBean> getInputStreamCopier() {
 		return i_inputStreamCopier;
 	}
 
 	@Required
 	public void setInputStreamCopier(
-			InputStreamCopier inputStreamCopier) {
+			InputStreamCopier<EncodedTrackBean> inputStreamCopier) {
 		i_inputStreamCopier = inputStreamCopier;
 	}
 
-	public DataExtractor getEncodedTrackDataExtractor() {
+	public DataExtractor<EncodedTrackBean> getEncodedTrackDataExtractor() {
 		return i_encodedTrackDataExtractor;
 	}
 
 	@Required
-	public void setEncodedTrackDataExtractor(DataExtractor encodedTrackDataExtractor) {
+	public void setEncodedTrackDataExtractor(DataExtractor<EncodedTrackBean> encodedTrackDataExtractor) {
 		i_encodedTrackDataExtractor = encodedTrackDataExtractor;
 	}
 }

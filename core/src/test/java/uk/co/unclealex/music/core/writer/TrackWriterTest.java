@@ -28,24 +28,24 @@ public class TrackWriterTest extends CoreSpringTest {
 		String titleFormat = "${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}";
 		TitleFormatService titleFormatService = getTitleFormatServiceFactory().createTitleFormatService(titleFormat);
 		Map<TrackStream, TitleFormatService> testTrackStreams = new HashMap<TrackStream, TitleFormatService>();
-		List<SortedMap<String, Integer>> fileNamesAndSizes = new LinkedList<SortedMap<String,Integer>>();
+		List<SortedMap<String, Long>> fileNamesAndSizes = new LinkedList<SortedMap<String,Long>>();
 		for (int idx = 0; idx < 2; idx++) {
-			SortedMap<String, Integer> map = new TreeMap<String, Integer>();
+			SortedMap<String, Long> map = new TreeMap<String, Long>();
 			fileNamesAndSizes.add(map);
 			testTrackStreams.put(new TestTrackStreamImpl(map), titleFormatService);
 		}
 		
 		TrackWriter writer = getTrackWriterFactory().createTrackWriter(testTrackStreams);
-		Map<String, Integer> expectedFileNamesAndSizes = new TreeMap<String, Integer>();
+		Map<String, Long> expectedFileNamesAndSizes = new TreeMap<String, Long>();
 		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
 			writer.write(encodedTrackBean);
 			expectedFileNamesAndSizes.put(
 					titleFormatService.getTitle(encodedTrackBean),
-					encodedTrackBean.getTrackData().getLength());
+					encodedTrackBean.getTrackDataBean().getFile().length());
 		}
 		
 		int run = 1;
-		for (Map<String, Integer> actualFileNamesAndSizes : fileNamesAndSizes) {
+		for (Map<String, Long> actualFileNamesAndSizes : fileNamesAndSizes) {
 			assertEquals(
 				"The wrong tracks and lengths were returned on run " + run + ".",
 				expectedFileNamesAndSizes, actualFileNamesAndSizes);

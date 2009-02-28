@@ -52,8 +52,8 @@ public class ImporterImpl implements Importer {
 	private EncoderService i_encoderService;
 	private FlacTrackDao i_flacTrackDao;
 	private TrackImporter i_trackImporter;
-	private DataExtractor i_encodedTrackDataExtractor;
-	private InputStreamCopier i_inputStreamCopier;
+	private DataExtractor<EncodedTrackBean> i_encodedTrackDataExtractor;
+	private InputStreamCopier<EncodedTrackBean> i_inputStreamCopier;
 	private RepositoryManager i_encodedRepositoryManager;
 	
 	public void importTracks() throws IOException {
@@ -151,7 +151,7 @@ public class ImporterImpl implements Importer {
 	@Transactional
 	public void exportTracks() throws IOException {
 		FlacTrackDao flacTrackDao = getFlacTrackDao();
-		DataExtractor encodedTrackDataExtractor = getEncodedTrackDataExtractor();
+		DataExtractor<EncodedTrackBean> encodedTrackDataExtractor = getEncodedTrackDataExtractor();
 		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
 			String flacUrl = encodedTrackBean.getFlacUrl();
 			String extension = encodedTrackBean.getEncoderBean().getExtension();
@@ -168,7 +168,7 @@ public class ImporterImpl implements Importer {
 				else {
 					log.info("Exporting " + encodedTrackBean + " to " + file);
 					OutputStream fileOutputStream = new FileOutputStream(file);
-					getInputStreamCopier().copy(encodedTrackDataExtractor, encodedTrackBean.getId(), fileOutputStream);
+					getInputStreamCopier().copy(encodedTrackDataExtractor, encodedTrackBean, fileOutputStream);
 					fileOutputStream.close();
 				}
 			}
@@ -220,21 +220,21 @@ public class ImporterImpl implements Importer {
 		i_encoderService = encoderService;
 	}
 
-	public DataExtractor getEncodedTrackDataExtractor() {
+	public DataExtractor<EncodedTrackBean> getEncodedTrackDataExtractor() {
 		return i_encodedTrackDataExtractor;
 	}
 
 	@Required
-	public void setEncodedTrackDataExtractor(DataExtractor encodedTrackDataExtractor) {
+	public void setEncodedTrackDataExtractor(DataExtractor<EncodedTrackBean> encodedTrackDataExtractor) {
 		i_encodedTrackDataExtractor = encodedTrackDataExtractor;
 	}
 
-	public InputStreamCopier getInputStreamCopier() {
+	public InputStreamCopier<EncodedTrackBean> getInputStreamCopier() {
 		return i_inputStreamCopier;
 	}
 
 	@Required
-	public void setInputStreamCopier(InputStreamCopier inputStreamCopier) {
+	public void setInputStreamCopier(InputStreamCopier<EncodedTrackBean> inputStreamCopier) {
 		i_inputStreamCopier = inputStreamCopier;
 	}
 

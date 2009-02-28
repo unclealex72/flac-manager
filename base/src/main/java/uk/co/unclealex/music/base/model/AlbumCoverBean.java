@@ -17,7 +17,8 @@ import javax.persistence.Transient;
 
 import org.hibernate.validator.NotNull;
 
-import uk.co.unclealex.music.base.io.KnownLengthInputStream;
+import uk.co.unclealex.hibernate.model.DataBean;
+import uk.co.unclealex.hibernate.model.KeyedBean;
 
 @Entity(name="albumCoverBean")
 @Table(name="covers")
@@ -26,8 +27,8 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 	private static final Comparator<AlbumCoverBean> COMPARATOR = new AlbumCoverComparator();
 
 	private String i_url;
-	private KnownLengthInputStreamBean i_coverBean;
-	private KnownLengthInputStreamBean i_thumbnailBean;
+	private DataBean i_coverDataBean;
+	private DataBean i_thumbnailDataBean;
 	private AlbumCoverSize i_albumCoverSize;
 	private String i_flacAlbumPath;
 	private Date i_dateDownloaded;
@@ -105,54 +106,24 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 		i_dateSelected = dateSelected;
 	}
 	
-	@Transient
-	public KnownLengthInputStream getCover() {
-		return getCoverBean().getData();
-	}
-
-	public void setCover(KnownLengthInputStream cover) {
-		KnownLengthInputStreamBean coverBean = getCoverBean();
-		if (coverBean == null) {
-			setCoverBean(new KnownLengthInputStreamBean(cover));
-		}
-		else {
-			coverBean.setData(cover);
-		}
-	}
-
-	@Transient
-	public KnownLengthInputStream getThumbnail() {
-		return getThumbnailBean().getData();
-	}
-
-	public void setThumbnail(KnownLengthInputStream thumbnail) {
-		KnownLengthInputStreamBean thumbnailBean = getThumbnailBean();
-		if (thumbnailBean == null) {
-			setThumbnailBean(new KnownLengthInputStreamBean(thumbnail));
-		}
-		else {
-			thumbnailBean.setData(thumbnail);
-		}
-	}
-
-	@OneToOne(cascade=CascadeType.ALL)
 	@NotNull
-	public KnownLengthInputStreamBean getCoverBean() {
-		return i_coverBean;
-	}
-
-	public void setCoverBean(KnownLengthInputStreamBean coverBean) {
-		i_coverBean = coverBean;
-	}
-
 	@OneToOne(cascade=CascadeType.ALL)
-	@NotNull
-	public KnownLengthInputStreamBean getThumbnailBean() {
-		return i_thumbnailBean;
+	public DataBean getCoverDataBean() {
+		return i_coverDataBean;
 	}
 
-	public void setThumbnailBean(KnownLengthInputStreamBean thumbnailBean) {
-		i_thumbnailBean = thumbnailBean;
+	public void setCoverDataBean(DataBean coverDataBean) {
+		i_coverDataBean = coverDataBean;
+	}
+
+	@NotNull
+	@OneToOne(cascade=CascadeType.ALL)
+	public DataBean getThumbnailDataBean() {
+		return i_thumbnailDataBean;
+	}
+
+	public void setThumbnailDataBean(DataBean thumbnailDataBean) {
+		i_thumbnailDataBean = thumbnailDataBean;
 	}
 
 

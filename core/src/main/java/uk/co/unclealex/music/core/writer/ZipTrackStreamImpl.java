@@ -24,7 +24,7 @@ public class ZipTrackStreamImpl implements ZipTrackStream {
 	
 	@Override
 	public OutputStream createStream(EncodedTrackBean encodedTrackBean, String title) throws IOException {
-		int length = encodedTrackBean.getTrackData().getLength();
+		long length = encodedTrackBean.getTrackDataBean().getFile().length();
 		ZipOutputStream zipOutputStream = getZipOutputStream();
 		for (ZipEntry entry : createEntries(title, length)) {
 			zipOutputStream.putNextEntry(entry);
@@ -32,7 +32,7 @@ public class ZipTrackStreamImpl implements ZipTrackStream {
 		return zipOutputStream;
 	}
 
-	protected List<ZipEntry> createEntries(String title, int length) {
+	protected List<ZipEntry> createEntries(String title, long length) {
 		title = title.replace(File.pathSeparatorChar, IOUtils.DIR_SEPARATOR_UNIX);
 		if (title.startsWith(DIR_SEPARATOR_UNIX_STRING)) {
 			title = title.substring(1);
@@ -55,9 +55,9 @@ public class ZipTrackStreamImpl implements ZipTrackStream {
 		return entries;
 	}
 	
-	protected ZipEntry createZipEntry(String name, int size) {
+	protected ZipEntry createZipEntry(String name, long length) {
 		ZipEntry entry = new ZipEntry(name);
-		entry.setSize(size);
+		entry.setSize(length);
 		return entry;
 	}
 

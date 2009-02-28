@@ -37,10 +37,12 @@
 		</property>
 	</bean>
 
-	<bean id="musicSessionFactory" class="uk.co.unclealex.spring.SessionDuringStartupSessionFactoryBean">
+	<bean id="musicSessionFactory" class="uk.co.unclealex.hibernate.SessionDuringStartupSessionFactoryBean">
 		<property name="sessionFactory">
 			<bean class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
-				<property name="lobHandler" ref="defaultLobHandler"/>
+				<property name="entityInterceptor">
+					<bean class="uk.co.unclealex.hibernate.HibernateTransactionalFileSystemInterceptor"/>
+				</property>
 				<property name="dataSource" ref="musicDataSource"/>
 				<property name="hibernateProperties" ref="musicHibernateProperties"/>
 				<property name="annotatedClasses">
@@ -52,14 +54,14 @@
 						<value>uk.co.unclealex.music.base.model.OwnerBean</value>
 						<value>uk.co.unclealex.music.base.model.DeviceBean</value>
 						<value>uk.co.unclealex.music.base.model.AlbumCoverBean</value>
-						<value>uk.co.unclealex.music.base.model.KnownLengthInputStreamBean</value>
+						<value>uk.co.unclealex.hibernate.model.DataBean</value>
 					</list>
 				</property>
 			</bean>
 		</property>
 	</bean>
 
-	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+	<bean id="transactionManager" class="uk.co.unclealex.hibernate.HibernateTransactionalFileSystemTransactionManager">
 		<property name="sessionFactory" ref="musicSessionFactory"/>
 	</bean>
 

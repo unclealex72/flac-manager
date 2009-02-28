@@ -6,28 +6,27 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.hibernate.model.DataBean;
 import uk.co.unclealex.music.base.dao.EncodedTrackDao;
 import uk.co.unclealex.music.base.dao.KeyedDao;
-import uk.co.unclealex.music.base.io.KnownLengthInputStream;
-import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 
-@Transactional
 @Service
+@Transactional(rollbackFor=IOException.class)
 public class EncodedTrackDataManager extends AbstractDataManager<EncodedTrackBean> {
 
 	private EncodedTrackDao i_encodedTrackDao;
-	
-	@Override
-	public void extractData(int id, KnownLengthInputStreamCallback callback) throws IOException {
-		getEncodedTrackDao().streamTrackData(id, callback);
-	}
-	
-	@Override
-	protected void doInjectData(EncodedTrackBean encodedTrackBean, KnownLengthInputStream data) throws IOException {
-		encodedTrackBean.setTrackData(data);
-	}
 
+	@Override
+	protected DataBean getDataBean(EncodedTrackBean keyedBean) {
+		return keyedBean.getTrackDataBean();
+	}
+	
+	@Override
+	protected void setDataBean(EncodedTrackBean keyedBean, DataBean dataBean) {
+		keyedBean.setTrackDataBean(dataBean);
+	}
+	
 	@Override
 	protected KeyedDao<EncodedTrackBean> getDao() {
 		return getEncodedTrackDao();

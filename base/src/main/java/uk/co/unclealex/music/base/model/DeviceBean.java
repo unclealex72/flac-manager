@@ -10,6 +10,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import uk.co.unclealex.hibernate.model.KeyedBean;
+
 @Entity
 @Table(name="devices")
 public class DeviceBean extends KeyedBean<DeviceBean> {

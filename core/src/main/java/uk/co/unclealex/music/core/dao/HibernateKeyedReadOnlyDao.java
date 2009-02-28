@@ -10,8 +10,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Example;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 
+import uk.co.unclealex.hibernate.model.KeyedBean;
 import uk.co.unclealex.music.base.dao.KeyedReadOnlyDao;
-import uk.co.unclealex.music.base.model.KeyedBean;
 
 public abstract class HibernateKeyedReadOnlyDao<T extends KeyedBean<T>> extends HibernateDaoSupport implements
 		KeyedReadOnlyDao<T> {

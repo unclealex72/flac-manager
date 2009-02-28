@@ -16,12 +16,13 @@ import org.apache.jackrabbit.webdav.DavResource;
 import uk.co.unclealex.music.base.io.DataExtractor;
 import uk.co.unclealex.music.base.io.InputStreamCopier;
 import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
 
 public class MusicHandler extends DefaultHandler implements IOHandler {
 
-	private DataExtractor i_encodedTrackDataExtractor;
-	private InputStreamCopier i_inputStreamCopier;
+	private DataExtractor<EncodedTrackBean> i_encodedTrackDataExtractor;
+	private InputStreamCopier<EncodedTrackBean> i_inputStreamCopier;
 	
 	public MusicHandler() {
 		SpringWebdavServlet.APPLICATION_CONTEXT.getAutowireCapableBeanFactory().autowireBean(this);
@@ -75,19 +76,19 @@ public class MusicHandler extends DefaultHandler implements IOHandler {
         } // else: stream undefined -> contentlength was not set
     }
 
-	public DataExtractor getEncodedTrackDataExtractor() {
+	public DataExtractor<EncodedTrackBean> getEncodedTrackDataExtractor() {
 		return i_encodedTrackDataExtractor;
 	}
 
-	public void setEncodedTrackDataExtractor(DataExtractor encodedTrackDataExtractor) {
+	public void setEncodedTrackDataExtractor(DataExtractor<EncodedTrackBean> encodedTrackDataExtractor) {
 		i_encodedTrackDataExtractor = encodedTrackDataExtractor;
 	}
 
-	public InputStreamCopier getInputStreamCopier() {
+	public InputStreamCopier<EncodedTrackBean> getInputStreamCopier() {
 		return i_inputStreamCopier;
 	}
 
-	public void setInputStreamCopier(InputStreamCopier inputStreamCopier) {
+	public void setInputStreamCopier(InputStreamCopier<EncodedTrackBean> inputStreamCopier) {
 		i_inputStreamCopier = inputStreamCopier;
 	}
 

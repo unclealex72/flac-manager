@@ -6,5 +6,5 @@ import uk.co.unclealex.music.base.writer.TrackStream;
 
 public interface TestTrackStream extends TrackStream {
 
-	public Map<String, Integer> getFileNamesAndSizes();
+	public Map<String, Long> getFileNamesAndSizes();
 }

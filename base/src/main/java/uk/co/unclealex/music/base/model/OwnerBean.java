@@ -18,6 +18,8 @@ import org.hibernate.validator.Length;
 import org.hibernate.validator.NotEmpty;
 import org.hibernate.validator.NotNull;
 
+import uk.co.unclealex.hibernate.model.KeyedBean;
+
 @Table(name="owners")
 @Entity
 public class OwnerBean extends KeyedBean<OwnerBean> {

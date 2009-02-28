@@ -4,8 +4,8 @@ import java.util.Map;
 
 import org.apache.struts2.util.StrutsTypeConverter;
 
+import uk.co.unclealex.hibernate.model.KeyedBean;
 import uk.co.unclealex.music.base.dao.KeyedReadOnlyDao;
-import uk.co.unclealex.music.base.model.KeyedBean;
 
 public abstract class KeyedConverter<K extends KeyedBean<K>> extends StrutsTypeConverter {
 

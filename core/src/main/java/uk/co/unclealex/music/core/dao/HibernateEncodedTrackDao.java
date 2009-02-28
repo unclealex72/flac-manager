@@ -1,6 +1,5 @@
 package uk.co.unclealex.music.core.dao;
 
-import java.io.IOException;
 import java.util.SortedSet;
 
 import org.hibernate.Criteria;
@@ -14,8 +13,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.dao.EncodedTrackDao;
-import uk.co.unclealex.music.base.dao.Streamer;
-import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
 import uk.co.unclealex.music.base.model.EncodedAlbumBean;
 import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
@@ -26,8 +23,6 @@ import uk.co.unclealex.music.base.model.EncoderBean;
 public class HibernateEncodedTrackDao extends
 		HibernateKeyedDao<EncodedTrackBean> implements EncodedTrackDao {
 
-	private Streamer i_streamer;
-	
 	@Autowired
 	public HibernateEncodedTrackDao(@Qualifier("musicSessionFactory") SessionFactory sessionFactory) {
 		super(sessionFactory);
@@ -114,19 +109,5 @@ public class HibernateEncodedTrackDao extends
 	@Override
 	public EncodedTrackBean createExampleBean() {
 		return new EncodedTrackBean();
-	}
-
-	@Override
-	public void streamTrackData(int id, KnownLengthInputStreamCallback callback)
-			throws IOException {
-		getStreamer().stream(getSession(), "trackDataBean", "encodedTrackBean", id, callback);
-	}
-	
-	public Streamer getStreamer() {
-		return i_streamer;
-	}
-
-	public void setStreamer(Streamer streamer) {
-		i_streamer = streamer;
 	}
 }

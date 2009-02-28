@@ -1,5 +1,7 @@
 package uk.co.unclealex.music.base.model;
 
+import uk.co.unclealex.hibernate.model.KeyedBean;
+
 public abstract class AbstractEncodedBean<T extends AbstractEncodedBean<T>> extends KeyedBean<T> implements EncodedBean {
 
 	private String i_filename;
