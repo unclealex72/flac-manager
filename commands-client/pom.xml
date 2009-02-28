@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>uk.co.unclealex.music</groupId>
+    <artifactId>parent</artifactId>
+    <version>2.5-SNAPSHOT</version>
+  </parent>
+	<groupId>uk.co.unclealex.music</groupId>
+	<artifactId>repository-server</artifactId>
+	<name>Music Commands Client</name>
+	<url>http://maven.apache.org</url>
+	<packaging>jar</packaging>
+	<dependencies>
+		<dependency>
+			<groupId>uk.co.unclealex.music</groupId>
+			<artifactId>base</artifactId>
+			<version>${version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springmodules</groupId>
+			<artifactId>springmodules-jcr</artifactId>
+			<version>0.9</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.derby</groupId>
+			<artifactId>derby</artifactId>
+			<version>${derby-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-core</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+	</dependencies>
+
+</project>
