@@ -9,7 +9,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.jackrabbit.server.SessionProvider;
-import org.apache.jackrabbit.server.SessionProviderImpl;
 import org.apache.jackrabbit.webdav.DavResourceFactory;
 import org.apache.jackrabbit.webdav.server.AbstractWebdavServlet;
 import org.apache.jackrabbit.webdav.simple.ResourceFactoryImpl;
@@ -23,7 +22,7 @@ public class SpringWebdavServlet extends SimpleWebdavServlet {
 	
 	public static ApplicationContext APPLICATION_CONTEXT;
 	
-	private Repository i_repository;
+	private RepositoryManager i_repositoryManager;
 	private SessionProvider i_sessionProvider;
 	private DavResourceFactory i_resourceFactory;
 	
@@ -43,7 +42,7 @@ public class SpringWebdavServlet extends SimpleWebdavServlet {
 			throw new ServletException(
 					"Cannot find a repository manager called " + repositoryManagerName + " for " + config.getServletName());
 		}
-		setRepository(repositoryManager.getRepository());
+		setRepositoryManager(repositoryManager);
 	}
 	
     /**
@@ -74,13 +73,17 @@ public class SpringWebdavServlet extends SimpleWebdavServlet {
 	@Override
 	public synchronized SessionProvider getSessionProvider() {
 		if (i_sessionProvider ==null) {
-			SessionProvider sessionProvider = new SessionProviderImpl(getCredentialsProvider()) {
+			SessionProvider sessionProvider = new SessionProvider() {
 				@Override
 				public Session getSession(HttpServletRequest request,
 						Repository repository, String workspace)
 						throws LoginException, RepositoryException,
 						ServletException {
-					return super.getSession(request, repository, null);
+					return getRepositoryManager().getSession();
+				}
+				@Override
+				public void releaseSession(Session session) {
+					// Do nothing
 				}
 			};
 			setSessionProvider(sessionProvider);
@@ -95,11 +98,15 @@ public class SpringWebdavServlet extends SimpleWebdavServlet {
 	
 	@Override
 	public Repository getRepository() {
-		return i_repository;
+		return getRepositoryManager().getRepository();
 	}
 	
-	public void setRepository(Repository repository) {
-		i_repository = repository;
+	public RepositoryManager getRepositoryManager() {
+		return i_repositoryManager;
+	}
+	
+	public void setRepositoryManager(RepositoryManager repositoryManager) {
+		i_repositoryManager = repositoryManager;
 	}
 	
 }

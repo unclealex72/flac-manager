@@ -1,13 +1,23 @@
-package uk.co.unclealex.music.commands;
+package uk.co.unclealex.music.web.commands;
+
+import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.initialise.Initialiser;
 import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
+import uk.co.unclealex.music.commands.Command;
 import uk.co.unclealex.music.encoder.initialise.Importer;
+import uk.co.unclealex.music.encoder.service.AlreadyEncodingException;
+import uk.co.unclealex.music.encoder.service.CurrentlyScanningException;
 import uk.co.unclealex.music.encoder.service.EncoderService;
+import uk.co.unclealex.music.encoder.service.MultipleEncodingException;
 
-public class Initialise extends Main {
+@Service
+@Transactional(rollbackFor=Exception.class)
+public class Initialise implements Command {
 
 	private Importer i_importer;
 	private Initialiser i_initialiser;
@@ -15,7 +25,7 @@ public class Initialise extends Main {
 	private RepositoryManager i_repositoryManager;
 	
 	@Override
-	public void execute() throws Exception {
+	public void execute(String[] args) throws IOException, AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException {
 		getInitialiser().clear();
 		getInitialiser().initialise();
 		getImporter().importTracks();
@@ -24,10 +34,6 @@ public class Initialise extends Main {
 		encoderService.removeDeleted();
 	}
 	
-	public static void main(String[] args) throws Exception {
-		Main.execute(new Initialise());
-	}
-
 	public Importer getImporter() {
 		return i_importer;
 	}

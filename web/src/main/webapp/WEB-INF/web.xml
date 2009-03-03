@@ -58,6 +58,24 @@
 		</init-param>
 	</filter>
 
+	<filter>
+		<filter-name>covers</filter-name>
+		<filter-class>org.springmodules.jcr.support.OpenSessionInViewFilter</filter-class>
+		<init-param>
+			<param-name>sessionFactoryBeanName</param-name>
+			<param-value>coversSessionFactory</param-value>
+		</init-param>
+	</filter>
+	
+	<filter>
+		<filter-name>encoded</filter-name>
+		<filter-class>org.springmodules.jcr.support.OpenSessionInViewFilter</filter-class>
+		<init-param>
+			<param-name>sessionFactoryBeanName</param-name>
+			<param-value>encodedSessionFactory</param-value>
+		</init-param>
+	</filter>
+
 	<filter-mapping>
 		<filter-name>hibernate-music</filter-name>
 		<url-pattern>/*</url-pattern>
@@ -88,6 +106,16 @@
 		<url-pattern>/struts/*</url-pattern>
 	</filter-mapping>
 
+	<filter-mapping>
+		<filter-name>covers</filter-name>
+		<servlet-name>covers</servlet-name>
+	</filter-mapping>
+	
+	<filter-mapping>
+		<filter-name>encoded</filter-name>
+		<servlet-name>encoded</servlet-name>
+	</filter-mapping>
+	
 	<listener>
 		<listener-class>
 			org.springframework.web.context.request.RequestContextListener
@@ -104,6 +132,10 @@
 		<param-name>contextConfigLocation</param-name>
 		<param-value>
 			classpath:applicationContext-music-core.xml
+			classpath:applicationContext-music-core-music-hibernate.xml
+			classpath:applicationContext-music-core-flac-hibernate.xml
+			classpath:applicationContext-music-encoder.xml
+			classpath:applicationContext-music-repository-server.xml
 			classpath:applicationContext-music-album-covers.xml
 			classpath:applicationContext-music-web.xml
 		</param-value>
@@ -161,6 +193,12 @@
     </servlet>
        
 		<servlet>
+			<servlet-name>commands</servlet-name>
+			<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+			<load-on-startup>1</load-on-startup>
+		</servlet>
+		
+		<servlet>
 			<servlet-name>thumbnail</servlet-name>
 			<servlet-class>uk.co.unclealex.music.web.servlet.PictureServlet</servlet-class>
 			<init-param>
@@ -177,6 +215,11 @@
 				<param-value>albumCoverDataExtractor</param-value>
 			</init-param>
 		</servlet>
+
+		<servlet-mapping>
+			<servlet-name>commands</servlet-name>
+			<url-pattern>/commands/*</url-pattern>
+		</servlet-mapping>
 
 		<servlet-mapping>
 			<servlet-name>cover</servlet-name>

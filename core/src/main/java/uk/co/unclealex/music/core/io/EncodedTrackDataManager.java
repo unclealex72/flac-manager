@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.hibernate.dao.KeyedDao;
 import uk.co.unclealex.hibernate.model.DataBean;
 import uk.co.unclealex.music.base.dao.EncodedTrackDao;
-import uk.co.unclealex.music.base.dao.KeyedDao;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 
 @Service

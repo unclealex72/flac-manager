@@ -6,4 +6,4 @@ for JAR in ../lib/*.jar
 do
   CLASSPATH=${CLASSPATH}:$JAR
 done
-java -Xmx256M -cp $CLASSPATH uk.co.unclealex.music.commands.$@
+java -Xmx256M -cp $CLASSPATH uk.co.unclealex.music.commands.client.CommandClient $@ 

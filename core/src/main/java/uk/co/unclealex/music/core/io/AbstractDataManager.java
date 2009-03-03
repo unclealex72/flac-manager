@@ -11,9 +11,10 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.hibernate.dao.DataDao;
+import uk.co.unclealex.hibernate.dao.KeyedDao;
 import uk.co.unclealex.hibernate.model.DataBean;
 import uk.co.unclealex.hibernate.model.KeyedBean;
-import uk.co.unclealex.music.base.dao.KeyedDao;
 import uk.co.unclealex.music.base.io.DataManager;
 import uk.co.unclealex.music.base.io.KnownLengthInputStream;
 import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
@@ -22,12 +23,14 @@ import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
 public abstract class AbstractDataManager<K extends KeyedBean<K>> implements DataManager<K> {
 
 	private File i_encodedMusicStorageDirectory;
+	private DataDao i_dataDao;
 	
 	public void injectData(K keyedBean, KnownLengthInputStream data) throws IOException {
 		DataBean dataBean = getDataBean(keyedBean);
 		if (dataBean == null) {
 			dataBean = new DataBean();
 			setDataBean(keyedBean, dataBean);
+			getDataDao().store(dataBean);
 		}
 		File dir = getEncodedMusicStorageDirectory();
 		File dataFile = null;
@@ -78,5 +81,13 @@ public abstract class AbstractDataManager<K extends KeyedBean<K>> implements Dat
 	@Required
 	public void setEncodedMusicStorageDirectory(File encodedMusicStorageDirectory) {
 		i_encodedMusicStorageDirectory = encodedMusicStorageDirectory;
+	}
+
+	public DataDao getDataDao() {
+		return i_dataDao;
+	}
+
+	public void setDataDao(DataDao dataDao) {
+		i_dataDao = dataDao;
 	}
 }

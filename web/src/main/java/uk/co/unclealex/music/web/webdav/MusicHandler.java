@@ -12,6 +12,7 @@ import org.apache.jackrabbit.server.io.ExportContext;
 import org.apache.jackrabbit.server.io.IOHandler;
 import org.apache.jackrabbit.server.io.ImportContext;
 import org.apache.jackrabbit.webdav.DavResource;
+import org.springframework.context.ApplicationContext;
 
 import uk.co.unclealex.music.base.io.DataExtractor;
 import uk.co.unclealex.music.base.io.InputStreamCopier;
@@ -24,8 +25,15 @@ public class MusicHandler extends DefaultHandler implements IOHandler {
 	private DataExtractor<EncodedTrackBean> i_encodedTrackDataExtractor;
 	private InputStreamCopier<EncodedTrackBean> i_inputStreamCopier;
 	
-	public MusicHandler() {
-		SpringWebdavServlet.APPLICATION_CONTEXT.getAutowireCapableBeanFactory().autowireBean(this);
+	@SuppressWarnings("unchecked")
+	public synchronized void initialise() {
+		if (getEncodedTrackDataExtractor() == null) {
+			ApplicationContext applicationContext = SpringWebdavServlet.APPLICATION_CONTEXT;
+			DataExtractor<EncodedTrackBean> encodedTrackDataExtractor = (DataExtractor<EncodedTrackBean>) applicationContext.getBean("encodedTrackDataExtractor");
+			InputStreamCopier<EncodedTrackBean> inputStreamCopier = (InputStreamCopier<EncodedTrackBean>) applicationContext.getBean("inputStreamCopier");
+			setEncodedTrackDataExtractor(encodedTrackDataExtractor);
+			setInputStreamCopier(inputStreamCopier);
+		}
 	}
 	
 	@Override
@@ -72,6 +80,7 @@ public class MusicHandler extends DefaultHandler implements IOHandler {
             		// Do nothing
             	}
             };
+            initialise();
             getInputStreamCopier().copy(getEncodedTrackDataExtractor(), id, out);
         } // else: stream undefined -> contentlength was not set
     }

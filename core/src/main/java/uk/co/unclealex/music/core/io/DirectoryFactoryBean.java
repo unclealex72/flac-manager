@@ -33,7 +33,7 @@ public class DirectoryFactoryBean implements FactoryBean {
 		}
 		setDirectory(directory);
 		removeIfTemporary();
-		if (!directory.mkdirs()) {
+		if (!directory.exists() && !directory.mkdirs()) {
 			throw new IllegalArgumentException("Could not create directory " + directory);
 		}
 	}

@@ -4,6 +4,7 @@ import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.Repository;
+import javax.jcr.Session;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +65,12 @@ public class TestRepositoryManager implements RepositoryManager {
 	public int remove(int id) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public Session getSession() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

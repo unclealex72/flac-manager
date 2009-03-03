@@ -6,7 +6,6 @@ import java.io.InputStream;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.dao.EncodedAlbumDao;
@@ -33,18 +32,18 @@ public class TrackImporterImpl implements TrackImporter {
 	private DataInjector<EncodedTrackBean> i_encodedTrackDataInjector;
 	
 	@Override
-	@Transactional(propagation=Propagation.REQUIRES_NEW, rollbackFor=IOException.class)
+	@Transactional(rollbackFor=IOException.class)
 	public EncodedTrackBean importTrack(
 			InputStream in, int length, EncoderBean encoderBean, 
 			String title, String url, int trackNumber, long lastModifiedMillis, EncodedAlbumBean encodedAlbumBean) throws IOException {
 		EncodedTrackBean encodedTrackBean = new EncodedTrackBean();
 		encodedTrackBean.setEncoderBean(encoderBean);
+		encodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
 		encodedTrackBean.setFlacUrl(url);
 		encodedTrackBean.setTimestamp(lastModifiedMillis);
 		encodedTrackBean.setTrackNumber(trackNumber);
 		encodedTrackBean.setTitle(title);
 		getEncodedService().injectFilename(encodedTrackBean);
-		encodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
 		getEncodedTrackDataInjector().injectData(encodedTrackBean, new KnownLengthInputStream(in, length));
 		log.info("Stored " + encoderBean.getExtension() + " of " + url);
 		return encodedTrackBean;

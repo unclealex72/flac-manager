@@ -2,7 +2,7 @@ package uk.co.unclealex.music.web.converter;
 
 import com.opensymphony.xwork2.conversion.annotations.Conversion;
 
-import uk.co.unclealex.music.base.dao.KeyedReadOnlyDao;
+import uk.co.unclealex.hibernate.dao.KeyedReadOnlyDao;
 import uk.co.unclealex.music.base.dao.OwnerDao;
 import uk.co.unclealex.music.base.model.OwnerBean;
 

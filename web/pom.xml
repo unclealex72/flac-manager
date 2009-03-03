@@ -12,7 +12,6 @@
 	<url>http://maven.apache.org</url>
 	<packaging>war</packaging>
 	<dependencies>
-	
 		<dependency>
 			<groupId>uk.co.unclealex.music</groupId>
 			<artifactId>core</artifactId>
@@ -20,10 +19,24 @@
 		</dependency>
 		<dependency>
 			<groupId>uk.co.unclealex.music</groupId>
+			<artifactId>commands</artifactId>
+			<version>${version}</version>
+		</dependency>
+		<dependency>
+			<groupId>uk.co.unclealex.music</groupId>
 			<artifactId>album-covers</artifactId>
 			<version>${version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>uk.co.unclealex.music</groupId>
+			<artifactId>encoder</artifactId>
+			<version>${version}</version>
+		</dependency>
+		<dependency>
+			<groupId>uk.co.unclealex.music</groupId>
+			<artifactId>repository-server</artifactId>
+			<version>${version}</version>
+		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>

@@ -246,6 +246,11 @@ public class RepositoryManagerImpl<E> extends JcrTemplate implements RepositoryM
 		return execute(callback);
 	}
 	
+	@Override
+	public Session getSession() {
+		return super.getSession();
+	}
+	
 	public RepositoryAdaptor<E> getRepositoryAdaptor() {
 		return i_repositoryAdaptor;
 	}

@@ -2,8 +2,8 @@ package uk.co.unclealex.music.repositoryserver.service.filesystem;
 
 import java.util.Set;
 
+import uk.co.unclealex.hibernate.dao.KeyedReadOnlyDao;
 import uk.co.unclealex.hibernate.model.KeyedBean;
-import uk.co.unclealex.music.base.dao.KeyedReadOnlyDao;
 
 public abstract class AbstractKeyedRepositoryAdaptor<T extends KeyedBean<T>> implements RepositoryAdaptor<T> {
 

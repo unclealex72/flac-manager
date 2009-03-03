@@ -67,7 +67,11 @@
 
 	<bean id="hibernateSessionExecutor" class="uk.co.unclealex.hibernate.HibernateSessionExecutor">
 		<property name="sessionFactory" ref="musicSessionFactory"/>
-	</bean>	
+	</bean>
+	
+	<bean id="dataDao" class="uk.co.unclealex.hibernate.dao.HibernateDataDao">
+		<constructor-arg ref="musicSessionFactory"/>
+	</bean>
 </beans>
 
 

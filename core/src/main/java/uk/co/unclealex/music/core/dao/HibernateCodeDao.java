@@ -4,6 +4,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import uk.co.unclealex.hibernate.dao.HibernateKeyedReadOnlyDao;
 import uk.co.unclealex.music.base.dao.CodeDao;
 import uk.co.unclealex.music.base.model.AbstractFlacBean;
 

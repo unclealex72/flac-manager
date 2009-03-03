@@ -11,11 +11,11 @@
 	</bean>
 
 	<bean id="coversRepository" parent="abstractRepository">
-		<property name="homeDir" value="file:/home/java/jackrabbit/covers"/>
+		<property name="homeDir" value="file:/home/java/music/dav/covers"/>
 	</bean>
 	
 	<bean id="encodedRepository" parent="abstractRepository">
-		<property name="homeDir" value="file:/home/java/jackrabbit/encoded"/>
+		<property name="homeDir" value="file:/home/java/music/dav/encoded"/>
 	</bean>
 
 	<bean id="jcrPassword" class="java.lang.String">
@@ -33,17 +33,21 @@
 		</property>
 	</bean>
 	
+	<bean id="coversSessionFactory" parent="abstractJcrSessionFactory">
+		<property name="repository" ref="coversRepository"/>
+	</bean>
+	
 	<bean id="coversRepositoryManager" class="uk.co.unclealex.music.repositoryserver.service.filesystem.RepositoryManagerImpl">
 		<property name="repositoryAdaptor">
 			<bean class="uk.co.unclealex.music.repositoryserver.service.filesystem.CoversRepositoryAdaptor"/>
 		</property>
-		<property name="sessionFactory">
-			<bean parent="abstractJcrSessionFactory">
-				<property name="repository" ref="coversRepository"/>
-			</bean>
-		</property>
+		<property name="sessionFactory" ref="coversSessionFactory"/>
 	</bean>
 	
+	<bean id="encodedSessionFactory" parent="abstractJcrSessionFactory">
+		<property name="repository" ref="encodedRepository"/>
+	</bean>
+
 	<bean id="encodedRepositoryManager" class="uk.co.unclealex.music.repositoryserver.service.filesystem.RepositoryManagerImpl">
 		<property name="repositoryAdaptor">
 			<bean class="uk.co.unclealex.music.repositoryserver.service.filesystem.EncodedRepositoryAdaptor">
@@ -58,11 +62,7 @@
 				</property>
 			</bean>
 		</property>
-		<property name="sessionFactory">
-			<bean parent="abstractJcrSessionFactory">
-				<property name="repository" ref="encodedRepository"/>
-			</bean>
-		</property>
+		<property name="sessionFactory" ref="encodedSessionFactory"/>
 	</bean>
 </beans>
 

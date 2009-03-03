@@ -5,8 +5,8 @@ import java.io.IOException;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.hibernate.dao.KeyedDao;
 import uk.co.unclealex.music.base.dao.AlbumCoverDao;
-import uk.co.unclealex.music.base.dao.KeyedDao;
 import uk.co.unclealex.music.base.model.AlbumCoverBean;
 
 @Transactional(rollbackFor=IOException.class)

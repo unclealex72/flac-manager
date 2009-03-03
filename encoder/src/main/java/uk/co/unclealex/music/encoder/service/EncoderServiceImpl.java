@@ -158,14 +158,8 @@ public class EncoderServiceImpl implements EncoderService {
 		updateOwnership();
 		
 		RepositoryManager repositoryManager = getEncodedRepositoryManager();
-		for (EncodedTrackBean encodedTrackBean : newEncodedTrackBeans) {
-			try {
-				repositoryManager.add(encodedTrackBean.getId());
-			}
-			catch (RuntimeException e) {
-				log.warn("Could not store encoded track " + encodedTrackBean, e);
-			}
-		}
+		repositoryManager.clear();
+		repositoryManager.refresh();
 		albumCoverService.downloadAndSaveCoversForAlbums(flacAlbumBeans);
 		albumCoverService.purgeCovers();
 		return totalCount;

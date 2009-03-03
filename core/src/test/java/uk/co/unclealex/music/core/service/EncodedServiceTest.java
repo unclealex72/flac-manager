@@ -5,9 +5,9 @@ import java.util.Collection;
 
 import org.apache.commons.collections15.CollectionUtils;
 
+import uk.co.unclealex.hibernate.dao.KeyedDao;
 import uk.co.unclealex.music.base.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.base.dao.EncodedArtistDao;
-import uk.co.unclealex.music.base.dao.KeyedDao;
 import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.IdentifiableBean;
 import uk.co.unclealex.music.base.service.EncodedService;

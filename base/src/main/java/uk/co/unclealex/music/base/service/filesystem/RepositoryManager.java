@@ -4,6 +4,7 @@ import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.Repository;
+import javax.jcr.Session;
 
 
 public interface RepositoryManager {
@@ -12,6 +13,7 @@ public interface RepositoryManager {
 	String PROPERTY_LENGTH = "length";
 	
 	public Repository getRepository();
+	public Session getSession();
 	
 	public void refresh();
 	public void clear();

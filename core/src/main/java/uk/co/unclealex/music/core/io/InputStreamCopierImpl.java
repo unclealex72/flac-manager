@@ -15,7 +15,7 @@ import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
 import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
 
 @Transactional
-@Service
+@Service("inputStreamCopier")
 public class InputStreamCopierImpl<E> implements InputStreamCopier<E>, Transformer<OutputStream, KnownLengthOutputStream<?>> {
 
 	@Override

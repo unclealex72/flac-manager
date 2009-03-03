@@ -1,23 +1,24 @@
-package uk.co.unclealex.music.commands;
+package uk.co.unclealex.music.web.commands;
 
 import java.io.IOException;
 
-import uk.co.unclealex.music.albumcover.service.AlbumCoverService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@uk.co.unclealex.spring.Main
-public class Covers extends Main {
+import uk.co.unclealex.music.albumcover.service.AlbumCoverService;
+import uk.co.unclealex.music.commands.Command;
+
+@Service
+@Transactional(rollbackFor=Exception.class)
+public class Covers implements Command {
 
 	private AlbumCoverService i_albumCoverService;
 	
 	@Override
-	public void execute() throws IOException {
+	public void execute(String[] args) throws IOException {
 		getAlbumCoverService().downloadMissing();
 	}
 	
-	public static void main(String[] args) throws Exception {
-		Main.execute(new Covers());
-	}
-
 	public AlbumCoverService getAlbumCoverService() {
 		return i_albumCoverService;
 	}

@@ -9,20 +9,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
@@ -37,9 +32,9 @@ import uk.co.unclealex.music.base.io.DataExtractor;
 import uk.co.unclealex.music.base.io.InputStreamCopier;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
 import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
-import uk.co.unclealex.music.core.service.CommandWorker;
 import uk.co.unclealex.music.encoder.service.EncoderService;
 
 @Service
@@ -87,60 +82,27 @@ public class ImporterImpl implements Importer {
 		};
 		SortedSet<File> sortedFiles = new TreeSet<File>(comparator);
 		sortedFiles.addAll(Arrays.asList(files));
-		
-		final SortedMap<ImportCommandBean, Throwable> errors =
-			Collections.synchronizedSortedMap(new TreeMap<ImportCommandBean, Throwable>());
-		final BlockingQueue<ImportCommandBean> importCommandBeans = new LinkedBlockingQueue<ImportCommandBean>();
-		int maximumThreads = 1;
-		final ProcessTracker processTracker = new ProcessTracker(sortedFiles.size());
-		List<CommandWorker<ImportCommandBean>> workers = new ArrayList<CommandWorker<ImportCommandBean>>(maximumThreads);
-		for (int idx = 0; idx < maximumThreads; idx++) {
-			CommandWorker<ImportCommandBean> worker = new CommandWorker<ImportCommandBean>(importCommandBeans, errors) {
-				@Override
-				protected void process(ImportCommandBean importCommandBean) throws IOException {
-					File file = importCommandBean.getFile();
-					String filename = file.getName();
-					int flacTrackId = Integer.parseInt(FilenameUtils.getBaseName(filename));
-					FlacTrackBean flacTrackBean = getFlacTrackDao().findById(flacTrackId);
-					if (flacTrackBean == null) {
-						processTracker.ignore(file);
-					}
-					else {
-						String url = flacTrackBean.getUrl();
-						String extension = FilenameUtils.getExtension(filename);
-						EncoderBean encoderBean = encodedBeansByExtension.get(extension);
-						EncodedTrackBean encodedTrackBean =
-							encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
-						if (encodedTrackBean != null) {
-							processTracker.ignore(file);
-						}
-						else {
-							Date start = new Date();
-							InputStream in = new FileInputStream(file);
-							EncodedTrackBean newEncodedTrackBean = trackImporter.importTrack(
-								in, (int) file.length(), encoderBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), 
-								flacTrackBean.getTrackNumber(), file.lastModified(), null);
-							in.close();
-							processTracker.imported(file, newEncodedTrackBean.toString(), start, new Date());
-						}
-					}
-				}
-			};
-			worker.start();
-			workers.add(worker);
-		}
 		for (File file : sortedFiles) {
-			importCommandBeans.offer(new ImportCommandBean(file));
-		}
-		for (int idx = 0; idx < maximumThreads; idx++) {
-			importCommandBeans.offer(new ImportCommandBean());
-		}
-		for (CommandWorker<ImportCommandBean> worker : workers) {
-			try {
-				worker.join();
-			}
-			catch (InterruptedException e) {
-				// Do nothing
+			String filename = file.getName();
+			int flacTrackId = Integer.parseInt(FilenameUtils.getBaseName(filename));
+			FlacTrackBean flacTrackBean = getFlacTrackDao().findById(flacTrackId);
+			if (flacTrackBean != null) {
+				String url = flacTrackBean.getUrl();
+				String extension = FilenameUtils.getExtension(filename);
+				EncoderBean encoderBean = encodedBeansByExtension.get(extension);
+				EncodedTrackBean encodedTrackBean =
+					encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
+				if (encodedTrackBean == null) {
+					InputStream in = new FileInputStream(file);
+					trackImporter.importTrack(
+						in, (int) file.length(), encoderBean, flacTrackBean.getTitle(), flacTrackBean.getUrl(), 
+						flacTrackBean.getTrackNumber(), file.lastModified(), null);
+					IOUtils.closeQuietly(in);
+					FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
+					log.info(
+							"Imported " + flacTrackBean.getTitle() + ", " + flacAlbumBean.getTitle() + 
+							" by " + flacAlbumBean.getFlacArtistBean().getName());
+				}
 			}
 		}
 		getEncoderService().updateMissingAlbumInformation();

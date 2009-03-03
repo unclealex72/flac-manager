@@ -2,6 +2,7 @@ package uk.co.unclealex.music.base.dao;
 
 import java.util.SortedSet;
 
+import uk.co.unclealex.hibernate.dao.KeyedDao;
 import uk.co.unclealex.music.base.model.AlbumCoverBean;
 
 public interface AlbumCoverDao extends KeyedDao<AlbumCoverBean> {

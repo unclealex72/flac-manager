@@ -1,22 +1,26 @@
-package uk.co.unclealex.music.commands;
+package uk.co.unclealex.music.web.commands;
+
+import java.io.IOException;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.service.DeviceWriter;
 import uk.co.unclealex.music.base.service.EncodedService;
+import uk.co.unclealex.music.base.writer.TrackWritingException;
+import uk.co.unclealex.music.commands.Command;
 
-@uk.co.unclealex.spring.Main
-public class WriteToDevices extends Main {
+@Service
+@Transactional(rollbackFor=Exception.class)
+public class WriteToDevices implements Command {
 
 	private DeviceWriter i_deviceWriter;
 	private EncodedService i_encodedService;
 	
 	@Override
-	public void execute() throws Exception {
+	public void execute(String[] args) throws TrackWritingException, IOException {
 		getEncodedService().updateAllFilenames();
 		getDeviceWriter().writeToAllDevices();
-	}
-
-	public static void main(String[] args) throws Exception {
-		Main.execute(new WriteToDevices());
 	}
 
 	public EncodedService getEncodedService() {

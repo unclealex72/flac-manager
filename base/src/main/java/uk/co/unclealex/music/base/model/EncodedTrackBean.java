@@ -65,6 +65,7 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 	}
 	
 	@ManyToOne
+	@NotNull
 	public EncoderBean getEncoderBean() {
 		return i_encoderBean;
 	}

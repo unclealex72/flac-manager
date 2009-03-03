@@ -7,8 +7,8 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.hibernate.dao.KeyedReadOnlyDao;
 import uk.co.unclealex.music.base.dao.AlbumCoverDao;
-import uk.co.unclealex.music.base.dao.KeyedReadOnlyDao;
 import uk.co.unclealex.music.base.model.AlbumCoverBean;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.service.FlacService;
