@@ -22,6 +22,8 @@
 
 	<bean id="deviceService" class="uk.co.unclealex.music.test.TestDeviceService"/>
 	
+	<bean id="speechWriterFactory" class="uk.co.unclealex.music.test.TestSpeechWriterFactory"/>
+	
 	<bean id="slimServerConfig" class="uk.co.unclealex.music.test.TestSlimServerConfig">
 		<property name="definiteArticles">
 			<list>
