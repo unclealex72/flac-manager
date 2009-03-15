@@ -50,6 +50,7 @@ public class SpringWebdavServlet extends SimpleWebdavServlet {
 		setJcrTemplate(jcrTemplate);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void service(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		Thread.currentThread().setName(getServletConfig().getServletName());

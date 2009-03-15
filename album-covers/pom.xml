@@ -4,7 +4,7 @@
   <parent>
     <groupId>uk.co.unclealex.music</groupId>
     <artifactId>parent</artifactId>
-    <version>2.6-SNAPSHOT</version>
+    <version>2.5-SNAPSHOT</version>
   </parent>
 	<groupId>uk.co.unclealex.music</groupId>
 	<artifactId>album-covers</artifactId>
