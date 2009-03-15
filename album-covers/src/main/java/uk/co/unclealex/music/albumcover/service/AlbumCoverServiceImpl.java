@@ -83,7 +83,7 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	
 	@PostConstruct
 	public void initialise() {
-		String libraryFile = System.getProperty("user.home") + "/.m2/repository/javax/jai/libclib/1.1/libclib-1.1.so";
+		String libraryFile = "/usr/local/lib/libclib-1.1.so";
 		System.load(libraryFile);
 		Predicate<FlacAlbumBean> albumHasCoversPredicate = new Predicate<FlacAlbumBean>() {
 			@Override
