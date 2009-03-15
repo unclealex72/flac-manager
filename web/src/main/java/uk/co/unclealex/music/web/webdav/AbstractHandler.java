@@ -16,24 +16,26 @@ import org.springframework.context.ApplicationContext;
 import uk.co.unclealex.music.base.io.DataExtractor;
 import uk.co.unclealex.music.base.io.InputStreamCopier;
 import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
-import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
 
-public class MusicHandler extends DefaultHandler implements IOHandler {
+public abstract class AbstractHandler<E> extends DefaultHandler implements IOHandler {
 
-	private DataExtractor<EncodedTrackBean> i_encodedTrackDataExtractor;
-	private InputStreamCopier<EncodedTrackBean> i_inputStreamCopier;
+	private DataExtractor<E> i_dataExtractor;
+	private InputStreamCopier<E> i_inputStreamCopier;
 	
 	@SuppressWarnings("unchecked")
 	public synchronized void initialise() {
-		if (getEncodedTrackDataExtractor() == null) {
+		if (getDataExtractor() == null) {
 			ApplicationContext applicationContext = SpringWebdavServlet.APPLICATION_CONTEXT;
-			DataExtractor<EncodedTrackBean> encodedTrackDataExtractor = (DataExtractor<EncodedTrackBean>) applicationContext.getBean("encodedTrackDataExtractor");
-			InputStreamCopier<EncodedTrackBean> inputStreamCopier = (InputStreamCopier<EncodedTrackBean>) applicationContext.getBean("inputStreamCopier");
-			setEncodedTrackDataExtractor(encodedTrackDataExtractor);
+			DataExtractor<E> dataExtractor = (DataExtractor<E>) applicationContext.getBean(getDataExtractorBeanName());
+			InputStreamCopier<E> inputStreamCopier = 
+				(InputStreamCopier<E>) applicationContext.getBean("inputStreamCopier");
+			setDataExtractor(dataExtractor);
 			setInputStreamCopier(inputStreamCopier);
 		}
 	}
+	
+	public abstract String getDataExtractorBeanName();
 	
 	@Override
 	public boolean canImport(ImportContext context, boolean isCollection) {
@@ -80,23 +82,23 @@ public class MusicHandler extends DefaultHandler implements IOHandler {
             	}
             };
             initialise();
-            getInputStreamCopier().copy(getEncodedTrackDataExtractor(), id, out);
+            getInputStreamCopier().copy(getDataExtractor(), id, out);
         } // else: stream undefined -> contentlength was not set
     }
 
-	public DataExtractor<EncodedTrackBean> getEncodedTrackDataExtractor() {
-		return i_encodedTrackDataExtractor;
+	public DataExtractor<E> getDataExtractor() {
+		return i_dataExtractor;
 	}
 
-	public void setEncodedTrackDataExtractor(DataExtractor<EncodedTrackBean> encodedTrackDataExtractor) {
-		i_encodedTrackDataExtractor = encodedTrackDataExtractor;
+	public void setDataExtractor(DataExtractor<E> dataExtractor) {
+		i_dataExtractor = dataExtractor;
 	}
 
-	public InputStreamCopier<EncodedTrackBean> getInputStreamCopier() {
+	public InputStreamCopier<E> getInputStreamCopier() {
 		return i_inputStreamCopier;
 	}
 
-	public void setInputStreamCopier(InputStreamCopier<EncodedTrackBean> inputStreamCopier) {
+	public void setInputStreamCopier(InputStreamCopier<E> inputStreamCopier) {
 		i_inputStreamCopier = inputStreamCopier;
 	}
 

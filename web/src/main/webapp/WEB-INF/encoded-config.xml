@@ -81,7 +81,7 @@
             <class name="org.apache.jackrabbit.server.io.DirListingExportHandler" />
         </iohandler>
         <iohandler>
-            <class name="uk.co.unclealex.music.web.webdav.MusicHandler" />
+            <class name="uk.co.unclealex.music.web.webdav.EncodedTrackHandler" />
         </iohandler>
     </iomanager>
     <!--
@@ -120,7 +120,7 @@
 	        <class name="org.apache.jackrabbit.server.io.DirListingExportHandler" />
         </propertyhandler>
         <propertyhandler>
-            <class name="uk.co.unclealex.music.web.webdav.MusicHandler" />
+            <class name="uk.co.unclealex.music.web.webdav.EncodedTrackHandler" />
         </propertyhandler>
     </propertymanager>
     <!--

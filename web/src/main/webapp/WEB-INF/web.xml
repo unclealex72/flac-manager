@@ -100,7 +100,7 @@
         </init-param>
         <init-param>
         	<param-name>resource-config</param-name>
-        	<param-value>/WEB-INF/config.xml</param-value>
+        	<param-value>/WEB-INF/albumcover-config.xml</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
@@ -122,7 +122,7 @@
         </init-param>
         <init-param>
         	<param-name>resource-config</param-name>
-        	<param-value>/WEB-INF/config.xml</param-value>
+        	<param-value>/WEB-INF/encoded-config.xml</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
