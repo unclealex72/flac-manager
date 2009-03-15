@@ -6,7 +6,7 @@
        default-autowire="byName">
 
 	<bean id="command" class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean">
-		<property name="serviceUrl" value="http://localhost:8080/music/commands/Main"/>
+		<property name="serviceUrl" value="http://localhost/music/commands/Main"/>
 		<property name="serviceInterface" value="uk.co.unclealex.music.commands.Command"/>
 	</bean>
 

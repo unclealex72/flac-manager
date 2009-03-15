@@ -15,14 +15,12 @@
  */
 package uk.co.unclealex.music.repositoryserver.service.filesystem;
 
-import java.lang.reflect.Field;
+import java.io.IOException;
 
-import javax.jcr.Repository;
-
-import org.apache.jackrabbit.api.JackrabbitRepository;
 import org.apache.jackrabbit.core.TransientRepository;
 import org.apache.jackrabbit.core.TransientRepository.RepositoryFactory;
-import org.springmodules.jcr.jackrabbit.RepositoryFactoryBean;
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.annotation.Required;
 
 /**
  * FactoryBean for creating Jackrabbit's TransientRepository (i.e. repository are initialized for the
@@ -31,7 +29,8 @@ import org.springmodules.jcr.jackrabbit.RepositoryFactoryBean;
  * @author Costin Leau
  * @since 0.5
  */
-public class TransientRepositoryFactoryBean extends RepositoryFactoryBean {
+public class TransientRepositoryFactoryBean implements FactoryBean {
+	
 	private RepositoryFactory i_repositoryFactory;
 
 	/*
@@ -39,33 +38,26 @@ public class TransientRepositoryFactoryBean extends RepositoryFactoryBean {
 	 * 
 	 * @see org.springmodules.jcr.jackrabbit.RepositoryFactoryBean#createRepository()
 	 */
-	protected Repository createRepository() throws Exception {
-		// use given factory
-		RepositoryFactory repositoryFactory = getRepositoryFactory();
-		if (repositoryFactory != null)
-			return new TransientRepository(repositoryFactory);
-
-		// fallback to discovered repository configuration
-		return new TransientRepository(getRepositoryConfig());
+	@Override
+	public Object getObject() throws IOException {
+		return new TransientRepository(getRepositoryFactory());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springmodules.jcr.jackrabbit.RepositoryFactoryBean#destroy()
-	 */
-	public void destroy() throws Exception {
-		// use introspection to call shutdown on the repo
-		Field repositoryField = TransientRepository.class.getDeclaredField("repository");
-		repositoryField.setAccessible(true);
-		JackrabbitRepository repo = (JackrabbitRepository) repositoryField.get(repository);
-		repo.shutdown();
+	@Override
+	public Class<?> getObjectType() {
+		return TransientRepository.class;
 	}
-
+	
+	@Override
+	public boolean isSingleton() {
+		return false;
+	}
+	
 	public RepositoryFactory getRepositoryFactory() {
 		return i_repositoryFactory;
 	}
 
+	@Required
 	public void setRepositoryFactory(RepositoryFactory repositoryFactory) {
 		i_repositoryFactory = repositoryFactory;
 	}
