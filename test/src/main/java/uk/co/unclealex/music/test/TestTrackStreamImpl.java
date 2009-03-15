@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.SortedMap;
 
-import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,23 +14,23 @@ public class TestTrackStreamImpl implements TestTrackStream {
 
 	private Map<String, Long> i_fileNamesAndSizes;
 	private String i_title;
-	private CountingOutputStream i_outputStream;
+	private CountingKnownLengthOutputStream i_outputStream;
 	
 	public TestTrackStreamImpl(SortedMap<String, Long> fileNamesAndSizes) {
 		i_fileNamesAndSizes = fileNamesAndSizes;
 	}
 
 	@Override
-	public CountingOutputStream createStream(EncodedTrackBean encodedTrackBean,
+	public CountingKnownLengthOutputStream createStream(EncodedTrackBean encodedTrackBean,
 			String title) throws IOException {
 		setTitle(title);
-		setOutputStream(new CountingOutputStream(new NullOutputStream()));
+		setOutputStream(new CountingKnownLengthOutputStream(new NullOutputStream(), new NullWritableByteChannel()));
 		return getOutputStream();
 	}
 
 	@Override
 	public void closeStream() throws IOException {
-		CountingOutputStream outputStream = getOutputStream();
+		CountingKnownLengthOutputStream outputStream = getOutputStream();
 		outputStream.flush();
 		getFileNamesAndSizes().put(getTitle(), (long) getOutputStream().getCount());
 		setOutputStream(null);
@@ -64,11 +63,11 @@ public class TestTrackStreamImpl implements TestTrackStream {
 		i_title = title;
 	}
 
-	public CountingOutputStream getOutputStream() {
+	public CountingKnownLengthOutputStream getOutputStream() {
 		return i_outputStream;
 	}
 
-	public void setOutputStream(CountingOutputStream outputStream) {
+	public void setOutputStream(CountingKnownLengthOutputStream outputStream) {
 		i_outputStream = outputStream;
 	}
 

@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -47,7 +46,7 @@ public class PictureServlet extends AbstractServlet {
 		String extension = FilenameUtils.getExtension(requestURI);
 		int albumCoverId = Integer.parseInt(requestString);
 		resp.setContentType("image/" + extension);
-		KnownLengthOutputStream<ServletOutputStream> out = new KnownLengthOutputStream<ServletOutputStream>(resp.getOutputStream()) {
+		KnownLengthOutputStream out = new KnownLengthOutputStream(resp.getOutputStream(), null) {
 			@Override
 			public void setLength(int length) throws IOException {
 				resp.setContentLength(length);

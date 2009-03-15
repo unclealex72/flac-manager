@@ -5,4 +5,6 @@ import uk.co.unclealex.music.base.model.DeviceBean;
 
 public interface DeviceDao extends KeyedDao<DeviceBean> {
 
+	public DeviceBean findByIdentifier(String identifier);
+
 }

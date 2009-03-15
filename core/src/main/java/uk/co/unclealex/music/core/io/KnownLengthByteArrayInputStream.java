@@ -7,6 +7,7 @@ import uk.co.unclealex.music.base.io.KnownLengthInputStream;
 public class KnownLengthByteArrayInputStream extends KnownLengthInputStream {
 
 	public KnownLengthByteArrayInputStream(byte[] data) {
-		super(new ByteArrayInputStream(data), data.length);
+		super(new ByteArrayInputStream(data), null, data.length);
 	}
+	
 }

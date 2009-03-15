@@ -55,7 +55,7 @@ public class DevicesWriterImpl implements DevicesWriter {
 	}
 
 	@Override
-	public void write() throws TrackWritingException {
+	public void write(boolean unmountAfterWriting) throws TrackWritingException {
 		TrackWriterFactory factory = getTrackWriterFactory();
 		OwnerService ownerService = getOwnerService();
 		TitleFormatServiceFactory titleFormatServiceFactory = getTitleFormatServiceFactory();
@@ -93,7 +93,7 @@ public class DevicesWriterImpl implements DevicesWriter {
 				trackWriter.registerWritingListener(writingListener, trackStream);
 			}
 			trackWriter.registerWritingListener(
-					new DeviceWritingListener(deviceBean, getDeviceDirectories().get(deviceBean)), trackStream);
+					new DeviceWritingListener(deviceBean, getDeviceDirectories().get(deviceBean), unmountAfterWriting), trackStream);
 		}
 		trackWriter.initialise(titleFormatServicesByTrackStream);
 		trackWriter.create();
@@ -104,9 +104,10 @@ public class DevicesWriterImpl implements DevicesWriter {
 	protected class DeviceWritingListener extends NoOpWritingListener {
 		private File mountPoint;
 		private DeviceBean deviceBean;
+		private boolean unmountAfterWriting;
 		private List<String> titlesWritten = new LinkedList<String>();
 		
-		public DeviceWritingListener(DeviceBean deviceBean, File mountPoint) {
+		public DeviceWritingListener(DeviceBean deviceBean, File mountPoint, boolean unmountAfterWriting) {
 			super();
 			this.mountPoint = mountPoint;
 			this.deviceBean = deviceBean;
@@ -143,11 +144,13 @@ public class DevicesWriterImpl implements DevicesWriter {
 			safelyRemove();
 		}
 		protected void safelyRemove() {
-			try {
-				getDeviceService().safelyRemove(mountPoint);
-			}
-			catch (IOException e) {
-				log.warn("Could not safely remove the device on " + mountPoint, e);
+			if (unmountAfterWriting) {
+				try {
+					getDeviceService().safelyRemove(mountPoint);
+				}
+				catch (IOException e) {
+					log.warn("Could not safely remove the device on " + mountPoint, e);
+				}
 			}
 		}
 	}

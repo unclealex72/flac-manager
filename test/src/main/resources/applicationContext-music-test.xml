@@ -8,6 +8,8 @@
 
 	<import resource="classpath*:applicationContext-music-core-music-hibernate.xml"/>
 	
+	<alias alias="transactionManager" name="musicTransactionManager"/>
+	
 	<bean id="encodedMusicStorageDirectory" class="uk.co.unclealex.music.core.io.DirectoryFactoryBean">
 		<property name="path" value="tracks"/>
 		<property name="temporary" value="true"/>
@@ -34,6 +36,8 @@
 	</bean>
 	 -->
 	
+	<bean id="encodedRepositoryFactory" class="uk.co.unclealex.music.test.TestRepositoryFactory"/>
+	<bean id="coversRepositoryFactory" class="uk.co.unclealex.music.test.TestRepositoryFactory"/>
 	<bean id="encodedRepositoryManager" class="uk.co.unclealex.music.test.TestRepositoryManager"/>
 	<bean id="coversRepositoryManager" class="uk.co.unclealex.music.test.TestRepositoryManager"/>
 	 

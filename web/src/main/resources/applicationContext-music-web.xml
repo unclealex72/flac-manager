@@ -4,10 +4,12 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
     http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
-    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd"
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd"
   default-autowire="byName">
 
 	<tx:annotation-driven/>
@@ -16,6 +18,107 @@
   	base-package="uk.co.unclealex.music.web"
   	name-generator="uk.co.unclealex.spring.BeanNameGenerator"
   	scope-resolver="uk.co.unclealex.spring.AnnotationScopeMetadataResolver"/>
+	
+	<bean id="encodedDavJcrTemplate" class="uk.co.unclealex.music.web.webdav.TransactionalJcrTemplate">
+		<property name="sessionFactory" ref="encodedSessionFactory"/>
+	</bean>
+	
+	<bean id="coversDavJcrTemplate" class="uk.co.unclealex.music.web.webdav.TransactionalJcrTemplate">
+		<property name="sessionFactory" ref="coversSessionFactory"/>
+	</bean>
+
+	<bean id="transactionManager" class="com.springsource.open.db.ChainedTransactionManager">
+		<property name="transactionManagers">
+			<list>
+				<ref bean="musicTransactionManager"/>
+				<ref bean="flacTransactionManager"/>
+				<ref bean="jcrEncodedTransactionManager"/>
+				<ref bean="jcrCoversTransactionManager"/>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="filter" class="uk.co.unclealex.framework.filter.ChainingFilter"/>
+	<util:map id="filters" map-class="java.util.LinkedHashMap">
+		<entry key="redirect-root">
+			<bean class="uk.co.unclealex.framework.filter.PathMatchingDelegateFilter">
+				<property name="filter">
+					<bean class="uk.co.unclealex.framework.filter.RedirectingFilter">
+						<property name="redirectTo" value="/html/missing.html"/>
+					</bean>
+				</property>
+				<property name="inclusionPattern" value="/?"/>
+			</bean>		
+		</entry>	
+		<entry key="hibernate-music">
+			<bean class="uk.co.unclealex.framework.filter.PathMatchingDelegateFilter">
+				<property name="filter">
+					<bean class="org.springframework.orm.hibernate3.support.OpenSessionInViewFilter"/>
+				</property>
+				<property name="inclusionPattern" value=".+"/>
+				<property name="exclusionPattern" value="/commands(/.*)?"/>
+			</bean>
+		</entry>
+		<entry key="hibernate-flac">
+			<bean class="uk.co.unclealex.framework.filter.PathMatchingDelegateFilter">
+				<property name="filter">
+					<bean class="org.springframework.orm.hibernate3.support.OpenSessionInViewFilter"/>
+				</property>
+				<property name="inclusionPattern" value=".+"/>
+				<property name="exclusionPattern" value="/commands(/.*)?"/>
+			</bean>
+		</entry>
+		<entry key="covers">
+			<bean class="uk.co.unclealex.framework.filter.PathMatchingDelegateFilter">
+				<property name="filter">
+					<bean class="org.springmodules.jcr.support.OpenSessionInViewFilter"/>
+				</property>
+				<property name="inclusionPattern" value=".+"/>
+				<property name="exclusionPattern" value="/commands(/.*)?"/>
+			</bean>
+		</entry>
+		<entry key="encoded">
+			<bean class="uk.co.unclealex.framework.filter.PathMatchingDelegateFilter">
+				<property name="filter">
+					<bean class="org.springmodules.jcr.support.OpenSessionInViewFilter"/>
+				</property>
+				<property name="inclusionPattern" value=".+"/>
+				<property name="exclusionPattern" value="/commands(/.*)?"/>
+			</bean>
+		</entry>
+		<entry key="struts-prepare">
+			<bean class="uk.co.unclealex.framework.filter.PathMatchingDelegateFilter">
+				<property name="filter">
+					<bean class="org.apache.struts2.dispatcher.ng.filter.StrutsPrepareFilter"/>
+				</property>
+				<property name="inclusionPattern" value="/(html|struts)/.*"/>
+			</bean>
+		</entry>
+		<entry key="sitemesh">
+			<bean class="uk.co.unclealex.framework.filter.PathMatchingDelegateFilter">
+				<property name="filter">
+					<bean class="com.opensymphony.module.sitemesh.filter.PageFilter"/>
+				</property>
+				<property name="inclusionPattern" value="/html/.*"/>
+			</bean>
+		</entry>
+		<entry key="struts-execute">
+			<bean class="uk.co.unclealex.framework.filter.PathMatchingDelegateFilter">
+				<property name="filter">
+					<bean class="org.apache.struts2.dispatcher.ng.filter.StrutsExecuteFilter"/>
+				</property>
+				<property name="inclusionPattern" value="/(html|struts)/.*"/>
+			</bean>
+		</entry>
+		<entry key="struts-cleanup">
+			<bean class="uk.co.unclealex.framework.filter.PathMatchingDelegateFilter">
+				<property name="filter">
+					<bean class="org.apache.struts2.dispatcher.ActionContextCleanUp"/>
+				</property>
+				<property name="exclusionPattern" value=".*"/>
+			</bean>
+		</entry>
+	</util:map>
 	
 </beans>
 

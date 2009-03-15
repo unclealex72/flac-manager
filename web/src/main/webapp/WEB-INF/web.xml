@@ -8,112 +8,47 @@
 	<display-name>Music Server</display-name>
 	
 	<filter>
-		<filter-name>struts</filter-name>
+		<filter-name>frameworkFilter</filter-name>
 		<filter-class>
-			org.apache.struts2.dispatcher.FilterDispatcher
-		</filter-class>
-	</filter>
-
- 	<filter>
-		<filter-name>sitemesh</filter-name>
-		<filter-class>
-			com.opensymphony.module.sitemesh.filter.PageFilter
-		</filter-class>
-	</filter>
-
-	<filter>
-		<filter-name>struts-cleanup</filter-name>
-		<filter-class>
-			org.apache.struts2.dispatcher.ActionContextCleanUp
-		</filter-class>
-	</filter>
- 
- 	<filter>
-		<filter-name>hibernate-music</filter-name>
-		<filter-class>
-			org.springframework.orm.hibernate3.support.OpenSessionInViewFilter
+			org.springframework.web.filter.DelegatingFilterProxy
 		</filter-class>
 		<init-param>
-			<param-name>singleSession</param-name>
+			<param-name>targetBeanName</param-name>
+			<param-value>filter</param-value>
+		</init-param>
+		<init-param>
+			<param-name>targetFilterLifecycle</param-name>
 			<param-value>true</param-value>
 		</init-param>
 		<init-param>
-			<param-name>sessionFactoryBeanName</param-name>
+			<param-name>hibernate-music_singleSession</param-name>
+			<param-value>false</param-value>
+		</init-param>
+		<init-param>
+			<param-name>hibernate-music_sessionFactoryBeanName</param-name>
 			<param-value>musicSessionFactory</param-value>
 		</init-param>
-	</filter>
-
- 	<filter>
-		<filter-name>hibernate-flac</filter-name>
-		<filter-class>
-			org.springframework.orm.hibernate3.support.OpenSessionInViewFilter
-		</filter-class>
 		<init-param>
-			<param-name>singleSession</param-name>
-			<param-value>true</param-value>
+			<param-name>hibernate-flac_singleSession</param-name>
+			<param-value>false</param-value>
 		</init-param>
 		<init-param>
-			<param-name>sessionFactoryBeanName</param-name>
+			<param-name>hibernate-flac_sessionFactoryBeanName</param-name>
 			<param-value>flacSessionFactory</param-value>
 		</init-param>
-	</filter>
-
-	<filter>
-		<filter-name>covers</filter-name>
-		<filter-class>org.springmodules.jcr.support.OpenSessionInViewFilter</filter-class>
 		<init-param>
-			<param-name>sessionFactoryBeanName</param-name>
+			<param-name>covers_sessionFactoryBeanName</param-name>
 			<param-value>coversSessionFactory</param-value>
 		</init-param>
-	</filter>
-	
-	<filter>
-		<filter-name>encoded</filter-name>
-		<filter-class>org.springmodules.jcr.support.OpenSessionInViewFilter</filter-class>
 		<init-param>
-			<param-name>sessionFactoryBeanName</param-name>
+			<param-name>encoded_sessionFactoryBeanName</param-name>
 			<param-value>encodedSessionFactory</param-value>
 		</init-param>
 	</filter>
 
 	<filter-mapping>
-		<filter-name>hibernate-music</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
-
-	<filter-mapping>
-		<filter-name>hibernate-flac</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
-
-	<filter-mapping>
-		<filter-name>struts-cleanup</filter-name>
-		<url-pattern>*.html</url-pattern>
-	</filter-mapping>
- 
-	<filter-mapping>
-		<filter-name>sitemesh</filter-name>
-		<url-pattern>/html/*</url-pattern>
-	</filter-mapping>
-
-	<filter-mapping>
-		<filter-name>struts</filter-name>
-		<url-pattern>*.html</url-pattern>
-	</filter-mapping>
-
-	<filter-mapping>
-		<filter-name>struts</filter-name>
-		<url-pattern>/struts/*</url-pattern>
-	</filter-mapping>
-
-	<filter-mapping>
-		<filter-name>covers</filter-name>
-		<servlet-name>covers</servlet-name>
-	</filter-mapping>
-	
-	<filter-mapping>
-		<filter-name>encoded</filter-name>
-		<servlet-name>encoded</servlet-name>
+		<filter-name>frameworkFilter</filter-name>
+		<url-pattern>*</url-pattern>
 	</filter-mapping>
 	
 	<listener>
@@ -156,8 +91,8 @@
         	uk.co.unclealex.music.web.webdav.SpringWebdavServlet
         </servlet-class>
         <init-param>
-        	<param-name>repository-manager</param-name>
-        	<param-value>coversRepositoryManager</param-value>
+        	<param-name>jcr-template</param-name>
+        	<param-value>coversDavJcrTemplate</param-value>
         </init-param>
         <init-param>
         	<param-name>missing-auth-mapping</param-name>
@@ -178,8 +113,8 @@
         	uk.co.unclealex.music.web.webdav.SpringWebdavServlet
         </servlet-class>
         <init-param>
-        	<param-name>repository-manager</param-name>
-        	<param-value>encodedRepositoryManager</param-value>
+        	<param-name>jcr-template</param-name>
+        	<param-value>encodedDavJcrTemplate</param-value>
         </init-param>
         <init-param>
         	<param-name>missing-auth-mapping</param-name>

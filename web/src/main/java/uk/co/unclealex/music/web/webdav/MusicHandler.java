@@ -1,7 +1,6 @@
 package uk.co.unclealex.music.web.webdav;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -74,7 +73,7 @@ public class MusicHandler extends DefaultHandler implements IOHandler {
         if (contentNode.hasProperty(RepositoryManager.PROPERTY_ID)) {
             Property p = contentNode.getProperty(RepositoryManager.PROPERTY_ID);
             int id = (int) p.getLong();
-            KnownLengthOutputStream<OutputStream> out = new KnownLengthOutputStream<OutputStream>(context.getOutputStream()) {
+            KnownLengthOutputStream out = new KnownLengthOutputStream(context.getOutputStream(), null) {
             	@Override
             	public void setLength(int length) throws IOException {
             		// Do nothing

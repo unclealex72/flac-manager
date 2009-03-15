@@ -19,6 +19,7 @@ public abstract class CommandWorker<E extends CommandBean<E>> extends Thread {
 	
 	public CommandWorker(BlockingQueue<E> queue, SortedMap<E, Throwable> errors) {
 		super();
+		setDaemon(true);
 		i_queue = queue;
 		i_errors = errors;
 	}

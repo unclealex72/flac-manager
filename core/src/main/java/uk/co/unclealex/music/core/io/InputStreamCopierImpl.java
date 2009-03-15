@@ -1,9 +1,10 @@
 package uk.co.unclealex.music.core.io;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 
-import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,36 +17,42 @@ import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
 
 @Transactional
 @Service("inputStreamCopier")
-public class InputStreamCopierImpl<E> implements InputStreamCopier<E>, Transformer<OutputStream, KnownLengthOutputStream<?>> {
+public class InputStreamCopierImpl<E> implements InputStreamCopier<E> {
 
 	@Override
-	public void copy(DataExtractor<E> extractor, E element, final KnownLengthOutputStream<?> out) throws IOException {
+	public void copy(DataExtractor<E> extractor, E element, final KnownLengthOutputStream out) throws IOException {
 		KnownLengthInputStreamCallback callback = createCallback(out);
 		extractor.extractData(element, callback);
 	}
 
-	public void copy(DataExtractor<E> extractor, E element, OutputStream out) throws IOException {
-		copy(extractor, element, transform(out));
-	}
-	
 	@Override
-	public void copy(DataExtractor<E> extractor, int id, KnownLengthOutputStream<?> out) throws IOException {
+	public void copy(DataExtractor<E> extractor, int id, KnownLengthOutputStream out) throws IOException {
 		KnownLengthInputStreamCallback callback = createCallback(out);
 		extractor.extractData(id, callback);
 	}
 	
-	@Override
-	public void copy(DataExtractor<E> extractor, int id, OutputStream out) throws IOException {
-		copy(extractor, id, transform(out));
-	}
-	
-	protected KnownLengthInputStreamCallback createCallback(final KnownLengthOutputStream<?> out) {
+	protected KnownLengthInputStreamCallback createCallback(final KnownLengthOutputStream out) {
 		KnownLengthInputStreamCallback callback = new KnownLengthInputStreamCallback() {
 			@Override
 			public void execute(KnownLengthInputStream in) throws IOException {
 				try {
+					boolean written = false;
 					out.setLength(in.getLength());
-					IOUtils.copy(in, out);
+					if (in.hasChannel() && out.hasChannel()) {
+						ReadableByteChannel readableByteChannel = in.getChannel();
+						WritableByteChannel writableByteChannel = out.getChannel();
+						if (readableByteChannel instanceof FileChannel) {
+							written = true;
+							((FileChannel) readableByteChannel).transferTo(0, in.getLength(), writableByteChannel);
+						}
+						else if (writableByteChannel instanceof FileChannel) {
+							written = true;
+							((FileChannel) writableByteChannel).transferFrom(readableByteChannel, 0, in.getLength());
+						}
+					}
+					if (!written) {
+						IOUtils.copy(in, out);
+					}
 				}
 				finally {
 					IOUtils.closeQuietly(in);
@@ -53,16 +60,5 @@ public class InputStreamCopierImpl<E> implements InputStreamCopier<E>, Transform
 			}
 		};
 		return callback;
-	}
-
-	@Override
-	public KnownLengthOutputStream<?> transform(final OutputStream out) {
-		KnownLengthOutputStream<OutputStream> kOut = new KnownLengthOutputStream<OutputStream>(out) {
-			@Override
-			public void setLength(int length) throws IOException {
-				// Do nothing
-			}
-		};
-		return kOut;
 	}
 }

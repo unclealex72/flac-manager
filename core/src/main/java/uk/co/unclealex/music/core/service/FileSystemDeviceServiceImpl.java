@@ -79,14 +79,28 @@ public class FileSystemDeviceServiceImpl extends DeviceServiceImpl {
 	public DeviceDao createDeviceDao() {
 		return new DeviceDao() {
 			public DeviceBean findById(final int id) {
-				return CollectionUtils.find(
-						getPathsByDeviceBean().keySet(),
-						new Predicate<DeviceBean>() {
-							@Override
-							public boolean evaluate(DeviceBean deviceBean) {
-								return new Integer(id).equals(deviceBean.getId());
-							}
-						});
+				Predicate<DeviceBean> predicate = new Predicate<DeviceBean>() {
+					@Override
+					public boolean evaluate(DeviceBean deviceBean) {
+						return new Integer(id).equals(deviceBean.getId());
+					}
+				};
+				return findByPredicate(predicate);
+			}
+			
+			public DeviceBean findByIdentifier(final String identifier) {
+				Predicate<DeviceBean> predicate = new Predicate<DeviceBean>() {
+					@Override
+					public boolean evaluate(DeviceBean deviceBean) {
+						return identifier.equals(deviceBean.getIdentifier());
+					}
+				};
+				return findByPredicate(predicate);
+			}
+
+			protected DeviceBean findByPredicate(Predicate<DeviceBean> predicate) {
+				return CollectionUtils.find(getPathsByDeviceBean().keySet(), predicate);
+				
 			}
 			@Override
 			public SortedSet<DeviceBean> getAll() {

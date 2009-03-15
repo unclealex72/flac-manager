@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -16,7 +17,6 @@ import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.io.input.NullInputStream;
-import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.springframework.beans.factory.annotation.Required;
 
@@ -28,11 +28,12 @@ import uk.co.unclealex.music.base.io.DataExtractor;
 import uk.co.unclealex.music.base.io.DataInjector;
 import uk.co.unclealex.music.base.io.InputStreamCopier;
 import uk.co.unclealex.music.base.io.KnownLengthInputStream;
-import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
 import uk.co.unclealex.music.encoder.EncoderSpringTest;
+import uk.co.unclealex.music.test.CountingKnownLengthOutputStream;
+import uk.co.unclealex.music.test.NullWritableByteChannel;
 import uk.co.unclealex.music.test.TestFlacProvider;
 import uk.co.unclealex.music.test.TestSlimServerInformationDao;
 
@@ -55,7 +56,7 @@ public class EncoderServiceTest extends EncoderSpringTest {
 		FlacTrackBean flacTrackBean = getFlacTrackDao().getAll().first();
 		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
 			MagicNumberCheckingEncodingClosure closure = new MagicNumberCheckingEncodingClosure(encoderBean);
-			singleEncoderService.encode(encoderBean, flacTrackBean, closure, new TreeMap<EncoderBean, File>());
+			singleEncoderService.encode(encoderBean, flacTrackBean, closure, new TreeMap<String, File>());
 		}
 	}
 
@@ -65,11 +66,11 @@ public class EncoderServiceTest extends EncoderSpringTest {
 		for (FlacTrackBean flacTrackBean : getFlacTrackDao().getAll()) {
 			for (EncoderBean encoderBean : getEncoderDao().getAll()) {
 				String url = flacTrackBean.getUrl();
-				EncodingCommandBean encodingCommandBean = new EncodingCommandBean(encoderBean, flacTrackBean);
+				EncodingCommandBean encodingCommandBean = new EncodingCommandBean(encoderBean.getExtension(), flacTrackBean.getUrl());
 				boolean succeeded = true;
 				long expectedLength = 0;
 				try {
-					EncodedTrackBean encodedTrackBean = singleEncoderService.encode(encodingCommandBean, new TreeMap<EncoderBean, File>());
+					EncodedTrackBean encodedTrackBean = singleEncoderService.encode(encodingCommandBean, new TreeMap<String, File>());
 					expectedLength = encodedTrackBean.getTrackDataBean().getFile().length();
 				}
 				catch (IOException e) {
@@ -78,30 +79,14 @@ public class EncoderServiceTest extends EncoderSpringTest {
 				if (succeeded) {
 					EncodedTrackBean encodedTrackBean = 
 						encodedTrackDao.findByUrlAndEncoderBean(flacTrackBean.getUrl(), encoderBean);
-					KnownLengthCountingOutputStream out = new KnownLengthCountingOutputStream();
+					CountingKnownLengthOutputStream out = new CountingKnownLengthOutputStream(new NullOutputStream(), new NullWritableByteChannel());
 					getInputStreamCopier().copy(getEncodedTrackDataExtractor(), encodedTrackBean, out);
-					int actualLength = out.getCount();
+					long actualLength = out.getCount();
 					assertEquals(
 							"Encoded bean for url " + url + " and encoding " + encoderBean.getExtension() + " has the wrong length.",
 							expectedLength, actualLength);
 				}
 			}
-		}
-	}
-	
-	protected class KnownLengthCountingOutputStream extends KnownLengthOutputStream<CountingOutputStream> {
-		
-		public KnownLengthCountingOutputStream() {
-			super(new CountingOutputStream(new NullOutputStream()));
-		}
-		
-		@Override
-		public void setLength(int length) throws IOException {
-			// Ignore
-		}
-		
-		public int getCount() {
-			return getOut().getCount();
 		}
 	}
 	
@@ -139,7 +124,7 @@ public class EncoderServiceTest extends EncoderSpringTest {
 		SortedMap<EncodingCommandBean, Throwable> errors = null;
 		Integer successful = null;
 		try {
-			successful = encoderService.encodeAll(SIMULTANEOUS_THREADS);
+			successful = encoderService.encodeAll(SIMULTANEOUS_THREADS).getTracksAffected();
 		}
 		catch (MultipleEncodingException e) {
 			successful = e.getTotalEncodedSuccessfully();
@@ -169,7 +154,7 @@ public class EncoderServiceTest extends EncoderSpringTest {
 				@Override
 				public void run() {
 					try {
-						successfulList.set(thisIndex, new Integer(encoderService.encodeAll(SIMULTANEOUS_THREADS)));
+						successfulList.set(thisIndex, new Integer(encoderService.encodeAll(SIMULTANEOUS_THREADS).getTracksAffected()));
 						runFlags.set(thisIndex, true);
 					}
 					catch (MultipleEncodingException e) {
@@ -251,9 +236,9 @@ public class EncoderServiceTest extends EncoderSpringTest {
 	public void testOverwrite(long time, boolean isOverwrite) throws IOException, SQLException {
 		SingleEncoderService singleEncoderService = getSingleEncoderService();
 		EncodingCommandBean encodingCommandBean = getFirstEncodingCommandBean();
-		EncoderBean encoderBean = encodingCommandBean.getEncoderBean();
+		EncoderBean encoderBean = getEncoderDao().findByExtension(encodingCommandBean.getExtension());
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		String url = encodingCommandBean.getFlacTrackBean().getUrl();
+		String url = encodingCommandBean.getUrl();
 		EncodedTrackBean encodedTrackBean = new EncodedTrackBean();
 		encodedTrackBean.setEncoderBean(encoderBean);
 		encodedTrackBean.setFlacUrl(url);
@@ -261,11 +246,12 @@ public class EncoderServiceTest extends EncoderSpringTest {
 		encodedTrackBean.setFilename("");
 		encodedTrackBean.setTitle("");
 		encodedTrackBean.setTrackNumber(0);
-		KnownLengthInputStream in = new KnownLengthInputStream(new NullInputStream(0), 0);
+		KnownLengthInputStream in = new KnownLengthInputStream(new NullInputStream(0), null, 0);
 		getEncodedTrackDataInjector().injectData(encodedTrackBean, in);
-		boolean written = (singleEncoderService.encode(encodingCommandBean, new TreeMap<EncoderBean, File>()) != null);
+		getEncodedTrackDao().store(encodedTrackBean);
+		boolean written = (singleEncoderService.encode(encodingCommandBean, new TreeMap<String, File>()) != null);
 		EncodedTrackBean newEncodedTrackBean = encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
-		KnownLengthCountingOutputStream out = new KnownLengthCountingOutputStream();
+		CountingKnownLengthOutputStream out = new CountingKnownLengthOutputStream(new NullOutputStream(), new NullWritableByteChannel());
 		getInputStreamCopier().copy(getEncodedTrackDataExtractor(), newEncodedTrackBean, out);
 		assertEquals(
 				"The old track id and new track id should be the same",
@@ -297,8 +283,11 @@ public class EncoderServiceTest extends EncoderSpringTest {
 		trackToRemove.setFilename("");
 		trackToRemove.setTitle("");
 		trackToRemove.setTrackNumber(0);
-		getEncodedTrackDataInjector().injectData(trackToRemove, new KnownLengthInputStream(new ByteArrayInputStream(new byte[0]), 0));
-		assertEquals("The wrong number of stale tracks was reported.", 1, encoderService.removeDeleted());
+		getEncodedTrackDataInjector().injectData(trackToRemove, new KnownLengthInputStream(new ByteArrayInputStream(new byte[0]), null, 0));
+		encodedTrackDao.store(trackToRemove);
+		assertEquals(
+				"The wrong number of stale tracks was reported.",
+				1, getSingleEncoderService().removeDeleted(new HashSet<EncodingEventListener>()));
 		assertEquals(
 				"The wrong tracks were left untouched after deleting stale tracks.",
 				expectedBeans, encodedTrackDao.getAll());
@@ -332,7 +321,7 @@ public class EncoderServiceTest extends EncoderSpringTest {
 	protected EncodingCommandBean getFirstEncodingCommandBean() {
 		FlacTrackBean flacTrackBean = getFlacTrackDao().getAll().first();
 		EncoderBean encoderBean = getEncoderDao().getAll().first();
-		return new EncodingCommandBean(encoderBean, flacTrackBean);
+		return new EncodingCommandBean(encoderBean.getExtension(), flacTrackBean.getUrl());
 	}
 	
 	@Override

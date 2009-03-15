@@ -15,8 +15,10 @@ public interface DeviceWriter {
 	
 	public void removeMusicFolders(DeviceBean deviceBean, File deviceDirectory) throws IOException;
 	
+	public void writeToDeviceAtDirectory(String identifier, File directory) throws IOException, TrackWritingException;
+	
 	public void writeMusic(
-			Map<DeviceBean, File> deviceDirectories, Map<DeviceBean, Collection<WritingListener>> writingListeners) throws TrackWritingException;
+			Map<DeviceBean, File> deviceDirectories, Map<DeviceBean, Collection<WritingListener>> writingListeners, boolean unmountAfterWriting) throws TrackWritingException;
 
 	public void writeToDevices(Map<DeviceBean, Collection<WritingListener>> writingListeners) throws TrackWritingException, IOException;
 	

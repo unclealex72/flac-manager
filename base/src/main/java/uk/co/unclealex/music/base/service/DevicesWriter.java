@@ -11,5 +11,5 @@ public interface DevicesWriter {
 
 	public void addDevice(DeviceBean deviceBean, File deviceDirectory, Collection<WritingListener> writingListeners);
 	
-	public void write() throws TrackWritingException;
+	public void write(boolean unmountAfterWriting) throws TrackWritingException;
 }

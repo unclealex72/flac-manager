@@ -22,11 +22,12 @@ public class ProgressWritingListenerServiceImpl implements ProgressWritingListen
 	public WritingListener createNewListener(DeviceBean deviceBean) {
 		ConcurrentMap<DeviceBean, ProgressWritingListener> progressWritingListeners = getProgressWritingListeners();
 		ProgressWritingListener progressWritingListener = new ProgressWritingListener();
-		if (progressWritingListeners.putIfAbsent(deviceBean, progressWritingListener) == null) {
+		ProgressWritingListener existingProgressWritingListener = progressWritingListeners.putIfAbsent(deviceBean, progressWritingListener);
+		if (existingProgressWritingListener == null) {
 			return progressWritingListener;
 		}
 		else {
-			return null;
+			return existingProgressWritingListener;
 		}
 	}
 

@@ -2,7 +2,6 @@ package uk.co.unclealex.music.core.writer;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -11,6 +10,7 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
+import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.spring.Prototype;
 
@@ -23,13 +23,18 @@ public class ZipTrackStreamImpl implements ZipTrackStream {
 	private List<String> i_directories = new LinkedList<String>();
 	
 	@Override
-	public OutputStream createStream(EncodedTrackBean encodedTrackBean, String title) throws IOException {
+	public KnownLengthOutputStream createStream(EncodedTrackBean encodedTrackBean, String title) throws IOException {
 		long length = encodedTrackBean.getTrackDataBean().getFile().length();
 		ZipOutputStream zipOutputStream = getZipOutputStream();
 		for (ZipEntry entry : createEntries(title, length)) {
 			zipOutputStream.putNextEntry(entry);
 		}
-		return zipOutputStream;
+		return new KnownLengthOutputStream(zipOutputStream, null) {
+			@Override
+			public void setLength(int length) throws IOException {
+				// Ignore
+			}
+		};
 	}
 
 	protected List<ZipEntry> createEntries(String title, long length) {

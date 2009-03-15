@@ -39,6 +39,10 @@
 			</list>
 		</property>
 	</bean>
+	
+	<bean id="flacTransactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="flacSessionFactory"/>
+	</bean>
 </beans>
 
 

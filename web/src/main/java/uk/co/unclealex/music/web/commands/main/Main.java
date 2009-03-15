@@ -38,13 +38,22 @@ public class Main implements Command, ApplicationContextAware {
 	
 	@Override
 	public void execute(String[] args) throws Exception {
+		Thread currentThread = Thread.currentThread();
+		String threadName = currentThread.getName();
 		String command = args[0].toLowerCase();
+		currentThread.setName(command);
 		String[] commandArguments = new String[args.length - 1];
 		if (commandArguments.length != 0) {
 			System.arraycopy(args, 1, commandArguments, 0, commandArguments.length);
 		}
 		log.info("Executing command '" + command + "' with arguments [" + StringUtils.join(commandArguments, ", ") + "]");
-		getCommandsByName().get(command).execute(commandArguments);
+		try {
+			getCommandsByName().get(command).execute(commandArguments);
+		}
+		finally {
+			log.info("Finished executing command '" + command + "' with arguments [" + StringUtils.join(commandArguments, ", ") + "]");
+			currentThread.setName(threadName);
+		}
 	}
 
 	public ApplicationContext getApplicationContext() {

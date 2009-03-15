@@ -10,13 +10,14 @@ import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
-import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.jackrabbit.core.RepositoryImpl;
+import org.apache.jackrabbit.core.state.CacheManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,10 +75,12 @@ public class RepositoryManagerImpl<E> extends JcrTemplate implements RepositoryM
 	}
 
 	@Override
-	public void refresh() {
-		JcrCallback<Object> callback = new ClearJcrCallback<Object>() {
+	public void updateFromScratch() {
+		JcrCallback<Object> callback = new JcrCallback<Object>() {
 			public Object doInJcr(Session session) throws RepositoryException {
-				clear(session);
+				CacheManager cacheManager = ((RepositoryImpl) session.getRepository()).getCacheManager();
+				long cacheSize = cacheManager.getMaxMemory();
+				cacheManager.setMaxMemory(1);
 				Node rootNode = session.getRootNode();
 				setLastModifiedDate(rootNode, new Date());
 				RepositoryAdaptor<E> repositoryAdaptor = getRepositoryAdaptor();
@@ -87,25 +90,13 @@ public class RepositoryManagerImpl<E> extends JcrTemplate implements RepositoryM
 				if (log.isDebugEnabled()) {
 					showRepository(session);
 				}
+				cacheManager.setMaxMemory(cacheSize);
 				return null;
 			}
 		};
 		execute(callback);
 	}
-
-	@Override
-	public void clear() {
-		JcrCallback<Object> callback = new ClearJcrCallback<Object>() {
-			public Object doInJcr(Session session) throws RepositoryException {
-				clear(session);
-				Node rootNode = session.getRootNode();
-				setLastModifiedDate(rootNode, new Date());
-				return null;
-			}
-		};
-		execute(callback);
-	}
-
+	
 	protected void showRepository(Session session) throws RepositoryException {
 		log.debug("The following nodes are in the reposiory:");
 		showRepository(session.getRootNode());
@@ -233,22 +224,6 @@ public class RepositoryManagerImpl<E> extends JcrTemplate implements RepositoryM
 			}
 		};
 		return execute(callback);
-	}
-	
-	@Override
-	public Repository getRepository() {
-		JcrCallback<Repository> callback = new JcrCallback<Repository>() {
-			@Override
-			public Repository doInJcr(Session session) {
-				return session.getRepository();
-			}
-		};
-		return execute(callback);
-	}
-	
-	@Override
-	public Session getSession() {
-		return super.getSession();
 	}
 	
 	public RepositoryAdaptor<E> getRepositoryAdaptor() {

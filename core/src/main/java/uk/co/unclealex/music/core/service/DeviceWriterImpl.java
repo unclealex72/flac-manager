@@ -5,6 +5,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.music.base.dao.DeviceDao;
 import uk.co.unclealex.music.base.model.DeviceBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.service.DeviceService;
@@ -23,6 +25,8 @@ import uk.co.unclealex.music.base.service.DeviceWriter;
 import uk.co.unclealex.music.base.service.DevicesWriter;
 import uk.co.unclealex.music.base.service.DevicesWriterFactory;
 import uk.co.unclealex.music.base.service.ProgressWritingListenerService;
+import uk.co.unclealex.music.base.service.SpeechWriter;
+import uk.co.unclealex.music.base.service.SpeechWriterFactory;
 import uk.co.unclealex.music.base.writer.TrackWritingException;
 import uk.co.unclealex.music.base.writer.WritingListener;
 
@@ -35,6 +39,8 @@ public class DeviceWriterImpl implements DeviceWriter {
 	private ProgressWritingListenerService i_progressWritingListenerService;
 	private DeviceService i_deviceService;
 	private DevicesWriterFactory i_devicesWriterFactory;
+	private DeviceDao i_deviceDao;
+	private SpeechWriterFactory i_speechWriterFactory;
 	
 	@Override
 	public void removeMusicFolders(DeviceBean deviceBean, File deviceDirectory) throws IOException {
@@ -72,7 +78,7 @@ public class DeviceWriterImpl implements DeviceWriter {
 
 	@Override
 	public void writeMusic(
-			Map<DeviceBean, File> deviceDirectories, Map<DeviceBean, Collection<WritingListener>> writingListeners) throws TrackWritingException {
+			Map<DeviceBean, File> deviceDirectories, Map<DeviceBean, Collection<WritingListener>> writingListeners, boolean unmountAfterWriting) throws TrackWritingException {
 		Map<EncoderBean, DevicesWriter> devicesWritersByEncoderBean = new HashMap<EncoderBean, DevicesWriter>();
 		for (Map.Entry<DeviceBean, File> entry : deviceDirectories.entrySet()) {
 			DeviceBean deviceBean = entry.getKey();
@@ -90,7 +96,7 @@ public class DeviceWriterImpl implements DeviceWriter {
 		final TrackWritingException trackWritingException = new TrackWritingException();
 		for (DevicesWriter devicesWriter : devicesWritersByEncoderBean.values()) {
 			try {
-				devicesWriter.write();
+				devicesWriter.write(unmountAfterWriting);
 			}
 			catch (TrackWritingException e) {
 				trackWritingException.registerExceptions(e);
@@ -99,6 +105,28 @@ public class DeviceWriterImpl implements DeviceWriter {
 		if (trackWritingException.requiresThrowing()) {
 			throw trackWritingException;
 		}
+		// Now add any speech files
+		SpeechWriterFactory speechWriterFactory = getSpeechWriterFactory();
+		for (Map.Entry<DeviceBean, File> entry : deviceDirectories.entrySet()) {
+			DeviceBean deviceBean = entry.getKey();
+			File deviceDirectory = entry.getValue();
+			SpeechWriter speechWriter = speechWriterFactory.createSpeechWriter(deviceBean);
+			speechWriter.writeSpeechFiles(deviceDirectory, deviceBean.getEncoderBean().getExtension());
+		}
+	}
+	
+	@Override
+	public void writeToDeviceAtDirectory(String identifier, File directory) throws IOException, TrackWritingException {
+		DeviceBean deviceBean = getDeviceDao().findByIdentifier(identifier);
+		if (deviceBean == null) {
+			throw new IOException("Could not find a device with identifier " + identifier);
+		}
+		Map<DeviceBean, File> deviceDirectories = Collections.singletonMap(deviceBean, directory);
+		Map<DeviceBean, Collection<WritingListener>> writingListeners = 
+			Collections.singletonMap(
+					deviceBean, 
+					(Collection<WritingListener>) Collections.singleton(getProgressWritingListenerService().createNewListener(deviceBean)));
+		writeMusic(deviceDirectories, writingListeners, false);
 	}
 	
 	@Override
@@ -122,7 +150,7 @@ public class DeviceWriterImpl implements DeviceWriter {
 				}
 			}
 		}
-		writeMusic(deviceDirectories, writingListeners);
+		writeMusic(deviceDirectories, writingListeners, true);
 	}
 	
 	protected void registerIoException(IOException exception,
@@ -178,7 +206,26 @@ public class DeviceWriterImpl implements DeviceWriter {
 		return i_deviceService;
 	}
 
+	@Required
 	public void setDeviceService(DeviceService deviceService) {
 		i_deviceService = deviceService;
+	}
+
+	public DeviceDao getDeviceDao() {
+		return i_deviceDao;
+	}
+
+	@Required
+	public void setDeviceDao(DeviceDao deviceDao) {
+		i_deviceDao = deviceDao;
+	}
+
+	public SpeechWriterFactory getSpeechWriterFactory() {
+		return i_speechWriterFactory;
+	}
+
+	@Required
+	public void setSpeechWriterFactory(SpeechWriterFactory speechWriterFactory) {
+		i_speechWriterFactory = speechWriterFactory;
 	}
 }

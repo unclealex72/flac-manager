@@ -1,6 +1,9 @@
 package uk.co.unclealex.music.web.commands;
 
 import java.io.IOException;
+import java.util.HashSet;
+
+import javax.jcr.RepositoryException;
 
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
@@ -13,7 +16,9 @@ import uk.co.unclealex.music.encoder.initialise.Importer;
 import uk.co.unclealex.music.encoder.service.AlreadyEncodingException;
 import uk.co.unclealex.music.encoder.service.CurrentlyScanningException;
 import uk.co.unclealex.music.encoder.service.EncoderService;
+import uk.co.unclealex.music.encoder.service.EncodingEventListener;
 import uk.co.unclealex.music.encoder.service.MultipleEncodingException;
+import uk.co.unclealex.music.encoder.service.SingleEncoderService;
 
 @Service
 @Transactional(rollbackFor=Exception.class)
@@ -23,15 +28,15 @@ public class Initialise implements Command {
 	private Initialiser i_initialiser;
 	private EncoderService i_encoderService;
 	private RepositoryManager i_repositoryManager;
-	
+	private SingleEncoderService i_singleEncoderService;
 	@Override
-	public void execute(String[] args) throws IOException, AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException {
+	public void execute(String[] args) throws IOException, AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException, RepositoryException {
 		getInitialiser().clear();
 		getInitialiser().initialise();
 		getImporter().importTracks();
 		EncoderService encoderService = getEncoderService();
 		encoderService.encodeAll(1);
-		encoderService.removeDeleted();
+		getSingleEncoderService().removeDeleted(new HashSet<EncodingEventListener>());
 	}
 	
 	public Importer getImporter() {
@@ -67,6 +72,14 @@ public class Initialise implements Command {
 
 	public void setRepositoryManager(RepositoryManager repositoryManager) {
 		i_repositoryManager = repositoryManager;
+	}
+
+	public SingleEncoderService getSingleEncoderService() {
+		return i_singleEncoderService;
+	}
+
+	public void setSingleEncoderService(SingleEncoderService singleEncoderService) {
+		i_singleEncoderService = singleEncoderService;
 	}
 
 }

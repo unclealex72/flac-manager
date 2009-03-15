@@ -71,7 +71,7 @@
     <!--
         location of workspaces root directory and name of default workspace
     -->
-    <Workspaces rootPath="${rep.home}/workspaces" defaultWorkspace="default"/>
+    <Workspaces rootPath="${rep.home}/workspaces" defaultWorkspace="default" maxIdleTime="0"/>
     <!--
         workspace configuration template:
         used to create the initial workspace if there's no workspace yet
@@ -96,12 +96,7 @@
             Search index and the file system it uses.
             class: FQN of class implementing the QueryHandler interface
         -->
-        <SearchIndex class="org.apache.jackrabbit.core.query.lucene.SearchIndex">
-            <param name="path" value="${wsp.home}/index"/>
-            <param name="textFilterClasses" value="org.apache.jackrabbit.extractor.PlainTextExtractor,org.apache.jackrabbit.extractor.MsWordTextExtractor,org.apache.jackrabbit.extractor.MsExcelTextExtractor,org.apache.jackrabbit.extractor.MsPowerPointTextExtractor,org.apache.jackrabbit.extractor.PdfTextExtractor,org.apache.jackrabbit.extractor.OpenOfficeTextExtractor,org.apache.jackrabbit.extractor.RTFTextExtractor,org.apache.jackrabbit.extractor.HTMLTextExtractor,org.apache.jackrabbit.extractor.XMLTextExtractor"/>
-            <param name="extractorPoolSize" value="2"/>
-            <param name="supportHighlighting" value="true"/>
-        </SearchIndex>
+        <SearchIndex class="uk.co.unclealex.music.repositoryserver.service.filesystem.EmptyQueryHandler"/>
     </Workspace>
 
     <!--
@@ -132,10 +127,5 @@
         Search index for content that is shared repository wide
         (/jcr:system tree, contains mainly versions)
     -->
-    <SearchIndex class="org.apache.jackrabbit.core.query.lucene.SearchIndex">
-        <param name="path" value="${rep.home}/repository/index"/>
-        <param name="textFilterClasses" value="org.apache.jackrabbit.extractor.PlainTextExtractor,org.apache.jackrabbit.extractor.MsWordTextExtractor,org.apache.jackrabbit.extractor.MsExcelTextExtractor,org.apache.jackrabbit.extractor.MsPowerPointTextExtractor,org.apache.jackrabbit.extractor.PdfTextExtractor,org.apache.jackrabbit.extractor.OpenOfficeTextExtractor,org.apache.jackrabbit.extractor.RTFTextExtractor,org.apache.jackrabbit.extractor.HTMLTextExtractor,org.apache.jackrabbit.extractor.XMLTextExtractor"/>
-        <param name="extractorPoolSize" value="2"/>
-        <param name="supportHighlighting" value="true"/>
-    </SearchIndex>
+    <SearchIndex class="uk.co.unclealex.music.repositoryserver.service.filesystem.EmptyQueryHandler"/>
 </Repository>

@@ -47,14 +47,14 @@ public abstract class AbstractDataManager<K extends KeyedBean<K>> implements Dat
 		finally {
 			IOUtils.closeQuietly(out);
 		}
-		getDao().store(keyedBean);
 	}
 
 	public void extractData(K keyedBean, KnownLengthInputStreamCallback callback) throws IOException {
 		DataBean dataBean = getDataBean(keyedBean);
 		if (dataBean != null) {
 			File file = new File(dataBean.getPath());
-			KnownLengthInputStream in = new KnownLengthInputStream(new FileInputStream(file), (int) file.length());
+			FileInputStream fileInputStream = new FileInputStream(file);
+			KnownLengthInputStream in = new KnownLengthInputStream(fileInputStream, fileInputStream.getChannel(), (int) file.length());
 			try {
 				callback.execute(in);
 			}

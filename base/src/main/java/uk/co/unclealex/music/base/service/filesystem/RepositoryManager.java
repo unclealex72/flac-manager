@@ -3,8 +3,7 @@ package uk.co.unclealex.music.base.service.filesystem;
 import java.util.Set;
 
 import javax.jcr.Node;
-import javax.jcr.Repository;
-import javax.jcr.Session;
+import javax.jcr.RepositoryException;
 
 
 public interface RepositoryManager {
@@ -12,11 +11,7 @@ public interface RepositoryManager {
 	String PROPERTY_ID = "objectId";
 	String PROPERTY_LENGTH = "length";
 	
-	public Repository getRepository();
-	public Session getSession();
-	
-	public void refresh();
-	public void clear();
+	public void updateFromScratch() throws RepositoryException;
 	
 	public int getObjectId(Node node);
 	public long getLength(Node node);

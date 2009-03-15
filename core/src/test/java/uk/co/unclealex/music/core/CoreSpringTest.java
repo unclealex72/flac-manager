@@ -5,6 +5,8 @@ import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.jcr.RepositoryException;
+
 import org.springframework.beans.factory.annotation.Required;
 
 import uk.co.unclealex.music.base.dao.DeviceDao;
@@ -97,7 +99,7 @@ public abstract class CoreSpringTest extends SpringTest {
 	}
 	
 	@Override
-	protected void onTearDownAfterTransaction() {
+	protected void onTearDownAfterTransaction() throws RepositoryException {
 		getInitialiser().clear();
 	}
 

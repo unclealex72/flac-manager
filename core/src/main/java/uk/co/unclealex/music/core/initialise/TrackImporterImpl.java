@@ -44,7 +44,7 @@ public class TrackImporterImpl implements TrackImporter {
 		encodedTrackBean.setTrackNumber(trackNumber);
 		encodedTrackBean.setTitle(title);
 		getEncodedService().injectFilename(encodedTrackBean);
-		getEncodedTrackDataInjector().injectData(encodedTrackBean, new KnownLengthInputStream(in, length));
+		getEncodedTrackDataInjector().injectData(encodedTrackBean, new KnownLengthInputStream(in, null, length));
 		log.info("Stored " + encoderBean.getExtension() + " of " + url);
 		return encodedTrackBean;
 	}

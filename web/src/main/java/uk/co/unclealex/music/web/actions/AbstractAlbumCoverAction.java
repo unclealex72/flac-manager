@@ -8,9 +8,7 @@ import uk.co.unclealex.music.albumcover.service.AlbumCoverService;
 import uk.co.unclealex.music.base.model.AlbumCoverBean;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
 
-import com.opensymphony.xwork2.ActionSupport;
-
-public abstract class AbstractAlbumCoverAction extends ActionSupport {
+public abstract class AbstractAlbumCoverAction extends BaseAction implements AlbumCoverAction {
 
 	private Logger log = Logger.getLogger(getClass());
 	
@@ -51,6 +49,9 @@ public abstract class AbstractAlbumCoverAction extends ActionSupport {
 		i_albumCoverService = albumCoverService;
 	}
 
+	/* (non-Javadoc)
+	 * @see uk.co.unclealex.music.web.actions.AlbumCoverAction#getAlbumCoverBean()
+	 */
 	public AlbumCoverBean getAlbumCoverBean() {
 		return i_albumCoverBean;
 	}
@@ -59,6 +60,9 @@ public abstract class AbstractAlbumCoverAction extends ActionSupport {
 		i_albumCoverBean = albumCoverBean;
 	}
 
+	/* (non-Javadoc)
+	 * @see uk.co.unclealex.music.web.actions.AlbumCoverAction#getFlacAlbumBean()
+	 */
 	public FlacAlbumBean getFlacAlbumBean() {
 		return i_flacAlbumBean;
 	}
@@ -67,6 +71,9 @@ public abstract class AbstractAlbumCoverAction extends ActionSupport {
 		i_flacAlbumBean = flacAlbumBean;
 	}
 
+	/* (non-Javadoc)
+	 * @see uk.co.unclealex.music.web.actions.AlbumCoverAction#getAlbumCoverBeans()
+	 */
 	public SortedSet<AlbumCoverBean> getAlbumCoverBeans() {
 		return i_albumCoverBeans;
 	}

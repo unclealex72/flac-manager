@@ -2,7 +2,12 @@ package uk.co.unclealex.music.web.actions;
 
 import javax.jcr.RepositoryException;
 
-public class SelectAlbumCoverAction extends AbstractAlbumCoverAction {
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Transactional
+@Service
+public class SelectAlbumCoverActionImpl extends AbstractAlbumCoverAction {
 
 	@Override
 	public void doExecute() throws RepositoryException {

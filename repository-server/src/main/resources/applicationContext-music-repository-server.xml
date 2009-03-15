@@ -5,17 +5,25 @@
 	xsi:schemaLocation="
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
   default-autowire="byName">
-  	
-	<bean id="abstractRepository" class="org.springmodules.jcr.jackrabbit.TransientRepositoryFactoryBean" abstract="true">
+  
+  <bean id="coversRepositoryFactory" class="uk.co.unclealex.music.repositoryserver.service.filesystem.ClearableRepositoryFactoryImpl">
+	  <!-- <property name="configuration" value="classpath:/repository-covers.xml"/> -->
 	  <property name="configuration" value="classpath:/repository.xml"/>
+		<property name="homeDir" value="file:/home/java/music/dav/covers"/>
+  </bean>
+  
+	<bean id="coversRepository" class="uk.co.unclealex.music.repositoryserver.service.filesystem.TransientRepositoryFactoryBean">
+		<property name="repositoryFactory" ref="coversRepositoryFactory"/>
 	</bean>
 
-	<bean id="coversRepository" parent="abstractRepository">
-		<property name="homeDir" value="file:/home/java/music/dav/covers"/>
-	</bean>
-	
-	<bean id="encodedRepository" parent="abstractRepository">
+  <bean id="encodedRepositoryFactory" class="uk.co.unclealex.music.repositoryserver.service.filesystem.ClearableRepositoryFactoryImpl">
+	  <!-- <property name="configuration" value="classpath:/repository-encoded.xml"/> -->
+	  <property name="configuration" value="classpath:/repository.xml"/>
 		<property name="homeDir" value="file:/home/java/music/dav/encoded"/>
+	</bean>
+
+	<bean id="encodedRepository" class="uk.co.unclealex.music.repositoryserver.service.filesystem.TransientRepositoryFactoryBean">
+		<property name="repositoryFactory" ref="encodedRepositoryFactory"/>
 	</bean>
 
 	<bean id="jcrPassword" class="java.lang.String">
@@ -30,6 +38,9 @@
 					<bean factory-bean="jcrPassword" factory-method="toCharArray"/>
 				</constructor-arg>
 			</bean>
+		</property>
+		<property name="sessionHolderProviderManager">
+			<bean class="uk.co.unclealex.music.repositoryserver.utils.JackRabbitSessionHolderProviderManager"/>
 		</property>
 	</bean>
 	
@@ -64,6 +75,15 @@
 		</property>
 		<property name="sessionFactory" ref="encodedSessionFactory"/>
 	</bean>
+	
+	<bean id="jcrEncodedTransactionManager" class="org.springmodules.jcr.jackrabbit.LocalTransactionManager">
+		<property name="sessionFactory" ref="encodedSessionFactory"/>
+	</bean>
+	
+	<bean id="jcrCoversTransactionManager" class="org.springmodules.jcr.jackrabbit.LocalTransactionManager">
+		<property name="sessionFactory" ref="coversSessionFactory"/>
+	</bean>
+
 </beans>
 
 

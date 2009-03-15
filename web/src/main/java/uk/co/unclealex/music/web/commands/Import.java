@@ -2,6 +2,8 @@ package uk.co.unclealex.music.web.commands;
 
 import java.io.IOException;
 
+import javax.jcr.RepositoryException;
+
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +18,7 @@ public class Import implements Command {
 	private Initialiser i_initialiser;
 	
 	@Override
-	public void execute(String[] args) throws IOException {
+	public void execute(String[] args) throws IOException, RepositoryException {
 		getInitialiser().clear();
 		getInitialiser().initialise();
 		getImporter().importTracks();

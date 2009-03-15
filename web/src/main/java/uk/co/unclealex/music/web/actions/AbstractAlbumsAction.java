@@ -14,7 +14,7 @@ import uk.co.unclealex.music.web.model.FlacAlbumWithCoverBean;
 
 import com.opensymphony.xwork2.Preparable;
 
-public abstract class AbstractAlbumsAction extends BaseAction implements Preparable {
+public abstract class AbstractAlbumsAction extends BaseAction implements Preparable, AlbumsAction {
 
 	private AlbumCoverService i_albumCoverService;
 	
@@ -25,7 +25,8 @@ public abstract class AbstractAlbumsAction extends BaseAction implements Prepara
 		SortedMap<FlacArtistBean, SortedSet<FlacAlbumWithCoverBean>> albumBeansWithSelectedCoverByArtistBean = 
 			new TreeMap<FlacArtistBean, SortedSet<FlacAlbumWithCoverBean>>();
 		boolean displaySelectedCovers = displaySelectedCovers();
-		for (FlacAlbumBean flacAlbumBean : getAlbumsToDisplay()) {
+		Collection<FlacAlbumBean> albumsToDisplay = getAlbumsToDisplay();
+		for (FlacAlbumBean flacAlbumBean : albumsToDisplay) {
 			FlacArtistBean flacArtistBean = flacAlbumBean.getFlacArtistBean();
 			SortedSet<FlacAlbumWithCoverBean> albumWithCoverBeans = albumBeansWithSelectedCoverByArtistBean.get(flacArtistBean);
 			if (albumWithCoverBeans == null) {
@@ -45,6 +46,9 @@ public abstract class AbstractAlbumsAction extends BaseAction implements Prepara
 
 	public abstract boolean displaySelectedCovers();
 	
+	/* (non-Javadoc)
+	 * @see uk.co.unclealex.music.web.actions.AlbumsAction#getAlbumBeansWithSelectedCoverByArtistBean()
+	 */
 	public SortedMap<FlacArtistBean, SortedSet<FlacAlbumWithCoverBean>> getAlbumBeansWithSelectedCoverByArtistBean() {
 		return i_albumBeansWithSelectedCoverByArtistBean;
 	}

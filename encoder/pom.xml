@@ -14,7 +14,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>uk.co.unclealex.music</groupId>
-			<artifactId>album-covers</artifactId>
+			<artifactId>core</artifactId>
 			<version>${version}</version>
 		</dependency>
 		<dependency>

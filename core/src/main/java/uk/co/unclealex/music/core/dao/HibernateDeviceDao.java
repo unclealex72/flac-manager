@@ -21,6 +21,13 @@ public class HibernateDeviceDao extends HibernateKeyedDao<DeviceBean>
 	}
 
 	@Override
+	public DeviceBean findByIdentifier(String identifier) {
+		DeviceBean deviceBean = new DeviceBean();
+		deviceBean.setIdentifier(identifier);
+		return findByExample(deviceBean);
+	}
+	
+	@Override
 	public DeviceBean createExampleBean() {
 		return new DeviceBean();
 	}

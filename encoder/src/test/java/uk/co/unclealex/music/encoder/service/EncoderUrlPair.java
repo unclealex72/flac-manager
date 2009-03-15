@@ -32,8 +32,8 @@ public class EncoderUrlPair implements Comparable<EncoderUrlPair>{
 	}
 	
 	public EncoderUrlPair(EncodingCommandBean encodingCommandBean) {
-		i_encoder = encodingCommandBean.getEncoderBean().getExtension();
-		i_url = encodingCommandBean.getFlacTrackBean().getUrl();
+		i_encoder = encodingCommandBean.getExtension();
+		i_url = encodingCommandBean.getUrl();
 	}
 	
 	public EncoderUrlPair(EncodedTrackBean encodedTrackBean) {

@@ -1,32 +1,32 @@
 package uk.co.unclealex.music.encoder.service;
 
-import uk.co.unclealex.music.base.model.EncoderBean;
-import uk.co.unclealex.music.base.model.FlacTrackBean;
+import org.apache.commons.lang.ObjectUtils;
+
 import uk.co.unclealex.music.base.service.CommandBean;
 
 public class EncodingCommandBean extends CommandBean<EncodingCommandBean> {
 
-	private EncoderBean i_encoderBean;
-	private FlacTrackBean i_flacTrackBean;
+	private String i_extension;
+	private String i_url;
 	
 	public EncodingCommandBean() {
 		super();
 	}
 	
-	public EncodingCommandBean(EncoderBean encoderBean, FlacTrackBean flacTrackBean) {
+	public EncodingCommandBean(String extension, String url) {
 		super();
-		i_encoderBean = encoderBean;
-		i_flacTrackBean = flacTrackBean;
+		i_extension = extension;
+		i_url = url;
 	}
 
 	@Override
 	public int hashCode() {
-		return getEncoderBean().hashCode();
+		return ObjectUtils.hashCode(getUrl()) + 3 * ObjectUtils.hashCode(getExtension());
 	}
 	
 	public int compareTo(EncodingCommandBean o) {
-		int cmp = getEncoderBean().compareTo(o.getEncoderBean());
-		return cmp==0?getFlacTrackBean().compareTo(o.getFlacTrackBean()):cmp;
+		int cmp = getExtension().compareTo(o.getExtension());
+		return cmp==0?getUrl().compareTo(o.getUrl()):cmp;
 	}
 	
 	@Override
@@ -36,27 +36,19 @@ public class EncodingCommandBean extends CommandBean<EncodingCommandBean> {
 	
 	@Override
 	public boolean isEndOfWorkBean() {
-		return getEncoderBean() == null && getFlacTrackBean() == null;
+		return getExtension() == null && getUrl() == null;
 	}
 	
 	@Override
 	public String toString() {
-		return "<" + getEncoderBean() + "," + getFlacTrackBean() + ">";
+		return "<" + getExtension() + "," + getUrl() + ">";
 	}
-	
-	public EncoderBean getEncoderBean() {
-		return i_encoderBean;
+
+	public String getExtension() {
+		return i_extension;
 	}
-	
-	public void setEncoderBean(EncoderBean encoderBean) {
-		i_encoderBean = encoderBean;
-	}
-	
-	public FlacTrackBean getFlacTrackBean() {
-		return i_flacTrackBean;
-	}
-	
-	public void setFlacTrackBean(FlacTrackBean flacTrackBean) {
-		i_flacTrackBean = flacTrackBean;
+
+	public String getUrl() {
+		return i_url;
 	}
 }

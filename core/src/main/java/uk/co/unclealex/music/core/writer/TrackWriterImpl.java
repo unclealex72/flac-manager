@@ -1,7 +1,6 @@
 package uk.co.unclealex.music.core.writer;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,14 +11,13 @@ import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
-import org.apache.commons.io.output.NullOutputStream;
-import org.apache.commons.io.output.TeeOutputStream;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.dao.EncodedTrackDao;
 import uk.co.unclealex.music.base.io.DataExtractor;
 import uk.co.unclealex.music.base.io.InputStreamCopier;
+import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
 import uk.co.unclealex.music.base.service.titleformat.TitleFormatServiceFactory;
@@ -27,6 +25,7 @@ import uk.co.unclealex.music.base.writer.TrackStream;
 import uk.co.unclealex.music.base.writer.TrackWriter;
 import uk.co.unclealex.music.base.writer.TrackWritingException;
 import uk.co.unclealex.music.base.writer.WritingListener;
+import uk.co.unclealex.music.core.io.TeeKnownLengthOutputStream;
 import uk.co.unclealex.spring.Prototype;
 
 @Prototype
@@ -127,13 +126,13 @@ public class TrackWriterImpl implements TrackWriter {
 			return titlesByTrackStream;
 		}
 		
-		Map<TrackStream, OutputStream> outputStreamsByTrackStream = new HashMap<TrackStream, OutputStream>();
+		Map<TrackStream, KnownLengthOutputStream> outputStreamsByTrackStream = new HashMap<TrackStream, KnownLengthOutputStream>();
 		for (TrackStream trackStream : getTrackStreams(isApplicableTrackStream)) {
 			TitleFormatService titleFormatService = getTitleFormatServicesByTrackStream().get(trackStream);
 			String title = titleFormatService.getTitle(encodedTrackBean);
 			titlesByTrackStream.put(trackStream, title);
 			try {
-				OutputStream outputStream = trackStream.createStream(encodedTrackBean, title);
+				KnownLengthOutputStream outputStream = trackStream.createStream(encodedTrackBean, title);
 				if (outputStream != null) {
 					outputStreamsByTrackStream.put(trackStream, outputStream);
 					for (WritingListener writingListener : getWritingListenersForTrackStream(trackStream)) {
@@ -151,11 +150,11 @@ public class TrackWriterImpl implements TrackWriter {
 			}
 		}
 		if (!outputStreamsByTrackStream.isEmpty()) {
-			OutputStream out = new NullOutputStream();
+			KnownLengthOutputStream out = null;
 			for (TrackStream applicableTrackStream : getTrackStreams(isApplicableTrackStream)) {
-				OutputStream nextOut = outputStreamsByTrackStream.get(applicableTrackStream);
+				KnownLengthOutputStream nextOut = outputStreamsByTrackStream.get(applicableTrackStream);
 				if (nextOut != null) {
-					out = new TeeOutputStream(out, nextOut);
+					out = out==null?nextOut:new TeeKnownLengthOutputStream(out, nextOut);
 				}
 			}
 			int count = 0;

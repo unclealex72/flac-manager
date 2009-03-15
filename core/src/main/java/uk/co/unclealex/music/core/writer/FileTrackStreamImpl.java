@@ -7,6 +7,7 @@ import java.io.OutputStream;
 
 import org.apache.commons.lang.ObjectUtils;
 
+import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.writer.FileTrackStream;
 import uk.co.unclealex.spring.Prototype;
@@ -15,17 +16,23 @@ import uk.co.unclealex.spring.Prototype;
 public class FileTrackStreamImpl implements FileTrackStream {
 
 	private File i_rootDirectory;
-	private OutputStream i_outputStream;
+	private KnownLengthOutputStream i_outputStream;
 	
 	@Override
-	public OutputStream createStream(EncodedTrackBean encodedTrackBean, String title) throws IOException {
+	public KnownLengthOutputStream createStream(EncodedTrackBean encodedTrackBean, String title) throws IOException {
 		File f = new File(getRootDirectory(), title);
 		md(f.getParentFile());
-		OutputStream out;
+		KnownLengthOutputStream out;
 		long encodingTime = encodedTrackBean.getTimestamp();
 		long lastModifiedTime = f.lastModified();
 		if (encodingTime > lastModifiedTime) {
-			out = new FileOutputStream(f);
+			FileOutputStream fileOutputStream = new FileOutputStream(f);
+			out = new KnownLengthOutputStream(fileOutputStream, fileOutputStream.getChannel()) {
+				@Override
+				public void setLength(int length) throws IOException {
+					// Ignore
+				}
+			};
 		}
 		else {
 			out = null;
@@ -82,7 +89,7 @@ public class FileTrackStreamImpl implements FileTrackStream {
 		return i_outputStream;
 	}
 
-	public void setOutputStream(OutputStream outputStream) {
+	public void setOutputStream(KnownLengthOutputStream outputStream) {
 		i_outputStream = outputStream;
 	}
 

@@ -187,11 +187,11 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 			String flacAlbumPath, String url, InputStream urlInputStream, boolean selected) throws RepositoryException, IOException {
 		albumCoverBean.setUrl(url);
 		byte[] cover = downloadUrl(url, urlInputStream);
-		getAlbumCoverDataInjector().injectData(albumCoverBean, new KnownLengthByteArrayInputStream(cover));
-		getAlbumThumbnailDataInjector().injectData(albumCoverBean, new KnownLengthByteArrayInputStream(createThumbnail(cover)));
-		albumCoverBean.setFlacAlbumPath(flacAlbumPath);
 		Date now = new Date();
 		albumCoverBean.setDateDownloaded(now);
+		albumCoverBean.setFlacAlbumPath(flacAlbumPath);
+		getAlbumCoverDataInjector().injectData(albumCoverBean, new KnownLengthByteArrayInputStream(cover));
+		getAlbumThumbnailDataInjector().injectData(albumCoverBean, new KnownLengthByteArrayInputStream(createThumbnail(cover)));
 		if (selected) {
 			selectAlbumCover(albumCoverBean, now);
 		}

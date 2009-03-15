@@ -1,5 +1,7 @@
 package uk.co.unclealex.music.web.webdav;
 
+import java.io.IOException;
+
 import javax.jcr.LoginException;
 import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
@@ -7,6 +9,7 @@ import javax.jcr.Session;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jackrabbit.server.SessionProvider;
 import org.apache.jackrabbit.webdav.DavResourceFactory;
@@ -15,34 +18,62 @@ import org.apache.jackrabbit.webdav.simple.ResourceFactoryImpl;
 import org.apache.jackrabbit.webdav.simple.SimpleWebdavServlet;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-
-import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
+import org.springmodules.jcr.JcrCallback;
+import org.springmodules.jcr.JcrTemplate;
 
 public class SpringWebdavServlet extends SimpleWebdavServlet {
 	
 	public static ApplicationContext APPLICATION_CONTEXT;
 	
-	private RepositoryManager i_repositoryManager;
 	private SessionProvider i_sessionProvider;
 	private DavResourceFactory i_resourceFactory;
+	private JcrTemplate i_jcrTemplate;
+	private ThreadLocal<Repository> i_currentRepository = new ThreadLocal<Repository>();
+	private ThreadLocal<Session> i_currentSession = new ThreadLocal<Session>();
 	
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 		ApplicationContext applicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(config.getServletContext());
 		APPLICATION_CONTEXT = applicationContext;
-		String repositoryManagerName = getInitParameter("repository-manager");
-		if (repositoryManagerName == null) {
+		String jcrTemplateName = getInitParameter("jcr-template");
+		if (jcrTemplateName == null) {
 			throw new ServletException(
-					"You must provide a repository manager parameter for " + config.getServletName());
+					"You must provide a jcr template parameter for " + config.getServletName());
 		}
-		RepositoryManager repositoryManager =
-			(RepositoryManager) applicationContext.getBean(repositoryManagerName, RepositoryManager.class);
-		if (repositoryManager == null) {
+		JcrTemplate jcrTemplate =
+			(JcrTemplate) applicationContext.getBean(jcrTemplateName, JcrTemplate.class);
+		if (jcrTemplate == null) {
 			throw new ServletException(
-					"Cannot find a repository manager called " + repositoryManagerName + " for " + config.getServletName());
+					"Cannot find a jcr template called " + jcrTemplateName + " for " + config.getServletName());
 		}
-		setRepositoryManager(repositoryManager);
+		setJcrTemplate(jcrTemplate);
+	}
+	
+	@Override
+	protected void service(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+		Thread.currentThread().setName(getServletConfig().getServletName());
+		JcrCallback<Object> callback = new JcrCallback<Object>() {
+			@Override
+			public Object doInJcr(Session session) throws IOException, RepositoryException {
+				ThreadLocal<Session> currentSession = getCurrentSession();
+				currentSession.set(session);
+				ThreadLocal<Repository> currentRepository = getCurrentRepository();
+				currentRepository.set(session.getRepository());
+				try {
+					SpringWebdavServlet.super.service(request, response);
+				}
+				catch (ServletException e) {
+					throw new RepositoryException(e);
+				}
+				finally {
+					currentSession.remove();
+					currentRepository.remove();
+				}
+				return null;
+			}
+		};
+		getJcrTemplate().execute(callback);
 	}
 	
     /**
@@ -79,7 +110,7 @@ public class SpringWebdavServlet extends SimpleWebdavServlet {
 						Repository repository, String workspace)
 						throws LoginException, RepositoryException,
 						ServletException {
-					return getRepositoryManager().getSession();
+					return getCurrentSession().get();
 				}
 				@Override
 				public void releaseSession(Session session) {
@@ -98,15 +129,22 @@ public class SpringWebdavServlet extends SimpleWebdavServlet {
 	
 	@Override
 	public Repository getRepository() {
-		return getRepositoryManager().getRepository();
+		return getCurrentRepository().get();
 	}
-	
-	public RepositoryManager getRepositoryManager() {
-		return i_repositoryManager;
+
+	public JcrTemplate getJcrTemplate() {
+		return i_jcrTemplate;
 	}
-	
-	public void setRepositoryManager(RepositoryManager repositoryManager) {
-		i_repositoryManager = repositoryManager;
+
+	public void setJcrTemplate(JcrTemplate jcrTemplate) {
+		i_jcrTemplate = jcrTemplate;
 	}
-	
+
+	public ThreadLocal<Repository> getCurrentRepository() {
+		return i_currentRepository;
+	}
+
+	public ThreadLocal<Session> getCurrentSession() {
+		return i_currentSession;
+	}	
 }

@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -15,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import javax.jcr.RepositoryException;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -30,12 +31,14 @@ import uk.co.unclealex.music.base.dao.FlacTrackDao;
 import uk.co.unclealex.music.base.initialise.TrackImporter;
 import uk.co.unclealex.music.base.io.DataExtractor;
 import uk.co.unclealex.music.base.io.InputStreamCopier;
+import uk.co.unclealex.music.base.io.KnownLengthOutputStream;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.service.filesystem.ClearableRepositoryFactory;
 import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
-import uk.co.unclealex.music.encoder.service.EncoderService;
+import uk.co.unclealex.music.encoder.service.SingleEncoderService;
 
 @Service
 public class ImporterImpl implements Importer {
@@ -44,14 +47,15 @@ public class ImporterImpl implements Importer {
 	
 	private EncoderDao i_encoderDao;
 	private EncodedTrackDao i_encodedTrackDao;
-	private EncoderService i_encoderService;
+	private SingleEncoderService i_singleEncoderService;
 	private FlacTrackDao i_flacTrackDao;
 	private TrackImporter i_trackImporter;
 	private DataExtractor<EncodedTrackBean> i_encodedTrackDataExtractor;
 	private InputStreamCopier<EncodedTrackBean> i_inputStreamCopier;
 	private RepositoryManager i_encodedRepositoryManager;
+	private ClearableRepositoryFactory i_encodedRepositoryFactory;
 	
-	public void importTracks() throws IOException {
+	public void importTracks() throws IOException, RepositoryException {
 		final TrackImporter trackImporter = getTrackImporter();
 		log.info("Importing tracks.");
 		File baseDir = new File("/home/converted");
@@ -105,8 +109,9 @@ public class ImporterImpl implements Importer {
 				}
 			}
 		}
-		getEncoderService().updateMissingAlbumInformation();
-		getEncodedRepositoryManager().refresh();
+		getSingleEncoderService().updateMissingAlbumInformation();
+		getEncodedRepositoryFactory().clearNextInstance();
+		getEncodedRepositoryManager().updateFromScratch();
 	}
 	
 	@Override
@@ -129,8 +134,15 @@ public class ImporterImpl implements Importer {
 				}
 				else {
 					log.info("Exporting " + encodedTrackBean + " to " + file);
-					OutputStream fileOutputStream = new FileOutputStream(file);
-					getInputStreamCopier().copy(encodedTrackDataExtractor, encodedTrackBean, fileOutputStream);
+					FileOutputStream fileOutputStream = new FileOutputStream(file);
+					KnownLengthOutputStream knownLengthOutputStream = 
+						new KnownLengthOutputStream(fileOutputStream, fileOutputStream.getChannel()) {
+						@Override
+						public void setLength(int length) throws IOException {
+							// Do nothing
+						}
+					};
+					getInputStreamCopier().copy(encodedTrackDataExtractor, encodedTrackBean, knownLengthOutputStream);
 					fileOutputStream.close();
 				}
 			}
@@ -173,13 +185,13 @@ public class ImporterImpl implements Importer {
 		i_encodedTrackDao = encodedTrackDao;
 	}
 
-	public EncoderService getEncoderService() {
-		return i_encoderService;
+	public SingleEncoderService getSingleEncoderService() {
+		return i_singleEncoderService;
 	}
 
 	@Required
-	public void setEncoderService(EncoderService encoderService) {
-		i_encoderService = encoderService;
+	public void setSingleEncoderService(SingleEncoderService singleEncoderService) {
+		i_singleEncoderService = singleEncoderService;
 	}
 
 	public DataExtractor<EncodedTrackBean> getEncodedTrackDataExtractor() {
@@ -208,5 +220,14 @@ public class ImporterImpl implements Importer {
 	public void setEncodedRepositoryManager(
 			RepositoryManager encodedRepositoryManager) {
 		i_encodedRepositoryManager = encodedRepositoryManager;
+	}
+
+	public ClearableRepositoryFactory getEncodedRepositoryFactory() {
+		return i_encodedRepositoryFactory;
+	}
+
+	@Required
+	public void setEncodedRepositoryFactory(ClearableRepositoryFactory encodedRepositoryFactory) {
+		i_encodedRepositoryFactory = encodedRepositoryFactory;
 	}
 }

@@ -37,31 +37,27 @@
 		</property>
 	</bean>
 
-	<bean id="musicSessionFactory" class="uk.co.unclealex.hibernate.SessionDuringStartupSessionFactoryBean">
-		<property name="sessionFactory">
-			<bean class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
-				<property name="entityInterceptor">
-					<bean class="uk.co.unclealex.hibernate.HibernateTransactionalFileSystemInterceptor"/>
-				</property>
-				<property name="dataSource" ref="musicDataSource"/>
-				<property name="hibernateProperties" ref="musicHibernateProperties"/>
-				<property name="annotatedClasses">
-					<list>
-						<value>uk.co.unclealex.music.base.model.EncodedTrackBean</value>
-						<value>uk.co.unclealex.music.base.model.EncoderBean</value>
-						<value>uk.co.unclealex.music.base.model.EncodedAlbumBean</value>
-						<value>uk.co.unclealex.music.base.model.EncodedArtistBean</value>
-						<value>uk.co.unclealex.music.base.model.OwnerBean</value>
-						<value>uk.co.unclealex.music.base.model.DeviceBean</value>
-						<value>uk.co.unclealex.music.base.model.AlbumCoverBean</value>
-						<value>uk.co.unclealex.hibernate.model.DataBean</value>
-					</list>
-				</property>
-			</bean>
+	<bean id="musicSessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="entityInterceptor">
+			<bean class="uk.co.unclealex.hibernate.HibernateTransactionalFileSystemInterceptor"/>
+		</property>
+		<property name="dataSource" ref="musicDataSource"/>
+		<property name="hibernateProperties" ref="musicHibernateProperties"/>
+		<property name="annotatedClasses">
+			<list>
+				<value>uk.co.unclealex.music.base.model.EncodedTrackBean</value>
+				<value>uk.co.unclealex.music.base.model.EncoderBean</value>
+				<value>uk.co.unclealex.music.base.model.EncodedAlbumBean</value>
+				<value>uk.co.unclealex.music.base.model.EncodedArtistBean</value>
+				<value>uk.co.unclealex.music.base.model.OwnerBean</value>
+				<value>uk.co.unclealex.music.base.model.DeviceBean</value>
+				<value>uk.co.unclealex.music.base.model.AlbumCoverBean</value>
+				<value>uk.co.unclealex.hibernate.model.DataBean</value>
+			</list>
 		</property>
 	</bean>
 
-	<bean id="transactionManager" class="uk.co.unclealex.hibernate.HibernateTransactionalFileSystemTransactionManager">
+	<bean id="musicTransactionManager" class="uk.co.unclealex.hibernate.HibernateTransactionalFileSystemTransactionManager">
 		<property name="sessionFactory" ref="musicSessionFactory"/>
 	</bean>
 

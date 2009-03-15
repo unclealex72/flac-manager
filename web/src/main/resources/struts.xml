@@ -41,8 +41,7 @@
 		
 		<default-interceptor-ref name="myStack"/>
 
-		<action name="index"
-			class="uk.co.unclealex.music.web.actions.BaseAction">
+		<action name="index" class="baseAction">
 			<result name="success" type="redirect">/html/missing.html</result>
 		</action>
 
@@ -50,41 +49,34 @@
 	
 	<package name="html" extends="default" namespace="/html">
 			
-		<action name="missing"
-			class="uk.co.unclealex.music.web.actions.MissingCoversAction">
+		<action name="missing" class="missingCoversAction">
 			<result name="success">/WEB-INF/pages/albums.jsp</result>
 		</action>
 
-		<action name="artists"
-			class="uk.co.unclealex.music.web.actions.ArtistsAction">
+		<action name="artists" class="artistsAction">
 			<result name="success">/WEB-INF/pages/artists.jsp</result>
 		</action>
 
-		<action name="albumsforartist"
-			class="uk.co.unclealex.music.web.actions.AlbumsForArtistAction">
+		<action name="albumsforartist" class="albumsForArtistAction">
 			<result name="success">/WEB-INF/pages/albums.jsp</result>
 		</action>
 
-		<action name="album"
-			class="uk.co.unclealex.music.web.actions.AlbumAction">
+		<action name="album" class="albumAction">
 			<result name="success">/WEB-INF/pages/album.jsp</result>
 			<result name="input">/WEB-INF/pages/album.jsp</result>
 		</action>
 		
-		<action name="select"
-			class="uk.co.unclealex.music.web.actions.SelectAlbumCoverAction">
+		<action name="select" class="selectAlbumCoverAction">
 			<result name="success" type="redirect">/html/album.html?flacAlbumBean=${flacAlbumBean.id}</result>
 			<result name="input">/WEB-INF/pages/album.jsp</result>
 		</action>
 
-		<action name="download"
-			class="uk.co.unclealex.music.web.actions.DownloadAlbumCoverAction">
+		<action name="download" class="downloadAlbumCoverAction">
 			<result name="success" type="redirect">/html/album.html?flacAlbumBean=${flacAlbumBean.id}</result>
 			<result name="input">/WEB-INF/pages/album.jsp</result>
 		</action>
 
-		<action name="upload"
-			class="uk.co.unclealex.music.web.actions.UploadAlbumCoverAction">
+		<action name="upload" class="uploadAlbumCoverAction">
 			<result name="success" type="redirect">/html/album.html?flacAlbumBean=${flacAlbumBean.id}</result>
 			<result name="input">/WEB-INF/pages/album.jsp</result>
 		</action>
