@@ -31,8 +31,6 @@ public interface AlbumCoverService {
 	
 	public void removeUnselectedCovers(FlacAlbumBean flacAlbumBean);
 	
-	public void purgeCovers();
-	
 	public AlbumCoverBean saveAndSelectCover(
 			FlacAlbumBean flacAlbumBean, String imageUrl, InputStream urlInputStream, AlbumCoverSize albumCoverSize) throws RepositoryException, IOException;
 

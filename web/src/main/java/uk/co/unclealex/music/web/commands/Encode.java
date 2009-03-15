@@ -35,7 +35,7 @@ public class Encode implements Command {
 		Set<FlacAlbumBean> flacAlbumBeans = encoderResultBean.getFlacAlbumBeans();
 		AlbumCoverService albumCoverService = getAlbumCoverService();
 		albumCoverService.downloadAndSaveCoversForAlbums(flacAlbumBeans);
-		albumCoverService.purgeCovers();
+
 		getEncodedRepositoryFactory().clearNextInstance();
 		getEncodedRepositoryManager().updateFromScratch();
 		getCoversRepositoryFactory().clearNextInstance();

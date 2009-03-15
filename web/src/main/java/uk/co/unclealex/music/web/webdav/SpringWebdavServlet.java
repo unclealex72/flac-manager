@@ -53,7 +53,7 @@ public class SpringWebdavServlet extends SimpleWebdavServlet {
 	@Override
 	protected void service(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		Thread.currentThread().setName(getServletConfig().getServletName());
-		JcrCallback<Object> callback = new JcrCallback<Object>() {
+		JcrCallback callback = new JcrCallback() {
 			@Override
 			public Object doInJcr(Session session) throws IOException, RepositoryException {
 				ThreadLocal<Session> currentSession = getCurrentSession();

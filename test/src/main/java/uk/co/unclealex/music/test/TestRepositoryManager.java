@@ -1,7 +1,5 @@
 package uk.co.unclealex.music.test;
 
-import java.util.Set;
-
 import javax.jcr.Node;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -20,22 +18,12 @@ public class TestRepositoryManager implements RepositoryManager {
 	}
 
 	@Override
-	public Set<Node> find(int id) {
-		return null;
-	}
-
-	@Override
 	public long getLength(Node node) {
 		return 0;
 	}
 
 	@Override
 	public int getObjectId(Node node) {
-		return 0;
-	}
-
-	@Override
-	public int remove(int id) {
 		return 0;
 	}
 

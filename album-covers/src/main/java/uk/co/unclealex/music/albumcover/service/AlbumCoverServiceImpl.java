@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -355,27 +354,6 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 				log.info("Downloaded " + covers.size() + " covers.");
 			}
 		}
-	}
-	
-	@Override
-	public void purgeCovers() {
-		AlbumCoverDao albumCoverDao = getAlbumCoverDao();
-		for (AlbumCoverBean albumCoverBean : albumCoverDao.getAll()) {
-			File albumCoverDirectory = new File(albumCoverBean.getFlacAlbumPath());
-			if (!albumCoverDirectory.isDirectory()) {
-				remove(albumCoverBean);
-			}
-		}
-	}
-	
-	protected void remove(AlbumCoverBean albumCoverBean) {
-		try {
-			getCoversRepositoryManager().remove(albumCoverBean.getId());
-		}
-		catch (RuntimeException e) {
-			log.warn("Could not remove album cover " + albumCoverBean.getUrl(), e);
-		}
-		getAlbumCoverDao().remove(albumCoverBean);
 	}
 	
 	@Override

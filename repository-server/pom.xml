@@ -19,8 +19,46 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springmodules</groupId>
-			<artifactId>springmodules-jcr</artifactId>
-			<version>0.9</version>
+			<artifactId>spring-modules-jcr</artifactId>
+			<version>0.8a</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>spring</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jsr170</artifactId>
+					<groupId>jsr170</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jcr</artifactId>
+					<groupId>jsr170</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackrabbit-jca</artifactId>
+					<groupId>org.apache.jackrabbit</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jeceira</artifactId>
+					<groupId>jeceira</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>doka</artifactId>
+					<groupId>aparzev</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons</artifactId>
+					<groupId>aparzev</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jug-asl</artifactId>
+					<groupId>jug</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackrabbit-jca</artifactId>
+					<groupId>org.apache.jackrabbit</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.derby</groupId>
@@ -31,6 +69,11 @@
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-core</artifactId>
 			<version>2.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jackrabbit</groupId>
+			<artifactId>jackrabbit-jcr-commons</artifactId>
+			<version>${jackrabbit-version}</version>
 		</dependency>
 	</dependencies>
 

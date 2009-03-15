@@ -4,7 +4,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -35,34 +34,6 @@ public class RepositoryManagerImpl<E> extends JcrTemplate implements RepositoryM
 		
 	private RepositoryAdaptor<E> i_repositoryAdaptor;
 	
-	@Override
-	public Set<Node> find(final int id) {
-		JcrCallback<Set<Node>> callback = new FindByIdJcrCallback<Set<Node>>(id) {
-			@Override
-			public Set<Node> doInJcr(Session session) throws RepositoryException {
-				return findById(session);
-			}
-		};
-		return execute(callback);
-	}
-	
-	@Override
-	public int remove(int id) {
-		JcrCallback<Integer> callback = new FindByIdJcrCallback<Integer>(id) {
-			@Override
-			public Integer doInJcr(Session session) throws RepositoryException {
-				Set<Node> foundNodes = findById(session);
-				int removed = foundNodes.size();
-				for (Node node : foundNodes) {
-					remove(node);
-				}
-				return removed;
-
-			}
-		};
-		return execute(callback);
-	}
-	
 	protected void remove(Node node) throws RepositoryException {
 		if (node.getDepth() != 0) {
 			Node parent = node.getParent();
@@ -76,7 +47,7 @@ public class RepositoryManagerImpl<E> extends JcrTemplate implements RepositoryM
 
 	@Override
 	public void updateFromScratch() {
-		JcrCallback<Object> callback = new JcrCallback<Object>() {
+		JcrCallback callback = new JcrCallback() {
 			public Object doInJcr(Session session) throws RepositoryException {
 				CacheManager cacheManager = ((RepositoryImpl) session.getRepository()).getCacheManager();
 				long cacheSize = cacheManager.getMaxMemory();
@@ -127,7 +98,7 @@ public class RepositoryManagerImpl<E> extends JcrTemplate implements RepositoryM
 	}
 	
 	protected void add(final int id, final boolean removeExisting) {
-		JcrCallback<Object> callback = new JcrCallback<Object>() {
+		JcrCallback callback = new JcrCallback() {
 			@Override
 			public Object doInJcr(Session session) throws RepositoryException {
 				E element = getRepositoryAdaptor().findById(id);
@@ -199,21 +170,21 @@ public class RepositoryManagerImpl<E> extends JcrTemplate implements RepositoryM
 
 	@Override
 	public int getObjectId(final Node node) {
-		JcrCallback<Integer> callback = new JcrCallback<Integer>() {
+		JcrCallback callback = new JcrCallback() {
 			@Override
 			public Integer doInJcr(Session session) throws RepositoryException {
 				Property property = node.getProperty(PROPERTY_ID);
 				return (int) property.getValue().getLong();
 			}
 		};
-		return execute(callback);
+		return (Integer) execute(callback);
 	}
 
 	@Override
 	public long getLength(final Node node) {
-		JcrCallback<Long> callback = new JcrCallback<Long>() {
+		JcrCallback callback = new JcrCallback() {
 			@Override
-			public Long doInJcr(Session session) throws RepositoryException {
+			public Object doInJcr(Session session) throws RepositoryException {
 				Property property = node.getProperty(PROPERTY_LENGTH);
 				try {
 					return property.getLong();
@@ -223,7 +194,7 @@ public class RepositoryManagerImpl<E> extends JcrTemplate implements RepositoryM
 				}
 			}
 		};
-		return execute(callback);
+		return (Long) execute(callback);
 	}
 	
 	public RepositoryAdaptor<E> getRepositoryAdaptor() {

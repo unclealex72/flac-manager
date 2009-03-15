@@ -11,9 +11,7 @@
 	
 	<bean id="encoderService" class="uk.co.unclealex.music.encoder.service.EncoderServiceImpl">
 		<property name="encodingEventListeners">
-			<list>
-				<bean class="uk.co.unclealex.music.encoder.service.RepositoryEncodingEventListener"/>
-			</list>
+			<list/>
 		</property>
 	</bean>
 	
