@@ -1,9 +1,7 @@
 package uk.co.unclealex.music.albumcover.service;
 
-import java.awt.Dimension;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Collection;
 import java.util.SortedSet;
 
@@ -36,8 +34,6 @@ public interface AlbumCoverService {
 
 	public void selectAlbumCover(AlbumCoverBean albumCoverBean) throws RepositoryException;
 
-	public void resizeCover(AlbumCoverBean albumCoverBean, Dimension maximumSize, String extension, OutputStream out) throws IOException;
-	
 	public Predicate<FlacAlbumBean> createAlbumHasCoverPredicate();
 	
 	public SortedSet<FlacAlbumBean> findAlbumsWithoutCovers();

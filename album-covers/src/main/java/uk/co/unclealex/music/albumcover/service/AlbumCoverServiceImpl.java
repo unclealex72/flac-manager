@@ -7,7 +7,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,8 +42,6 @@ import uk.co.unclealex.music.base.dao.AlbumCoverDao;
 import uk.co.unclealex.music.base.dao.FlacAlbumDao;
 import uk.co.unclealex.music.base.io.DataExtractor;
 import uk.co.unclealex.music.base.io.DataInjector;
-import uk.co.unclealex.music.base.io.KnownLengthInputStream;
-import uk.co.unclealex.music.base.io.KnownLengthInputStreamCallback;
 import uk.co.unclealex.music.base.model.AlbumCoverBean;
 import uk.co.unclealex.music.base.model.AlbumCoverSize;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
@@ -371,28 +368,6 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 		}
 		downloadAndStoreAlbumCover(albumCoverBean, albumPath, imageUrl, urlInputStream, true);
 		return albumCoverBean;
-	}
-	
-	@Override
-	public void resizeCover(AlbumCoverBean albumCoverBean, Dimension maximumSize, String extension, OutputStream out) throws IOException {
-		DataExtractor<AlbumCoverBean> dataExtractor = getAlbumCoverDataExtractor();
-		class ResizeCoverCallback implements KnownLengthInputStreamCallback {
-			BufferedImage sourceImage;
-			@Override
-			public void execute(KnownLengthInputStream in) throws IOException {
-				try {
-					sourceImage = ImageIO.read(in);
-				}
-				finally {
-					IOUtils.closeQuietly(in);
-				}
-			}
-		};
-		ResizeCoverCallback callback = new ResizeCoverCallback();
-		dataExtractor.extractData(albumCoverBean, callback);
-		Color transparent = new Color(0, 0, 0, 0);
-		BufferedImage targetImage = getImageService().resize(callback.sourceImage, maximumSize, transparent);
-		ImageIO.write(targetImage, extension, out);
 	}
 	
 	public AmazonService getAmazonService() {
