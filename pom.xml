@@ -13,8 +13,9 @@
     <module>encoder</module>
     <module>album-covers</module>
     <module>web</module>
-    <module>repository-server</module>
     <module>commands-client</module>
+    <module>fs</module>
+    <module>commands</module>
   </modules>
 
   <properties>
