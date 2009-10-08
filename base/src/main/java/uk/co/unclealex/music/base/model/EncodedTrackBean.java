@@ -1,26 +1,33 @@
 package uk.co.unclealex.music.base.model;
 
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import org.hibernate.annotations.Sort;
+import org.hibernate.annotations.SortType;
 import org.hibernate.validator.NotNull;
 
 import uk.co.unclealex.hibernate.model.DataBean;
 import uk.co.unclealex.music.base.visitor.EncodedVisitor;
+import uk.co.unclealex.music.base.visitor.VisitorException;
 
 @Table(
 		name="encoded_tracks",
 		uniqueConstraints = {@UniqueConstraint(columnNames={"url", "encoderBean_id"})})
 @Entity(name="encodedTrackBean")
-public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> implements EncodedBean {
+public class EncodedTrackBean extends CodedBean<EncodedTrackBean> implements EncodedBean {
 
 	private String i_flacUrl;
 	private EncoderBean i_encoderBean;
@@ -30,6 +37,7 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 	
 	private DataBean i_trackDataBean;
 	private EncodedAlbumBean i_encodedAlbumBean;
+	private SortedSet<OwnerBean> i_ownerBeans = new TreeSet<OwnerBean>();
 	
 	public EncodedTrackBean() {
 		super();
@@ -55,13 +63,26 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 
 	@Override
 	@NotNull
+	@Column(name="code")
+	public String getCode() {
+		return super.getCode();
+	}
+
+
+	@Override
+	@NotNull
 	public String getFilename() {
 		return super.getFilename();
 	}
 	
 	@Override
-	public void accept(EncodedVisitor encodedVisitor) {
-		encodedVisitor.visit(this);
+	public <R, E extends Exception> R accept(EncodedVisitor<R, E> encodedVisitor) {
+		try {
+			return encodedVisitor.visit(this);
+		}
+		catch (Exception e) {
+			throw new VisitorException(e);
+		}
 	}
 	
 	@ManyToOne
@@ -128,6 +149,16 @@ public class EncodedTrackBean extends AbstractEncodedBean<EncodedTrackBean> impl
 
 	public void setTrackDataBean(DataBean trackDataBean) {
 		i_trackDataBean = trackDataBean;
+	}
+
+	@ManyToMany(cascade={CascadeType.ALL})
+	@Sort(type=SortType.NATURAL)
+	public SortedSet<OwnerBean> getOwnerBeans() {
+		return i_ownerBeans;
+	}
+
+	public void setOwnerBeans(SortedSet<OwnerBean> ownerBeans) {
+		i_ownerBeans = ownerBeans;
 	}
 
 }

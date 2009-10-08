@@ -8,21 +8,20 @@
 
 	<import resource="classpath*:applicationContext-music-core-music-hibernate.xml"/>
 	
-	<alias alias="transactionManager" name="musicTransactionManager"/>
-	
-	<bean id="encodedMusicStorageDirectory" class="uk.co.unclealex.music.core.io.DirectoryFactoryBean">
-		<property name="path" value="tracks"/>
-		<property name="temporary" value="true"/>
-	</bean>
-
 	<bean id="musicDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="org.hsqldb.jdbcDriver"/>
-		<property name="url" value="jdbc:hsqldb:mem:aname"/>
+		<property name="url" value="jdbc:hsqldb:mem:."/>
 	</bean>
 
-	<bean id="deviceService" class="uk.co.unclealex.music.test.TestDeviceService"/>
+	<bean id="importMusicDirectory" class="java.io.File">
+		<constructor-arg value="/tmp/music/import"/>
+	</bean>
+
+	<bean id="encodedMusicStorageDirectory" class="java.io.File">
+		<constructor-arg value="/tmp/music/tracks"/>
+	</bean>
 	
-	<bean id="speechWriterFactory" class="uk.co.unclealex.music.test.TestSpeechWriterFactory"/>
+	<bean id="speechWriter" class="uk.co.unclealex.music.test.TestSpeechWriter"/>
 	
 	<bean id="slimServerConfig" class="uk.co.unclealex.music.test.TestSlimServerConfig">
 		<property name="definiteArticles">
@@ -38,11 +37,6 @@
 	</bean>
 	 -->
 	
-	<bean id="encodedRepositoryFactory" class="uk.co.unclealex.music.test.TestRepositoryFactory"/>
-	<bean id="coversRepositoryFactory" class="uk.co.unclealex.music.test.TestRepositoryFactory"/>
-	<bean id="encodedRepositoryManager" class="uk.co.unclealex.music.test.TestRepositoryManager"/>
-	<bean id="coversRepositoryManager" class="uk.co.unclealex.music.test.TestRepositoryManager"/>
-	 
 	<bean id="fileSystemTitleFormats" class="org.springframework.beans.factory.config.ListFactoryBean">
 		<property name="sourceList">
 			<list>

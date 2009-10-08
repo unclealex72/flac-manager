@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import uk.co.unclealex.music.base.process.service.ProcessService;
-import uk.co.unclealex.spring.Prototype;
 
-@Prototype
 public class RockboxSpeechWriter extends AbstractSpeechWriter {
 	
 	private ProcessService i_processService;

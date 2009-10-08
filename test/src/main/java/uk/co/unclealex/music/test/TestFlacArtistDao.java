@@ -15,7 +15,7 @@ public class TestFlacArtistDao implements FlacArtistDao {
 	
 	@Override
 	public FlacArtistBean findByCode(String code) {
-		return CollectionUtils.find(getAll(), getTestFlacProvider().getCodedPredicate(code));
+		return CollectionUtils.find(getAll(), getTestFlacProvider().createCodedPredicate(code));
 	}
 
 	@Override
@@ -66,8 +66,13 @@ public class TestFlacArtistDao implements FlacArtistDao {
 	}
 
 	@Override
+	public long count() {
+		return getTestFlacProvider().getAllFlacArtistBeans().size();
+	}
+	
+	@Override
 	public SortedSet<FlacArtistBean> getAll() {
-		return getTestFlacProvider().getAllFlacArtistBeans();
+		return new TreeSet<FlacArtistBean>(getTestFlacProvider().getAllFlacArtistBeans().values());
 	}
 
 	public TestFlacProvider getTestFlacProvider() {

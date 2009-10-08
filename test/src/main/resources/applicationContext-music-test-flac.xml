@@ -8,7 +8,15 @@
 	<bean id="flacTrackDao" class="uk.co.unclealex.music.test.TestFlacTrackDao"/>
 	<bean id="flacAlbumDao" class="uk.co.unclealex.music.test.TestFlacAlbumDao"/>
 	<bean id="flacArtistDao" class="uk.co.unclealex.music.test.TestFlacArtistDao"/>
-
+	<bean id="slimServerConfig" class="uk.co.unclealex.music.test.TestSlimServerConfig">
+		<property name="definiteArticles">
+			<list>
+				<value>The</value>
+				<value>La</value>
+			</list>
+		</property>
+	</bean>
+	
 	<bean id="slimServerInformationDao"
 		class="uk.co.unclealex.music.test.TestSlimServerInformationDao"/>
 </beans>

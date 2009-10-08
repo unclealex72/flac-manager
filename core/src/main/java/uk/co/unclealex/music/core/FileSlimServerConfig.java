@@ -17,7 +17,6 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.base.SlimServerConfig;
 
@@ -25,10 +24,10 @@ import uk.co.unclealex.music.base.SlimServerConfig;
  * @author alex
  *
  */
-@Service("slimServerConfig")
 public class FileSlimServerConfig implements SlimServerConfig {
 
 	private List<String> i_definiteArticles = new LinkedList<String>();
+	private String i_rootDirectory;
 	private boolean i_initialised = false;
 	private File i_slimserverConfigFile;
 
@@ -62,7 +61,12 @@ public class FileSlimServerConfig implements SlimServerConfig {
 		}
 		bIn.close();
 		
-		i_definiteArticles = Arrays.asList(StringUtils.splitByWholeSeparator(properties.get("ignoredarticles"), null));
+		setDefiniteArticles(Arrays.asList(StringUtils.splitByWholeSeparator(properties.get("ignoredarticles"), null)));
+		setRootDirectory(properties.get("audiodir"));
+	}
+	
+	public void setDefiniteArticles(List<String> definiteArticles) {
+		i_definiteArticles = definiteArticles;
 	}
 	
 	public List<String> getDefiniteArticles() {
@@ -82,6 +86,14 @@ public class FileSlimServerConfig implements SlimServerConfig {
 	@Required
 	public void setSlimserverConfigFile(File configFile) {
 		i_slimserverConfigFile = configFile;
+	}
+
+	public String getRootDirectory() {
+		return i_rootDirectory;
+	}
+
+	public void setRootDirectory(String rootDirectory) {
+		i_rootDirectory = rootDirectory;
 	}
 	
 	

@@ -8,7 +8,7 @@ import uk.co.unclealex.music.base.model.EncodedArtistBean;
 
 public interface EncodedAlbumDao extends KeyedDao<EncodedAlbumBean> {
 
-	public EncodedAlbumBean findByArtistAndIdentifier(EncodedArtistBean encodedArtistBean, String albumIdentifier);
+	public EncodedAlbumBean findByArtistCodeAndCode(String artistCode, String albumCode);
 	
 	public SortedSet<EncodedAlbumBean> findAllEmptyAlbums();
 

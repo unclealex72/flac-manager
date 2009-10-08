@@ -9,11 +9,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.commands.Command;
 
-@Service
 public class Main implements Command, ApplicationContextAware {
 
 	private static final Logger log = Logger.getLogger(Main.class);

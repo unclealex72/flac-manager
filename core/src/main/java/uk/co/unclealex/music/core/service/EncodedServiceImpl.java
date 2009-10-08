@@ -1,66 +1,76 @@
 package uk.co.unclealex.music.core.service;
 
-import java.util.Collection;
+import java.util.Date;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.hibernate.dao.KeyedDao;
 import uk.co.unclealex.music.base.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.base.dao.EncodedArtistDao;
 import uk.co.unclealex.music.base.dao.EncodedTrackDao;
-import uk.co.unclealex.music.base.model.AbstractEncodedBean;
+import uk.co.unclealex.music.base.dao.FlacTrackDao;
 import uk.co.unclealex.music.base.model.EncodedAlbumBean;
 import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.EncodedBean;
-import uk.co.unclealex.music.base.model.IdentifiableBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.FlacArtistBean;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
 import uk.co.unclealex.music.base.service.EncodedService;
 import uk.co.unclealex.music.base.service.FilenameService;
+import uk.co.unclealex.music.base.service.OwnerService;
 
-@Service
 @Transactional
 public class EncodedServiceImpl implements EncodedService {
-
-	private static Logger log = Logger.getLogger(EncodedServiceImpl.class);
 
 	private EncodedAlbumDao i_encodedAlbumDao;
 	private EncodedArtistDao i_encodedArtistDao;
 	private EncodedTrackDao i_encodedTrackDao;
+	private FlacTrackDao i_flacTrackDao;
 	private FilenameService i_filenameService;
+	private OwnerService i_ownerService;
 	
 	@Override
-	public EncodedAlbumBean findOrCreateAlbum(
-			EncodedArtistBean encodedArtistBean, String identifier, String title) {
-		EncodedAlbumDao encodedAlbumDao = getEncodedAlbumDao();
-		EncodedAlbumBean encodedAlbumBean = encodedAlbumDao.findByArtistAndIdentifier(encodedArtistBean, identifier);
-		if (encodedAlbumBean == null) {
-			encodedAlbumBean = new EncodedAlbumBean();
-			encodedAlbumBean.setEncodedArtistBean(encodedArtistBean);
-			encodedAlbumBean.setTitle(title);
-			injectFilename(encodedAlbumBean);
-			encodedAlbumBean.setIdentifier(identifier);
-			encodedAlbumDao.store(encodedAlbumBean);
-		}
+	public EncodedTrackBean createTrack(
+			EncodedAlbumBean encodedAlbumBean, EncoderBean encoderBean, FlacTrackBean flacTrackBean) {
+		EncodedTrackBean encodedTrackBean = new EncodedTrackBean();
+		encodedTrackBean.setFlacUrl(flacTrackBean.getUrl());
+		encodedTrackBean.setEncoderBean(encoderBean);
+		encodedTrackBean.setTimestamp(new Date().getTime());
+		encodedTrackBean.setTitle(flacTrackBean.getTitle());
+		encodedTrackBean.setTrackNumber(flacTrackBean.getTrackNumber());
+		encodedTrackBean.setEncodedAlbumBean(encodedAlbumBean);
+		encodedTrackBean.setEncoderBean(encoderBean);
+		encodedTrackBean.setCode(flacTrackBean.getCode());
+		injectFilename(encodedTrackBean);
+		return encodedTrackBean;
+	}
+	
+	@Override
+	public EncodedAlbumBean createAlbum(
+			EncodedArtistBean encodedArtistBean, FlacAlbumBean flacAlbumBean) {
+		EncodedAlbumBean encodedAlbumBean = new EncodedAlbumBean();
+		encodedAlbumBean.setEncodedArtistBean(encodedArtistBean);
+		encodedAlbumBean.setTitle(flacAlbumBean.getTitle());
+		injectFilename(encodedAlbumBean);
+		encodedAlbumBean.setCode(flacAlbumBean.getCode());
+		getEncodedAlbumDao().store(encodedAlbumBean);
 		return encodedAlbumBean;
 	}
 	
 	@Override
-	public EncodedArtistBean findOrCreateArtist(String identifier, String name) {
-		EncodedArtistDao encodedArtistDao = getEncodedArtistDao();
-		EncodedArtistBean encodedArtistBean = encodedArtistDao.findByIdentifier(identifier);
-		if (encodedArtistBean == null) {
-			encodedArtistBean = new EncodedArtistBean();
-			encodedArtistBean.setName(name);
-			injectFilename(encodedArtistBean);
-			encodedArtistBean.setIdentifier(identifier);
-			encodedArtistDao.store(encodedArtistBean);
-		}
+	public EncodedArtistBean createArtist(FlacArtistBean flacArtistBean) {
+		EncodedArtistBean encodedArtistBean = new EncodedArtistBean();
+		encodedArtistBean.setName(flacArtistBean.getName());
+		injectFilename(encodedArtistBean);
+		encodedArtistBean.setCode(flacArtistBean.getCode());
+		getEncodedArtistDao().store(encodedArtistBean);
 		return encodedArtistBean;
 	}
 	
@@ -73,7 +83,7 @@ public class EncodedServiceImpl implements EncodedService {
 			new Transformer<EncodedArtistBean, Character>() {
 				@Override
 				public Character transform(EncodedArtistBean encodedArtistBean) {
-					return encodedArtistBean.getIdentifier().charAt(0);
+					return encodedArtistBean.getCode().charAt(0);
 				}
 			},
 			firstLetters);
@@ -81,47 +91,13 @@ public class EncodedServiceImpl implements EncodedService {
 	}
 	
 	@Override
-	public int removeEmptyAlbumsAndArtists() {
-		EncodedAlbumDao encodedAlbumDao = getEncodedAlbumDao();
-		EncodedArtistDao encodedArtistDao = getEncodedArtistDao();
-		int cnt = remove("album", encodedAlbumDao, encodedAlbumDao.findAllEmptyAlbums());
-		remove("artist", encodedArtistDao, encodedArtistDao.findAllEmptyArtists());
-		return cnt;
+	public Set<EncodedTrackBean> findOrphanedEncodedTrackBeans() {
+		SortedSet<String> allFlacUrls = getFlacTrackDao().getAllUrls();
+		return getEncodedTrackDao().getAllOrphanedTracks(allFlacUrls);
 	}
 	
-	protected <T extends IdentifiableBean<T, String>> int remove(String type, KeyedDao<T> dao, Collection<T> beans) {
-		int cnt = 0;
-		for (T bean : beans) {
-			dao.remove(bean);
-			log.info("Removed " + type + " " + bean.getIdentifier());
-			cnt++;
-		}
-		return cnt;
-	}
-
-	@Override
-	public void injectFilename(EncodedBean encodedBean) {
+	protected void injectFilename(EncodedBean encodedBean) {
 		encodedBean.setFilename(getFilenameService().createFilename(encodedBean));
-	}
-	
-	
-	@Override
-	public void updateAllFilenames() {
-		updateAllFilenames(getEncodedArtistDao());
-		updateAllFilenames(getEncodedAlbumDao());
-		updateAllFilenames(getEncodedTrackDao());
-	}
-	
-	public <E extends AbstractEncodedBean<E>> void updateAllFilenames(KeyedDao<E> dao) {
-		for (E encodedBean : dao.getAll()) {
-			String oldFilename = encodedBean.getFilename();
-			injectFilename(encodedBean);
-			String newFilename = encodedBean.getFilename();
-			if (!newFilename.equals(oldFilename)) {
-				log.info("Updating '" + oldFilename + "' to '" + newFilename + "'");
-				dao.store(encodedBean);
-			}
-		}
 	}
 	
 	public EncodedAlbumDao getEncodedAlbumDao() {
@@ -158,5 +134,21 @@ public class EncodedServiceImpl implements EncodedService {
 	@Required
 	public void setFilenameService(FilenameService filenameService) {
 		i_filenameService = filenameService;
+	}
+
+	public OwnerService getOwnerService() {
+		return i_ownerService;
+	}
+
+	public void setOwnerService(OwnerService ownerService) {
+		i_ownerService = ownerService;
+	}
+
+	public FlacTrackDao getFlacTrackDao() {
+		return i_flacTrackDao;
+	}
+
+	public void setFlacTrackDao(FlacTrackDao flacTrackDao) {
+		i_flacTrackDao = flacTrackDao;
 	}
 }

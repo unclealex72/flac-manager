@@ -7,6 +7,7 @@ public interface SlimServerConfig {
 	/**
 	 * @return the definiteArticles
 	 */
-	public abstract List<String> getDefiniteArticles();
+	public List<String> getDefiniteArticles();
 
+	public String getRootDirectory();
 }

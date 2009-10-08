@@ -1,6 +1,7 @@
 package uk.co.unclealex.music.test;
 
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
@@ -18,21 +19,21 @@ public class TestFlacAlbumDao implements FlacAlbumDao {
 		TestFlacProvider testFlacProvider = getTestFlacProvider();
 		FlacArtistBean flacArtistBean =
 			CollectionUtils.find(
-					testFlacProvider.getAllFlacArtistBeans(),
-					testFlacProvider.getCodedPredicate(artistName.toUpperCase()));
+					testFlacProvider.getAllFlacArtistBeans().values(),
+					testFlacProvider.createCodedPredicate(artistName.toUpperCase()));
 		if (flacArtistBean == null) {
 			return null;
 		}
 		else {
 			return CollectionUtils.find(
 					flacArtistBean.getFlacAlbumBeans(),
-					testFlacProvider.getCodedPredicate(albumName.toUpperCase()));
+					testFlacProvider.createCodedPredicate(albumName.toUpperCase()));
 		}
 	}
 
 	@Override
 	public FlacAlbumBean findByCode(String code) {
-		return CollectionUtils.find(getAll(), getTestFlacProvider().getCodedPredicate(code));
+		return CollectionUtils.find(getAll(), getTestFlacProvider().createCodedPredicate(code));
 	}
 
 	@Override
@@ -62,8 +63,13 @@ public class TestFlacAlbumDao implements FlacAlbumDao {
 	}
 
 	@Override
+	public long count() {
+		return getTestFlacProvider().getAllFlacAlbumBeans().size();
+	}
+	
+	@Override
 	public SortedSet<FlacAlbumBean> getAll() {
-		return getTestFlacProvider().getAllFlacAlbumBeans();
+		return new TreeSet<FlacAlbumBean>(getTestFlacProvider().getAllFlacAlbumBeans().values());
 	}
 
 	public TestFlacProvider getTestFlacProvider() {

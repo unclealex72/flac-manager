@@ -36,10 +36,8 @@ public abstract class SpringTest extends AbstractTransactionalSpringContextTests
 				return input.toString();
 			}
 		};
-		SortedSet<String> extraSet = new TreeSet<String>();
-		CollectionUtils.collect(extra, transformer, extraSet);
-		SortedSet<String> missingSet = new TreeSet<String>();
-		CollectionUtils.collect(missing, transformer, missingSet);
+		SortedSet<String> extraSet = CollectionUtils.collect(extra, transformer, new TreeSet<String>());
+		SortedSet<String> missingSet = CollectionUtils.collect(missing, transformer, new TreeSet<String>());
 
 		String error = "";
 		if (!extra.isEmpty()) {

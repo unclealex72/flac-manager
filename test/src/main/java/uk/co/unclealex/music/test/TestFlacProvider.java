@@ -1,155 +1,259 @@
 package uk.co.unclealex.music.test;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.SortedSet;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeSet;
 
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.tag.Tag;
 
 import uk.co.unclealex.music.base.model.AbstractFlacBean;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.model.FlacArtistBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
 
-public class TestFlacProvider {
+public class TestFlacProvider implements IOFileFilter {
 
-	public static final String MADE_UP_URL =
-		"file:///mnt/multimedia/flac/napalm_death/from_enslavement_to_obliteration/19_point_of_no_return.flac";
+	private Map<File, FlacTrackBean> i_allFlacTrackBeans;
+	private Map<File, FlacAlbumBean> i_allFlacAlbumBeans;
+	private Map<File, FlacArtistBean> i_allFlacArtistBeans;
+	private int i_nextId;
 	
-	private SortedSet<FlacTrackBean> i_allFlacTrackBeans = new TreeSet<FlacTrackBean>();
-	private SortedSet<FlacAlbumBean> i_allFlacAlbumBeans = new TreeSet<FlacAlbumBean>();
-	private SortedSet<FlacArtistBean> i_allFlacArtistBeans = new TreeSet<FlacArtistBean>();
-	private int i_index;
+	public File getWorkingDirectory() {
+		return new File(new File(System.getProperty("java.io.tmpdir")), "testFlacProvider");
+	}
 	
-	@PostConstruct
-	public void initialise() {
-		String[] urls = new String[] {
-				"file:///mnt/multimedia/flac/napalm_death/from_enslavement_to_obliteration/12_you_suffer.flac",
-				MADE_UP_URL,
-				"file:///mnt/multimedia/flac/napalm_death/scum/24_your_achievement_bonus_track.flac",
-				"file:///mnt/multimedia/flac/napalm_death/scum/25_dead_bonus_track.flac",
-				"file:///mnt/multimedia/flac/sod/speak_english_or_die/20_the_ballad_of_jimi_hendrix.flac",
-				"file:///mnt/multimedia/flac/sod/speak_english_or_die/21_diamonds_and_rust_extended_version.flac",
-				"file:///mnt/multimedia/flac/brutal_truth/sounds_of_the_animal_kingdom__kill_trend_suicide/09_callous.flac",
-				"file:///mnt/multimedia/flac/brutal_truth/extreme_conditions_demand_extreme_responses/07_collateral_damage.flac"
+	public void initialise(String testBase) throws IOException {
+		File resourceDirectory = findResourceDirectory(testBase);
+		File workingDirectory = getWorkingDirectory();
+		removeAll(workingDirectory);
+		FileUtils.copyDirectory(resourceDirectory, workingDirectory);
+		update();
+	}
+
+	protected File findResourceDirectory(String testBase) throws IOException {
+		String resourceName = "testdata/" + testBase + "/ident.txt";
+		ClassLoader classLoader = getClass().getClassLoader();
+		URL resourceUrl = classLoader.getResource(resourceName);
+		if (resourceUrl == null) {
+			throw new FileNotFoundException(resourceName);
+		}
+		URI resourceLocator;
+		try {
+			resourceLocator = resourceUrl.toURI();
+		}
+		catch (URISyntaxException e) {
+			throw new IOException("Could not find " + resourceName, e);
+		}
+		if (resourceLocator == null) {
+			throw new FileNotFoundException(resourceName);
+		}
+		File resourceFile;
+		try {
+			resourceFile = new File(resourceLocator);
+		}
+		catch (IllegalArgumentException e) {
+			throw new FileNotFoundException(resourceLocator.toString());
+		}
+		File resourceDirectory = resourceFile.getParentFile();
+		if (resourceDirectory == null) {
+			throw new FileNotFoundException(resourceFile.getPath() + "/..");
+		}
+		return resourceDirectory;
+	}
+	
+	public void touchFiles(String... paths) throws Exception {
+		FileCallback callback = new FileCallback() {
+			@Override
+			public void doWithFile(File f) throws Exception {
+				f.setLastModified(System.currentTimeMillis());
+			}
 		};
-		for (String url : urls) {
-			createTrack(url);
-		}
+		executeFileCallback(callback, paths);
 	}
 	
-	protected FlacTrackBean createTrack(String url) {
+	public void removeFiles(String... paths) throws Exception {
+		FileCallback callback = new FileCallback() {
+			@Override
+			public void doWithFile(File f) throws Exception {
+				f.delete();
+			}
+		};
+		executeFileCallback(callback, paths);
+	}
+
+	protected void executeFileCallback(FileCallback callback, String... paths) throws Exception {
+		File workingDirectory = getWorkingDirectory();
+		for (String path : paths) {
+			File f = new File(workingDirectory, path);
+			callback.doWithFile(f);
+		}
+		update();
+	}
+	
+	protected interface FileCallback {
+		public void doWithFile(File f) throws Exception;
+	}
+	public void mergeResource(String testBase) throws IOException {
+		File resourceDirectory = findResourceDirectory(testBase);
+		FileUtils.copyDirectory(resourceDirectory, getWorkingDirectory());
+		update();		
+	}
+	
+	protected void update() {
+		setNextId(0);
+		setAllFlacAlbumBeans(new HashMap<File, FlacAlbumBean>());
+		setAllFlacArtistBeans(new HashMap<File, FlacArtistBean>());
+		setAllFlacTrackBeans(new HashMap<File, FlacTrackBean>());
+		FileUtils.listFiles(getWorkingDirectory(), this, FileFilterUtils.trueFileFilter());
+	}
+	
+	@Override
+	public boolean accept(File dir, String name) {
+		return accept(new File(dir, name));
+	}
+	
+	@Override
+	public boolean accept(File file) {
+		if ("flac".equalsIgnoreCase(FilenameUtils.getExtension(file.getName()))) {
+			AudioFile audioFile;
+			try {
+				audioFile = AudioFileIO.read(file);
+			}
+			catch (Throwable e) {
+				throw new IllegalArgumentException("Could not read flac file " + file);
+			}
+			Tag tag = audioFile.getTag();
+			addTrack(tag.getFirstArtist(), tag.getFirstAlbum(), tag.getFirstTrack(), tag.getFirstTitle(), file);
+		}
+		return true;
+	}
+	
+	protected void addTrack(String artist, String album, String track, String title, File file) {
+		FlacAlbumBean flacAlbumBean = findOrCreateAlbum(artist, album, file.getParentFile());
 		FlacTrackBean flacTrackBean = new FlacTrackBean();
-		List<String> parts = new ArrayList<String>();
-		parts.addAll(Arrays.asList(StringUtils.split(url, File.separatorChar)));
-		Collections.reverse(parts);
-		
-		String fileName = extractPart(parts, 0);
-		String albumName = extractPart(parts, 1);
-		String artistName = extractPart(parts, 2);
-		
-		int lastCharacter = fileName.lastIndexOf('.');
-		int endOfNumber = fileName.indexOf(' ');
-		String title = fileName.substring(endOfNumber + 1, lastCharacter);
-		String trackNumber = fileName.substring(0, endOfNumber);
-		
-		flacTrackBean.setCode(fileName.toUpperCase());
-		flacTrackBean.setId(nextIndex());
-		flacTrackBean.setTimestamp(new Date().getTime());
-		flacTrackBean.setRawTitle(title.getBytes());
-		flacTrackBean.setTrackNumber(new Integer(trackNumber));
-		flacTrackBean.setType("flc");
-		flacTrackBean.setUrl(url);
-		FlacAlbumBean flacAlbumBean = createAlbum(albumName, artistName);
+		setIdAndCode(flacTrackBean, title);
 		flacTrackBean.setFlacAlbumBean(flacAlbumBean);
+		flacTrackBean.setRawTitle(title.getBytes());
+		flacTrackBean.setTimestamp(file.lastModified());
+		flacTrackBean.setTrackNumber(Integer.parseInt(track));
+		flacTrackBean.setType("flc");
+		flacTrackBean.setUrl(file.toURI().toString());
 		flacAlbumBean.getFlacTrackBeans().add(flacTrackBean);
-		getAllFlacTrackBeans().add(flacTrackBean);
-		return flacTrackBean;
+		getAllFlacTrackBeans().put(file, flacTrackBean);
 	}
-	
-	protected FlacAlbumBean createAlbum(String albumName, String artistName) {
-		FlacArtistBean flacArtistBean = createArtist(artistName);
-		String code = albumName.toUpperCase();
-		FlacAlbumBean flacAlbumBean =
-			CollectionUtils.find(flacArtistBean.getFlacAlbumBeans(), getCodedPredicate(code));
-		if (flacAlbumBean != null) {
-			return flacAlbumBean;
+
+	protected FlacAlbumBean findOrCreateAlbum(String artist, String album, File file) {
+		Map<File, FlacAlbumBean> allFlacAlbumBeans = getAllFlacAlbumBeans();
+		FlacAlbumBean flacAlbumBean = allFlacAlbumBeans.get(file);
+		if (flacAlbumBean == null) {
+			FlacArtistBean flacArtistBean = findOrCreateArtist(artist, file.getParentFile());
+			flacAlbumBean = new FlacAlbumBean();
+			setIdAndCode(flacAlbumBean, album);
+			flacAlbumBean.setFlacArtistBean(flacArtistBean);
+			flacAlbumBean.setFlacTrackBeans(new TreeSet<FlacTrackBean>());
+			flacAlbumBean.setRawTitle(album.getBytes());
+			flacArtistBean.getFlacAlbumBeans().add(flacAlbumBean);
+			allFlacAlbumBeans.put(file, flacAlbumBean);
 		}
-		flacAlbumBean = new FlacAlbumBean();
-		flacAlbumBean.setCode(code);
-		flacAlbumBean.setFlacArtistBean(flacArtistBean);
-		flacAlbumBean.setFlacTrackBeans(new TreeSet<FlacTrackBean>());
-		flacAlbumBean.setId(nextIndex());
-		flacAlbumBean.setRawTitle(albumName.getBytes());
-		flacArtistBean.getFlacAlbumBeans().add(flacAlbumBean);
-		getAllFlacAlbumBeans().add(flacAlbumBean);
 		return flacAlbumBean;
 	}
-	
-	protected FlacArtistBean createArtist(String artistName) {
-		String code = artistName.toUpperCase();		
-		FlacArtistBean flacArtistBean =
-			CollectionUtils.find(getAllFlacArtistBeans(), getCodedPredicate(code));
-		if (flacArtistBean != null) {
-			return flacArtistBean;
+
+	protected FlacArtistBean findOrCreateArtist(String artist, File file) {
+		Map<File, FlacArtistBean> allFlacArtistBeans = getAllFlacArtistBeans();
+		FlacArtistBean flacArtistBean = allFlacArtistBeans.get(file);
+		if (flacArtistBean == null) {
+			flacArtistBean = new FlacArtistBean();
+			setIdAndCode(flacArtistBean, artist);
+			flacArtistBean.setFlacAlbumBeans(new TreeSet<FlacAlbumBean>());
+			flacArtistBean.setRawName(artist.getBytes());
+			allFlacArtistBeans.put(file, flacArtistBean);
 		}
-		flacArtistBean = new FlacArtistBean();
-		flacArtistBean.setCode(code);
-		flacArtistBean.setFlacAlbumBeans(new TreeSet<FlacAlbumBean>());
-		flacArtistBean.setId(nextIndex());
-		flacArtistBean.setRawName(artistName.getBytes());
-		getAllFlacArtistBeans().add(flacArtistBean);
 		return flacArtistBean;
 	}
-	
-	protected String extractPart(List<String> parts, int index) {
-		return WordUtils.capitalizeFully(parts.get(index).replace('_', ' '));
+
+	protected void setIdAndCode(AbstractFlacBean<?> abstractFlacBean, String name) {
+		abstractFlacBean.setCode(codeOf(name));
+		abstractFlacBean.setId(nextId());
 	}
-	
-	public Predicate<AbstractFlacBean<?>> getCodedPredicate(final String code) {
+
+	protected String codeOf(String name) {
+		return name.toUpperCase();
+	}
+
+	public Predicate<AbstractFlacBean<?>> createCodedPredicate(String name) {
+		final String code = codeOf(name);
 		return new Predicate<AbstractFlacBean<?>>() {
 			@Override
-			public boolean evaluate(AbstractFlacBean<?> codedBean) {
-				return codedBean.getCode().equals(code);
+			public boolean evaluate(AbstractFlacBean<?> abstractFlacBean) {
+				return code.equals(abstractFlacBean.getCode());
 			}
 		};
 	}
 	
-	public int nextIndex() {
-		return ++i_index;
+	protected int nextId() {
+		int nextId = getNextId();
+		setNextId(nextId + 1);
+		return nextId;
 	}
 	
-	public SortedSet<FlacTrackBean> getAllFlacTrackBeans() {
+	protected void removeAll(File dir) throws IOException {
+		if (dir.exists()) {
+			if (dir.isDirectory()) {
+				FileUtils.deleteDirectory(dir);
+			}
+			else {
+				dir.delete();
+			}
+		}
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		removeAll(getWorkingDirectory());
+	}
+
+	public Map<File, FlacTrackBean> getAllFlacTrackBeans() {
 		return i_allFlacTrackBeans;
 	}
-	
-	public void setAllFlacTrackBeans(SortedSet<FlacTrackBean> allFlacTrackBeans) {
+
+	public void setAllFlacTrackBeans(Map<File, FlacTrackBean> allFlacTrackBeans) {
 		i_allFlacTrackBeans = allFlacTrackBeans;
 	}
-	
-	public SortedSet<FlacAlbumBean> getAllFlacAlbumBeans() {
+
+	public Map<File, FlacAlbumBean> getAllFlacAlbumBeans() {
 		return i_allFlacAlbumBeans;
 	}
-	
-	public void setAllFlacAlbumBeans(SortedSet<FlacAlbumBean> allFlacAlbumBeans) {
+
+	public void setAllFlacAlbumBeans(Map<File, FlacAlbumBean> allFlacAlbumBeans) {
 		i_allFlacAlbumBeans = allFlacAlbumBeans;
 	}
-	
-	public SortedSet<FlacArtistBean> getAllFlacArtistBeans() {
+
+	public Map<File, FlacArtistBean> getAllFlacArtistBeans() {
 		return i_allFlacArtistBeans;
 	}
-	
-	public void setAllFlacArtistBeans(SortedSet<FlacArtistBean> allFlacArtistBeans) {
+
+	public void setAllFlacArtistBeans(Map<File, FlacArtistBean> allFlacArtistBeans) {
 		i_allFlacArtistBeans = allFlacArtistBeans;
+	}
+
+	public int getNextId() {
+		return i_nextId;
+	}
+
+	public void setNextId(int nextId) {
+		i_nextId = nextId;
 	}
 }

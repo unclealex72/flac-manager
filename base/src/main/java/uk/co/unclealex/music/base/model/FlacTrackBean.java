@@ -1,6 +1,8 @@
 package uk.co.unclealex.music.base.model;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -21,9 +23,6 @@ import uk.co.unclealex.music.base.visitor.FlacVisitor;
 @Filter(name="flac", condition="where type = 'flc'")
 public class FlacTrackBean extends AbstractFlacBean<FlacTrackBean> {
 
-	private static String s_urlPrefix = "file://";
-	private static int s_urlPrefixLength = s_urlPrefix.length();
-	
 	private String i_url;
 	private byte[] i_rawTitle;
 	private Long i_timestamp;
@@ -49,11 +48,12 @@ public class FlacTrackBean extends AbstractFlacBean<FlacTrackBean> {
 	
 	@Transient
 	public File getFile() {
-		String url = getUrl();
-		if (url.startsWith(s_urlPrefix)) {
-			url = url.substring(s_urlPrefixLength);
+		try {
+			return new File(new URI(getUrl()));
 		}
-		return new File(url);
+		catch (URISyntaxException e) {
+			throw new IllegalArgumentException(getUrl() + " is not a vald file URL");
+		}
 	}
 	
 	@Transient

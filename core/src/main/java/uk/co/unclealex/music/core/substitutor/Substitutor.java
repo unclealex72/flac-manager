@@ -6,6 +6,8 @@ package uk.co.unclealex.music.core.substitutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
+
 import uk.co.unclealex.music.core.service.titleformat.TitleFormatVariable;
 
 /**
@@ -24,37 +26,39 @@ public class Substitutor {
 		i_text = text;
 	}
 
-	public Substitutor substitute(TitleFormatVariable variable, final String value) {
+	public Substitutor substitute(TitleFormatVariable variable, String value) {
 		substitute(
 				variable,
-				new SubsBuilder() {
-					public String getObjectAsString(Integer length) {
+				new SubsBuilder<String>() {
+					public String getObjectAsString(String value, Integer length) {
 						if (length == null || length >= value.length()) {
 							return value;
 						}
 						return value.substring(0, length).replace('/', '_');
 					}
-				});
+				},
+				value);
 		return this;
 	}
 	
-	public Substitutor substitute(TitleFormatVariable variable, final int value) {
+	public Substitutor substitute(TitleFormatVariable variable, Integer value) {
 		substitute(
 				variable,
-				new SubsBuilder() {
-					public String getObjectAsString(Integer length) {
+				new SubsBuilder<Integer>() {
+					public String getObjectAsString(Integer value, Integer length) {
 						StringBuffer buf = new StringBuffer();
-						buf.append(value);
+						buf.append(value.intValue());
 						while (length != null && buf.length() < length) {
 							buf.insert(0, '0');
 						}
 						return buf.toString();
 					}
-				});
+				},
+				value);
 		return this;
 	}
 	
-	protected void substitute(TitleFormatVariable variable, SubsBuilder subsBuilder) {
+	protected <T> void substitute(TitleFormatVariable variable, SubsBuilder<T> subsBuilder, T value) {
 		Pattern pattern = createPattern(variable);
 		Matcher matcher;
 		while ((matcher = pattern.matcher(getText())).find()) {
@@ -65,7 +69,14 @@ public class Substitutor {
 					length = Integer.parseInt(sLength);
 				}
 			}
-			setText(matcher.replaceFirst(subsBuilder.getObjectAsString(length)));
+			String substitution;
+			if (value == null) {
+				substitution = length==null?"%":StringUtils.repeat("_", length);
+			}
+			else {
+				substitution = subsBuilder.getObjectAsString(value, length);
+			}
+			setText(matcher.replaceFirst(substitution));
 		}
 	}
 	
@@ -77,8 +88,8 @@ public class Substitutor {
 		return createPattern(variable).matcher(getText()).find();
 	}
 	
-	private interface SubsBuilder {
-		public String getObjectAsString(Integer length);
+	private interface SubsBuilder<T> {
+		public String getObjectAsString(T value, Integer length);
 	}
 	
 	/**

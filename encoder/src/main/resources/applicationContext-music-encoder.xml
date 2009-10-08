@@ -10,8 +10,20 @@
 	<import resource="classpath*:applicationContext-music-album-covers.xml"/>
 	
 	<bean id="encoderService" class="uk.co.unclealex.music.encoder.service.EncoderServiceImpl">
+		<property name="lock">
+			<bean class="java.util.concurrent.locks.ReentrantLock"/>
+		</property>
+	</bean>
+	
+	<bean id="transactionalEncoderService" class="uk.co.unclealex.music.encoder.service.TransactionalEncoderServiceImpl">
 		<property name="encodingEventListeners">
-			<list/>
+			<list>
+				<bean class="uk.co.unclealex.music.encoder.listener.AlbumArtistChangeEventListener"/>
+				<bean class="uk.co.unclealex.music.encoder.listener.ImportEncodingEventListener"/>
+				<bean class="uk.co.unclealex.music.encoder.listener.OwnerEncodingEventListener"/>
+				<bean class="uk.co.unclealex.music.encoder.listener.FileSystemEncodingEventListener"/>
+				<bean class="uk.co.unclealex.music.encoder.listener.AlbumCoverEncodingEventListener"/>
+			</list>
 		</property>
 	</bean>
 	

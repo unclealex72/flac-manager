@@ -8,7 +8,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -19,10 +18,11 @@ import org.hibernate.annotations.SortType;
 import org.hibernate.validator.NotNull;
 
 import uk.co.unclealex.music.base.visitor.EncodedVisitor;
+import uk.co.unclealex.music.base.visitor.VisitorException;
 
 @Table(name="encoded_albums")
 @Entity(name="encodedAlbumBean")
-public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String> implements EncodedBean {
+public class EncodedAlbumBean extends CodedBean<EncodedAlbumBean> {
 
 	protected static final Comparator<EncodedAlbumBean> ENCODED_ALBUM_COMPARATOR =
 		ComparatorUtils.chainedComparator(
@@ -37,14 +37,13 @@ public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String>
 			new Comparator<EncodedAlbumBean>() {
 				@Override
 				public int compare(EncodedAlbumBean o1, EncodedAlbumBean o2) {
-					return o1.getIdentifier().compareTo(o2.getIdentifier());
+					return o1.getCode().compareTo(o2.getCode());
 				}
 			});
 	
 	private String i_title;
 	private SortedSet<EncodedTrackBean> i_encodedTrackBeans;
 	private EncodedArtistBean i_encodedArtistBean;
-	private SortedSet<OwnerBean> i_ownerBeans;
 	
 	@Override
 	public int compareTo(EncodedAlbumBean o) {
@@ -70,8 +69,13 @@ public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String>
 	}
 	
 	@Override
-	public void accept(EncodedVisitor encodedVisitor) {
-		encodedVisitor.visit(this);
+	public <R, E extends Exception> R accept(EncodedVisitor<R, E> encodedVisitor) {
+		try {
+			return encodedVisitor.visit(this);
+		}
+		catch (Exception e) {
+			throw new VisitorException(e);
+		}
 	}
 	
 	public String getTitle() {
@@ -101,21 +105,11 @@ public class EncodedAlbumBean extends IdentifiableBean<EncodedAlbumBean, String>
 		i_encodedArtistBean = encodedArtistBean;
 	}
 
-	@ManyToMany(mappedBy="encodedAlbumBeans")
-	@Sort(type=SortType.NATURAL)
-	public SortedSet<OwnerBean> getOwnerBeans() {
-		return i_ownerBeans;
-	}
-
-	public void setOwnerBeans(SortedSet<OwnerBean> ownerBeans) {
-		i_ownerBeans = ownerBeans;
-	}
-
 	@Override
 	@NotNull
-	@Column(name="identifier")
-	public String getIdentifier() {
-		return super.getIdentifier();
+	@Column(name="code")
+	public String getCode() {
+		return super.getCode();
 	}
 
 }

@@ -4,24 +4,16 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.hibernate.Criteria;
-import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.dao.FlacArtistDao;
 import uk.co.unclealex.music.base.model.FlacArtistBean;
 
-@Repository
+@Transactional
 public class HibernateFlacArtistDao extends HibernateCodeDao<FlacArtistBean> implements
 		FlacArtistDao {
-
-	@Autowired
-	public HibernateFlacArtistDao(@Qualifier("flacSessionFactory") SessionFactory sessionFactory) {
-		super(sessionFactory);
-	}
 
 	@Override
 	public int countArtistsBeginningWith(char c) {

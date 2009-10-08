@@ -1,57 +1,40 @@
 package uk.co.unclealex.music.core.service.titleformat;
 
 import uk.co.unclealex.music.base.model.EncodedAlbumBean;
-import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.OwnerBean;
 import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
 import uk.co.unclealex.music.core.substitutor.Substitutor;
-import uk.co.unclealex.spring.Prototype;
 
-@Prototype
 public class TitleFormatServiceImpl implements TitleFormatService {
 
 	private String i_titleFormat;
-	private boolean i_ownerRequired;
 	
-	public String getTitle(EncodedTrackBean encodedTrackBean) {
-		return getTitle(encodedTrackBean, null);
-	}
-	
-	public String getTitle(EncodedTrackBean trackBean, OwnerBean ownerBean) {
+	@Override
+	public String createTitle(EncodedTrackBean encodedTrackBean, OwnerBean ownerBean) {
 		Substitutor substitutor = new Substitutor(getTitleFormat());
-		EncodedAlbumBean albumBean = trackBean.getEncodedAlbumBean();
-		EncodedArtistBean artistBean = albumBean.getEncodedArtistBean();
-		substitutor.substitute(TitleFormatVariable.TRACK, trackBean.getTrackNumber());
-		substitutor.substitute(TitleFormatVariable.TITLE, trackBean.getFilename());
-		substitutor.substitute(TitleFormatVariable.ALBUM, albumBean.getFilename());
-		substitutor.substitute(TitleFormatVariable.ARTIST, artistBean.getFilename());
-		substitutor.substitute(TitleFormatVariable.EXTENSION, trackBean.getEncoderBean().getExtension());
-		if (ownerBean != null && isOwnerRequired()) {
-			substitutor.substitute(TitleFormatVariable.OWNER, ownerBean.getName());
-		}
+		Integer trackNumber = encodedTrackBean.getTrackNumber();
+		String title = encodedTrackBean.getTitle();
+		EncodedAlbumBean encodedAlbumBean = encodedTrackBean.getEncodedAlbumBean();
+		String album = encodedAlbumBean.getFilename();
+		String artist = encodedAlbumBean.getEncodedArtistBean().getFilename();
+		String extension = encodedTrackBean.getEncoderBean().getExtension();
+		String owner = ownerBean.getName();
+
+		substitutor.substitute(TitleFormatVariable.TRACK, trackNumber);
+		substitutor.substitute(TitleFormatVariable.TITLE, title);
+		substitutor.substitute(TitleFormatVariable.ALBUM, album);
+		substitutor.substitute(TitleFormatVariable.ARTIST, artist);
+		substitutor.substitute(TitleFormatVariable.EXTENSION, extension);
+		substitutor.substitute(TitleFormatVariable.OWNER, owner);
 		return substitutor.getText();
 	}
 
-	protected Substitutor createSubstitutor() {
-		return new Substitutor(getTitleFormat());
-	}
-	
 	public String getTitleFormat() {
 		return i_titleFormat;
 	}
 
 	public void setTitleFormat(String titleFormat) {
 		i_titleFormat = titleFormat;
-		Substitutor substitutor = createSubstitutor();
-		setOwnerRequired(substitutor.isTitleFormatVariableRequired(TitleFormatVariable.OWNER));
-	}
-
-	public boolean isOwnerRequired() {
-		return i_ownerRequired;
-	}
-
-	public void setOwnerRequired(boolean ownerRequired) {
-		i_ownerRequired = ownerRequired;
 	}
 }

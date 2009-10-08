@@ -8,12 +8,10 @@ import java.io.StringWriter;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.base.process.service.ProcessResult;
 import uk.co.unclealex.music.base.process.service.ProcessService;
 
-@Service
 public class ProcessServiceImpl implements ProcessService {
 
 	/* (non-Javadoc)

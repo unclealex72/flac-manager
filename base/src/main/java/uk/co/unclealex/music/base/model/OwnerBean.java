@@ -1,22 +1,15 @@
 package uk.co.unclealex.music.base.model;
 
-import java.util.SortedSet;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Sort;
-import org.hibernate.annotations.SortType;
+import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.validator.Length;
 import org.hibernate.validator.NotEmpty;
-import org.hibernate.validator.NotNull;
 
 import uk.co.unclealex.hibernate.model.KeyedBean;
 
@@ -25,29 +18,33 @@ import uk.co.unclealex.hibernate.model.KeyedBean;
 public class OwnerBean extends KeyedBean<OwnerBean> {
 
 	private String i_name;
-	
-	private Boolean i_ownsAll;
-	private SortedSet<EncodedArtistBean> i_encodedArtistBeans;
-	private SortedSet<EncodedAlbumBean> i_encodedAlbumBeans;
-	private SortedSet<DeviceBean> i_deviceBeans;
 
 	public OwnerBean() {
-		// Auto-generated constructor stub
 	}
 	
-	public OwnerBean(String name, Boolean ownsAll) {
+	public OwnerBean(String name) {
 		super();
 		i_name = name;
-		i_ownsAll = ownsAll;
 	}
 	
 	@Override
 	public String toString() {
 		return getName();
 	}
+	
 	@Override
 	public int compareTo(OwnerBean o) {
 		return getName().compareTo(o.getName());
+	}
+	
+	@Override
+	public int hashCode() {
+		return ObjectUtils.hashCode(getName());
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		return (obj instanceof OwnerBean) && ObjectUtils.equals(getName(), ((OwnerBean) obj).getName());
 	}
 	
 	@Override
@@ -66,45 +63,5 @@ public class OwnerBean extends KeyedBean<OwnerBean> {
 
 	public void setName(String name) {
 		i_name = name;
-	}
-
-	@OneToMany(mappedBy="ownerBean", cascade={CascadeType.REMOVE})
-	@Sort(type=SortType.NATURAL)
-	public SortedSet<DeviceBean> getDeviceBeans() {
-		return i_deviceBeans;
-	}
-
-	public void setDeviceBeans(SortedSet<DeviceBean> deviceBeans) {
-		i_deviceBeans = deviceBeans;
-	}
-
-	@NotNull(message="You must state whether this owner owns all the albums or not.")
-	public Boolean isOwnsAll() {
-		return i_ownsAll;
-	}
-
-	public void setOwnsAll(Boolean ownsAll) {
-		i_ownsAll = ownsAll;
-	}
-
-	@ManyToMany(cascade=CascadeType.PERSIST)
-	@Sort(type=SortType.NATURAL)
-	public SortedSet<EncodedArtistBean> getEncodedArtistBeans() {
-		return i_encodedArtistBeans;
-	}
-
-	public void setEncodedArtistBeans(
-			SortedSet<EncodedArtistBean> encodedArtistBeans) {
-		i_encodedArtistBeans = encodedArtistBeans;
-	}
-
-	@ManyToMany(cascade=CascadeType.PERSIST)
-	@Sort(type=SortType.NATURAL)
-	public SortedSet<EncodedAlbumBean> getEncodedAlbumBeans() {
-		return i_encodedAlbumBeans;
-	}
-
-	public void setEncodedAlbumBeans(SortedSet<EncodedAlbumBean> encodedAlbumBeans) {
-		i_encodedAlbumBeans = encodedAlbumBeans;
 	}
 }

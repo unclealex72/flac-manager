@@ -27,7 +27,6 @@ public class EncoderBean extends KeyedBean<EncoderBean> {
 	private String i_magicNumber;
 	private String i_contentType;
 	private SortedSet<EncodedTrackBean> i_encodedTrackBeans;
-	private SortedSet<DeviceBean> i_deviceBeans;
 
 	public EncoderBean() {
 		// Auto-generated constructor stub
@@ -78,16 +77,6 @@ public class EncoderBean extends KeyedBean<EncoderBean> {
 	}
 	public void setExtension(String extension) {
 		i_extension = extension;
-	}
-
-	@OneToMany(mappedBy="encoderBean", cascade={CascadeType.REMOVE})
-	@Sort(type=SortType.NATURAL)
-	public SortedSet<DeviceBean> getDeviceBeans() {
-		return i_deviceBeans;
-	}
-
-	public void setDeviceBeans(SortedSet<DeviceBean> deviceBeans) {
-		i_deviceBeans = deviceBeans;
 	}
 
 	@NotEmpty(message="You must supply a magic number.")

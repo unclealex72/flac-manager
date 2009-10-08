@@ -2,13 +2,11 @@ package uk.co.unclealex.music.web.commands;
 
 import java.io.IOException;
 
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.albumcover.service.AlbumCoverService;
 import uk.co.unclealex.music.commands.Command;
 
-@Service
 @Transactional(rollbackFor=Exception.class)
 public class Covers implements Command {
 

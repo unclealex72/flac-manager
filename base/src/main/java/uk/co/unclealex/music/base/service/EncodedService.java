@@ -1,25 +1,25 @@
 package uk.co.unclealex.music.base.service;
 
+import java.util.Set;
 import java.util.SortedSet;
 
 import uk.co.unclealex.music.base.model.EncodedAlbumBean;
 import uk.co.unclealex.music.base.model.EncodedArtistBean;
-import uk.co.unclealex.music.base.model.EncodedBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.FlacArtistBean;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
 
 public interface EncodedService {
 
-	public EncodedArtistBean findOrCreateArtist(String identifier, String name);
-	
-	public EncodedAlbumBean findOrCreateAlbum(EncodedArtistBean encodedArtistBean, String identifier, String title);
-	
 	public SortedSet<Character> getAllFirstLettersOfArtists();
-	/**
-	 * Remove any empty albums and artists.
-	 * @return The number of albums removed.
-	 */
-	public int removeEmptyAlbumsAndArtists();
-	
-	public void updateAllFilenames();
-	
-	public void injectFilename(EncodedBean encodedBean);
+
+	public EncodedArtistBean createArtist(FlacArtistBean flacArtistBean);
+
+	public EncodedAlbumBean createAlbum(EncodedArtistBean encodedArtistBean, FlacAlbumBean flacAlbumBean);
+
+	public EncodedTrackBean createTrack(EncodedAlbumBean encodedAlbumBean, EncoderBean encoderBean, FlacTrackBean flacTrackBean);
+
+	public Set<EncodedTrackBean> findOrphanedEncodedTrackBeans();
 }

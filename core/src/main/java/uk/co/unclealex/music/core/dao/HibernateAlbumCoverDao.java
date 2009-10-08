@@ -1,27 +1,18 @@
 package uk.co.unclealex.music.core.dao;
 
+import java.util.Set;
 import java.util.SortedSet;
 
 import org.hibernate.Query;
-import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.hibernate.dao.HibernateKeyedDao;
 import uk.co.unclealex.music.base.dao.AlbumCoverDao;
 import uk.co.unclealex.music.base.model.AlbumCoverBean;
 
-@Repository
 @Transactional
 public class HibernateAlbumCoverDao extends
 		HibernateKeyedDao<AlbumCoverBean> implements AlbumCoverDao {
-
-	@Autowired
-	public HibernateAlbumCoverDao(@Qualifier("musicSessionFactory") SessionFactory sessionFactory) {
-		super(sessionFactory);
-	}
 
 	@Override
 	public AlbumCoverBean createExampleBean() {
@@ -29,15 +20,18 @@ public class HibernateAlbumCoverDao extends
 	}
 
 	@Override
-	public SortedSet<AlbumCoverBean> getCoversForAlbumPath(String albumPath) {
-		return asSortedSet(createWithAlbumPathQuery(albumPath));
+	public SortedSet<AlbumCoverBean> getCoversForAlbum(String artistCode, String albumCode) {
+		AlbumCoverBean albumCoverBean = createExampleBean();
+		albumCoverBean.setAlbumCode(albumCode);
+		albumCoverBean.setArtistCode(artistCode);
+		return asSortedSet(createCriteria(albumCoverBean));
 	}
-
-	protected Query createWithAlbumPathQuery(String albumPath) {
+	
+	@Override
+	public Set<String> findSelectedAlbumCoverFilePaths() {
 		Query query = getSession().createQuery(
-				"from albumCoverBean where flacAlbumPath = :albumPath").
-			setString("albumPath", albumPath);
-		return query;
+		"select dataBean.path from albumCoverBean where dateSelected is not null");
+	return asSortedSet(query, String.class);
 	}
 	
 	@Override
@@ -46,18 +40,20 @@ public class HibernateAlbumCoverDao extends
 			"from albumCoverBean where dateSelected is not null");
 		return asSortedSet(query);
 	}
-		
-	@Override
-	public boolean albumPathHasCovers(String albumPath) {
-		Query query = createWithAlbumPathQuery(albumPath);
-		return query.iterate().hasNext();
-	}
 
 	@Override
-	public AlbumCoverBean findSelectedCoverForAlbumPath(String albumPath) {
+	public AlbumCoverBean findSelectedCoverForAlbum(String artistCode, String albumCode) {
 		Query query = getSession().createQuery(
-				"from albumCoverBean where flacAlbumPath = :albumPath and dateSelected is not null").
-			setString("albumPath", albumPath);
+			"from albumCoverBean where artistCode = :artistCode and albumCode = :albumCode and dateSelected is not null").
+			setString("albumCode", albumCode).
+			setString("artistCode", artistCode);
 		return uniqueResult(query);
+	}
+	
+	@Override
+	public int countSelectedAlbums() {
+		Query query = getSession().createQuery(
+				"select count(albumCoverBean) where dateSelected is not null");
+		return (Integer) query.uniqueResult();
 	}
 }

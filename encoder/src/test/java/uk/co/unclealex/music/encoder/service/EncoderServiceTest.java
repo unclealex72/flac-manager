@@ -1,13 +1,7 @@
 package uk.co.unclealex.music.encoder.service;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -15,328 +9,212 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.commons.collections15.CollectionUtils;
-import org.apache.commons.io.input.NullInputStream;
-import org.apache.commons.io.output.NullOutputStream;
-import org.springframework.beans.factory.annotation.Required;
+import org.apache.commons.collections15.Transformer;
+import org.apache.commons.lang.StringUtils;
 
+import uk.co.unclealex.hibernate.dao.DataDao;
+import uk.co.unclealex.music.base.dao.EncodedArtistDao;
 import uk.co.unclealex.music.base.dao.EncodedTrackDao;
 import uk.co.unclealex.music.base.dao.EncoderDao;
-import uk.co.unclealex.music.base.dao.FlacTrackDao;
-import uk.co.unclealex.music.base.dao.SlimServerInformationDao;
-import uk.co.unclealex.music.base.io.DataExtractor;
-import uk.co.unclealex.music.base.io.DataInjector;
-import uk.co.unclealex.music.base.io.InputStreamCopier;
-import uk.co.unclealex.music.base.io.KnownLengthInputStream;
+import uk.co.unclealex.music.base.dao.FileDao;
+import uk.co.unclealex.music.base.dao.FlacArtistDao;
+import uk.co.unclealex.music.base.dao.OwnerDao;
+import uk.co.unclealex.music.base.initialise.Initialiser;
+import uk.co.unclealex.music.base.model.EncodedAlbumBean;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.FlacArtistBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.model.OwnerBean;
+import uk.co.unclealex.music.base.service.OwnerService;
+import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
 import uk.co.unclealex.music.encoder.EncoderSpringTest;
-import uk.co.unclealex.music.test.CountingKnownLengthOutputStream;
-import uk.co.unclealex.music.test.NullWritableByteChannel;
+import uk.co.unclealex.music.encoder.action.EncodingAction;
+import uk.co.unclealex.music.encoder.exception.EncodingException;
 import uk.co.unclealex.music.test.TestFlacProvider;
-import uk.co.unclealex.music.test.TestSlimServerInformationDao;
 
-public class EncoderServiceTest extends EncoderSpringTest {
+public abstract class EncoderServiceTest extends EncoderSpringTest {
 
-	public static final int SIMULTANEOUS_THREADS = 1;
-	
-	private FlacTrackDao i_flacTrackDao;
-	private SlimServerInformationDao i_slimServerInformationDao;
+	public static final int SIMULTANEOUS_THREADS = 2;
+
 	private EncoderService i_encoderService;
-	private SingleEncoderService i_singleEncoderService;
+	private TestFlacProvider i_testFlacProvider;
+	private Initialiser i_initialiser;
+	private FlacArtistDao i_flacArtistDao;
+	private EncodedArtistDao i_encodedArtistDao;
 	private EncoderDao i_encoderDao;
+	private OwnerService i_ownerService;
+	private OwnerDao i_ownerDao;
 	private EncodedTrackDao i_encodedTrackDao;
-	private DataExtractor<EncodedTrackBean> i_encodedTrackDataExtractor;
-	private InputStreamCopier<EncodedTrackBean> i_inputStreamCopier;
-	private DataInjector<EncodedTrackBean> i_encodedTrackDataInjector;
+	private DataDao i_dataDao;
+	private TitleFormatService i_titleFormatService;
+	private FileDao i_fileDao;
 	
-	public void testMagicNumber() throws IOException {
-		SingleEncoderService singleEncoderService = getSingleEncoderService();
-		FlacTrackBean flacTrackBean = getFlacTrackDao().getAll().first();
-		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
-			MagicNumberCheckingEncodingClosure closure = new MagicNumberCheckingEncodingClosure(encoderBean);
-			singleEncoderService.encode(encoderBean, flacTrackBean, closure, new TreeMap<String, File>());
-		}
-	}
-
-	public void testCorrectLengthEncoded() throws IOException {
-		SingleEncoderService singleEncoderService = getSingleEncoderService();
-		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		for (FlacTrackBean flacTrackBean : getFlacTrackDao().getAll()) {
-			for (EncoderBean encoderBean : getEncoderDao().getAll()) {
-				String url = flacTrackBean.getUrl();
-				EncodingCommandBean encodingCommandBean = new EncodingCommandBean(encoderBean.getExtension(), flacTrackBean.getUrl());
-				boolean succeeded = true;
-				long expectedLength = 0;
-				try {
-					EncodedTrackBean encodedTrackBean = singleEncoderService.encode(encodingCommandBean, new TreeMap<String, File>());
-					expectedLength = encodedTrackBean.getTrackDataBean().getFile().length();
-				}
-				catch (IOException e) {
-					succeeded = false;
-				}
-				if (succeeded) {
-					EncodedTrackBean encodedTrackBean = 
-						encodedTrackDao.findByUrlAndEncoderBean(flacTrackBean.getUrl(), encoderBean);
-					CountingKnownLengthOutputStream out = new CountingKnownLengthOutputStream(new NullOutputStream(), new NullWritableByteChannel());
-					getInputStreamCopier().copy(getEncodedTrackDataExtractor(), encodedTrackBean, out);
-					long actualLength = out.getCount();
-					assertEquals(
-							"Encoded bean for url " + url + " and encoding " + encoderBean.getExtension() + " has the wrong length.",
-							expectedLength, actualLength);
-				}
-			}
-		}
+	private static boolean s_initialisationRequired = true;
+	
+	public EncoderServiceTest() {
+		setDefaultRollback(false);
 	}
 	
-	protected class MagicNumberCheckingEncodingClosure implements EncodingClosure {
-		private String magicNumber;
-		private int length;
-		private String extension;
-		
-		public MagicNumberCheckingEncodingClosure(EncoderBean encoderBean) {
-			magicNumber = encoderBean.getMagicNumber();
-			length = magicNumber.length();
-			extension = encoderBean.getExtension();
-		}
-		
-		public void process(KnownLengthInputStream in) throws IOException {
-			StringBuffer buffer = new StringBuffer();
-			int data;
-			while ((data = in.read()) != -1) {
-				if (buffer.length() < length) {
-					String byterep = Integer.toHexString(data);
-					if (byterep.length() == 1) {
-						buffer.append('0');
-					}
-					buffer.append(byterep);
-				}
-			}
-			assertEquals(
-					"The " + extension + " data stream started with the wrong magic number.",
-					magicNumber, buffer.toString());
-		}
-	}
-	
-	public void testEncodeAll() throws CurrentlyScanningException, AlreadyEncodingException, IOException {
-		EncoderService encoderService = getEncoderService();
-		SortedMap<EncodingCommandBean, Throwable> errors = null;
-		Integer successful = null;
-		try {
-			successful = encoderService.encodeAll(SIMULTANEOUS_THREADS).getTracksAffected();
-		}
-		catch (MultipleEncodingException e) {
-			successful = e.getTotalEncodedSuccessfully();
-			errors = e.getExceptionsByEncodingCommandBean();
-		}
-		checkEncodingResult(successful, errors);
-	}
-	
-	public void testOnlyOneEncoderRuns() throws InterruptedException, IOException {
-		final int threadcount = 3;
-		final EncoderService encoderService = getEncoderService();
-		final List<SortedMap<EncodingCommandBean, Throwable>> errorsList = 
-			new ArrayList<SortedMap<EncodingCommandBean,Throwable>>(threadcount);
-		final List<Integer> successfulList = new ArrayList<Integer>(threadcount);
-		final List<Boolean> runFlags = new ArrayList<Boolean>(threadcount);
-		fillNull(errorsList, threadcount);
-		fillNull(successfulList, threadcount);
-		fillNull(runFlags, threadcount);
-		final int[] indices = new int[threadcount];
-		Thread[] threads = new Thread[threadcount];
-		for (int idx = 0; idx < threadcount; idx++) {
-			indices[idx] = idx;
-		}
-		for (int idx : indices) {
-			final int thisIndex = idx;
-			threads[idx] = new Thread() {
-				@Override
-				public void run() {
-					try {
-						successfulList.set(thisIndex, new Integer(encoderService.encodeAll(SIMULTANEOUS_THREADS).getTracksAffected()));
-						runFlags.set(thisIndex, true);
-					}
-					catch (MultipleEncodingException e) {
-						successfulList.set(thisIndex, e.getTotalEncodedSuccessfully());
-						errorsList.set(thisIndex, e.getExceptionsByEncodingCommandBean());
-						runFlags.set(thisIndex, true);
-					}
-					catch (AlreadyEncodingException e) {
-						runFlags.set(thisIndex, false);
-					}
-					catch (CurrentlyScanningException e) {
-						fail("The SlimServer is currently scanning.");
-					}
-					catch (IOException e) {
-						fail(e.getMessage());
-					}
-				}
-			};
-		}
-		for (Thread thread : threads) {
-			thread.start();
-		}
-		for (Thread thread : threads) {
-			thread.join();
-		}
-		Integer successfulIndex = null;
-		// find the index of the successful run and make sure only one was successful.
-		for (int idx : indices) {
-			if (runFlags.get(idx)) {
-				assertNull("More than one thread ran at a time.", successfulIndex);
-				successfulIndex = idx;
-			}
-		}
-		assertNotNull("No threads ran.", successfulIndex);
-		checkEncodingResult(successfulList.get(successfulIndex), errorsList.get(successfulIndex));
-	}
-	
-	private void fillNull(List<? extends Object> list, int elements) {
-		for (int idx = 0; idx < elements; idx++) {
-			list.add(null);
-		}
-	}
-
-	public void checkEncodingResult(Integer successful, SortedMap<EncodingCommandBean, Throwable> errors) throws IOException {
-		assertNotNull("The number of successful encodings was not returned.", successful);
-		assertNotNull("The map of unsuccessful encodings was not returned.", errors);
-		
-		SortedSet<EncoderUrlPair> expectedSuccesses = new TreeSet<EncoderUrlPair>();
-		SortedSet<EncoderUrlPair> expectedFailures = new TreeSet<EncoderUrlPair>();
-		
-		SortedSet<EncoderBean> allEncoders = getEncoderDao().getAll();
-		SortedSet<FlacTrackBean> allFlacTracks = getFlacTrackDao().getAll();
-		for (EncoderBean encoderBean : allEncoders) {
-			for (FlacTrackBean flacTrackBean : allFlacTracks) {
-				SortedSet<EncoderUrlPair> set =
-					flacTrackBean.getUrl()==TestFlacProvider.MADE_UP_URL?expectedFailures:expectedSuccesses;
-				set.add(new EncoderUrlPair(encoderBean.getExtension(), flacTrackBean.getUrl()));
-			}
-		}
-		assertEquals("The wrong number of encodings succeeded.", new Integer(expectedSuccesses.size()), successful);
-		SortedSet<EncoderUrlPair> actualFailures = new TreeSet<EncoderUrlPair>();
-		CollectionUtils.collect(errors.keySet(), EncoderUrlPair.ENCODING_COMMAND_TRANSFORMER, actualFailures);
-		assertEquals("The wrong encodings failed.", expectedFailures, actualFailures);
-		
-		SortedSet<EncodedTrackBean> allEncodedTracks = getEncodedTrackDao().getAll();
-		SortedSet<EncoderUrlPair> actualSuccesses = new TreeSet<EncoderUrlPair>();
-		CollectionUtils.collect(allEncodedTracks, EncoderUrlPair.ENCODED_TRACK_TRANSFORMER, actualSuccesses);
-		assertEquals("The wrong encodings succeeded.", expectedSuccesses, actualSuccesses);
-	}
-	
-	public void testOverwriteOlder() throws IOException, SQLException {
-		testOverwrite(0, true);
-	}
-	
-	public void testNotOverwriteNewer() throws IOException, SQLException {
-		testOverwrite(new Date().getTime(), false);
-	}
-
-	public void testOverwrite(long time, boolean isOverwrite) throws IOException, SQLException {
-		SingleEncoderService singleEncoderService = getSingleEncoderService();
-		EncodingCommandBean encodingCommandBean = getFirstEncodingCommandBean();
-		EncoderBean encoderBean = getEncoderDao().findByExtension(encodingCommandBean.getExtension());
-		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		String url = encodingCommandBean.getUrl();
-		EncodedTrackBean encodedTrackBean = new EncodedTrackBean();
-		encodedTrackBean.setEncoderBean(encoderBean);
-		encodedTrackBean.setFlacUrl(url);
-		encodedTrackBean.setTimestamp(time);
-		encodedTrackBean.setFilename("");
-		encodedTrackBean.setTitle("");
-		encodedTrackBean.setTrackNumber(0);
-		KnownLengthInputStream in = new KnownLengthInputStream(new NullInputStream(0), null, 0);
-		getEncodedTrackDataInjector().injectData(encodedTrackBean, in);
-		getEncodedTrackDao().store(encodedTrackBean);
-		boolean written = (singleEncoderService.encode(encodingCommandBean, new TreeMap<String, File>()) != null);
-		EncodedTrackBean newEncodedTrackBean = encodedTrackDao.findByUrlAndEncoderBean(url, encoderBean);
-		CountingKnownLengthOutputStream out = new CountingKnownLengthOutputStream(new NullOutputStream(), new NullWritableByteChannel());
-		getInputStreamCopier().copy(getEncodedTrackDataExtractor(), newEncodedTrackBean, out);
-		assertEquals(
-				"The old track id and new track id should be the same",
-				encodedTrackBean.getId(), newEncodedTrackBean.getId());
-		if (isOverwrite) {
-			assertTrue("The track should have been overwritten.", written);
-			assertFalse("The track data should not be empty.", out.getCount() == 0);
-		}
-		else {
-			assertFalse("The track should not have been overwritten.", written);
-			assertEquals("The track data should be empty.", out.getCount(), 0);
-		}
-	}
-
-	public void testRemove() throws AlreadyEncodingException, IOException, CurrentlyScanningException {
-		EncoderService encoderService = getEncoderService();
-		try {
-			encoderService.encodeAll(SIMULTANEOUS_THREADS);
-		}
-		catch (MultipleEncodingException e) {
-			// This is expected.
-		}
-		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		SortedSet<EncodedTrackBean> expectedBeans = new TreeSet<EncodedTrackBean>(encodedTrackDao.getAll());
-		EncodedTrackBean trackToRemove = new EncodedTrackBean();
-		trackToRemove.setFlacUrl("dummy");
-		trackToRemove.setEncoderBean(getEncoderDao().getAll().first());
-		trackToRemove.setTimestamp(0L);
-		trackToRemove.setFilename("");
-		trackToRemove.setTitle("");
-		trackToRemove.setTrackNumber(0);
-		getEncodedTrackDataInjector().injectData(trackToRemove, new KnownLengthInputStream(new ByteArrayInputStream(new byte[0]), null, 0));
-		encodedTrackDao.store(trackToRemove);
-		assertEquals(
-				"The wrong number of stale tracks was reported.",
-				1, getSingleEncoderService().removeDeleted(new HashSet<EncodingEventListener>()));
-		assertEquals(
-				"The wrong tracks were left untouched after deleting stale tracks.",
-				expectedBeans, encodedTrackDao.getAll());
-	}
-	
-	public void testAbortOnScan() throws IOException {
-		Map<String, Long> information = new HashMap<String, Long>();
-		information.put("isScanning", 1L);
-		TestSlimServerInformationDao slimServerInformationDao = 
-			(TestSlimServerInformationDao) getSlimServerInformationDao();
-		slimServerInformationDao.setInformation(information);
-		try {
-			try {
-				getEncoderService().encodeAll(SIMULTANEOUS_THREADS);
-			}
-			catch (AlreadyEncodingException e) {
-				// Ignore
-			}
-			catch (MultipleEncodingException e) {
-				// Ignore
-			}
-			fail("Encoding occurred even though the SlimServer was scanning.");
-		}
-		catch (CurrentlyScanningException e) {
-			// Good!
-		}
-		finally {
-			slimServerInformationDao.setInformation(null);
-		}
-	}
-	protected EncodingCommandBean getFirstEncodingCommandBean() {
-		FlacTrackBean flacTrackBean = getFlacTrackDao().getAll().first();
-		EncoderBean encoderBean = getEncoderDao().getAll().first();
-		return new EncodingCommandBean(encoderBean.getExtension(), flacTrackBean.getUrl());
-	}
+	protected abstract String getTestBase();
 	
 	@Override
-	protected String[] getExtraConfigLocations() {
-		return new String[] { "classpath*:applicationContext-music-test-flac.xml" };
+	protected void onSetUpBeforeTransaction() throws Exception {
+		super.onSetUpBeforeTransaction();
+		if (isInitialisationRequired()) {
+			getInitialiser().initialise();
+			getTestFlacProvider().initialise(getTestBase());
+			setInitialisationRequired(false);
+		}
 	}
 	
-	public EncoderDao getEncoderDao() {
-		return i_encoderDao;
+	protected List<EncodingAction> doTestEncoding(String testName) throws EncodingException {
+		List<EncodingAction> encodingActions = getEncoderService().encodeAll(SIMULTANEOUS_THREADS);
+		checkArtists(testName);
+		checkOwnership(testName);
+		checkFilesystem(testName);
+		checkData(testName);
+		return encodingActions;
+	}
+	
+	protected void doTestEncoding(String testName, List<EncodingAction> expectedEncodingActions) throws EncodingException {
+		List<EncodingAction> actualEncodingActions = doTestEncoding(testName);
+		assertEquals("The wrong encoding actions were returned for test " + testName, expectedEncodingActions, actualEncodingActions);
+	}
+	
+	protected void checkArtists(String testName) {
+		SortedMap<String, FlacArtistBean> allFlacArtistsByName = 
+			makeSortedMap(
+				getFlacArtistDao().getAll(), 
+				new Transformer<FlacArtistBean, String>() {
+					@Override
+					public String transform(FlacArtistBean flacArtistBean) {
+						return flacArtistBean.getName();
+					}
+				});
+		SortedMap<String, EncodedArtistBean> allEncodedArtistsByName = 
+			makeSortedMap(
+				getEncodedArtistDao().getAll(), 
+				new Transformer<EncodedArtistBean, String>() {
+					@Override
+					public String transform(EncodedArtistBean encodedArtistBean) {
+						return encodedArtistBean.getName();
+					}
+				});
+		assertEquals("The wrong artists were returned for test " + testName, allFlacArtistsByName.keySet(), allEncodedArtistsByName.keySet());
+		for (Map.Entry<String, FlacArtistBean> entry : allFlacArtistsByName.entrySet()) {
+			checkAlbums(testName, entry.getValue(), allEncodedArtistsByName.get(entry.getKey()));
+		}
+	}
+	
+	protected void checkAlbums(String testName, FlacArtistBean flacArtistBean, EncodedArtistBean encodedArtistBean) {
+		SortedMap<String, FlacAlbumBean> allFlacAlbumsByTitle = 
+			makeSortedMap(
+				flacArtistBean.getFlacAlbumBeans(), 
+				new Transformer<FlacAlbumBean, String>() {
+					@Override
+					public String transform(FlacAlbumBean flacAlbumBean) {
+						return flacAlbumBean.getTitle();
+					}
+				});
+		SortedMap<String, EncodedAlbumBean> allEncodedAlbumsByTitle = 
+			makeSortedMap(
+				encodedArtistBean.getEncodedAlbumBeans(), 
+				new Transformer<EncodedAlbumBean, String>() {
+					@Override
+					public String transform(EncodedAlbumBean encodedArtistBean) {
+						return encodedArtistBean.getTitle();
+					}
+				});
+		assertEquals("The wrong albums were returned for artist " + flacArtistBean.getName() + " and test " + testName, 
+				allFlacAlbumsByTitle.keySet(), allEncodedAlbumsByTitle.keySet());
+		for (Map.Entry<String, FlacAlbumBean> entry : allFlacAlbumsByTitle.entrySet()) {
+			checkTracks(testName, entry.getValue(), allEncodedAlbumsByTitle.get(entry.getKey()));
+		}
 	}
 
-	public void setEncoderDao(EncoderDao encoderDao) {
-		i_encoderDao = encoderDao;
+	protected void checkTracks(String testName, FlacAlbumBean flacAlbumBean, EncodedAlbumBean encodedAlbumBean) {
+		SortedMap<String, FlacTrackBean> allFlacTracksByTitleAndEncoding = new TreeMap<String, FlacTrackBean>(); 
+		for (final EncoderBean encoderBean : getEncoderDao().getAll()) {
+			allFlacTracksByTitleAndEncoding.putAll(
+				makeSortedMap(
+						flacAlbumBean.getFlacTrackBeans(), 
+						new Transformer<FlacTrackBean, String>() {
+							@Override
+							public String transform(FlacTrackBean flacTrackBean) {
+								return flacTrackBean.getTrackNumber() + ". " + flacTrackBean.getTitle() + "." + encoderBean.getExtension();
+							}
+						}));			
+		}
+		SortedMap<String, EncodedTrackBean> allEncodedTracksByTitleAndEncoding = 
+			makeSortedMap(
+				encodedAlbumBean.getEncodedTrackBeans(), 
+				new Transformer<EncodedTrackBean, String>() {
+					@Override
+					public String transform(EncodedTrackBean encodedTrackBean) {
+						return encodedTrackBean.getTrackNumber() + ". " + encodedTrackBean.getTitle() + "." + encodedTrackBean.getEncoderBean().getExtension();
+					}
+				});
+		assertEquals("The wrong tracks were returned for album " + flacAlbumBean.getTitle() + " and test " + testName, 
+				allFlacTracksByTitleAndEncoding.keySet(), allEncodedTracksByTitleAndEncoding.keySet());
 	}
 
+	protected <E> SortedMap<String, E> makeSortedMap(Collection<E> values, Transformer<E, String> keyTransformer) {
+		SortedMap<String, E> map = new TreeMap<String, E>();
+		for (E value : values) {
+			map.put(keyTransformer.transform(value), value);
+		}
+		return map;
+	}
+	
+	protected void checkOwnership(String testName) {
+		SortedMap<OwnerBean, SortedSet<FlacTrackBean>> flacOwnership = getOwnerService().resolveOwnershipByFiles();
+		SortedMap<OwnerBean, SortedSet<EncodedTrackBean>> expectedOwnership = new TreeMap<OwnerBean, SortedSet<EncodedTrackBean>>();
+		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
+		for (Map.Entry<OwnerBean, SortedSet<FlacTrackBean>> entry : flacOwnership.entrySet()) {
+			SortedSet<EncodedTrackBean> encodedTrackBeans = new TreeSet<EncodedTrackBean>();
+			expectedOwnership.put(entry.getKey(), encodedTrackBeans);
+			for (FlacTrackBean flacTrackBean : entry.getValue()) {
+				encodedTrackBeans.addAll(encodedTrackDao.findByUrl(flacTrackBean.getUrl()));
+			}
+		}
+		for (OwnerBean ownerBean : getOwnerDao().getAll()) {
+			assertEquals(
+					"Owner " + ownerBean.getName() + " owned the wrong tracks in test " + testName, 
+					expectedOwnership.get(ownerBean), encodedTrackDao.findByOwnerBean(ownerBean));
+		}
+	}
+	
+	protected void checkFilesystem(String testName) {
+		SortedSet<String> actualPaths =	new TreeSet<String>(getFileDao().findAllPaths());
+		SortedSet<String> expectedPaths = createExpectedPaths();
+		assertEquals("The wrong paths were returned in test " + testName, expectedPaths, actualPaths);
+	}
+	
+	protected SortedSet<String> createExpectedPaths() {
+		SortedSet<String> expectedPaths = new TreeSet<String>();
+		TitleFormatService titleFormatService = getTitleFormatService();
+		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
+			for (OwnerBean ownerBean : encodedTrackBean.getOwnerBeans()) {
+				String fullPath = titleFormatService.createTitle(encodedTrackBean, ownerBean);
+				String[] pathParts = StringUtils.split(fullPath, '/');
+				for (int idx = 0; idx < pathParts.length; idx++) {
+					String path = StringUtils.join(Arrays.copyOf(pathParts, idx), '/');
+					expectedPaths.add(path);
+				}
+				expectedPaths.add(fullPath);
+			}
+		}
+		return expectedPaths;
+	}
+	
+	protected void checkData(String testName) {
+		long trackCount = getEncodedTrackDao().count();
+		long dataCount = getDataDao().count();
+		assertEquals("The wrong number of data beans were found in test " + testName, trackCount, dataCount);
+	}
 	public EncoderService getEncoderService() {
 		return i_encoderService;
 	}
@@ -345,12 +223,60 @@ public class EncoderServiceTest extends EncoderSpringTest {
 		i_encoderService = encoderService;
 	}
 
-	public FlacTrackDao getFlacTrackDao() {
-		return i_flacTrackDao;
+	public TestFlacProvider getTestFlacProvider() {
+		return i_testFlacProvider;
 	}
 
-	public void setFlacTrackDao(FlacTrackDao flacTrackDao) {
-		i_flacTrackDao = flacTrackDao;
+	public void setTestFlacProvider(TestFlacProvider testFlacProvider) {
+		i_testFlacProvider = testFlacProvider;
+	}
+
+	public Initialiser getInitialiser() {
+		return i_initialiser;
+	}
+
+	public void setInitialiser(Initialiser initialiser) {
+		i_initialiser = initialiser;
+	}
+
+	public FlacArtistDao getFlacArtistDao() {
+		return i_flacArtistDao;
+	}
+
+	public void setFlacArtistDao(FlacArtistDao flacArtistDao) {
+		i_flacArtistDao = flacArtistDao;
+	}
+
+	public EncodedArtistDao getEncodedArtistDao() {
+		return i_encodedArtistDao;
+	}
+
+	public void setEncodedArtistDao(EncodedArtistDao encodedArtistDao) {
+		i_encodedArtistDao = encodedArtistDao;
+	}
+
+	public EncoderDao getEncoderDao() {
+		return i_encoderDao;
+	}
+
+	public void setEncoderDao(EncoderDao encoderDao) {
+		i_encoderDao = encoderDao;
+	}
+
+	public OwnerService getOwnerService() {
+		return i_ownerService;
+	}
+
+	public void setOwnerService(OwnerService ownerService) {
+		i_ownerService = ownerService;
+	}
+
+	public OwnerDao getOwnerDao() {
+		return i_ownerDao;
+	}
+
+	public void setOwnerDao(OwnerDao ownerDao) {
+		i_ownerDao = ownerDao;
 	}
 
 	public EncodedTrackDao getEncodedTrackDao() {
@@ -361,46 +287,36 @@ public class EncoderServiceTest extends EncoderSpringTest {
 		i_encodedTrackDao = encodedTrackDao;
 	}
 
-	public SlimServerInformationDao getSlimServerInformationDao() {
-		return i_slimServerInformationDao;
+	public TitleFormatService getTitleFormatService() {
+		return i_titleFormatService;
 	}
 
-	public void setSlimServerInformationDao(
-			SlimServerInformationDao slimServerInformationDao) {
-		i_slimServerInformationDao = slimServerInformationDao;
+	public void setTitleFormatService(TitleFormatService titleFormatService) {
+		i_titleFormatService = titleFormatService;
 	}
 
-	public SingleEncoderService getSingleEncoderService() {
-		return i_singleEncoderService;
+	public FileDao getFileDao() {
+		return i_fileDao;
 	}
 
-	public void setSingleEncoderService(SingleEncoderService singleEncoderService) {
-		i_singleEncoderService = singleEncoderService;
+	public void setFileDao(FileDao fileDao) {
+		i_fileDao = fileDao;
 	}
 
-	public InputStreamCopier<EncodedTrackBean> getInputStreamCopier() {
-		return i_inputStreamCopier;
+	public boolean isInitialisationRequired() {
+		return s_initialisationRequired;
 	}
 
-	public void setInputStreamCopier(InputStreamCopier<EncodedTrackBean> inputStreamCopier) {
-		i_inputStreamCopier = inputStreamCopier;
+	public void setInitialisationRequired(boolean initialisationRequired) {
+		s_initialisationRequired = initialisationRequired;
 	}
 
-	public DataInjector<EncodedTrackBean> getEncodedTrackDataInjector() {
-		return i_encodedTrackDataInjector;
+	public DataDao getDataDao() {
+		return i_dataDao;
 	}
 
-	@Required
-	public void setEncodedTrackDataInjector(
-			DataInjector<EncodedTrackBean> encodedTrackDataInjector) {
-		i_encodedTrackDataInjector = encodedTrackDataInjector;
+	public void setDataDao(DataDao dataDao) {
+		i_dataDao = dataDao;
 	}
-
-	public DataExtractor<EncodedTrackBean> getEncodedTrackDataExtractor() {
-		return i_encodedTrackDataExtractor;
-	}
-
-	public void setEncodedTrackDataExtractor(DataExtractor<EncodedTrackBean> encodedTrackDataExtractor) {
-		i_encodedTrackDataExtractor = encodedTrackDataExtractor;
-	}
+	
 }

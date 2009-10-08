@@ -7,5 +7,5 @@ public interface EncodedBean {
 	public String getFilename();
 	public void setFilename(String transform);
 
-	public void accept(EncodedVisitor encodedVisitor);
+	public <R, E extends Exception> R accept(EncodedVisitor<R, E> encodedVisitor);
 }

@@ -1,15 +1,12 @@
 package uk.co.unclealex.music.albumcover.service;
 
+import java.awt.Image;
+
 import org.apache.commons.collections15.Transformer;
-import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.base.model.AlbumCoverBean;
 import uk.co.unclealex.music.base.model.AlbumCoverSize;
 
-import com.amazon.webservices.awsecommerceservice.Image;
-import com.amazon.webservices.awsecommerceservice.ImageSet;
-
-@Service
 public class ImageSetTransformer implements Transformer<ImageSet, AlbumCoverBean> {
 
 	@Override

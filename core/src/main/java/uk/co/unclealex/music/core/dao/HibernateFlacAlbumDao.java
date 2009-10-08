@@ -1,22 +1,14 @@
 package uk.co.unclealex.music.core.dao;
 
-import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.dao.FlacAlbumDao;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.model.FlacArtistBean;
 
-@Repository
+@Transactional
 public class HibernateFlacAlbumDao extends HibernateCodeDao<FlacAlbumBean> implements
 		FlacAlbumDao {
-
-	@Autowired
-	public HibernateFlacAlbumDao(@Qualifier("flacSessionFactory") SessionFactory sessionFactory) {
-		super(sessionFactory);
-	}
 
 	@Override
 	public FlacAlbumBean findByArtistAndAlbum(String artistName, String albumName) {

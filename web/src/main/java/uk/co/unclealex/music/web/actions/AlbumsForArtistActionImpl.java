@@ -2,14 +2,12 @@ package uk.co.unclealex.music.web.actions;
 
 import java.util.Collection;
 
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.model.FlacArtistBean;
 
 @Transactional
-@Service
 public class AlbumsForArtistActionImpl extends AbstractAlbumsAction implements AlbumsForArtistAction {
 
 	private FlacArtistBean i_flacArtistBean;

@@ -1,174 +1,75 @@
 package uk.co.unclealex.music.core.service;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.Collection;
+import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections15.CollectionUtils;
-import org.apache.commons.collections15.Predicate;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.collections15.Transformer;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.music.base.dao.EncodedTrackDao;
+import uk.co.unclealex.music.base.SlimServerConfig;
+import uk.co.unclealex.music.base.dao.FlacTrackDao;
 import uk.co.unclealex.music.base.dao.OwnerDao;
-import uk.co.unclealex.music.base.model.EncodedAlbumBean;
-import uk.co.unclealex.music.base.model.EncodedArtistBean;
-import uk.co.unclealex.music.base.model.EncodedTrackBean;
-import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
 import uk.co.unclealex.music.base.model.OwnerBean;
 import uk.co.unclealex.music.base.service.OwnerService;
 
-@Service
 @Transactional
 public class OwnerServiceImpl implements OwnerService {
 
-	private static Log log = LogFactory.getLog(OwnerServiceImpl.class);
-	
-	private EncodedTrackDao i_encodedTrackDao;
 	private OwnerDao i_ownerDao;
+	private FlacTrackDao i_flacTrackDao;
+	private SlimServerConfig i_slimServerConfig;
 	
 	@Override
-	public void clearOwnership() {
-		OwnerDao ownerDao = getOwnerDao();
-		for (OwnerBean ownerBean : ownerDao.getAll()) {
-			ownerBean.getEncodedAlbumBeans().clear();
-			ownerBean.getEncodedArtistBeans().clear();
-			ownerDao.store(ownerBean);
+	public SortedMap<OwnerBean, SortedSet<FlacTrackBean>> resolveOwnershipByFiles() {
+		File rootDirectory = new File(getSlimServerConfig().getRootDirectory());
+		final SortedMap<OwnerBean, SortedSet<FlacTrackBean>> flacTrackBeansByOwner = new TreeMap<OwnerBean, SortedSet<FlacTrackBean>>();
+		final SortedMap<String, OwnerBean> ownerBeansByLowerCaseName = new TreeMap<String, OwnerBean>();
+		for (OwnerBean ownerBean : getOwnerDao().getAll()) {
+			ownerBeansByLowerCaseName.put(ownerBean.getName().toLowerCase(), ownerBean);
 		}
-	}
-	
-	@Override
-	public SortedSet<EncodedTrackBean> getOwnedEncodedTracks(final OwnerBean ownerBean, final EncoderBean encoderBean) {
-		final EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		OwnerSearcher ownerSearcher = new OwnerSearcher() {
+		Transformer<String, String> literalOwnerNameTransformer = new Transformer<String, String>() {
 			@Override
-			public SortedSet<? extends EncodedTrackBean> findAll() {
-				return encodedTrackDao.findByEncoderBean(encoderBean);
-			}
-			@Override
-			public SortedSet<? extends EncodedTrackBean> findByArtist(
-					EncodedArtistBean encodedArtistBean) {
-				return encodedTrackDao.findByArtistAndEncoderBean(encodedArtistBean, encoderBean);
-			}
-			@Override
-			public SortedSet<? extends EncodedTrackBean> findByAlbum(
-					EncodedAlbumBean encodedAlbumBean) {
-				return encodedTrackDao.findByAlbumAndEncoderBean(encodedAlbumBean, encoderBean);
+			public String transform(String ownerName) {
+				return Pattern.quote(ownerName);
 			}
 		};
-		return getOwnedEncodedTracks(ownerBean, ownerSearcher);
-	}
-	
-	@Override
-	public SortedSet<EncodedTrackBean> getOwnedEncodedTracks(final OwnerBean ownerBean) {
-		final EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		OwnerSearcher ownerSearcher = new OwnerSearcher() {
+		Collection<String> literalOwnerNames = CollectionUtils.collect(ownerBeansByLowerCaseName.keySet(), literalOwnerNameTransformer);
+		final Pattern filenamePattern = Pattern.compile("owner\\.(" + StringUtils.join(literalOwnerNames, '|') + ")", Pattern.CASE_INSENSITIVE);
+		FilenameFilter ownerFilter = new FilenameFilter() {
 			@Override
-			public SortedSet<? extends EncodedTrackBean> findAll() {
-				return encodedTrackDao.getAll();
-			}
-			@Override
-			public SortedSet<? extends EncodedTrackBean> findByArtist(
-					EncodedArtistBean encodedArtistBean) {
-				return encodedTrackDao.findByArtist(encodedArtistBean);
-			}
-			@Override
-			public SortedSet<? extends EncodedTrackBean> findByAlbum(
-					EncodedAlbumBean encodedAlbumBean) {
-				return encodedAlbumBean.getEncodedTrackBeans();
+			public boolean accept(File dir, String name) {
+				Matcher matcher = filenamePattern.matcher(name);
+				if (matcher.matches()) {
+					String ownerName = matcher.group(1);
+					OwnerBean ownerBean = ownerBeansByLowerCaseName.get(ownerName.toLowerCase());
+					SortedSet<FlacTrackBean> flacTrackBeans = flacTrackBeansByOwner.get(ownerBean);
+					if (flacTrackBeans == null) {
+						flacTrackBeans = new TreeSet<FlacTrackBean>();
+						flacTrackBeansByOwner.put(ownerBean, flacTrackBeans);
+					}
+					String directoryUrl = dir.toURI().toString();
+					flacTrackBeans.addAll(getFlacTrackDao().findTracksStartingWith(directoryUrl));
+				}
+				return false;
 			}
 		};
-		return getOwnedEncodedTracks(ownerBean, ownerSearcher);
-	}
-
-	protected SortedSet<EncodedTrackBean> getOwnedEncodedTracks(OwnerBean ownerBean, OwnerSearcher ownerSearcher) {
-		SortedSet<EncodedTrackBean> encodedTrackBeans = new TreeSet<EncodedTrackBean>();
-		if (ownerBean.isOwnsAll()) {
-			encodedTrackBeans.addAll(ownerSearcher.findAll());
-		}
-		else {
-			for (EncodedArtistBean encodedArtistBean : ownerBean.getEncodedArtistBeans()) {
-				encodedTrackBeans.addAll(ownerSearcher.findByArtist(encodedArtistBean));
-			}			
-			for (EncodedAlbumBean encodedAlbumBean : ownerBean.getEncodedAlbumBeans()) {
-				encodedTrackBeans.addAll(ownerSearcher.findByAlbum(encodedAlbumBean));
-			}
-		}
-		return encodedTrackBeans;
-	}
-
-	@Transactional
-	protected interface OwnerSearcher {
-		public SortedSet<? extends EncodedTrackBean> findByArtist(EncodedArtistBean encodedArtistBean);
-		public SortedSet<? extends EncodedTrackBean> findByAlbum(EncodedAlbumBean encodedAlbumBean);
-		public SortedSet<? extends EncodedTrackBean> findAll();
+		FileUtils.listFiles(rootDirectory, FileFilterUtils.asFileFilter(ownerFilter), FileFilterUtils.trueFileFilter());
+		return flacTrackBeansByOwner;
 	}
 	
-	@Override
-	public void updateOwnership(String ownerName,
-			Collection<EncodedArtistBean> encodedArtistBeans,
-			Collection<EncodedAlbumBean> encodedAlbumBeans) {
-		if (encodedArtistBeans == null) {
-			encodedArtistBeans = new TreeSet<EncodedArtistBean>();
-		}
-		if (encodedAlbumBeans == null) {
-			encodedAlbumBeans = new TreeSet<EncodedAlbumBean>();
-		}
-		// Filter out any albums owned by any of the given artists
-		for (EncodedArtistBean encodedArtistBean : encodedArtistBeans) {
-			SortedSet<EncodedAlbumBean> artistsEncodedAlbumBeans = encodedArtistBean.getEncodedAlbumBeans();
-			if (artistsEncodedAlbumBeans != null) {
-				encodedAlbumBeans.removeAll(artistsEncodedAlbumBeans);
-			}
-		}
-		OwnerBean ownerBean = getOwnerDao().findByName(ownerName);
-		log.info("Updating ownership for " + ownerBean.getName() + ".");
-		Collection<EncodedArtistBean> ownedEncodedArtistBeans = ownerBean.getEncodedArtistBeans();
-		if (encodedArtistBeans != null) {
-			ownedEncodedArtistBeans.retainAll(encodedArtistBeans);
-			ownedEncodedArtistBeans.addAll(encodedArtistBeans);
-		}
-		Collection<EncodedAlbumBean> ownedEncodedAlbumBeans = ownerBean.getEncodedAlbumBeans();
-		if (encodedAlbumBeans != null) {
-			ownedEncodedAlbumBeans.retainAll(encodedAlbumBeans);
-			ownedEncodedAlbumBeans.addAll(encodedAlbumBeans);
-		}
-		getOwnerDao().store(ownerBean);
-	}
-	
-	@Override
-	public SortedSet<OwnerBean> getOwners(EncodedAlbumBean encodedAlbumBean) {
-		SortedSet<OwnerBean> albumOwnerBeans = encodedAlbumBean.getOwnerBeans();
-		SortedSet<OwnerBean> ownerBeans = new TreeSet<OwnerBean>();
-		if (albumOwnerBeans != null) {
-			ownerBeans.addAll(albumOwnerBeans);
-		}
-		SortedSet<OwnerBean> artistOwnerBeans = encodedAlbumBean.getEncodedArtistBean().getOwnerBeans();
-		if (artistOwnerBeans != null) {
-			ownerBeans.addAll(artistOwnerBeans);
-		}
-		Predicate<OwnerBean> predicate = new Predicate<OwnerBean>() {
-			@Override
-			public boolean evaluate(OwnerBean ownerBean) {
-				return Boolean.TRUE.equals(ownerBean.isOwnsAll());
-			}
-		};
-		CollectionUtils.select(getOwnerDao().getAll(), predicate, ownerBeans);
-		return ownerBeans;
-	}
-	
-	public EncodedTrackDao getEncodedTrackDao() {
-		return i_encodedTrackDao;
-	}
-
-	@Required
-	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
-		i_encodedTrackDao = encodedTrackDao;
-	}
-
 	public OwnerDao getOwnerDao() {
 		return i_ownerDao;
 	}
@@ -176,5 +77,21 @@ public class OwnerServiceImpl implements OwnerService {
 	@Required
 	public void setOwnerDao(OwnerDao ownerDao) {
 		i_ownerDao = ownerDao;
+	}
+
+	public SlimServerConfig getSlimServerConfig() {
+		return i_slimServerConfig;
+	}
+
+	public void setSlimServerConfig(SlimServerConfig slimServerConfig) {
+		i_slimServerConfig = slimServerConfig;
+	}
+
+	public FlacTrackDao getFlacTrackDao() {
+		return i_flacTrackDao;
+	}
+
+	public void setFlacTrackDao(FlacTrackDao flacTrackDao) {
+		i_flacTrackDao = flacTrackDao;
 	}
 }

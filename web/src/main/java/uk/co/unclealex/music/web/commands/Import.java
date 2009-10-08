@@ -5,13 +5,11 @@ import java.io.IOException;
 import javax.jcr.RepositoryException;
 
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.base.initialise.Initialiser;
 import uk.co.unclealex.music.commands.Command;
 import uk.co.unclealex.music.encoder.initialise.Importer;
 
-@Service
 public class Import implements Command {
 
 	private Importer i_importer;

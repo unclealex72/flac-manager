@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.co.unclealex.music.commands.Command;
 import uk.co.unclealex.music.encoder.initialise.Importer;
 
-@Service
 @Transactional(rollbackFor=Exception.class)
 public class Export implements Command {
 

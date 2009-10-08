@@ -1,27 +1,31 @@
 package uk.co.unclealex.music.core.dao;
 
-import java.util.Iterator;
+import java.io.File;
+import java.io.IOException;
+import java.util.SortedSet;
 
 import org.hibernate.Criteria;
 import org.hibernate.Query;
-import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.hibernate.dao.HibernateKeyedReadOnlyDao;
 import uk.co.unclealex.music.base.dao.FlacTrackDao;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
 
-@Repository
+@Transactional
 public class HibernateFlacTrackDao extends HibernateKeyedReadOnlyDao<FlacTrackBean> implements FlacTrackDao {
 
-	@Autowired
-	public HibernateFlacTrackDao(@Qualifier("flacSessionFactory") SessionFactory sessionFactory) {
-		super(sessionFactory);
+	@Override
+	public SortedSet<String> getAllUrls() {
+		return asSortedSet(getSession().createQuery("select url from FlacTrackBean order by url"), String.class);
 	}
-
+	
+	@Override
+	public FlacTrackBean findByFile(File flacFile) throws IOException {
+		return findByUrl("file://" + flacFile.getCanonicalPath());
+	}
+	
 	public FlacTrackBean findByUrl(String url) {
 		FlacTrackBean example = createExampleBean();
 		example.setUrl(url);
@@ -34,13 +38,11 @@ public class HibernateFlacTrackDao extends HibernateKeyedReadOnlyDao<FlacTrackBe
 		return (Integer) criteria.uniqueResult();
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
-	public FlacTrackBean findTrackStartingWith(String url) {
+	public SortedSet<FlacTrackBean> findTracksStartingWith(String url) {
 		Query query = getSession().createQuery("from FlacTrackBean where url like :url and type = 'flc'");
 		query.setString("url", url + "%");
-		Iterator<FlacTrackBean> iter = query.iterate();
-		return iter.hasNext()?iter.next():null;
+		return asSortedSet(query);
 	}
 	
 	@Override

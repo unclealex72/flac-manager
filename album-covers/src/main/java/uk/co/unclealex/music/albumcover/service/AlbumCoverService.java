@@ -11,6 +11,7 @@ import org.apache.commons.collections15.Predicate;
 
 import uk.co.unclealex.music.base.model.AlbumCoverBean;
 import uk.co.unclealex.music.base.model.AlbumCoverSize;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
 
 public interface AlbumCoverService {
@@ -27,14 +28,18 @@ public interface AlbumCoverService {
 
 	public void downloadAndSaveCoversForAlbums(Collection<FlacAlbumBean> flacAlbumBeans);
 	
+	public void removeCoversForMissingAlbum(String artistCode, String albumCode);
+
 	public void removeUnselectedCovers(FlacAlbumBean flacAlbumBean);
 	
 	public AlbumCoverBean saveAndSelectCover(
-			FlacAlbumBean flacAlbumBean, String imageUrl, InputStream urlInputStream, AlbumCoverSize albumCoverSize) throws RepositoryException, IOException;
+			FlacAlbumBean flacAlbumBean, String imageUrl, InputStream urlInputStream, AlbumCoverSize albumCoverSize) throws IOException;
 
 	public void selectAlbumCover(AlbumCoverBean albumCoverBean) throws RepositoryException;
 
 	public Predicate<FlacAlbumBean> createAlbumHasCoverPredicate();
 	
 	public SortedSet<FlacAlbumBean> findAlbumsWithoutCovers();
+
+	public AlbumCoverBean findSelectedCoverForEncodedTrack(EncodedTrackBean encodedTrackBean);
 }

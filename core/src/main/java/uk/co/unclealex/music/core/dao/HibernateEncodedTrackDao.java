@@ -1,15 +1,12 @@
 package uk.co.unclealex.music.core.dao;
 
+import java.util.Set;
 import java.util.SortedSet;
 
 import org.hibernate.Criteria;
 import org.hibernate.Query;
-import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Example;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.hibernate.dao.HibernateKeyedDao;
@@ -18,19 +15,33 @@ import uk.co.unclealex.music.base.model.EncodedAlbumBean;
 import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.OwnerBean;
 
-@Repository
 @Transactional
 public class HibernateEncodedTrackDao extends
 		HibernateKeyedDao<EncodedTrackBean> implements EncodedTrackDao {
 
-	@Autowired
-	public HibernateEncodedTrackDao(@Qualifier("musicSessionFactory") SessionFactory sessionFactory) {
-		super(sessionFactory);
-	}
-
 	@Override
-	public SortedSet<? extends EncodedTrackBean> findByAlbumAndEncoderBean(
+	public Set<EncodedTrackBean> getAllOrphanedTracks(SortedSet<String> allFlacUrls) {
+		Query query =
+			getSession().createQuery("from encodedTrackBean where url not in (:allFlacUrls)").
+			setParameterList("allFlacUrls", allFlacUrls);
+		return asSortedSet(query);
+	}
+	
+	@Override
+	public EncodedTrackBean findByArtistCodeAndAlbumCodeAndCode(String artistCode, String albumCode, String trackCode) {
+			Query query = getSession().createQuery(
+					"from encodedTrackBean where code = :trackCode and " +
+					"encodedAlbumBean.code = :albumCode and encodedAlbumBean.encodedArtistBean.code = :artistCode");
+			query.setEntity("trackCode", trackCode);
+			query.setEntity("albumCode", albumCode);
+			query.setEntity("artistCode", artistCode);
+			return uniqueResult(query);
+	}
+	
+	@Override
+	public SortedSet<EncodedTrackBean> findByAlbumAndEncoderBean(
 			EncodedAlbumBean encodedAlbumBean, EncoderBean encoderBean) {
 		Query query = getSession().createQuery(
 				"from encodedTrackBean where encodedAlbumBean = :encodedAlbumBean and encoderBean = :encoderBean");
@@ -53,7 +64,7 @@ public class HibernateEncodedTrackDao extends
 	}
 	
 	@Override
-	public SortedSet<? extends EncodedTrackBean> findByArtistAndEncoderBean(
+	public SortedSet<EncodedTrackBean> findByArtistAndEncoderBean(
 			EncodedArtistBean encodedArtistBean, EncoderBean encoderBean) {
 		Query query = getSession().createQuery(
 			"select tr from encodedAlbumBean al join al.encodedTrackBeans tr " +
@@ -63,8 +74,8 @@ public class HibernateEncodedTrackDao extends
 		return asSortedSet(query);
 	}
 
-@Override
-	public SortedSet<? extends EncodedTrackBean> findByArtist(EncodedArtistBean encodedArtistBean) {
+	@Override
+	public SortedSet<EncodedTrackBean> findByArtist(EncodedArtistBean encodedArtistBean) {
 		Query query = getSession().createQuery(
 			"select tr from encodedAlbumBean al join al.encodedTrackBeans tr " +
 			"where al.encodedArtistBean = :encodedArtistBean");
@@ -73,8 +84,22 @@ public class HibernateEncodedTrackDao extends
 	}
 
 	@Override
-	public SortedSet<? extends EncodedTrackBean> findTracksWithoutAnAlbum() {
+	public SortedSet<EncodedTrackBean> findByOwnerBean(OwnerBean ownerBean) {
+		Query query = getSession().createQuery(
+			"select e from encodedTrackBean e join e.ownerBeans o where o = :ownerBean");
+		query.setEntity("ownerBean", ownerBean);
+		return asSortedSet(query);
+	}
+	
+	@Override
+	public SortedSet<EncodedTrackBean> findTracksWithoutAnAlbum() {
 		Query query = getSession().createQuery("from encodedTrackBean where encodedAlbumBean is null");
+		return asSortedSet(query);
+	}
+	
+	@Override
+	public SortedSet<EncodedTrackBean> findByUrl(String url) {
+		Query query = getSession().createQuery("from encodedTrackBean where flacUrl = :url").setString("url", url);
 		return asSortedSet(query);
 	}
 	
@@ -105,6 +130,13 @@ public class HibernateEncodedTrackDao extends
 	public SortedSet<EncodedTrackBean> findByEncoderBean(EncoderBean encoderBean) {
 		Criteria criteria = createFindByEncoderBean(createExampleBean(), encoderBean);
 		return asSortedSet(criteria);
+	}
+
+	@Override
+	public void remove(EncodedTrackBean encodedTrackBean) {
+		encodedTrackBean.getOwnerBeans().clear();
+		store(encodedTrackBean);
+		super.remove(encodedTrackBean);
 	}
 
 	@Override

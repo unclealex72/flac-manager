@@ -6,20 +6,16 @@ import java.util.Set;
 import javax.jcr.RepositoryException;
 
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.stereotype.Service;
 
 import uk.co.unclealex.music.albumcover.service.AlbumCoverService;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
-import uk.co.unclealex.music.base.service.filesystem.ClearableRepositoryFactory;
-import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
 import uk.co.unclealex.music.commands.Command;
-import uk.co.unclealex.music.encoder.service.AlreadyEncodingException;
-import uk.co.unclealex.music.encoder.service.CurrentlyScanningException;
+import uk.co.unclealex.music.encoder.exception.AlreadyEncodingException;
+import uk.co.unclealex.music.encoder.exception.CurrentlyScanningException;
+import uk.co.unclealex.music.encoder.exception.MultipleEncodingException;
 import uk.co.unclealex.music.encoder.service.EncoderResultBean;
 import uk.co.unclealex.music.encoder.service.EncoderService;
-import uk.co.unclealex.music.encoder.service.MultipleEncodingException;
 
-@Service
 public class Encode implements Command {
 
 	private RepositoryManager i_encodedRepositoryManager;

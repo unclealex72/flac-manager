@@ -30,7 +30,8 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 	private DataBean i_coverDataBean;
 	private DataBean i_thumbnailDataBean;
 	private AlbumCoverSize i_albumCoverSize;
-	private String i_flacAlbumPath;
+	private String i_albumCode;
+	private String i_artistCode;
 	private Date i_dateDownloaded;
 	private Date i_dateSelected;
 	
@@ -81,15 +82,6 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 	}
 
 	@Column(nullable=false)
-	public String getFlacAlbumPath() {
-		return i_flacAlbumPath;
-	}
-	
-	public void setFlacAlbumPath(String flacAlbumPath) {
-		i_flacAlbumPath = flacAlbumPath;
-	}
-	
-	@Column(nullable=false)
 	public Date getDateDownloaded() {
 		return i_dateDownloaded;
 	}
@@ -124,6 +116,24 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 
 	public void setThumbnailDataBean(DataBean thumbnailDataBean) {
 		i_thumbnailDataBean = thumbnailDataBean;
+	}
+
+	@Column(nullable=false)
+	public String getArtistCode() {
+		return i_artistCode;
+	}
+
+	public void setArtistCode(String artistCode) {
+		i_artistCode = artistCode;
+	}
+
+	@Column(nullable=false)
+	public String getAlbumCode() {
+		return i_albumCode;
+	}
+
+	public void setAlbumCode(String albumCode) {
+		i_albumCode = albumCode;
 	}
 
 

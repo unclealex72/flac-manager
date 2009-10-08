@@ -15,7 +15,11 @@ public class AlbumCoverComparator implements Comparator<AlbumCoverBean> {
 		Comparator<AlbumCoverBean> flacAlbumComparator = new Comparator<AlbumCoverBean>() {
 			@Override
 			public int compare(AlbumCoverBean o1, AlbumCoverBean o2) {				
-				return compareNullHigh(o1.getFlacAlbumPath(), o2.getFlacAlbumPath());
+				int cmp = compareNullHigh(o1.getArtistCode(), o2.getArtistCode());
+				if (cmp == 0) {
+					cmp = compareNullHigh(o1.getAlbumCode(), o2.getAlbumCode());
+				}
+				return cmp;
 			}
 		};
 		Comparator<AlbumCoverBean> selectedComparator = new Comparator<AlbumCoverBean>() {

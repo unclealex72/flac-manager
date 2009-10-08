@@ -1,17 +1,14 @@
 package uk.co.unclealex.music.encoder.service;
 
-import java.io.IOException;
+import java.util.List;
+
+import uk.co.unclealex.music.encoder.action.EncodingAction;
+import uk.co.unclealex.music.encoder.exception.EncodingException;
 
 
 public interface EncoderService {
 
-	public void registerEncodingEventListener(EncodingEventListener encodingEventListener);
-	
-	public EncoderResultBean encodeAll(int maximumThreads) throws AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException, IOException;
+	public List<EncodingAction> encodeAll(int maximumThreads) throws EncodingException;
 
-	public EncoderResultBean encodeAll() throws AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException, IOException;
-
-	public EncoderResultBean encodeAllAndRemoveDeleted() throws AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException, IOException;
-
-	public boolean isCurrentlyEncoding();
+	public List<EncodingAction> encodeAll() throws EncodingException;
 }

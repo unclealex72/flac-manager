@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.SlimServerConfig;
@@ -16,7 +15,6 @@ import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.service.FilenameService;
 import uk.co.unclealex.music.base.visitor.EncodedVisitor;
 
-@Service
 @Transactional
 public class FilenameServiceImpl implements FilenameService {
 
@@ -25,23 +23,22 @@ public class FilenameServiceImpl implements FilenameService {
 	@Override
 	public String createFilename(EncodedBean encodedBean) {
 		FilenameExtractingEncodedVisitor visitor = new FilenameExtractingEncodedVisitor();
-		encodedBean.accept(visitor);
-		return new ValidFilenameTransformer().transform(visitor.filename);
+		String filename = encodedBean.accept(visitor);
+		return new ValidFilenameTransformer().transform(filename);
 	}
 	
-	protected class FilenameExtractingEncodedVisitor extends EncodedVisitor {
-		public String filename;
+	protected class FilenameExtractingEncodedVisitor extends EncodedVisitor<String, Exception> {
 		@Override
-		public void visit(EncodedAlbumBean encodedAlbumBean) {
-			filename = encodedAlbumBean.getTitle();
+		public String visit(EncodedAlbumBean encodedAlbumBean) {
+			return encodedAlbumBean.getTitle();
 		}
 		@Override
-		public void visit(EncodedArtistBean encodedArtistBean) {
-			filename = removeDefiniteArticle(encodedArtistBean.getName());
+		public String visit(EncodedArtistBean encodedArtistBean) {
+			return removeDefiniteArticle(encodedArtistBean.getName());
 		}
 		@Override
-		public void visit(EncodedTrackBean encodedTrackBean) {
-			filename = encodedTrackBean.getTitle();
+		public String visit(EncodedTrackBean encodedTrackBean) {
+			return encodedTrackBean.getTitle();
 		}		
 	}
 

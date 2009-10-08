@@ -5,11 +5,5 @@ import uk.co.unclealex.music.base.model.OwnerBean;
 
 public interface TitleFormatService {
 
-	public String getTitle(EncodedTrackBean encodedTrackBean);
-
-	public boolean isOwnerRequired();
-	
-	public void setTitleFormat(String titleFormat);
-
-	public String getTitle(EncodedTrackBean trackBean, OwnerBean ownerBean);
+	public String createTitle(EncodedTrackBean encodedTrackBean, OwnerBean ownerBean);	
 }

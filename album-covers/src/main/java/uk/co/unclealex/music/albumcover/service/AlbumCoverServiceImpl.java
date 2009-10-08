@@ -59,8 +59,7 @@ import com.amazon.webservices.awsecommerceservice.Errors.Error;
 import com.amazon.webservices.awsecommerceservice.Item.ImageSets;
 import com.sun.media.imageioimpl.plugins.png.CLibPNGImageWriterSpi;
 
-@Service
-@Transactional(rollbackFor=IOException.class)
+@Transactional
 public class AlbumCoverServiceImpl implements AlbumCoverService {
 
 	private static final Logger log = Logger.getLogger(AlbumCoverServiceImpl.class);
@@ -73,10 +72,6 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	private ImageService i_imageService;
 	private Predicate<FlacAlbumBean> i_albumHasCoversPredicate;
 	private int i_thumbnailSize = 50;
-	private RepositoryManager i_coversRepositoryManager;
-	private DataInjector<AlbumCoverBean> i_albumCoverDataInjector;
-	private DataInjector<AlbumCoverBean> i_albumThumbnailDataInjector;
-	private DataExtractor<AlbumCoverBean> i_albumCoverDataExtractor;
 	
 	@PostConstruct
 	public void initialise() {
@@ -440,43 +435,5 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 
 	public void setThumbnailSize(int thumbnailSize) {
 		i_thumbnailSize = thumbnailSize;
-	}
-
-	public RepositoryManager getCoversRepositoryManager() {
-		return i_coversRepositoryManager;
-	}
-
-	@Required
-	public void setCoversRepositoryManager(RepositoryManager coversRepositoryManager) {
-		i_coversRepositoryManager = coversRepositoryManager;
-	}
-
-	public DataInjector<AlbumCoverBean> getAlbumCoverDataInjector() {
-		return i_albumCoverDataInjector;
-	}
-
-	@Required
-	public void setAlbumCoverDataInjector(
-			DataInjector<AlbumCoverBean> albumCoverDataInjector) {
-		i_albumCoverDataInjector = albumCoverDataInjector;
-	}
-
-	public DataInjector<AlbumCoverBean> getAlbumThumbnailDataInjector() {
-		return i_albumThumbnailDataInjector;
-	}
-
-	@Required
-	public void setAlbumThumbnailDataInjector(
-			DataInjector<AlbumCoverBean> albumThumbnailDataInjector) {
-		i_albumThumbnailDataInjector = albumThumbnailDataInjector;
-	}
-
-	public DataExtractor<AlbumCoverBean> getAlbumCoverDataExtractor() {
-		return i_albumCoverDataExtractor;
-	}
-
-	@Required
-	public void setAlbumCoverDataExtractor(DataExtractor<AlbumCoverBean> albumCoverDataExtractor) {
-		i_albumCoverDataExtractor = albumCoverDataExtractor;
 	}
 }

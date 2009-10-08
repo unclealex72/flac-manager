@@ -4,13 +4,11 @@ import java.io.IOException;
 
 import javax.jcr.RepositoryException;
 
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.model.AlbumCoverSize;
 
 @Transactional
-@Service
 public class DownloadAlbumCoverActionImpl extends AbstractAlbumCoverAction implements DownloadAlbumCoverAction {
 
 	private String i_url;

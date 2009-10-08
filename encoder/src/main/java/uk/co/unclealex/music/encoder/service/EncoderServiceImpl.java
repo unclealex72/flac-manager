@@ -1,100 +1,93 @@
 package uk.co.unclealex.music.encoder.service;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.stereotype.Service;
 
+import uk.co.unclealex.music.base.dao.EncoderDao;
 import uk.co.unclealex.music.base.dao.FlacTrackDao;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
-import uk.co.unclealex.music.base.model.FlacAlbumBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.service.EncodedService;
 import uk.co.unclealex.music.core.service.CommandWorker;
+import uk.co.unclealex.music.core.service.SlimServerService;
+import uk.co.unclealex.music.encoder.action.EncodingAction;
+import uk.co.unclealex.music.encoder.exception.CurrentlyScanningException;
+import uk.co.unclealex.music.encoder.exception.EncodingException;
+import uk.co.unclealex.music.encoder.exception.MultipleEncodingException;
 
-@Service
 public class EncoderServiceImpl implements EncoderService {
 
 	private static Logger log = Logger.getLogger(EncoderServiceImpl.class);
 
 	private Integer i_maximumThreads = 8;
-	
-	private SingleEncoderService i_singleEncoderService;
+	private Lock i_lock;
+	private TransactionalEncoderService i_transactionalEncoderService;
 	private SlimServerService i_slimServerService;
 	private FlacTrackDao i_flacTrackDao;
-	
-	private AtomicBoolean i_atomicCurrentlyEncoding = new AtomicBoolean(false);
-	private List<EncodingEventListener> i_encodingEventListeners = new ArrayList<EncodingEventListener>();
-
-	@Override
-	public void registerEncodingEventListener(
-			EncodingEventListener encodingEventListener) {
-		getEncodingEventListeners().add(encodingEventListener);
-	}
+	private EncoderDao i_encoderDao;
+	private EncodedService i_encodedService;
 	
 	@Override
-	public EncoderResultBean encodeAll()
-	throws AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException, IOException {
+	public List<EncodingAction> encodeAll() throws EncodingException {
 		return encodeAll(getMaximumThreads());
 	}
 	
-	public EncoderResultBean encodeAll(int maximumThreads)
-	throws AlreadyEncodingException, MultipleEncodingException, CurrentlyScanningException, IOException {
+	public List<EncodingAction> encodeAll(int maximumThreads) throws EncodingException {
 		if (getSlimServerService().isScanning()) {
 			throw new CurrentlyScanningException();
 		}
-		if (!getAtomicCurrentlyEncoding().compareAndSet(false, true)) {
-			throw new AlreadyEncodingException();
-		}
+		return doEncodeAll(maximumThreads);
+	}
+
+	protected List<EncodingAction> doEncodeAll(int maximumThreads) throws MultipleEncodingException {
 		log.info("Initiating encoding with " + maximumThreads + " threads.");
-		final Set<FlacAlbumBean> flacAlbumBeans = new TreeSet<FlacAlbumBean>();
-		final SingleEncoderService singleEncoderService = getSingleEncoderService();
+		final TransactionalEncoderService transactionalEncoderService = getTransactionalEncoderService();
+		transactionalEncoderService.startEncoding();
+		final List<EncodingAction> encodingActions = new LinkedList<EncodingAction>();
 		final SortedMap<EncodingCommandBean, Throwable> errors =
 			Collections.synchronizedSortedMap(new TreeMap<EncodingCommandBean, Throwable>());
-		final SortedMap<String, File> commandCache = new TreeMap<String, File>();
 		final BlockingQueue<EncodingCommandBean> encodingCommandBeans = new LinkedBlockingQueue<EncodingCommandBean>();
 		List<CommandWorker<EncodingCommandBean>> workers = new ArrayList<CommandWorker<EncodingCommandBean>>(maximumThreads);
-		final List<EncodedTrackBean> newEncodedTrackBeans = new Vector<EncodedTrackBean>();
 		final String currentThreadName = Thread.currentThread().getName();
+		final FlacTrackDao flacTrackDao = getFlacTrackDao();
+		final EncoderDao encoderDao = getEncoderDao();
 		for (int idx = 0; idx < maximumThreads; idx++) {
 			final int threadIndex = idx;
 			CommandWorker<EncodingCommandBean> worker = new CommandWorker<EncodingCommandBean>(encodingCommandBeans, errors) {
 				@Override
-				protected void process(EncodingCommandBean encodingCommandBean) throws IOException {
+				protected void process(EncodingCommandBean encodingCommandBean) throws EncodingException {
 					Thread.currentThread().setName(currentThreadName + "-" + threadIndex);
-					EncodedTrackBean encodedTrackBean =  
-						singleEncoderService.encode(encodingCommandBean, commandCache);
-					if (encodedTrackBean != null) {
-						newEncodedTrackBeans.add(encodedTrackBean);
-						FlacTrackBean flacTrackBean = getFlacTrackDao().findByUrl(encodingCommandBean.getUrl());
-						flacAlbumBeans.add(flacTrackBean.getFlacAlbumBean());
-						for (EncodingEventListener encodingEventListener : getEncodingEventListeners()) {
-							encodingEventListener.afterTrackEncoded(encodedTrackBean, flacTrackBean);
-						}
-					}
+					FlacTrackBean flacTrackBean = flacTrackDao.findByUrl(encodingCommandBean.getUrl());
+					EncoderBean encoderBean = encoderDao.findByExtension(encodingCommandBean.getExtension());
+					// Make sure encoding actions are transactional insofar as they're only added if there is no exception.
+					List<EncodingAction> currentEncodingActions = new LinkedList<EncodingAction>();
+					transactionalEncoderService.encode(flacTrackBean, encoderBean, currentEncodingActions, getLock());
+					encodingActions.addAll(currentEncodingActions);
 				}
 			};
 			worker.start();
 			workers.add(worker);
 		}
-		singleEncoderService.populateCommandCache(commandCache);
-		singleEncoderService.offerAll(encodingCommandBeans);
+		for (FlacTrackBean flacTrackBean : flacTrackDao.getAll()) {
+			for (EncoderBean encoderBean : encoderDao.getAll()) {
+				encodingCommandBeans.offer(new EncodingCommandBean(encoderBean.getExtension(), flacTrackBean.getUrl()));
+			}
+		}
 		for (int idx = 0; idx < maximumThreads; idx++) {
 			encodingCommandBeans.offer(new EncodingCommandBean());
 		}
-		int totalCount = 0;
 		for (CommandWorker<EncodingCommandBean> worker : workers) {
 			try {
 				worker.join();
@@ -102,33 +95,36 @@ public class EncoderServiceImpl implements EncoderService {
 			catch (InterruptedException e) {
 				// Do nothing
 			}
-			totalCount += worker.getCount();
 		}
-		
-		for (File command : commandCache.values()) {
-			command.delete();
+		log.info("Removing orphaned tracks.");
+		doRemoveMissing(encodingActions);
+		log.info("Updating ownership");
+		try {
+			transactionalEncoderService.updateOwnership(encodingActions);
 		}
-		getAtomicCurrentlyEncoding().set(false);
+		catch (EncodingException e) {
+			log.warn("Updating ownership failed.", e);
+		}
+		transactionalEncoderService.stopEncoding();
 		if (!errors.isEmpty()) {
-			throw new MultipleEncodingException(errors, totalCount);
+			throw new MultipleEncodingException(errors, encodingActions);
 		}
-		singleEncoderService.updateAllFilenames();
-		singleEncoderService.updateMissingAlbumInformation();
-		singleEncoderService.updateOwnership();
-		return new EncoderResultBean(flacAlbumBeans, totalCount);
+		return encodingActions;
 	}
 
-	@Override
-	public EncoderResultBean encodeAllAndRemoveDeleted() throws AlreadyEncodingException,
-			MultipleEncodingException, CurrentlyScanningException, IOException {
-		int removeDeletedCount = getSingleEncoderService().removeDeleted(getEncodingEventListeners());
-		EncoderResultBean encoderResultBean = encodeAll();
-		return new EncoderResultBean(encoderResultBean.getFlacAlbumBeans(), encoderResultBean.getTracksAffected() + removeDeletedCount);
-	}
-	
-	
-	public boolean isCurrentlyEncoding() {
-		return getAtomicCurrentlyEncoding().get();
+	protected void doRemoveMissing(List<EncodingAction> encodingActions) {
+		Set<EncodedTrackBean> orphanedEncodedTrackBeans = getEncodedService().findOrphanedEncodedTrackBeans();
+		TransactionalEncoderService transactionalEncoderService = getTransactionalEncoderService();
+		for (EncodedTrackBean orphanedEncodedTrackBean : orphanedEncodedTrackBeans) {
+			try {
+				List<EncodingAction> currentEncodingActions = new LinkedList<EncodingAction>();
+				transactionalEncoderService.remove(orphanedEncodedTrackBean, currentEncodingActions, getLock());
+				encodingActions.addAll(currentEncodingActions);
+			}
+			catch (EncodingException e) {
+				log.error("Could not remove track " + orphanedEncodedTrackBean);
+			}
+		}
 	}
 
 	public Integer getMaximumThreads() {
@@ -139,30 +135,13 @@ public class EncoderServiceImpl implements EncoderService {
 		i_maximumThreads = maximumThreads;
 	}
 
-	public AtomicBoolean getAtomicCurrentlyEncoding() {
-		return i_atomicCurrentlyEncoding;
-	}
-
-	public void setAtomicCurrentlyEncoding(AtomicBoolean atomicCurrentlyEncoding) {
-		i_atomicCurrentlyEncoding = atomicCurrentlyEncoding;
-	}
-
-	public SingleEncoderService getSingleEncoderService() {
-		return i_singleEncoderService;
+	public TransactionalEncoderService getTransactionalEncoderService() {
+		return i_transactionalEncoderService;
 	}
 
 	@Required
-	public void setSingleEncoderService(SingleEncoderService singleEncoderService) {
-		i_singleEncoderService = singleEncoderService;
-	}
-
-	public List<EncodingEventListener> getEncodingEventListeners() {
-		return i_encodingEventListeners;
-	}
-
-	public void setEncodingEventListeners(
-			List<EncodingEventListener> encodingEventListeners) {
-		i_encodingEventListeners = encodingEventListeners;
+	public void setTransactionalEncoderService(TransactionalEncoderService transactionalEncoderService) {
+		i_transactionalEncoderService = transactionalEncoderService;
 	}
 
 	public SlimServerService getSlimServerService() {
@@ -181,5 +160,29 @@ public class EncoderServiceImpl implements EncoderService {
 	@Required
 	public void setFlacTrackDao(FlacTrackDao flacTrackDao) {
 		i_flacTrackDao = flacTrackDao;
+	}
+
+	public EncoderDao getEncoderDao() {
+		return i_encoderDao;
+	}
+
+	public void setEncoderDao(EncoderDao encoderDao) {
+		i_encoderDao = encoderDao;
+	}
+
+	public EncodedService getEncodedService() {
+		return i_encodedService;
+	}
+
+	public void setEncodedService(EncodedService encodedService) {
+		i_encodedService = encodedService;
+	}
+
+	public Lock getLock() {
+		return i_lock;
+	}
+
+	public void setLock(Lock lock) {
+		i_lock = lock;
 	}
 }
