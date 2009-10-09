@@ -115,12 +115,15 @@ public class TransactionalEncoderServiceImpl implements TransactionalEncoderServ
 			EncodedArtistBean encodedArtistBean = encodedAlbumBean.getEncodedArtistBean();
 			String artistCode = encodedArtistBean.getCode();
 			fireEncodedTrackRemoved(artistCode, albumCode, trackCode, encodedTrackBean, encodingActions, lock);
+			SortedSet<EncodedTrackBean> encodedTrackBeans = encodedAlbumBean.getEncodedTrackBeans();
+			encodedTrackBeans.remove(encodedTrackBean);
 			getEncodedTrackDao().remove(encodedTrackBean);
-			if (encodedAlbumBean.getEncodedTrackBeans().isEmpty()) {
+			if (encodedTrackBeans.isEmpty()) {
 				fireEncodedAlbumRemoved(artistCode, albumCode, encodedAlbumBean, encodingActions, null);
+				SortedSet<EncodedAlbumBean> encodedAlbumBeans = encodedArtistBean.getEncodedAlbumBeans();
+				encodedAlbumBeans.remove(encodedAlbumBean);
 				getEncodedAlbumDao().remove(encodedAlbumBean);
-				getEncodedArtistDao().store(encodedArtistBean);
-				if (encodedArtistBean.getEncodedAlbumBeans().isEmpty()) {
+				if (encodedAlbumBeans.isEmpty()) {
 					fireEncodedArtistRemoved(artistCode, encodedArtistBean, encodingActions, null);
 					getEncodedArtistDao().remove(encodedArtistBean);
 				}

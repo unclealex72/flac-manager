@@ -4,6 +4,10 @@ import uk.co.unclealex.music.base.model.EncodedArtistBean;
 
 public class ArtistRemovedAction extends ArtistAction {
 
+	public ArtistRemovedAction(String artistCode) {
+		super(artistCode);
+	}
+
 	public ArtistRemovedAction(EncodedArtistBean encodedArtistBean) {
 		super(encodedArtistBean);
 	}

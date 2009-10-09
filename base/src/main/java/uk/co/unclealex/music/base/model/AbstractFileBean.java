@@ -7,7 +7,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -50,7 +49,6 @@ public abstract class AbstractFileBean extends KeyedBean<AbstractFileBean> imple
 	}
 
 	@ManyToOne
-	@JoinColumn(name="child_fk", insertable=false, updatable=false)
 	public DbDirectoryFileBean getParent() {
 		return i_parent;
 	}

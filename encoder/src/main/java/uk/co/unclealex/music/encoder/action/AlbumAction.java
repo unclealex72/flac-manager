@@ -7,6 +7,11 @@ abstract class AlbumAction extends ArtistAction {
 
 	private String i_albumCode;
 	
+	public AlbumAction(String artistCode, String albumCode) {
+		super(artistCode);
+		i_albumCode = albumCode;
+	}
+
 	public AlbumAction(EncodedAlbumBean encodedAlbumBean) {
 		super(encodedAlbumBean.getEncodedArtistBean());
 		i_albumCode = encodedAlbumBean.getCode();

@@ -8,6 +8,13 @@ abstract class TrackAction extends AlbumAction {
 	private String i_trackCode;
 	private String i_extension;
 	
+	public TrackAction(String artistCode, String albumCode, int trackNumber, String trackCode, String extension) {
+		super(artistCode, albumCode);
+		i_trackNumber = trackNumber;
+		i_trackCode = trackCode;
+		i_extension = extension;
+	}
+
 	protected TrackAction(EncodedTrackBean encodedTrackBean) {
 		super(encodedTrackBean.getEncodedAlbumBean());
 		i_trackNumber = encodedTrackBean.getTrackNumber();

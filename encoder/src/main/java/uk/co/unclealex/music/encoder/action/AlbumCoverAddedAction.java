@@ -4,6 +4,10 @@ import uk.co.unclealex.music.base.model.EncodedAlbumBean;
 
 public class AlbumCoverAddedAction extends AlbumAction {
 
+	public AlbumCoverAddedAction(String artistCode, String albumCode) {
+		super(artistCode, albumCode);
+	}
+
 	public AlbumCoverAddedAction(EncodedAlbumBean encodedAlbumBean) {
 		super(encodedAlbumBean);
 	}

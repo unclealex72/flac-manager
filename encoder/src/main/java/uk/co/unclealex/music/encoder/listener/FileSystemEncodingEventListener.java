@@ -75,20 +75,20 @@ public class FileSystemEncodingEventListener extends AbstractEncodingEventListen
 		
 		public Collection<A> doInFileSystemService(FileSystemService fileSystemService) throws Exception;
 		
-		public EncodingAction createEncodingAction(A artifact, EncodedTrackBean encodedTrackBean);
+		public EncodingAction createEncodingAction(A artifact);
 	}
 	
 	protected abstract class AddingFileSystemServiceCallback implements FileSystemServiceCallback<FileBean> {
 		@Override
-		public EncodingAction createEncodingAction(FileBean fileBean, EncodedTrackBean encodedTrackBean) {
-			return new FileAddedAction(fileBean.getPath(), encodedTrackBean);
+		public EncodingAction createEncodingAction(FileBean fileBean) {
+			return new FileAddedAction(fileBean.getPath());
 		}
 	}
 	
 	protected abstract class RemovingFileSystemServiceCallback implements FileSystemServiceCallback<String> {
 		@Override
-		public EncodingAction createEncodingAction(String path, EncodedTrackBean encodedTrackBean) {
-			return new FileRemovedAction(path, encodedTrackBean);
+		public EncodingAction createEncodingAction(String path) {
+			return new FileRemovedAction(path);
 		}
 	}
 	
@@ -99,7 +99,7 @@ public class FileSystemEncodingEventListener extends AbstractEncodingEventListen
 			Collection<A> files = fileSystemServiceCallback.doInFileSystemService(getFileSystemService());
 			Transformer<A, EncodingAction> transformer = new Transformer<A, EncodingAction>() {
 				public EncodingAction transform(A artifact) {
-					return fileSystemServiceCallback.createEncodingAction(artifact, encodedTrackBean);
+					return fileSystemServiceCallback.createEncodingAction(artifact);
 				};
 			};
 			CollectionUtils.collect(files, transformer, encodingActions);

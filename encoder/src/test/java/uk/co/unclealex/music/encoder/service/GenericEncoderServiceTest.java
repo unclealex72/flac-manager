@@ -2,19 +2,35 @@ package uk.co.unclealex.music.encoder.service;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 
+import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.Predicate;
+import org.apache.commons.collections15.Transformer;
+import org.apache.commons.lang.StringUtils;
+
 import uk.co.unclealex.music.base.dao.FlacTrackDao;
+import uk.co.unclealex.music.base.model.EncodedAlbumBean;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.model.OwnerBean;
 import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
+import uk.co.unclealex.music.encoder.action.AlbumAddedAction;
+import uk.co.unclealex.music.encoder.action.AlbumRemovedAction;
+import uk.co.unclealex.music.encoder.action.ArtistAddedAction;
+import uk.co.unclealex.music.encoder.action.ArtistRemovedAction;
 import uk.co.unclealex.music.encoder.action.EncodingAction;
 import uk.co.unclealex.music.encoder.action.FileAddedAction;
 import uk.co.unclealex.music.encoder.action.FileRemovedAction;
 import uk.co.unclealex.music.encoder.action.TrackEncodedAction;
 import uk.co.unclealex.music.encoder.action.TrackOwnedAction;
 import uk.co.unclealex.music.encoder.action.TrackRemovedAction;
+import uk.co.unclealex.music.encoder.action.TrackUnownedAction;
 import uk.co.unclealex.music.encoder.exception.EncodingException;
 import uk.co.unclealex.music.test.TestFlacProvider;
 
@@ -43,19 +59,100 @@ public class GenericEncoderServiceTest extends EncoderServiceTest {
 			SortedSet<OwnerBean> ownerBeans = encodedTrackBean.getOwnerBeans();
 			for (OwnerBean ownerBean : ownerBeans) {
 				String path = titleFormatService.createTitle(encodedTrackBean, ownerBean); 
-				expectedActions.add(new FileRemovedAction(path, encodedTrackBean));
+				expectedActions.add(new FileRemovedAction(path));
 			}
 			expectedActions.add(new TrackEncodedAction(encodedTrackBean));
 			for (OwnerBean ownerBean : ownerBeans) {
 				expectedActions.add(new TrackOwnedAction(ownerBean, encodedTrackBean));
 			  String path = titleFormatService.createTitle(encodedTrackBean, ownerBean); 
-				expectedActions.add(new FileAddedAction(path, encodedTrackBean));
+				expectedActions.add(new FileAddedAction(path));
 			}
 			expectedActions.add(new TrackEncodedAction(encodedTrackBean));
 		}
 		doTestEncoding("Update", expectedActions);
 	}
 
+	public void testDelete() throws Exception {
+		List<EncodingAction> expectedEncodingActions = new ArrayList<EncodingAction>();
+		Collection<String> queenPaths = 
+			CollectionUtils.select(
+				getFileDao().findAllPaths(),
+				new Predicate<String>() {
+					public boolean evaluate(String path) {
+						return path.matches("(Alex|Trevor)/(ogg|mp3)/Q.*");
+					}
+				});
+		CollectionUtils.collect(
+			queenPaths, new Transformer<String, EncodingAction>() {
+				@Override
+				public EncodingAction transform(String path) {
+					return new FileRemovedAction(path);
+				}
+			},
+			expectedEncodingActions);
+		EncodedArtistBean queen = getEncodedArtistDao().findByCode("QUEEN");
+		expectedEncodingActions.add(new ArtistRemovedAction(queen));
+		for (EncodedAlbumBean encodedAlbumBean : queen.getEncodedAlbumBeans()) {
+			expectedEncodingActions.add(new AlbumRemovedAction(encodedAlbumBean));
+			for (EncodedTrackBean encodedTrackBean : encodedAlbumBean.getEncodedTrackBeans()) {
+				expectedEncodingActions.add(new TrackRemovedAction(encodedTrackBean));
+			}
+		}
+		getTestFlacProvider().removeFiles("queen");
+		doTestEncoding("Remove", expectedEncodingActions);
+	}
+	
+	public void testAdd() throws Exception {
+		List<EncodingAction> expectedEncodingActions = new ArrayList<EncodingAction>();
+		String artistCode = "METALLICA";
+		String albumCode = "RIDE THE LIGHTNING";
+		expectedEncodingActions.add(new ArtistAddedAction(artistCode));
+		expectedEncodingActions.add(new AlbumAddedAction(artistCode, albumCode));
+		for (EncoderBean encoderBean : getEncoderDao().getAll()) {
+			String extension = encoderBean.getExtension();
+			String[] tracks = new String[] { "FIGHT FIRE WITH FIRE", "RIDE THE LIGHTNING" };
+			for (int idx = 0; idx < tracks.length; idx++) {
+				int trackNumber = idx + 1;
+				String trackCode = tracks[idx];
+				expectedEncodingActions.add(new TrackEncodedAction(artistCode, albumCode, trackNumber, trackCode, extension));
+				expectedEncodingActions.add(new TrackOwnedAction("Alex", artistCode, albumCode, trackNumber, trackCode, extension));
+			}
+			for (String filename : new String[] { "01 - Fight Fire With Fire", "02 - Ride The Lightning" }) {
+				List<String> parts = new LinkedList<String>(Arrays.asList(new String[] { "Alex", extension }));
+				for (String part : new String[] { "M", "Metallica", "Ride The Lightning", filename + "." + extension }) {
+					parts.add(part);
+					expectedEncodingActions.add(new FileAddedAction(StringUtils.join(parts, '/')));
+				}
+			}
+		}
+		getTestFlacProvider().mergeResource("add");
+		doTestEncoding("Add", expectedEncodingActions);
+	}
+	
+	public void testChangeOwner() throws Exception {
+		List<EncodingAction> expectedEncodingActions = new ArrayList<EncodingAction>();
+		Collection<String> metallicaPaths = 
+			CollectionUtils.select(
+				getFileDao().findAllPaths(),
+				new Predicate<String>() {
+					public boolean evaluate(String path) {
+						return path.matches("Alex/(ogg|mp3)/M.*");
+					}
+				});
+		for (String metallicaPath : metallicaPaths) {
+			expectedEncodingActions.add(new FileRemovedAction(metallicaPath));
+			expectedEncodingActions.add(new FileAddedAction(metallicaPath.replace("Alex/", "Trevor/")));
+		}
+		EncodedArtistBean metallica = getEncodedArtistDao().findByCode("METALLICA");
+		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().findByArtist(metallica)) {
+			expectedEncodingActions.add(new TrackOwnedAction("Trevor", encodedTrackBean));
+			expectedEncodingActions.add(new TrackUnownedAction("Alex", encodedTrackBean));
+		}
+		TestFlacProvider testFlacProvider = getTestFlacProvider();
+		testFlacProvider.removeFiles("metallica/owner.alex");
+		testFlacProvider.mergeResource("changeowner");
+		doTestEncoding("ChangeOwner", expectedEncodingActions);
+	}
 	public FlacTrackDao getFlacTrackDao() {
 		return i_flacTrackDao;
 	}

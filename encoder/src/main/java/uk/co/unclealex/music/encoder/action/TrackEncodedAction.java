@@ -4,6 +4,10 @@ import uk.co.unclealex.music.base.model.EncodedTrackBean;
 
 public class TrackEncodedAction extends TrackAction {
 
+	public TrackEncodedAction(String artistCode, String albumCode, int trackNumber, String trackCode, String extension) {
+		super(artistCode, albumCode, trackNumber, trackCode, extension);
+	}
+
 	public TrackEncodedAction(EncodedTrackBean encodedTrackBean) {
 		super(encodedTrackBean);
 	}

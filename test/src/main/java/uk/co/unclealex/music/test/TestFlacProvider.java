@@ -88,7 +88,14 @@ public class TestFlacProvider implements IOFileFilter {
 		FileCallback callback = new FileCallback() {
 			@Override
 			public void doWithFile(File f) throws Exception {
-				f.delete();
+				if (f.exists()) {
+					if (f.isDirectory()) {
+						FileUtils.deleteDirectory(f);
+					}
+					else {
+						f.delete();
+					}
+				}
 			}
 		};
 		executeFileCallback(callback, paths);

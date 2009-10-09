@@ -6,9 +6,13 @@ abstract class ArtistAction extends EncodingAction {
 
 	private String i_artistCode;
 	
-	public ArtistAction(EncodedArtistBean encodedArtistBean) {
+	public ArtistAction(String artistCode) {
 		super();
-		i_artistCode = encodedArtistBean.getCode();
+		i_artistCode = artistCode;
+	}
+
+	public ArtistAction(EncodedArtistBean encodedArtistBean) {
+		this(encodedArtistBean.getCode());
 	}
 
 	@Override

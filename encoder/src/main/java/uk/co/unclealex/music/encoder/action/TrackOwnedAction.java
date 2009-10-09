@@ -7,8 +7,19 @@ public class TrackOwnedAction extends TrackAction {
 
 	private String i_ownerName;
 	
-	public TrackOwnedAction(OwnerBean ownerBean, EncodedTrackBean encodedTrackBean) {
+	public TrackOwnedAction(String ownerName, String artistCode, String albumCode, int trackNumber, String trackCode,
+			String extension) {
+		super(artistCode, albumCode, trackNumber, trackCode, extension);
+		i_ownerName = ownerName;
+	}
+
+	public TrackOwnedAction(String ownerName, EncodedTrackBean encodedTrackBean) {
 		super(encodedTrackBean);
+		i_ownerName = ownerName;
+	}
+
+	public TrackOwnedAction(OwnerBean ownerBean, EncodedTrackBean encodedTrackBean) {
+		this(ownerBean.getName(), encodedTrackBean);
 		i_ownerName = ownerBean.getName();
 	}
 

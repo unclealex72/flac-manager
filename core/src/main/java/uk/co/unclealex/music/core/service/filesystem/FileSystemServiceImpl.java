@@ -67,8 +67,8 @@ public class FileSystemServiceImpl implements FileSystemService {
 			DbDirectoryFileBean parent = findOrCreateDirectory(parentPath, fileBeans);
 			EncodedTrackFileBean encodedTrackFileBean = new EncodedTrackFileBean();
 			encodedTrackFileBean.setEncodedTrackBean(encodedTrackBean);
-			encodedTrackFileBean.setParent(parent);
 			encodedTrackFileBean.setPath(path);
+			encodedTrackFileBean.setParent(parent);
 			getFileDao().store(encodedTrackFileBean);
 			fileBeans.add(encodedTrackFileBean);
 		}
@@ -101,9 +101,8 @@ public class FileSystemServiceImpl implements FileSystemService {
 				String parentPath = createParentPath(path);
 				DbDirectoryFileBean parent = findOrCreateDirectory(parentPath, fileBeans);
 				dbDirectoryFileBean.setParent(parent);
-				parent.getChildren().add(dbDirectoryFileBean);
-				getFileDao().store(parent);
 			}
+			getFileDao().store(dbDirectoryFileBean);
 			return dbDirectoryFileBean;
 		}
 		else {
@@ -133,9 +132,12 @@ public class FileSystemServiceImpl implements FileSystemService {
 		paths.add(abstractFileBean.getPath());
 		FileDao fileDao = getFileDao();
 		fileDao.remove(abstractFileBean);
-		// Don't delete root!
-		if (parent != null && parent.getChildren().isEmpty()) {
-			removeFile(parent, paths);
+		if (parent != null) {
+			Set<FileBean> children = parent.getChildren();
+			children.remove(abstractFileBean);
+			if (children.isEmpty()) {
+				removeFile(parent, paths);
+			}
 		}
 	}
 

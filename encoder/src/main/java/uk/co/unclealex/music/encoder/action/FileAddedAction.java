@@ -1,14 +1,9 @@
 package uk.co.unclealex.music.encoder.action;
 
-import uk.co.unclealex.music.base.model.EncodedTrackBean;
+public class FileAddedAction extends FileAction {
 
-public class FileAddedAction extends TrackAction {
-
-	private String i_path;
-	
-	public FileAddedAction(String path, EncodedTrackBean encodedTrackBean) {
-		super(encodedTrackBean);
-		i_path = path;
+	public FileAddedAction(String path) {
+		super(path);
 	}
 
 	@Override
@@ -20,8 +15,4 @@ public class FileAddedAction extends TrackAction {
 	public <E> E accept(ValueEncodingActionVisitor<E> visitor) {
 		return visitor.visit(this);
 	}
-
-	public String getPath() {
-		return i_path;
-	}	
 }

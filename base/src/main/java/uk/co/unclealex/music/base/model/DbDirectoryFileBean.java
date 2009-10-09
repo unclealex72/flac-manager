@@ -3,10 +3,8 @@ package uk.co.unclealex.music.base.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 
 import uk.co.unclealex.music.base.visitor.DaoAwareFileVisitor;
@@ -27,8 +25,7 @@ public class DbDirectoryFileBean extends AbstractFileBean implements DirectoryFi
 		return visitor.visit(this);
 	}
 	
-	@OneToMany(cascade={CascadeType.ALL, CascadeType.REMOVE}, targetEntity=AbstractFileBean.class)
-	@JoinColumn(name="child_fk")
+	@OneToMany(targetEntity=AbstractFileBean.class, mappedBy="parent")
 	public Set<FileBean> getChildren() {
 		return i_children;
 	}
