@@ -1,5 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <parent>
+  	<groupId>uk.co.unclealex</groupId>
+  	<artifactId>parent</artifactId>
+  	<version>2.0.0</version>
+  </parent>
   <groupId>uk.co.unclealex.music</groupId>
   <artifactId>parent</artifactId>
   <name>Flac Music Manager And Encoder</name>
@@ -9,18 +14,15 @@
     <module>base</module>
     <module>test</module>
     <module>core</module>
-    <module>commands</module>
     <module>encoder</module>
     <module>album-covers</module>
     <module>web</module>
-    <module>commands-client</module>
     <module>fs</module>
   </modules>
 
   <properties>
-  	<spring-version>2.5.6</spring-version>
+  	<spring-version>2.5.6.SEC01</spring-version>
   	<derby-version>10.4.2.0</derby-version>
-  	<jackrabbit-version>1.5.2</jackrabbit-version>
   	<slf4j-version>1.5.6</slf4j-version>
 	</properties>
 
@@ -28,26 +30,4 @@
   	<url>scm:svn:http://hurst/svn/trunk/personal/Music</url>
   	<connection>scm:svn:http://hurst/svn/trunk/personal/Music</connection>
   </scm>
-
-  <distributionManagement>
-      <repository>
-        <id>default</id>
-        <name>Default repository</name>
-        <url>file:///home/alex/.m2/repository</url>
-      </repository>
-    </distributionManagement>
-
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>
