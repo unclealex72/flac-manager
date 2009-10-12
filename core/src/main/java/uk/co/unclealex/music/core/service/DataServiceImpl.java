@@ -18,13 +18,14 @@ public class DataServiceImpl implements DataService {
 	private DataDao i_dataDao;
 	
 	@Override
-	public DataBean createDataBean() throws IOException {
+	public DataBean createDataBean(String extension) throws IOException {
+		extension = extension.toLowerCase();
 		DataBean dataBean = new DataBean();
 		File dir = getEncodedMusicStorageDirectory();
 		File dataFile = null;
 		boolean fileExists = true;
 		while (fileExists) {
-			dataFile = new File(dir, UUID.randomUUID().toString());
+			dataFile = new File(dir, UUID.randomUUID().toString() + "." + extension);
 			fileExists = dataFile.exists();
 		}
 		dataFile.createNewFile();

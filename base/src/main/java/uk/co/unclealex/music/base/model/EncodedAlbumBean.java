@@ -2,6 +2,7 @@ package uk.co.unclealex.music.base.model;
 
 import java.util.Comparator;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -42,7 +43,7 @@ public class EncodedAlbumBean extends CodedBean<EncodedAlbumBean> {
 			});
 	
 	private String i_title;
-	private SortedSet<EncodedTrackBean> i_encodedTrackBeans;
+	private SortedSet<EncodedTrackBean> i_encodedTrackBeans = new TreeSet<EncodedTrackBean>();
 	private EncodedArtistBean i_encodedArtistBean;
 	
 	@Override

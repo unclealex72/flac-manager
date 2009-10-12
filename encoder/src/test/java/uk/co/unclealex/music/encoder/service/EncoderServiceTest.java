@@ -1,18 +1,34 @@
 package uk.co.unclealex.music.encoder.service;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import javax.imageio.ImageIO;
+
+import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.FunctorException;
+import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.datatype.Artwork;
 
 import uk.co.unclealex.hibernate.dao.DataDao;
+import uk.co.unclealex.music.base.dao.AlbumCoverDao;
 import uk.co.unclealex.music.base.dao.EncodedArtistDao;
 import uk.co.unclealex.music.base.dao.EncodedTrackDao;
 import uk.co.unclealex.music.base.dao.EncoderDao;
@@ -20,6 +36,7 @@ import uk.co.unclealex.music.base.dao.FileDao;
 import uk.co.unclealex.music.base.dao.FlacArtistDao;
 import uk.co.unclealex.music.base.dao.OwnerDao;
 import uk.co.unclealex.music.base.initialise.Initialiser;
+import uk.co.unclealex.music.base.model.AlbumCoverBean;
 import uk.co.unclealex.music.base.model.EncodedAlbumBean;
 import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
@@ -33,6 +50,8 @@ import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
 import uk.co.unclealex.music.encoder.EncoderSpringTest;
 import uk.co.unclealex.music.encoder.action.EncodingAction;
 import uk.co.unclealex.music.encoder.exception.EncodingException;
+import uk.co.unclealex.music.test.CanonicalAlbumCover;
+import uk.co.unclealex.music.test.RawPictureData;
 import uk.co.unclealex.music.test.TestFlacProvider;
 
 public abstract class EncoderServiceTest extends EncoderSpringTest {
@@ -51,6 +70,7 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 	private DataDao i_dataDao;
 	private TitleFormatService i_titleFormatService;
 	private FileDao i_fileDao;
+	private AlbumCoverDao i_albumCoverDao;
 	
 	private static boolean s_initialisationRequired = true;
 	
@@ -70,16 +90,17 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 		}
 	}
 	
-	protected List<EncodingAction> doTestEncoding(String testName) throws EncodingException {
+	protected List<EncodingAction> doTestEncoding(String testName) throws EncodingException, IOException {
 		List<EncodingAction> encodingActions = getEncoderService().encodeAll(SIMULTANEOUS_THREADS);
 		checkArtists(testName);
 		checkOwnership(testName);
 		checkFilesystem(testName);
+		checkCovers(testName);
 		checkData(testName);
 		return encodingActions;
 	}
 	
-	protected void doTestEncoding(String testName, List<EncodingAction> expectedEncodingActions) throws EncodingException {
+	protected void doTestEncoding(String testName, List<EncodingAction> expectedEncodingActions) throws EncodingException, IOException {
 		List<EncodingAction> actualEncodingActions = doTestEncoding(testName);
 		assertEquals("The wrong encoding actions were returned for test " + testName, expectedEncodingActions, actualEncodingActions);
 	}
@@ -210,10 +231,92 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 		return expectedPaths;
 	}
 	
+	protected void checkCovers(String testName) throws IOException {
+		Transformer<AlbumCoverBean, CanonicalAlbumCover> transformer = new Transformer<AlbumCoverBean, CanonicalAlbumCover>() {
+			@Override
+			public CanonicalAlbumCover transform(AlbumCoverBean albumCoverBean) {
+				try {
+					URI uri = new URI(albumCoverBean.getUrl());
+					File file = new File(uri);
+					BufferedImage image = ImageIO.read(file);
+					long size = (long) image.getWidth() * image.getHeight();
+					return new CanonicalAlbumCover(
+							file,
+							size, 
+							albumCoverBean.getArtistCode(), 
+							albumCoverBean.getAlbumCode(), 
+							albumCoverBean.getDateSelected() != null);
+				}
+				catch (IOException e) {
+					throw new FunctorException("Cannot read image " + albumCoverBean.getUrl());
+				}
+				catch (URISyntaxException e) {
+					throw new FunctorException("Cannot read image " + albumCoverBean.getUrl());
+				}
+			}
+		};
+		Set<CanonicalAlbumCover> canonicalAlbumCovers = getTestFlacProvider().getCanonicalAlbumCovers();
+		assertEquals(
+			"The wrong album cover information was returned for test " + testName, 
+			canonicalAlbumCovers,
+			CollectionUtils.collect(getAlbumCoverDao().getAll(), transformer));
+		for (FlacTrackBean flacTrackBean : getTestFlacProvider().getAllFlacTrackBeans().values()) {
+			FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
+			checkPicturesEqual(
+					flacAlbumBean.getFlacArtistBean().getCode(), flacAlbumBean.getCode(), flacTrackBean.getTitle(), flacTrackBean.getFile(), testName);
+		}
+		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
+			EncodedAlbumBean encodedAlbumBean = encodedTrackBean.getEncodedAlbumBean();
+			checkPicturesEqual(
+					encodedAlbumBean.getEncodedArtistBean().getCode(), encodedAlbumBean.getCode(), 
+					encodedTrackBean.getTitle(), encodedTrackBean.getTrackDataBean().getFile(), testName);
+		}
+	}
+	
+	protected void checkPicturesEqual(final String artistCode, final String albumCode, String title, File dataFile, String testName) throws IOException {
+		CanonicalAlbumCover canonicalAlbumCover =
+			CollectionUtils.find(
+				getTestFlacProvider().getCanonicalAlbumCovers(),
+				new Predicate<CanonicalAlbumCover>() {
+					@Override
+					public boolean evaluate(CanonicalAlbumCover canonicalAlbumCover) {
+						return 
+							artistCode.equals(canonicalAlbumCover.getArtistCode()) && 
+							albumCode.equals(canonicalAlbumCover.getAlbumCode()) &&
+							canonicalAlbumCover.isSelected();
+					}
+				});
+		RawPictureData expectedData = canonicalAlbumCover==null?null:canonicalAlbumCover.getRawPictureData();
+		String trackName = String.format("%s: %s, %s.%s", artistCode, albumCode, title, FilenameUtils.getExtension(dataFile.getName()));
+		Tag tag;
+		try {
+			tag = AudioFileIO.read(dataFile).getTag();
+		}
+		catch (Exception e) {
+			throw new RuntimeException("Could not read tag data for " + trackName + " in test " + testName, e);
+		}
+		List<Artwork> artworkList = tag.getArtworkList();
+		if (artworkList.isEmpty()) {
+			if (expectedData != null) {
+				fail("Artwork was not found in file " + trackName + " when some was expected in test " + testName);
+			}
+		}
+		else {
+			assertEquals("The wrong amount of artwork was found in file " + trackName + " in test " + testName, 1, artworkList.size());
+			if (expectedData == null) {
+				fail("Artwork was found in file " + trackName + " when none was expected in test " + testName);
+			}
+			RawPictureData artworkData = new RawPictureData(artworkList.get(0).getBinaryData());
+			assertEquals(
+					"The artwork in file " + trackName + " was not correct in test " + testName, 
+					expectedData, artworkData);
+		}
+	}
+
 	protected void checkData(String testName) {
-		long trackCount = getEncodedTrackDao().count();
+		long trackAndCoverCount = getEncodedTrackDao().count() + getAlbumCoverDao().count();
 		long dataCount = getDataDao().count();
-		assertEquals("The wrong number of data beans were found in test " + testName, trackCount, dataCount);
+		assertEquals("The wrong number of data beans were found in test " + testName, trackAndCoverCount, dataCount);
 	}
 	public EncoderService getEncoderService() {
 		return i_encoderService;
@@ -317,6 +420,14 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 
 	public void setDataDao(DataDao dataDao) {
 		i_dataDao = dataDao;
+	}
+
+	public AlbumCoverDao getAlbumCoverDao() {
+		return i_albumCoverDao;
+	}
+
+	public void setAlbumCoverDao(AlbumCoverDao albumCoverDao) {
+		i_albumCoverDao = albumCoverDao;
 	}
 	
 }

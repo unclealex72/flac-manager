@@ -16,7 +16,9 @@
 			</list>
 		</property>
 	</bean>
-	
+
+	<alias name="testFlacProvider" alias="externalCoverArtService"/>
+		
 	<bean id="slimServerInformationDao"
 		class="uk.co.unclealex.music.test.TestSlimServerInformationDao"/>
 </beans>

@@ -1,17 +1,16 @@
 package uk.co.unclealex.music.fs;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
 import org.apache.commons.io.FilenameUtils;
 
-import uk.co.unclealex.music.base.model.DataFileBean;
-import uk.co.unclealex.music.base.model.DirectoryFileBean;
 import uk.co.unclealex.music.base.model.FileBean;
-import uk.co.unclealex.music.base.visitor.FileVisitor;
+import uk.co.unclealex.music.base.model.DirectoryFileBean;
+import uk.co.unclealex.music.base.model.EncodedTrackFileBean;
+import uk.co.unclealex.music.base.visitor.DaoFileVisitor;
 import fuse.Errno;
 import fuse.FuseDirFiller;
 import fuse.FuseException;
@@ -39,51 +38,75 @@ public class FileSystem extends ReadOnlyFileSystem {
 
 	@Override
 	public int getattr(String path, final FuseGetattrSetter getattrSetter) throws FuseException {
-    final int time = (int) (System.currentTimeMillis() / 1000L);
-		FileVisitor<Integer, Exception> fileVisitor = new FileVisitor<Integer, Exception>() {
+    final int atime = (int) (System.currentTimeMillis() / 1000L);
+		DaoFileVisitor<Integer, Exception> fileVisitor = new DaoFileVisitor<Integer, Exception>() {
 			@Override
 			public Integer visit(DirectoryFileBean directoryFileBean) {
+				int ctime = getFileCreationTime(directoryFileBean);
+				int mtime = getFileModificationTime(directoryFileBean);
 				int childCount = getFileSystemProvider().countChildren(directoryFileBean);
         getattrSetter.set(
-            directoryFileBean.getId(),
+            createId(directoryFileBean),
             getMode(directoryFileBean),
             1,
             0, 0,
             0,
             childCount * NAME_LENGTH,
             (childCount * NAME_LENGTH + BLOCK_SIZE - 1) / BLOCK_SIZE,
-            time, time, time);
+            atime, mtime, ctime);
         return 0;
 			}
 			@Override
-			public Integer visit(DataFileBean dataFileBean) {
-				long fileSize = dataFileBean.getFile().length();
+			public Integer visit(EncodedTrackFileBean encodedTrackFileBean) {
+				int ctime = getFileCreationTime(encodedTrackFileBean);
+				int mtime = getFileModificationTime(encodedTrackFileBean);
+				long fileSize = encodedTrackFileBean.getFile().length();
         getattrSetter.set(
-            dataFileBean.getId(),
-            getMode(dataFileBean),
+            createId(encodedTrackFileBean),
+            getMode(encodedTrackFileBean),
             1,
             0, 0,
             0,
             fileSize,
             (fileSize + BLOCK_SIZE - 1) / BLOCK_SIZE,
-            time, time, time);
+            atime, mtime, ctime);
         return 0;
 			}
 		};
 		return visitPath(path, fileVisitor);
 	}
 
+	protected int getFileCreationTime(FileBean fileBean) {
+		return (int) (fileBean.getCreationTimestamp().getTime() / 1000);
+	}
+
+	protected int getFileModificationTime(FileBean fileBean) {
+		long reportedLastModificationTime = fileBean.getModificationTimestamp().getTime();
+		DaoFileVisitor<Long, Exception> fileVisitor = new DaoFileVisitor<Long, Exception>() {
+			@Override
+			public Long visit(DirectoryFileBean directoryFileBean) {
+				return 0l;
+			}
+			@Override
+			public Long visit(EncodedTrackFileBean encodedTrackFileBean) {
+				return encodedTrackFileBean.getEncodedTrackBean().getTrackDataBean().getFile().lastModified();
+			}
+		};
+		long fileLastModificationTime = fileBean.accept(fileVisitor);
+		return (int) (Math.max(reportedLastModificationTime, fileLastModificationTime) / 1000l);
+	}
+	
 	@Override
 	public int getdir(String path, final FuseDirFiller dirFiller) throws FuseException {
-		FileVisitor<Integer, Exception> fileVisitor = new FileVisitor<Integer, Exception>() {
+		DaoFileVisitor<Integer, Exception> fileVisitor = new DaoFileVisitor<Integer, Exception>() {
 			@Override
-			public Integer visit(DataFileBean dataFileBean) {
+			public Integer visit(EncodedTrackFileBean encodedTrackFileBean) {
 				return Errno.EBADF;
 			}
 			@Override
 			public Integer visit(DirectoryFileBean directoryFileBean) {
-				for (FileBean fileBean : directoryFileBean.getChildren()) {
-					dirFiller.add(FilenameUtils.getName(fileBean.getPath()), fileBean.getId(), getMode(fileBean));
+				for (FileBean fileBean : getFileSystemProvider().getChildren(directoryFileBean)) {
+					dirFiller.add(FilenameUtils.getName(fileBean.getPath()), createId(fileBean), getMode(fileBean));
 				}
 				return 0;
 			}
@@ -93,14 +116,14 @@ public class FileSystem extends ReadOnlyFileSystem {
 
 	@Override
 	public int open(String path, int flags, final FuseOpenSetter openSetter) throws FuseException {
-		FileVisitor<Integer, Exception> fileVisitor = new FileVisitor<Integer, Exception>() {
+		DaoFileVisitor<Integer, Exception> fileVisitor = new DaoFileVisitor<Integer, Exception>() {
 			@Override
 			public Integer visit(DirectoryFileBean directoryFileBean) {
 				return Errno.EBADF;
 			}
 			@Override
-			public Integer visit(DataFileBean dataFileBean) {
-				final File file = dataFileBean.getFile();
+			public Integer visit(EncodedTrackFileBean encodedTrackFileBean) {
+				final File file = encodedTrackFileBean.getFile();
 				openSetter.setFh(new FileHandle(file));
 				return 0;
 			}
@@ -141,9 +164,9 @@ public class FileSystem extends ReadOnlyFileSystem {
 	}
 
 	private int getMode(FileBean fileBean) {
-		FileVisitor<Integer, Exception> fileVisitor = new FileVisitor<Integer, Exception>() {
+		DaoFileVisitor<Integer, Exception> fileVisitor = new DaoFileVisitor<Integer, Exception>() {
 			@Override
-			public Integer visit(DataFileBean dataFileBean) {
+			public Integer visit(EncodedTrackFileBean encodedTrackFileBean) {
 				return 0444 | FuseFtypeConstants.TYPE_FILE;
 			}
 			@Override
@@ -156,17 +179,18 @@ public class FileSystem extends ReadOnlyFileSystem {
 
 	protected FileBean getFileBean(String path) throws FuseException {
 		try {
-			return getFileSystemProvider().findByPath(path);
-		}
-		catch (FileNotFoundException e) {
-			throw new FuseException("Cannot find file " + path).initErrno(Errno.ENOENT);
+			FileBean fileBean = getFileSystemProvider().findByPath(path.substring(1));
+			if (fileBean == null) {
+				throw new FuseException("Cannot find file " + path).initErrno(Errno.ENOENT);
+			}
+			return fileBean;
 		}
 		catch (IOException e) {
 			throw new FuseException("Cannot find file " + path, e).initErrno(Errno.ENOENT);
 		}
 	}
 	
-	protected int visitPath(String path, FileVisitor<Integer, ? extends Exception> fileVisitor) throws FuseException {
+	protected int visitPath(String path, DaoFileVisitor<Integer, ? extends Exception> fileVisitor) throws FuseException {
 		FileBean fileBean = getFileBean(path);
 		int result = fileBean.accept(fileVisitor);
 		if (fileVisitor.getException() != null) {
@@ -175,11 +199,15 @@ public class FileSystem extends ReadOnlyFileSystem {
 		return result;
 	}
 
-	protected FileSystemProvider getFileSystemProvider() {
+	protected long createId(FileBean fileBean) {
+		return fileBean.getPath().hashCode();
+		
+	}
+	public FileSystemProvider getFileSystemProvider() {
 		return i_fileSystemProvider;
 	}
 
-	protected void setFileSystemProvider(FileSystemProvider fileSystemProvider) {
+	public void setFileSystemProvider(FileSystemProvider fileSystemProvider) {
 		i_fileSystemProvider = fileSystemProvider;
 	}
 }

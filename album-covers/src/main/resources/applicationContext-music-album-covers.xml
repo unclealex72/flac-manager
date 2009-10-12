@@ -8,17 +8,14 @@
 	default-autowire="byName">
 
 	<import resource="classpath*:applicationContext-music-core.xml"/>
-	<import resource="classpath*:applicationContext-image.xml"/>
 	
-  <context:component-scan
-  	base-package="uk.co.unclealex.music.albumcover"
-  	name-generator="uk.co.unclealex.spring.BeanNameGenerator"
-  	scope-resolver="uk.co.unclealex.spring.AnnotationScopeMetadataResolver"/>
-
-	<bean id="amazonService" class="uk.co.unclealex.music.albumcover.service.AmazonServiceImpl">
-		<property name="accessKey" value="1GK0A6KVNQEFVH5Q1Z82"/>
-		<property name="subscriberId" value="alex.jones@unclealex.co.uk"/>
-	</bean>
-		
+	<bean id="albumCoverService" class="uk.co.unclealex.music.albumcover.service.AlbumCoverServiceImpl"/>
 	
+	<bean id="externalCoverArtService" class="uk.co.unclealex.music.albumcover.service.AmazonExternalCoverArtService"/>
+	
+	<bean id="signedRequestsService" class="uk.co.unclealex.music.albumcover.service.SignedRequestsServiceImpl" init-method="initialise">
+		<property name="awsAccessKeyId" value="1GK0A6KVNQEFVH5Q1Z82"/>
+		<property name="awsSecretKey" value="jq/BOXh4dOYXsso3jn/N8FGF7/40YCPHmTyas1ZF"/>
+		<property name="endpoint" value="ecs.amazonaws.co.uk"/>
+	</bean>	
 </beans>

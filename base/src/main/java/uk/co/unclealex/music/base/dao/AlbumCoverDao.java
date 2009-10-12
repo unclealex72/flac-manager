@@ -17,4 +17,6 @@ public interface AlbumCoverDao extends KeyedDao<AlbumCoverBean> {
 	public int countSelectedAlbums();
 
 	public Set<String> findSelectedAlbumCoverFilePaths();
+
+	public AlbumCoverBean findByUrl(String url);
 }

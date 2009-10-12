@@ -1,403 +1,353 @@
 package uk.co.unclealex.music.albumcover.service;
 
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.annotation.PostConstruct;
-import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.ImageOutputStream;
-import javax.jcr.RepositoryException;
-import javax.xml.ws.Holder;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.stereotype.Service;
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.CannotWriteException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.FieldDataInvalidException;
+import org.jaudiotagger.tag.KeyNotFoundException;
+import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.TagException;
+import org.jaudiotagger.tag.datatype.Artwork;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.co.unclealex.image.service.ImageService;
 import uk.co.unclealex.music.base.dao.AlbumCoverDao;
+import uk.co.unclealex.music.base.dao.EncodedAlbumDao;
 import uk.co.unclealex.music.base.dao.FlacAlbumDao;
-import uk.co.unclealex.music.base.io.DataExtractor;
-import uk.co.unclealex.music.base.io.DataInjector;
 import uk.co.unclealex.music.base.model.AlbumCoverBean;
-import uk.co.unclealex.music.base.model.AlbumCoverSize;
+import uk.co.unclealex.music.base.model.EncodedAlbumBean;
+import uk.co.unclealex.music.base.model.EncodedArtistBean;
+import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.ExternalCoverArtImage;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
-import uk.co.unclealex.music.base.service.FlacService;
-import uk.co.unclealex.music.base.service.filesystem.RepositoryManager;
-import uk.co.unclealex.music.core.io.KnownLengthByteArrayInputStream;
-
-import com.amazon.webservices.awsecommerceservice.Errors;
-import com.amazon.webservices.awsecommerceservice.ImageSet;
-import com.amazon.webservices.awsecommerceservice.Item;
-import com.amazon.webservices.awsecommerceservice.ItemSearchRequest;
-import com.amazon.webservices.awsecommerceservice.Items;
-import com.amazon.webservices.awsecommerceservice.OperationRequest;
-import com.amazon.webservices.awsecommerceservice.Errors.Error;
-import com.amazon.webservices.awsecommerceservice.Item.ImageSets;
-import com.sun.media.imageioimpl.plugins.png.CLibPNGImageWriterSpi;
+import uk.co.unclealex.music.base.model.FlacArtistBean;
+import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.service.ArtworkTaggingException;
+import uk.co.unclealex.music.base.service.DataService;
+import uk.co.unclealex.music.base.service.ExternalCoverArtException;
+import uk.co.unclealex.music.base.service.ExternalCoverArtService;
 
 @Transactional
 public class AlbumCoverServiceImpl implements AlbumCoverService {
 
 	private static final Logger log = Logger.getLogger(AlbumCoverServiceImpl.class);
 	
-	private AmazonService i_amazonService;
-	private Transformer<ImageSet, AlbumCoverBean> i_imageSetTransformer;
-	private FlacService i_flacService;
-	private FlacAlbumDao i_flacAlbumDao;
 	private AlbumCoverDao i_albumCoverDao;
-	private ImageService i_imageService;
-	private Predicate<FlacAlbumBean> i_albumHasCoversPredicate;
-	private int i_thumbnailSize = 50;
-	
-	@PostConstruct
-	public void initialise() {
-		String libraryFile = "/usr/local/lib/libclib-1.1.so";
-		System.load(libraryFile);
-		Predicate<FlacAlbumBean> albumHasCoversPredicate = new Predicate<FlacAlbumBean>() {
-			@Override
-			public boolean evaluate(FlacAlbumBean flacAlbumBean) {
-				String pathForFlacAlbum = getFlacService().getPathForFlacAlbum(flacAlbumBean);
-				return getAlbumCoverDao().albumPathHasCovers(pathForFlacAlbum);
-			}
-		};
-		setAlbumHasCoversPredicate(albumHasCoversPredicate);
-	}
+	private FlacAlbumDao i_flacAlbumDao;
+	private DataService i_dataService;
+	private EncodedAlbumDao i_encodedAlbumDao;
+	private ExternalCoverArtService i_externalCoverArtService;
 	
 	@Override
 	public Predicate<FlacAlbumBean> createAlbumHasCoverPredicate() {
-		return getAlbumHasCoversPredicate();
+		final AlbumCoverDao albumCoverDao = getAlbumCoverDao();
+		return new Predicate<FlacAlbumBean>() {
+			@Override
+			public boolean evaluate(FlacAlbumBean flacAlbumBean) {
+				String artistCode = flacAlbumBean.getFlacArtistBean().getCode();
+				String albumCode = flacAlbumBean.getCode();
+				return albumCoverDao.findSelectedCoverForAlbum(artistCode, albumCode) != null;
+			}
+		};
+	}
+
+	@Override
+	public SortedSet<AlbumCoverBean> downloadCoversForAlbum(FlacAlbumBean flacAlbumBean) throws ExternalCoverArtException, IOException, ArtworkTaggingException {
+		SortedSet<AlbumCoverBean> albumCoverBeans = new TreeSet<AlbumCoverBean>();
+		SortedSet<ExternalCoverArtImage> externalCoverArtImages = 
+			getExternalCoverArtService().searchForImages(flacAlbumBean.getFlacArtistBean().getName(), flacAlbumBean.getTitle());
+		for (Iterator<ExternalCoverArtImage> iter = externalCoverArtImages.iterator(); iter.hasNext(); ) {
+			ExternalCoverArtImage externalCoverArtImage = iter.next();
+			URL url = externalCoverArtImage.getUrl();
+			InputStream in = url.openStream();
+			try {
+				AlbumCoverBean albumCoverBean =
+					saveAndOptionallySelectCover(flacAlbumBean, url.toString(), in, !iter.hasNext());
+				albumCoverBeans.add(albumCoverBean);
+			}
+			finally {
+				IOUtils.closeQuietly(in);
+			}
+		}
+		return albumCoverBeans;
+	}
+
+	@Override
+	public AlbumCoverBean saveAndSelectCover(FlacAlbumBean flacAlbumBean, String imageUrl, InputStream urlStream)
+			throws IOException, ArtworkTaggingException {
+		return saveAndOptionallySelectCover(flacAlbumBean, imageUrl, urlStream, true);
+	}
+
+	protected AlbumCoverBean saveAndOptionallySelectCover(
+		FlacAlbumBean flacAlbumBean, String imageUrl, InputStream urlStream, boolean select) throws IOException, ArtworkTaggingException {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		IOUtils.copy(urlStream, out);
+		byte[] buffer = out.toByteArray();
+		BufferedImage image = ImageIO.read(new ByteArrayInputStream(buffer));
+		AlbumCoverDao albumCoverDao = getAlbumCoverDao();
+		AlbumCoverBean albumCoverBean = getAlbumCoverDao().findByUrl(imageUrl);
+		if (albumCoverBean == null) {
+			albumCoverBean = new AlbumCoverBean();
+			albumCoverBean.setUrl(imageUrl);
+			albumCoverBean.setCoverDataBean(getDataService().createDataBean(FilenameUtils.getExtension(imageUrl)));
+		}
+		albumCoverBean.setAlbumCode(flacAlbumBean.getCode());
+		albumCoverBean.setAlbumCoverSize((long) image.getWidth() * image.getHeight());
+		albumCoverBean.setArtistCode(flacAlbumBean.getFlacArtistBean().getCode());
+		albumCoverBean.setDateDownloaded(new Date());
+		albumCoverBean.setExtension(FilenameUtils.getExtension(imageUrl).toLowerCase());
+		OutputStream dataOutputStream = new FileOutputStream(albumCoverBean.getCoverDataBean().getFile());
+		try {
+			IOUtils.copy(new ByteArrayInputStream(buffer), dataOutputStream);
+		}
+		finally {
+			IOUtils.closeQuietly(dataOutputStream);
+		}
+		albumCoverDao.store(albumCoverBean);
+		if (select) {
+			selectAlbumCover(albumCoverBean);
+		}
+		return albumCoverBean;
 	}
 	
+	@Override
+	public void downloadMissing() throws ArtworkTaggingException {
+		for (FlacAlbumBean flacAlbumBean : findAlbumsWithoutCovers()) {
+			try {
+				downloadCoversForAlbum(flacAlbumBean);
+			}
+			catch (ExternalCoverArtException e) {
+				log.warn("Could not download any covers for album " + flacAlbumBean, e);
+			}
+			catch (IOException e) {
+				log.warn("Could not download any covers for album " + flacAlbumBean, e);
+			}
+		}
+	}
+
 	@Override
 	public SortedSet<FlacAlbumBean> findAlbumsWithoutCovers() {
-		SortedSet<FlacAlbumBean> albumsWithoutCovers = new TreeSet<FlacAlbumBean>();
-		CollectionUtils.selectRejected(getFlacAlbumDao().getAll(), getAlbumHasCoversPredicate(), albumsWithoutCovers);
+		TreeSet<FlacAlbumBean> albumsWithoutCovers = new TreeSet<FlacAlbumBean>();
+		CollectionUtils.selectRejected(getFlacAlbumDao().getAll(), createAlbumHasCoverPredicate(), albumsWithoutCovers);
 		return albumsWithoutCovers;
 	}
-	
-	@Override
-	public SortedSet<AlbumCoverBean> downloadCoversForAlbum(FlacAlbumBean flacAlbumBean) {
-		Transformer<ImageSet, AlbumCoverBean> imageSetTransformer = getImageSetTransformer();
-		Set<String> foundUrls = new HashSet<String>();
-		boolean isFirst = true;
-		String flacAlbumPath = getPathForFlacAlbum(flacAlbumBean);
-		String marketplaceDomain = null;
-		AmazonService amazonService = getAmazonService();
-		String awsAccessKeyId = amazonService.getAccessKey();
-		String subscriptionId = amazonService.getSubscriberId();
-		String associateTag = null;
-		String xmlEscaping = "Single";
-		String validate = "False";
-		ItemSearchRequest itemSearchRequest = new ItemSearchRequest();
-		itemSearchRequest.setSearchIndex("Music");
-		itemSearchRequest.setArtist(flacAlbumBean.getFlacArtistBean().getName());
-		itemSearchRequest.setTitle(flacAlbumBean.getTitle());
-		itemSearchRequest.setMerchantId("All");
-		itemSearchRequest.getResponseGroup().add("Medium");
-		List<ItemSearchRequest> request = Collections.singletonList(itemSearchRequest);
-		Holder<OperationRequest> operationRequestHolder = new Holder<OperationRequest>();
-		Holder<List<Items>> itemsHolder = new Holder<List<Items>>();
-		amazonService.itemSearch(
-				marketplaceDomain, awsAccessKeyId, subscriptionId, associateTag, xmlEscaping, 
-				validate, itemSearchRequest, request, operationRequestHolder, itemsHolder);
-		List<Items> items = itemsHolder.value;
-		for (Items itemsElement : items) {
-			Errors errors = itemsElement.getRequest().getErrors();
-			if (errors != null && !errors.getError().isEmpty()) {
-				Predicate<Error> isNoExactMatchesErrorPredicate = new Predicate<Error>() {
-					@Override
-					public boolean evaluate(Error error) {
-						return "AWS.ECommerceService.NoExactMatches".equals(error.getCode());
-					}
-				};
-				if (CollectionUtils.find(errors.getError(), isNoExactMatchesErrorPredicate) != null) {
-					return new TreeSet<AlbumCoverBean>();
-				}
-				Transformer<Error, String> transformer = new Transformer<Error, String>() {
-					@Override
-					public String transform(Error error) {
-						return error.getCode() + ": " + error.getMessage();
-					}
-				};
-				String errorMessage = StringUtils.join(CollectionUtils.collect(errors.getError(), transformer).iterator(), "\n");
-				throw new IllegalArgumentException(errorMessage);
-			}
-			for (Item item : itemsElement.getItem()) {
-				for (ImageSets imageSets : item.getImageSets()) {
-					for (ImageSet imageSet : imageSets.getImageSet()) {
-						AlbumCoverBean albumCoverBean = imageSetTransformer.transform(imageSet);
-						if (albumCoverBean != null) {
-							String url = albumCoverBean.getUrl();
-							if (foundUrls.add(url)) {
-								log.info("Found " + url + " for album " + flacAlbumBean.getTitle() + " by " + flacAlbumBean.getFlacArtistBean().getName());
-								try {
-									downloadAndStoreAlbumCover(albumCoverBean, flacAlbumPath, url, null, isFirst);
-								}
-								catch (IOException e) {
-									log.error("Url " + url + " could not be downloaded.");
-								}
-								catch (RepositoryException e) {
-									log.error("Url " + url + " could not stored.");
-								}
-								isFirst = false;
-							}
-						}
-					}
-				}
-				
-			}
-		}
-		return findCoversForAlbum(flacAlbumBean);
-	}
 
-	protected void downloadAndStoreAlbumCover(AlbumCoverBean albumCoverBean,
-			String flacAlbumPath, String url, InputStream urlInputStream, boolean selected) throws RepositoryException, IOException {
-		albumCoverBean.setUrl(url);
-		byte[] cover = downloadUrl(url, urlInputStream);
-		Date now = new Date();
-		albumCoverBean.setDateDownloaded(now);
-		albumCoverBean.setFlacAlbumPath(flacAlbumPath);
-		getAlbumCoverDataInjector().injectData(albumCoverBean, new KnownLengthByteArrayInputStream(cover));
-		getAlbumThumbnailDataInjector().injectData(albumCoverBean, new KnownLengthByteArrayInputStream(createThumbnail(cover)));
-		if (selected) {
-			selectAlbumCover(albumCoverBean, now);
-		}
-		else {
-			getAlbumCoverDao().store(albumCoverBean);
-		}
-	}
-
-	protected byte[] createThumbnail(byte[] cover) throws IOException {
-		Color background = new Color(0, 0, 0, 0);
-		BufferedImage sourceImage = ImageIO.read(new ByteArrayInputStream(cover));
-		BufferedImage thumbnailImage =
-			getImageService().resize(
-				sourceImage, new Dimension(getThumbnailSize(), getThumbnailSize()), background);
-		return writePng(thumbnailImage);
+	protected SortedSet<AlbumCoverBean> findCoversForAlbum(String artistCode, String albumCode) {
+		return getAlbumCoverDao().getCoversForAlbum(artistCode, albumCode);
 	}
 
 	@Override
-	public void saveSelectedAlbumCovers() {
-		for (FlacAlbumBean flacAlbumBean : getFlacAlbumDao().getAll()) {
-			try {
-				saveSelectedAlbumCover(flacAlbumBean);
-			}
-			catch (RepositoryException e) {
-				log.error("Could not save the cover for album " + flacAlbumBean.getTitle() + " by " + flacAlbumBean.getFlacArtistBean().getName(), e);
-			}
-		}
+	public SortedSet<AlbumCoverBean> findCoversForAlbum(FlacAlbumBean flacAlbumBean) {
+		return findCoversForAlbum(flacAlbumBean.getFlacArtistBean().getCode(), flacAlbumBean.getCode());
 	}
 
-	protected void saveSelectedAlbumCover(FlacAlbumBean flacAlbumBean) throws RepositoryException {
-		AlbumCoverBean albumCoverBean = findSelectedCoverForFlacAlbum(flacAlbumBean);
-		if (albumCoverBean != null) {
-			saveAlbumCoverBean(albumCoverBean);
-		}
-	}
-
-	protected void saveAlbumCoverBean(AlbumCoverBean albumCoverBean) throws RepositoryException {
-		getCoversRepositoryManager().addOrUpdate(albumCoverBean.getId());
+	protected AlbumCoverBean findSelectedCoverForAlbum(String artistCode, String albumCode) {
+		return getAlbumCoverDao().findSelectedCoverForAlbum(artistCode, albumCode);
 	}
 
 	@Override
-	public void downloadAndSaveCoversForAlbums(Collection<FlacAlbumBean> flacAlbumBeans) {
-		for (FlacAlbumBean flacAlbumBean : flacAlbumBeans) {
-			downloadAndSaveCoversForAlbum(flacAlbumBean);
-		}
+	public AlbumCoverBean findSelectedCoverForEncodedTrack(EncodedTrackBean encodedTrackBean) {
+		EncodedAlbumBean encodedAlbumBean = encodedTrackBean.getEncodedAlbumBean();
+		return findSelectedCoverForAlbum(encodedAlbumBean.getEncodedArtistBean().getCode(), encodedAlbumBean.getCode());
 	}
-	
-	protected void downloadAndSaveCoversForAlbum(FlacAlbumBean flacAlbumBean) {
-		// Dont do anything if covers already exist.
-		SortedSet<AlbumCoverBean> findCoversForAlbum = findCoversForAlbum(flacAlbumBean);
-		if (findCoversForAlbum != null && !findCoversForAlbum.isEmpty()) {
-			return;
+
+	@Override
+	public AlbumCoverBean findSelectedCoverForFlacAlbum(FlacAlbumBean flacAlbumBean) {
+		return findSelectedCoverForAlbum(flacAlbumBean.getFlacArtistBean().getCode(), flacAlbumBean.getCode());
+	}
+
+	@Override
+	public boolean removeCoversForMissingAlbum(String artistCode, String albumCode) {
+		boolean removed = false;
+		AlbumCoverDao albumCoverDao = getAlbumCoverDao();
+		for (AlbumCoverBean albumCoverBean : findCoversForAlbum(artistCode, albumCode)) {
+			albumCoverDao.remove(albumCoverBean);
+			removed = true;
 		}
-		downloadCoversForAlbum(flacAlbumBean);
-		try {
-			saveSelectedAlbumCover(flacAlbumBean);
-		}
-		catch (RepositoryException e) {
-			log.error("Could not save the cover for album " + flacAlbumBean.getTitle() + " by " + flacAlbumBean.getFlacArtistBean().getName(), e);
-		}
+		return removed;
 	}
 
 	@Override
 	public void removeUnselectedCovers(FlacAlbumBean flacAlbumBean) {
 		AlbumCoverDao albumCoverDao = getAlbumCoverDao();
-		for (AlbumCoverBean albumCoverBean : albumCoverDao.getCoversForAlbumPath(getPathForFlacAlbum(flacAlbumBean))) {
-			if (albumCoverBean.getDateSelected() == null) {
+		for (AlbumCoverBean albumCoverBean : findCoversForAlbum(flacAlbumBean)) {
+			if (albumCoverBean.getDateSelected() != null) {
 				albumCoverDao.remove(albumCoverBean);
 			}
 		}
 	}
 
 	@Override
-	@Transactional(rollbackFor=RepositoryException.class)
-	public void selectAlbumCover(AlbumCoverBean albumCoverBean) throws RepositoryException {
-		selectAlbumCover(albumCoverBean, new Date());
-	}
-	
-	protected void selectAlbumCover(AlbumCoverBean albumCoverBean, Date now) throws RepositoryException {
-		if (albumCoverBean.getDateSelected() != null) {
-			return;
-		}
+	public void selectAlbumCover(AlbumCoverBean albumCoverBean) throws IOException, ArtworkTaggingException {
+		AlbumCoverBean currentlySelectedCover = findSelectedCoverForAlbum(albumCoverBean.getArtistCode(), albumCoverBean.getAlbumCode());
 		AlbumCoverDao albumCoverDao = getAlbumCoverDao();
-		String flacAlbumPath = albumCoverBean.getFlacAlbumPath();
-		SortedSet<AlbumCoverBean> coversForAlbumPath = 
-			new TreeSet<AlbumCoverBean>(albumCoverDao.getCoversForAlbumPath(flacAlbumPath));
-		coversForAlbumPath.add(albumCoverBean);
-		for (AlbumCoverBean existingAlbumCoverBean : coversForAlbumPath) {
-			boolean selected = ObjectUtils.equals(existingAlbumCoverBean.getId(), albumCoverBean.getId());
-			if (selected) {
-				existingAlbumCoverBean.setDateSelected(now);
-				albumCoverDao.store(existingAlbumCoverBean);
+		if (
+				albumCoverBean.getDateSelected() == null && 
+				(currentlySelectedCover == null || !albumCoverBean.equals(currentlySelectedCover))) {
+			if (currentlySelectedCover != null) {
+				currentlySelectedCover.setDateSelected(null);
+				albumCoverDao.store(currentlySelectedCover);
 			}
-			else {
-				existingAlbumCoverBean.setDateSelected(null);
-				albumCoverDao.store(existingAlbumCoverBean);
-			}
-		}
-		saveAlbumCoverBean(albumCoverBean);
-	}
-	
-	@Override
-	public AlbumCoverBean findSelectedCoverForFlacAlbum(FlacAlbumBean flacAlbumBean) {
-		return getAlbumCoverDao().findSelectedCoverForAlbumPath(getPathForFlacAlbum(flacAlbumBean));
-	}
-	
-	protected String getPathForFlacAlbum(FlacAlbumBean flacAlbumBean) {
-		return getFlacService().getPathForFlacAlbum(flacAlbumBean);
-	}
-	
-	@Override
-	public SortedSet<AlbumCoverBean> findCoversForAlbum(
-			FlacAlbumBean flacAlbumBean) {
-		return getAlbumCoverDao().getCoversForAlbumPath(getPathForFlacAlbum(flacAlbumBean));
-	}
-	
-	protected byte[] downloadUrl(String url, InputStream urlInputStream) throws IOException {
-		InputStream in = null;
-		try { 
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			in = urlInputStream==null?new URL(url).openStream():urlInputStream;
-			IOUtils.copy(in, out);
-			out.close();
-			return convertToPng(out.toByteArray());
-		}
-		finally {
-			IOUtils.closeQuietly(in);
+			albumCoverBean.setDateSelected(new Date());
+			albumCoverDao.store(albumCoverBean);
+			albumCoverDao.flush();
+			updateTags(albumCoverBean);
 		}
 	}
 
-	protected byte[] convertToPng(byte[] originalImage) throws IOException {
-		BufferedImage downloadedImage = ImageIO.read(new ByteArrayInputStream(originalImage));
-		return writePng(downloadedImage);
+	protected void updateTags(AlbumCoverBean albumCoverBean) throws IOException, ArtworkTaggingException {
+		File albumCoverFile = albumCoverBean.getCoverDataBean().getFile();
+		Transformer<FlacAlbumBean, SortedSet<FlacTrackBean>> flacAlbumTransformer = new Transformer<FlacAlbumBean, SortedSet<FlacTrackBean>>() {
+			@Override
+			public SortedSet<FlacTrackBean> transform(FlacAlbumBean flacAlbumBean) {
+				return flacAlbumBean.getFlacTrackBeans();
+			}
+		};
+		Transformer<FlacTrackBean, File> flacTrackTransformer = new Transformer<FlacTrackBean, File>() {
+			@Override
+			public File transform(FlacTrackBean flacTrackBean) {
+				return flacTrackBean.getFile();
+			}
+		};
+		Transformer<FlacTrackBean, String> flacTrackNameTransformer = new Transformer<FlacTrackBean, String>() {
+			@Override
+			public String transform(FlacTrackBean flacTrackBean) {
+				FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
+				FlacArtistBean flacArtistBean = flacAlbumBean.getFlacArtistBean();
+				return String.format(
+						"%s: %s, %02d - %s.%s", 
+						flacArtistBean.getName(), flacAlbumBean.getTitle(), flacTrackBean.getTrackNumber(), flacTrackBean.getTitle(), "flac");
+			}
+		};
+		Transformer<EncodedAlbumBean, SortedSet<EncodedTrackBean>> encodedAlbumTransformer = 
+			new Transformer<EncodedAlbumBean, SortedSet<EncodedTrackBean>>() {
+			@Override
+			public SortedSet<EncodedTrackBean> transform(EncodedAlbumBean encodedAlbumBean) {
+				return encodedAlbumBean.getEncodedTrackBeans();
+			}
+		};
+		Transformer<EncodedTrackBean, File> encodedTrackTransformer = new Transformer<EncodedTrackBean, File>() {
+			@Override
+			public File transform(EncodedTrackBean encodedTrackBean) {
+				return encodedTrackBean.getTrackDataBean().getFile();
+			}
+		};
+		String artistCode = albumCoverBean.getArtistCode();
+		String albumCode = albumCoverBean.getAlbumCode();
+		FlacAlbumBean flacAlbumBean = getFlacAlbumDao().findByArtistAndAlbum(artistCode, albumCode);
+		doUpdateTags(
+				albumCoverFile, 
+				flacAlbumBean,
+				flacAlbumTransformer, flacTrackTransformer, flacTrackNameTransformer);
+		EncodedAlbumBean encodedAlbumBean = getEncodedAlbumDao().findByArtistCodeAndCode(artistCode, albumCode);
+		doUpdateTags(
+				albumCoverFile, 
+				encodedAlbumBean,
+				encodedAlbumTransformer, encodedTrackTransformer, 
+				new EncodedTrackNameTransformer());
 	}
 
-	protected byte[] writePng(BufferedImage downloadedImage) throws IOException {
-		ImageWriter writer = new CLibPNGImageWriterSpi().createWriterInstance();
-		ImageWriteParam writeParam = writer.getDefaultWriteParam();
-		writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-		writeParam.setCompressionQuality(0f);
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		ImageOutputStream imageOutputStream = ImageIO.createImageOutputStream(out);
-		writer.setOutput(imageOutputStream);
+	protected <A, T> void doUpdateTags(
+			File albumCoverFile, A album, Transformer<A, SortedSet<T>> albumTransformer, 
+			Transformer<T, File> trackTransformer, Transformer<T, String> trackNameTransformer) throws IOException, ArtworkTaggingException {
+		if (album != null) {
+			for (T track : albumTransformer.transform(album)) {
+				updateTag(
+						albumCoverFile, trackTransformer.transform(track),
+						trackNameTransformer.transform(track));
+			}
+		}
+	}
+
+	protected class EncodedTrackNameTransformer implements Transformer<EncodedTrackBean, String> {
+		@Override
+		public String transform(EncodedTrackBean encodedTrackBean) {
+			EncodedAlbumBean encodedAlbumBean = encodedTrackBean.getEncodedAlbumBean();
+			EncodedArtistBean encodedArtistBean = encodedAlbumBean.getEncodedArtistBean();
+			return String.format(
+					"%s: %s, %02d - %s.%s", 
+					encodedArtistBean.getName(), encodedAlbumBean.getTitle(), encodedTrackBean.getTrackNumber(), 
+					encodedTrackBean.getTitle(), encodedTrackBean.getEncoderBean().getExtension());
+		}
+	}
+	
+	protected void updateTag(File albumCoverFile, File trackFile, String trackName) throws IOException, ArtworkTaggingException {
+		log.info("Adding album cover tag to " + trackName + " (" + trackFile.getAbsolutePath() + ")");
 		try {
-			writer.write(null, new IIOImage(downloadedImage, null, null), null);
+			AudioFile audioFile = AudioFileIO.read(trackFile);
+			Tag tag = audioFile.getTag();
+			tag.deleteArtworkField();
+			Artwork artwork = Artwork.createArtworkFromFile(albumCoverFile);
+			artwork.setDescription("");
+			tag.createAndSetArtworkField(artwork);
+			audioFile.commit();
 		}
-		finally {
-			imageOutputStream.close();
-			writer.dispose();
+		catch (KeyNotFoundException e) {
+			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
 		}
-		return out.toByteArray();
+		catch (FieldDataInvalidException e) {
+			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
+		}
+		catch (CannotReadException e) {
+			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
+		}
+		catch (TagException e) {
+			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
+		}
+		catch (ReadOnlyFileException e) {
+			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
+		}
+		catch (InvalidAudioFrameException e) {
+			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
+		}
+		catch (CannotWriteException e) {
+			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
+		}
 	}
 
 	@Override
-	public void downloadMissing() {
-		FlacAlbumDao flacAlbumDao = getFlacAlbumDao();
-		for (FlacAlbumBean flacAlbumBean : flacAlbumDao.getAll()) {
-			if (findCoversForAlbum(flacAlbumBean).isEmpty()) {
-				log.info("Downloading covers for " + flacAlbumBean.getTitle() + " by " + flacAlbumBean.getFlacArtistBean().getName());
-				SortedSet<AlbumCoverBean> covers = downloadCoversForAlbum(flacAlbumBean);
-				log.info("Downloaded " + covers.size() + " covers.");
-			}
+	public boolean tagFile(EncodedTrackBean encodedTrackBean) throws IOException, ArtworkTaggingException {
+		EncodedAlbumBean encodedAlbumBean = encodedTrackBean.getEncodedAlbumBean();
+		AlbumCoverBean albumCoverBean = 
+			getAlbumCoverDao().findSelectedCoverForAlbum(encodedAlbumBean.getEncodedArtistBean().getCode(), encodedAlbumBean.getCode());
+		if (albumCoverBean == null) {
+			return false;
 		}
+		updateTag(
+				albumCoverBean.getCoverDataBean().getFile(), 
+				encodedTrackBean.getTrackDataBean().getFile(), 
+				new EncodedTrackNameTransformer().transform(encodedTrackBean));
+		return true;
 	}
 	
-	@Override
-	@Transactional(rollbackFor={RepositoryException.class, IOException.class})
-	public AlbumCoverBean saveAndSelectCover(FlacAlbumBean flacAlbumBean,
-			String imageUrl, InputStream urlInputStream, AlbumCoverSize albumCoverSize) throws IOException, RepositoryException {
-		AlbumCoverBean albumCoverBean = new AlbumCoverBean();
-		albumCoverBean.setAlbumCoverSize(albumCoverSize);
-		AlbumCoverDao albumCoverDao = getAlbumCoverDao();
-		String albumPath = getPathForFlacAlbum(flacAlbumBean);
-		AlbumCoverBean selectedAlbumCoverBean = albumCoverDao.findSelectedCoverForAlbumPath(albumPath);
-		if (selectedAlbumCoverBean != null) {
-			selectedAlbumCoverBean.setDateSelected(null);
-			albumCoverDao.store(selectedAlbumCoverBean);
-		}
-		downloadAndStoreAlbumCover(albumCoverBean, albumPath, imageUrl, urlInputStream, true);
-		return albumCoverBean;
-	}
-	
-	public AmazonService getAmazonService() {
-		return i_amazonService;
-	}
-
-	@Required
-	public void setAmazonService(AmazonService amazonService) {
-		i_amazonService = amazonService;
-	}
-
-	public Transformer<ImageSet, AlbumCoverBean> getImageSetTransformer() {
-		return i_imageSetTransformer;
-	}
-
-	@Required
-	public void setImageSetTransformer(
-			Transformer<ImageSet, AlbumCoverBean> imageSetTransformer) {
-		i_imageSetTransformer = imageSetTransformer;
-	}
-
-	public FlacService getFlacService() {
-		return i_flacService;
-	}
-
-	@Required
-	public void setFlacService(FlacService flacService) {
-		i_flacService = flacService;
-	}
-
 	public AlbumCoverDao getAlbumCoverDao() {
 		return i_albumCoverDao;
 	}
 
-	@Required
 	public void setAlbumCoverDao(AlbumCoverDao albumCoverDao) {
 		i_albumCoverDao = albumCoverDao;
 	}
@@ -406,34 +356,32 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 		return i_flacAlbumDao;
 	}
 
-	@Required
 	public void setFlacAlbumDao(FlacAlbumDao flacAlbumDao) {
 		i_flacAlbumDao = flacAlbumDao;
 	}
 
-	public ImageService getImageService() {
-		return i_imageService;
+	public DataService getDataService() {
+		return i_dataService;
 	}
 
-	@Required
-	public void setImageService(ImageService imageService) {
-		i_imageService = imageService;
+	public void setDataService(DataService dataService) {
+		i_dataService = dataService;
 	}
 
-	public Predicate<FlacAlbumBean> getAlbumHasCoversPredicate() {
-		return i_albumHasCoversPredicate;
+	public ExternalCoverArtService getExternalCoverArtService() {
+		return i_externalCoverArtService;
 	}
 
-	public void setAlbumHasCoversPredicate(
-			Predicate<FlacAlbumBean> albumHasCoversPredicate) {
-		i_albumHasCoversPredicate = albumHasCoversPredicate;
+	public void setExternalCoverArtService(ExternalCoverArtService externalCoverArtService) {
+		i_externalCoverArtService = externalCoverArtService;
 	}
 
-	public int getThumbnailSize() {
-		return i_thumbnailSize;
+	public EncodedAlbumDao getEncodedAlbumDao() {
+		return i_encodedAlbumDao;
 	}
 
-	public void setThumbnailSize(int thumbnailSize) {
-		i_thumbnailSize = thumbnailSize;
+	public void setEncodedAlbumDao(EncodedAlbumDao encodedAlbumDao) {
+		i_encodedAlbumDao = encodedAlbumDao;
 	}
+
 }

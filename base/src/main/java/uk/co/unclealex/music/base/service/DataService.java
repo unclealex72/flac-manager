@@ -6,5 +6,5 @@ import uk.co.unclealex.hibernate.model.DataBean;
 
 public interface DataService {
 	
-	public DataBean createDataBean() throws IOException;	
+	public DataBean createDataBean(String extension) throws IOException;	
 }

@@ -20,6 +20,13 @@ public class HibernateAlbumCoverDao extends
 	}
 
 	@Override
+	public AlbumCoverBean findByUrl(String url) {
+		AlbumCoverBean albumCoverBean = createExampleBean();
+		albumCoverBean.setUrl(url);
+		return uniqueResult(createCriteria(albumCoverBean));
+	}
+	
+	@Override
 	public SortedSet<AlbumCoverBean> getCoversForAlbum(String artistCode, String albumCode) {
 		AlbumCoverBean albumCoverBean = createExampleBean();
 		albumCoverBean.setAlbumCode(albumCode);

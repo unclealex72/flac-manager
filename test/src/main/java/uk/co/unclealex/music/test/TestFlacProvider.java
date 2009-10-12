@@ -1,34 +1,49 @@
 package uk.co.unclealex.music.test;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.imageio.ImageIO;
+
+import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.FunctorException;
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.Tag;
 
 import uk.co.unclealex.music.base.model.AbstractFlacBean;
+import uk.co.unclealex.music.base.model.ExternalCoverArtImage;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.model.FlacArtistBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.service.ExternalCoverArtException;
+import uk.co.unclealex.music.base.service.ExternalCoverArtService;
 
-public class TestFlacProvider implements IOFileFilter {
+public class TestFlacProvider implements ExternalCoverArtService {
 
 	private Map<File, FlacTrackBean> i_allFlacTrackBeans;
 	private Map<File, FlacAlbumBean> i_allFlacAlbumBeans;
 	private Map<File, FlacArtistBean> i_allFlacArtistBeans;
+	private Set<ExternalCoverArtImage> i_externalCoverArtImages;
+	private Set<CanonicalAlbumCover> i_canonicalAlbumCovers;
 	private int i_nextId;
 	
 	public File getWorkingDirectory() {
@@ -124,28 +139,49 @@ public class TestFlacProvider implements IOFileFilter {
 		setAllFlacAlbumBeans(new HashMap<File, FlacAlbumBean>());
 		setAllFlacArtistBeans(new HashMap<File, FlacArtistBean>());
 		setAllFlacTrackBeans(new HashMap<File, FlacTrackBean>());
-		FileUtils.listFiles(getWorkingDirectory(), this, FileFilterUtils.trueFileFilter());
+		setExternalCoverArtImages(new TreeSet<ExternalCoverArtImage>());
+		setCanonicalAlbumCovers(new HashSet<CanonicalAlbumCover>());
+		FileUtils.listFiles(
+				getWorkingDirectory(),
+				FileFilterUtils.asFileFilter(new FlacOrImageFileFilter()), 
+				FileFilterUtils.trueFileFilter());
 	}
 	
-	@Override
-	public boolean accept(File dir, String name) {
-		return accept(new File(dir, name));
-	}
-	
-	@Override
-	public boolean accept(File file) {
-		if ("flac".equalsIgnoreCase(FilenameUtils.getExtension(file.getName()))) {
-			AudioFile audioFile;
-			try {
-				audioFile = AudioFileIO.read(file);
+	protected class FlacOrImageFileFilter implements FileFilter {
+		@Override
+		public boolean accept(File file) {
+			String ext = FilenameUtils.getExtension(file.getName());
+			if ("flac".equalsIgnoreCase(ext)) {
+				AudioFile audioFile;
+				try {
+					audioFile = AudioFileIO.read(file);
+				}
+				catch (Throwable e) {
+					throw new IllegalArgumentException("Could not read flac file " + file);
+				}
+				Tag tag = audioFile.getTag();
+				addTrack(tag.getFirstArtist(), tag.getFirstAlbum(), tag.getFirstTrack(), tag.getFirstTitle(), file);
 			}
-			catch (Throwable e) {
-				throw new IllegalArgumentException("Could not read flac file " + file);
+			else if ("gif".equalsIgnoreCase(ext) || "jpg".equalsIgnoreCase(ext)) {
+				Pattern artistAlbumPattern = Pattern.compile("(.+) - (.+) \\d+x\\d+");
+				Matcher matcher = artistAlbumPattern.matcher(FilenameUtils.getBaseName(file.getPath()));
+				if (matcher.matches()) {
+					try {
+						BufferedImage image = ImageIO.read(file);
+						int size = image.getWidth() * image.getHeight();
+						URL url = file.toURI().toURL();
+						getExternalCoverArtImages().add(new ExternalCoverArtImage(url, size));
+						getCanonicalAlbumCovers().add(
+								new CanonicalAlbumCover(
+										file, size, matcher.group(1).toUpperCase(), matcher.group(2).toUpperCase(), size == 4));
+					}
+					catch (IOException e) {
+						throw new IllegalArgumentException("Could not read image file " + file);
+					}
+				}
 			}
-			Tag tag = audioFile.getTag();
-			addTrack(tag.getFirstArtist(), tag.getFirstAlbum(), tag.getFirstTrack(), tag.getFirstTitle(), file);
+			return false;
 		}
-		return true;
 	}
 	
 	protected void addTrack(String artist, String album, String track, String title, File file) {
@@ -228,6 +264,27 @@ public class TestFlacProvider implements IOFileFilter {
 	}
 
 	@Override
+	public SortedSet<ExternalCoverArtImage> searchForImages(String artist, String album)
+			throws ExternalCoverArtException, IOException {
+		SortedSet<ExternalCoverArtImage> images = new TreeSet<ExternalCoverArtImage>();
+		final String suffix = artist + " - " + album;
+		Predicate<ExternalCoverArtImage> predicate = new Predicate<ExternalCoverArtImage>() {
+			@Override
+			public boolean evaluate(ExternalCoverArtImage externalCoverArtImage) {
+				try {
+					String path = new File(externalCoverArtImage.getUrl().toURI()).getPath();
+					return FilenameUtils.getBaseName(path).startsWith(suffix);
+				}
+				catch (URISyntaxException e) {
+					throw new FunctorException(e);
+				}
+			}
+		};
+		CollectionUtils.select(getExternalCoverArtImages(), predicate, images);
+		return images;
+	}
+	
+	@Override
 	protected void finalize() throws Throwable {
 		removeAll(getWorkingDirectory());
 	}
@@ -262,5 +319,21 @@ public class TestFlacProvider implements IOFileFilter {
 
 	public void setNextId(int nextId) {
 		i_nextId = nextId;
+	}
+
+	public Set<ExternalCoverArtImage> getExternalCoverArtImages() {
+		return i_externalCoverArtImages;
+	}
+
+	public void setExternalCoverArtImages(Set<ExternalCoverArtImage> externalCoverArtImages) {
+		i_externalCoverArtImages = externalCoverArtImages;
+	}
+
+	public Set<CanonicalAlbumCover> getCanonicalAlbumCovers() {
+		return i_canonicalAlbumCovers;
+	}
+
+	public void setCanonicalAlbumCovers(Set<CanonicalAlbumCover> canonicalAlbumCovers) {
+		i_canonicalAlbumCovers = canonicalAlbumCovers;
 	}
 }

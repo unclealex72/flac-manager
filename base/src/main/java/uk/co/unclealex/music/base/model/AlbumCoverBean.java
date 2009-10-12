@@ -6,14 +6,11 @@ import java.util.Date;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import org.hibernate.validator.NotNull;
 
@@ -28,8 +25,8 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 
 	private String i_url;
 	private DataBean i_coverDataBean;
-	private DataBean i_thumbnailDataBean;
-	private AlbumCoverSize i_albumCoverSize;
+	private String i_extension;
+	private Long i_albumCoverSize;
 	private String i_albumCode;
 	private String i_artistCode;
 	private Date i_dateDownloaded;
@@ -49,7 +46,7 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 	
 	@Override
 	public String toString() {
-		return getUrl() + "(" + getAlbumCoverSize() + ")";
+		return getUrl();
 	}
 
 	@Override
@@ -57,12 +54,7 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 		return COMPARATOR.compare(this, o);
 	}
 
-	@Transient
-	public String getExtension() {
-		return "png";
-	}
-	
-	@Column(nullable=false)
+	@Column(nullable=false, unique=true)
 	public String getUrl() {
 		return i_url;
 	}
@@ -72,12 +64,11 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 	}
 
 	@Column(nullable=false)
-	@Enumerated(EnumType.STRING)
-	public AlbumCoverSize getAlbumCoverSize() {
+	public Long getAlbumCoverSize() {
 		return i_albumCoverSize;
 	}
 
-	public void setAlbumCoverSize(AlbumCoverSize albumCoverSize) {
+	public void setAlbumCoverSize(Long albumCoverSize) {
 		i_albumCoverSize = albumCoverSize;
 	}
 
@@ -108,16 +99,6 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 		i_coverDataBean = coverDataBean;
 	}
 
-	@NotNull
-	@OneToOne(cascade=CascadeType.ALL)
-	public DataBean getThumbnailDataBean() {
-		return i_thumbnailDataBean;
-	}
-
-	public void setThumbnailDataBean(DataBean thumbnailDataBean) {
-		i_thumbnailDataBean = thumbnailDataBean;
-	}
-
 	@Column(nullable=false)
 	public String getArtistCode() {
 		return i_artistCode;
@@ -134,6 +115,15 @@ public class AlbumCoverBean extends KeyedBean<AlbumCoverBean> {
 
 	public void setAlbumCode(String albumCode) {
 		i_albumCode = albumCode;
+	}
+
+	@Column(nullable=false)
+	public String getExtension() {
+		return i_extension;
+	}
+
+	public void setExtension(String extension) {
+		i_extension = extension;
 	}
 
 

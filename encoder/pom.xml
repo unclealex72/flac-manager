@@ -27,7 +27,6 @@
 			<groupId>uk.co.unclealex.music</groupId>
 			<artifactId>album-covers</artifactId>
 			<version>${version}</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>commons-dbutils</groupId>

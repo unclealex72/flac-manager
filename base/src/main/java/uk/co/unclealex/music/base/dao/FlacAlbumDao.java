@@ -4,5 +4,5 @@ import uk.co.unclealex.music.base.model.FlacAlbumBean;
 
 public interface FlacAlbumDao extends CodeDao<FlacAlbumBean> {
 
-	public FlacAlbumBean findByArtistAndAlbum(String artistName, String albumName);
+	public FlacAlbumBean findByArtistAndAlbum(String artistCode, String albumCode);
 }

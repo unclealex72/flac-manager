@@ -11,11 +11,11 @@ public class HibernateFlacAlbumDao extends HibernateCodeDao<FlacAlbumBean> imple
 		FlacAlbumDao {
 
 	@Override
-	public FlacAlbumBean findByArtistAndAlbum(String artistName, String albumName) {
+	public FlacAlbumBean findByArtistAndAlbum(String artistCode, String albumCode) {
 		FlacAlbumBean example = createExampleBean();
-		example.setCode(albumName);
+		example.setCode(albumCode);
 		FlacArtistBean flacArtistBean = new FlacArtistBean();
-		flacArtistBean.setCode(artistName);
+		flacArtistBean.setCode(artistCode);
 		example.setFlacArtistBean(flacArtistBean);
 		return findByExample(example);
 	}

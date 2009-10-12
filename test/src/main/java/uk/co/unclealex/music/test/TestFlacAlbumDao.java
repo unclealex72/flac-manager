@@ -15,19 +15,19 @@ public class TestFlacAlbumDao implements FlacAlbumDao {
 	private TestFlacProvider i_testFlacProvider;
 	
 	@Override
-	public FlacAlbumBean findByArtistAndAlbum(String artistName, String albumName) {
+	public FlacAlbumBean findByArtistAndAlbum(String artistCode, String albumCode) {
 		TestFlacProvider testFlacProvider = getTestFlacProvider();
 		FlacArtistBean flacArtistBean =
 			CollectionUtils.find(
 					testFlacProvider.getAllFlacArtistBeans().values(),
-					testFlacProvider.createCodedPredicate(artistName.toUpperCase()));
+					testFlacProvider.createCodedPredicate(artistCode.toUpperCase()));
 		if (flacArtistBean == null) {
 			return null;
 		}
 		else {
 			return CollectionUtils.find(
 					flacArtistBean.getFlacAlbumBeans(),
-					testFlacProvider.createCodedPredicate(albumName.toUpperCase()));
+					testFlacProvider.createCodedPredicate(albumCode.toUpperCase()));
 		}
 	}
 

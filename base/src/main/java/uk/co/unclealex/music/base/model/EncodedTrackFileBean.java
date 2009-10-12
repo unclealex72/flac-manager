@@ -7,25 +7,18 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
-import uk.co.unclealex.music.base.visitor.DaoAwareFileVisitor;
-import uk.co.unclealex.music.base.visitor.FileVisitor;
+import uk.co.unclealex.music.base.visitor.DaoFileVisitor;
 
 @Entity(name="encodedTrackFileBean")
 @DiscriminatorValue("file")
-public class EncodedTrackFileBean extends AbstractFileBean implements DataFileBean {
+public class EncodedTrackFileBean extends FileBean {
 
 	private EncodedTrackBean i_encodedTrackBean;
 	
-	@Override
-	public <R, E extends Exception> R accept(FileVisitor<R, E> fileVisitor) {
-		return fileVisitor.visit(EncodedTrackFileBean.this);
-	}
-	
-	public <R, E extends Exception> R accept(DaoAwareFileVisitor<R, E> visitor) {
+	public <R, E extends Exception> R accept(DaoFileVisitor<R, E> visitor) {
 		return visitor.visit(this);
 	}
 	
-	@Override
 	@Transient
 	public File getFile() {
 		return getEncodedTrackBean().getTrackDataBean().getFile();

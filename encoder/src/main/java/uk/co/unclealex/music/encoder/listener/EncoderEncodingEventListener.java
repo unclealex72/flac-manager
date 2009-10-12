@@ -40,18 +40,19 @@ public class EncoderEncodingEventListener extends AbstractEncodingEventListener 
 	public void trackAdded(FlacTrackBean flacTrackBean, EncodedTrackBean encodedTrackBean, final List<EncodingAction> encodingActions) throws EventException {
 		Map<String, File> commandCache = getCommandCache();
 		EncoderBean encoderBean = encodedTrackBean.getEncoderBean();
-		File commandFile = commandCache.get(encoderBean.getExtension());
+		String extension = encoderBean.getExtension();
+		File commandFile = commandCache.get(extension);
 		if (commandFile == null) {
 			commandFile = createCommandFile(encoderBean);
-			commandCache.put(encoderBean.getExtension(), commandFile);
+			commandCache.put(extension, commandFile);
 		}
 		DataBean dataBean;
 		try {
-			dataBean = getDataService().createDataBean();
+			dataBean = getDataService().createDataBean(extension);
 		}
 		catch (IOException e) {
 			throw new EventException(
-					"Cannot create a data bean for file " + encodedTrackBean.getFlacUrl() + " and encoder " + encoderBean.getExtension(), e);
+					"Cannot create a data bean for file " + encodedTrackBean.getFlacUrl() + " and encoder " + extension, e);
 		}
 		encodedTrackBean.setTrackDataBean(dataBean);
 		getEncodedTrackDao().store(encodedTrackBean);
@@ -62,7 +63,7 @@ public class EncoderEncodingEventListener extends AbstractEncodingEventListener 
 		}
 		catch (IOException e) {
 			throw new EventException(
-					"Could not create a command for track " + encodedTrackBean.getFlacUrl() + " and encoder " + encoderBean.getExtension(), e);
+					"Could not create a command for track " + encodedTrackBean.getFlacUrl() + " and encoder " + extension, e);
 		}
 		String commandString = StringUtils.join(command, ' ');
 		if (log.isDebugEnabled()) {

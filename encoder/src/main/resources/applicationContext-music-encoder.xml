@@ -23,6 +23,7 @@
 				<bean class="uk.co.unclealex.music.encoder.listener.OwnerEncodingEventListener"/>
 				<bean class="uk.co.unclealex.music.encoder.listener.FileSystemEncodingEventListener"/>
 				<bean class="uk.co.unclealex.music.encoder.listener.AlbumCoverEncodingEventListener"/>
+				<bean class="uk.co.unclealex.music.encoder.listener.AlbumCoverTaggingEncodingEventListener"/>
 			</list>
 		</property>
 	</bean>

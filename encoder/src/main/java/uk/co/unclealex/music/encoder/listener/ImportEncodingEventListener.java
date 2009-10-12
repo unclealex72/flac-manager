@@ -145,7 +145,7 @@ public class ImportEncodingEventListener extends EncoderEncodingEventListener {
 			FileInputStream in = null;
 			FileOutputStream out = null;
 			try {
-				DataBean dataBean = getDataService().createDataBean();
+				DataBean dataBean = getDataService().createDataBean(extension);
 				in = new FileInputStream(file);
 				out = new FileOutputStream(dataBean.getFile());
 				out.getChannel().transferFrom(in.getChannel(), 0, file.length());

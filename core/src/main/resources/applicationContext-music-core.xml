@@ -42,7 +42,7 @@
 				<value>uk.co.unclealex.music.base.model.OwnerBean</value>
 				<value>uk.co.unclealex.music.base.model.AlbumCoverBean</value>
 				<value>uk.co.unclealex.music.base.model.EncodedTrackFileBean</value>
-				<value>uk.co.unclealex.music.base.model.DbDirectoryFileBean</value>
+				<value>uk.co.unclealex.music.base.model.DirectoryFileBean</value>
 				<value>uk.co.unclealex.hibernate.model.DataBean</value>
 			</list>
 		</property>

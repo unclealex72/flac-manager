@@ -2,6 +2,7 @@ package uk.co.unclealex.music.core.service.filesystem;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,17 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.dao.FileDao;
 import uk.co.unclealex.music.base.dao.OwnerDao;
-import uk.co.unclealex.music.base.model.AbstractFileBean;
-import uk.co.unclealex.music.base.model.DbDirectoryFileBean;
+import uk.co.unclealex.music.base.model.FileBean;
+import uk.co.unclealex.music.base.model.DirectoryFileBean;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncodedTrackFileBean;
-import uk.co.unclealex.music.base.model.FileBean;
 import uk.co.unclealex.music.base.model.OwnerBean;
 import uk.co.unclealex.music.base.service.OwnerService;
 import uk.co.unclealex.music.base.service.filesystem.FileSystemService;
 import uk.co.unclealex.music.base.service.filesystem.WrongFileTypeException;
 import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
-import uk.co.unclealex.music.base.visitor.DaoAwareFileVisitor;
+import uk.co.unclealex.music.base.visitor.DaoFileVisitor;
 
 @Transactional
 public class FileSystemServiceImpl implements FileSystemService {
@@ -51,25 +51,32 @@ public class FileSystemServiceImpl implements FileSystemService {
 		return fileBeans;
 	}
 	
-	protected void addFile(OwnerBean ownerBean, final EncodedTrackBean encodedTrackBean, Set<FileBean> fileBeans) throws WrongFileTypeException {
+	protected void addFile(
+			OwnerBean ownerBean, final EncodedTrackBean encodedTrackBean, Set<FileBean> fileBeans) throws WrongFileTypeException {
 		String path = getTitleFormatService().createTitle(encodedTrackBean, ownerBean);
+		final FileDao fileDao = getFileDao();
+		final Date now = new Date();
 		ModelReturningFileVisitor fileVisitor = new ModelReturningFileVisitor(path, true, false) {
 			@Override
-			public AbstractFileBean visit(EncodedTrackFileBean encodedTrackFileBean) {
+			public FileBean visit(EncodedTrackFileBean encodedTrackFileBean) {
 				encodedTrackFileBean.setEncodedTrackBean(encodedTrackBean);
-				getFileDao().store(encodedTrackFileBean);
+				encodedTrackFileBean.setModificationTimestamp(now);
+				fileDao.store(encodedTrackFileBean);
 				return null;
 			}
 		};
-		AbstractFileBean fileBean = getFileDao().findByPath(path);
+		FileBean fileBean = getFileDao().findByPath(path);
 		if (fileBean == null) {
 			String parentPath = createParentPath(path);
-			DbDirectoryFileBean parent = findOrCreateDirectory(parentPath, fileBeans);
+			DirectoryFileBean parent = findOrCreateDirectory(parentPath, fileBeans);
 			EncodedTrackFileBean encodedTrackFileBean = new EncodedTrackFileBean();
+			encodedTrackFileBean.setCreationTimestamp(now);
+			encodedTrackFileBean.setModificationTimestamp(now);
 			encodedTrackFileBean.setEncodedTrackBean(encodedTrackBean);
 			encodedTrackFileBean.setPath(path);
 			encodedTrackFileBean.setParent(parent);
-			getFileDao().store(encodedTrackFileBean);
+			fileDao.store(encodedTrackFileBean);
+			parent.setModificationTimestamp(now);
 			fileBeans.add(encodedTrackFileBean);
 		}
 		else {
@@ -80,30 +87,35 @@ public class FileSystemServiceImpl implements FileSystemService {
 		}
 	}
 
-	protected DbDirectoryFileBean findOrCreateDirectory(String path, Set<FileBean> fileBeans) throws WrongFileTypeException {
-		final List<DbDirectoryFileBean> wrapper = new ArrayList<DbDirectoryFileBean>();
+	protected DirectoryFileBean findOrCreateDirectory(String path, Set<FileBean> fileBeans) throws WrongFileTypeException {
+		final List<DirectoryFileBean> wrapper = new ArrayList<DirectoryFileBean>();
+		final Date now = new Date();
 		ModelReturningFileVisitor fileVisitor = new ModelReturningFileVisitor(path, false, true) {
 			@Override
-			public AbstractFileBean visit(DbDirectoryFileBean dbDirectoryFileBean) {
-				wrapper.add(dbDirectoryFileBean);
-				return dbDirectoryFileBean;
+			public FileBean visit(DirectoryFileBean directoryFileBean) {
+				wrapper.add(directoryFileBean);
+				return directoryFileBean;
 			}
 		};
-		AbstractFileBean fileBean = getFileDao().findByPath(path);
+		FileDao fileDao = getFileDao();
+		FileBean fileBean = fileDao.findByPath(path);
 		if (fileBean == null) {
-			DbDirectoryFileBean dbDirectoryFileBean = new DbDirectoryFileBean();
-			dbDirectoryFileBean.setPath(path);
-			fileBeans.add(dbDirectoryFileBean);
+			DirectoryFileBean directoryFileBean = new DirectoryFileBean();
+			directoryFileBean.setCreationTimestamp(now);
+			directoryFileBean.setModificationTimestamp(now);
+			directoryFileBean.setPath(path);
+			fileBeans.add(directoryFileBean);
 			if ("".equals(path)) {
-				getFileDao().store(dbDirectoryFileBean);
+				fileDao.store(directoryFileBean);
 			}
 			else {
 				String parentPath = createParentPath(path);
-				DbDirectoryFileBean parent = findOrCreateDirectory(parentPath, fileBeans);
-				dbDirectoryFileBean.setParent(parent);
+				DirectoryFileBean parent = findOrCreateDirectory(parentPath, fileBeans);
+				parent.setModificationTimestamp(now);
+				directoryFileBean.setParent(parent);
 			}
-			getFileDao().store(dbDirectoryFileBean);
-			return dbDirectoryFileBean;
+			fileDao.store(directoryFileBean);
+			return directoryFileBean;
 		}
 		else {
 			fileBean.accept(fileVisitor);
@@ -127,39 +139,43 @@ public class FileSystemServiceImpl implements FileSystemService {
 		return paths;
 	}
 	
-	protected void removeFile(AbstractFileBean abstractFileBean, Set<String> paths) {
-		DbDirectoryFileBean parent = abstractFileBean.getParent();
-		paths.add(abstractFileBean.getPath());
+	protected void removeFile(FileBean fileBean, Set<String> paths) {
+		DirectoryFileBean parent = fileBean.getParent();
+		paths.add(fileBean.getPath());
 		FileDao fileDao = getFileDao();
-		fileDao.remove(abstractFileBean);
+		fileDao.remove(fileBean);
 		if (parent != null) {
 			Set<FileBean> children = parent.getChildren();
-			children.remove(abstractFileBean);
+			children.remove(fileBean);
 			if (children.isEmpty()) {
 				removeFile(parent, paths);
+			}
+			else {
+				parent.setModificationTimestamp(new Date());
+				fileDao.store(parent);
 			}
 		}
 	}
 
-	protected AbstractFileBean findFile(OwnerBean ownerBean, EncodedTrackBean encodedTrackBean) throws WrongFileTypeException {
+	protected FileBean findFile(OwnerBean ownerBean, EncodedTrackBean encodedTrackBean) throws WrongFileTypeException {
 		String path = getTitleFormatService().createTitle(encodedTrackBean, ownerBean);
 		return findByPath(path, true, false);
 	}
 	
-	protected AbstractFileBean findByPath(String path, boolean allowTrack, boolean allowDirectory) throws WrongFileTypeException {
-		AbstractFileBean fileBean = getFileDao().findByPath(path);
+	protected FileBean findByPath(String path, boolean allowTrack, boolean allowDirectory) throws WrongFileTypeException {
+		FileBean fileBean = getFileDao().findByPath(path);
 		if (fileBean == null) {
 			return null;
 		}
 		ModelReturningFileVisitor fileVisitor = new ModelReturningFileVisitor(path, allowTrack, allowDirectory);
-		AbstractFileBean abstractFileBean = fileBean.accept(fileVisitor);
+		FileBean correctedFileBean = fileBean.accept(fileVisitor);
 		if (fileVisitor.getException() != null) {
 			throw fileVisitor.getException();
 		}
-		return abstractFileBean;
+		return correctedFileBean;
 	}
 
-	protected class ModelReturningFileVisitor extends DaoAwareFileVisitor<AbstractFileBean, WrongFileTypeException> {
+	protected class ModelReturningFileVisitor extends DaoFileVisitor<FileBean, WrongFileTypeException> {
 
 		private boolean i_allowTrack;
 		private boolean i_allowDirectory;
@@ -173,7 +189,7 @@ public class FileSystemServiceImpl implements FileSystemService {
 		}
 
 		@Override
-		public AbstractFileBean visit(EncodedTrackFileBean encodedTrackFileBean) {
+		public FileBean visit(EncodedTrackFileBean encodedTrackFileBean) {
 			if (!isAllowTrack()) {
 				return fail(false);
 			}
@@ -181,14 +197,14 @@ public class FileSystemServiceImpl implements FileSystemService {
 		}
 
 		@Override
-		public AbstractFileBean visit(DbDirectoryFileBean dbDirectoryFileBean) {
+		public FileBean visit(DirectoryFileBean directoryFileBean) {
 			if (!isAllowDirectory()) {
 				return fail(true);
 			}
-			return dbDirectoryFileBean;
+			return directoryFileBean;
 		}
 
-		public AbstractFileBean fail(boolean directoryExpected) {
+		public FileBean fail(boolean directoryExpected) {
 			setException(new WrongFileTypeException(getPath(), directoryExpected));
 			return null;
 		}
