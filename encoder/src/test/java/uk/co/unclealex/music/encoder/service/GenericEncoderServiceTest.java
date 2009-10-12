@@ -12,7 +12,6 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.lang.StringUtils;
-import org.hsqldb.util.DatabaseManagerSwing;
 
 import uk.co.unclealex.music.base.dao.FlacTrackDao;
 import uk.co.unclealex.music.base.model.EncodedAlbumBean;
@@ -48,7 +47,6 @@ public class GenericEncoderServiceTest extends EncoderServiceTest {
 	}
 
 	public void testInitialEncoding() throws Exception {
-		DatabaseManagerSwing.main(new String[] { "--urlid", "jdbc:hsqldb:mem:."});
 		doTestEncoding("Inital Encoding");
 	}
 	
@@ -112,7 +110,7 @@ public class GenericEncoderServiceTest extends EncoderServiceTest {
 	public void testAdd() throws Exception {
 		List<EncodingAction> expectedEncodingActions = new ArrayList<EncodingAction>();
 		addMetallicaAlbum(expectedEncodingActions, "Ride The Lightning", true, "Fight Fire With Fire", "Ride The Lightning");
-		addMetallicaAlbum(expectedEncodingActions, "Death Magnetic", true, "That Was Just Your Life", "The End Of The Line");
+		addMetallicaAlbum(expectedEncodingActions, "Death Magnetic", false, "That Was Just Your Life", "The End Of The Line");
 		getTestFlacProvider().mergeResource("add");
 		doTestEncoding("Add", expectedEncodingActions);
 	}
