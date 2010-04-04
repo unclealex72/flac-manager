@@ -30,6 +30,23 @@ public class HibernateEncodedTrackDao extends
 	}
 	
 	@Override
+	public SortedSet<EncodedTrackBean> findByAlbumAndEncoderCoverSupported(
+			EncodedAlbumBean encodedAlbumBean, boolean coverSupported) {
+		Query query =
+			getSession().createQuery(
+					"from encodedTrackBean where encodedAlbumBean = :encodedAlbumBean and encoderBean.coverSupported = :coverSupported");
+		query.setEntity("encodedAlbumBean", encodedAlbumBean);
+		query.setBoolean("coverSupported", coverSupported);
+		return asSortedSet(query);
+	}
+	
+	@Override
+	public SortedSet<EncodedTrackBean> getAllWithOwners() {
+		Query query = getSession().createQuery("from encodedTrackBean e left join fetch e.ownerBeans");
+		return asSortedSet(query);
+	}
+	
+	@Override
 	public EncodedTrackBean findByArtistCodeAndAlbumCodeAndCode(String artistCode, String albumCode, String trackCode) {
 			Query query = getSession().createQuery(
 					"from encodedTrackBean where code = :trackCode and " +
@@ -101,6 +118,35 @@ public class HibernateEncodedTrackDao extends
 	public SortedSet<EncodedTrackBean> findByUrl(String url) {
 		Query query = getSession().createQuery("from encodedTrackBean where flacUrl = :url").setString("url", url);
 		return asSortedSet(query);
+	}
+	
+	@Override
+	public SortedSet<EncodedTrackBean> findTracksEncodedAfter(long lastSyncTimestamp, OwnerBean ownerBean,
+			EncoderBean encoderBean) {
+		Query query = getSession().createQuery(
+			"select e from encodedTrackBean e join e.ownerBeans o " +
+			"where o = :ownerBean and e.encoderBean = :encoderBean and e.timestamp > :timestamp");
+		query.setEntity("ownerBean", ownerBean);
+		query.setEntity("encoderBean", encoderBean);
+		query.setLong("timestamp", lastSyncTimestamp);
+		return asSortedSet(query);
+	}
+
+	@Override
+	public EncodedTrackBean findByCodesAndEncoderAndOwner(String artistCode, String albumCode, int trackNumber,
+			String trackCode, OwnerBean ownerBean, EncoderBean encoderBean) {
+		Query query = getSession().createQuery(
+				"select e from encodedTrackBean e, e.ownerBeans o, e.encodedAlbumBean al, al.encodedArtistBean ar " +
+				"where o = :ownerBean and e.encoderBean = :encoderBean and ar.code = :artistCode and al.code = : albumCode " +
+				"and e.code = :trackCode and e.trackNumber = :trackNumber");
+		query.setEntity("ownerBean", ownerBean);
+		query.setEntity("encoderBean", encoderBean);
+		query.setString("artistCode", artistCode);
+		query.setString("albumCode", albumCode);
+		query.setString("artistCode", artistCode);
+		query.setInteger("trackNumber", trackNumber);
+		query.setString("trackCode", trackCode);
+		return uniqueResult(query);
 	}
 	
 	public EncodedTrackBean findByUrlAndEncoderBean(String url, EncoderBean encoderBean) {

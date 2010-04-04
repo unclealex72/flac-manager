@@ -15,6 +15,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 import org.hibernate.validator.NotNull;
@@ -63,7 +64,7 @@ public class EncodedTrackBean extends CodedBean<EncodedTrackBean> implements Enc
 
 	@Override
 	@NotNull
-	@Column(name="code")
+	@Index(name="code")
 	public String getCode() {
 		return super.getCode();
 	}

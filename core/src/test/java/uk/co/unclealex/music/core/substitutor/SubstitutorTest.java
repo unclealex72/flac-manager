@@ -16,7 +16,7 @@ public class SubstitutorTest extends TestCase {
 	public void testSubstitutor() {
 		Substitutor substitutor =
 			new Substitutor(
-					"Test ${3:artist} and ${album} but ${2:title} remembering ${album} but not ${4:artist}, dude${2:track}");
+					"Test ${3:artist} and ${album} but ${2:title} remembering ${album} but not ${4:artist}, dude${2:track}", true);
 		substitutor.substitute(TitleFormatVariable.ARTIST, "cateract");
 		substitutor.substitute(TitleFormatVariable.ALBUM, "throng");
 		substitutor.substitute(TitleFormatVariable.TITLE, "seven");

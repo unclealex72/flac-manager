@@ -5,5 +5,5 @@ import uk.co.unclealex.music.base.model.OwnerBean;
 
 public interface TitleFormatService {
 
-	public String createTitle(EncodedTrackBean encodedTrackBean, OwnerBean ownerBean);	
+	public String createTitle(EncodedTrackBean encodedTrackBean, OwnerBean ownerBean, boolean sanitise);	
 }

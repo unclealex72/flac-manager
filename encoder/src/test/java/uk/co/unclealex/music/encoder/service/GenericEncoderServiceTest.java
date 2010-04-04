@@ -4,8 +4,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 
 import org.apache.commons.collections15.CollectionUtils;
@@ -31,10 +34,12 @@ import uk.co.unclealex.music.encoder.action.FileAddedAction;
 import uk.co.unclealex.music.encoder.action.FileRemovedAction;
 import uk.co.unclealex.music.encoder.action.NoAlbumCoversFoundAction;
 import uk.co.unclealex.music.encoder.action.TrackEncodedAction;
+import uk.co.unclealex.music.encoder.action.TrackImportedAction;
 import uk.co.unclealex.music.encoder.action.TrackOwnedAction;
 import uk.co.unclealex.music.encoder.action.TrackRemovedAction;
 import uk.co.unclealex.music.encoder.action.TrackTaggedAction;
 import uk.co.unclealex.music.encoder.action.TrackUnownedAction;
+import uk.co.unclealex.music.encoder.listener.EncodingEventListener;
 import uk.co.unclealex.music.test.TestFlacProvider;
 
 public class GenericEncoderServiceTest extends EncoderServiceTest {
@@ -47,7 +52,8 @@ public class GenericEncoderServiceTest extends EncoderServiceTest {
 	}
 
 	public void testInitialEncoding() throws Exception {
-		doTestEncoding("Inital Encoding");
+		List<EncodingEventListener> emptyList = Collections.emptyList();
+		doTestEncoding("Inital Encoding", emptyList);
 	}
 	
 	public void testUpdate() throws Exception {
@@ -61,19 +67,19 @@ public class GenericEncoderServiceTest extends EncoderServiceTest {
 			expectedActions.add(new TrackRemovedAction(encodedTrackBean));
 			SortedSet<OwnerBean> ownerBeans = encodedTrackBean.getOwnerBeans();
 			for (OwnerBean ownerBean : ownerBeans) {
-				String path = titleFormatService.createTitle(encodedTrackBean, ownerBean); 
+				String path = titleFormatService.createTitle(encodedTrackBean, ownerBean, true); 
 				expectedActions.add(new FileRemovedAction(path));
 			}
 			expectedActions.add(new TrackEncodedAction(encodedTrackBean));
 			expectedActions.add(new TrackTaggedAction(encodedTrackBean));
 			for (OwnerBean ownerBean : ownerBeans) {
 				expectedActions.add(new TrackOwnedAction(ownerBean, encodedTrackBean));
-			  String path = titleFormatService.createTitle(encodedTrackBean, ownerBean); 
+			  String path = titleFormatService.createTitle(encodedTrackBean, ownerBean, true); 
 				expectedActions.add(new FileAddedAction(path));
 			}
 			expectedActions.add(new TrackEncodedAction(encodedTrackBean));
 		}
-		doTestEncoding("Update", expectedActions);
+		doTestEncodingAndCheckActions("Update", expectedActions);
 	}
 
 	public void testDelete() throws Exception {
@@ -104,19 +110,22 @@ public class GenericEncoderServiceTest extends EncoderServiceTest {
 		}
 		expectedEncodingActions.add(new AlbumCoverRemovedAction("QUEEN", "QUEEN"));
 		getTestFlacProvider().removeFiles("queen");
-		doTestEncoding("Remove", expectedEncodingActions);
+		doTestEncodingAndCheckActions("Remove", expectedEncodingActions);
 	}
 	
 	public void testAdd() throws Exception {
 		List<EncodingAction> expectedEncodingActions = new ArrayList<EncodingAction>();
-		addMetallicaAlbum(expectedEncodingActions, "Ride The Lightning", true, "Fight Fire With Fire", "Ride The Lightning");
-		addMetallicaAlbum(expectedEncodingActions, "Death Magnetic", false, "That Was Just Your Life", "The End Of The Line");
+		Map<Integer, String> map = new HashMap<Integer, String>();
+		addMetallicaAlbum(expectedEncodingActions, "Ride The Lightning", true, map, "Fight Fire With Fire", "Ride The Lightning");
+		map.put(1, "mp3");
+		map.put(2, "ogg");
+		addMetallicaAlbum(expectedEncodingActions, "Death Magnetic", false, map, "That Was Just Your Life", "The End Of The Line");
 		getTestFlacProvider().mergeResource("add");
-		doTestEncoding("Add", expectedEncodingActions);
+		doTestEncodingAndCheckActions("Add", expectedEncodingActions);
 	}
 	
 	protected void addMetallicaAlbum(
-			List<EncodingAction> expectedEncodingActions, String album, boolean coversExpected, String... tracks) {
+			List<EncodingAction> expectedEncodingActions, String album, boolean coversExpected, Map<Integer, String> importEncodingsByTrack, String... tracks) {
 		String artistCode = "METALLICA";
 		String albumCode = album.toUpperCase();
 		expectedEncodingActions.add(new ArtistAddedAction(artistCode));
@@ -127,7 +136,12 @@ public class GenericEncoderServiceTest extends EncoderServiceTest {
 				int trackNumber = idx + 1;
 				String trackCode = tracks[idx].toUpperCase();
 				String filename = String.format("%02d - %s", trackNumber, tracks[idx]);
-				expectedEncodingActions.add(new TrackEncodedAction(artistCode, albumCode, trackNumber, trackCode, extension));
+				if (extension.equals(importEncodingsByTrack.get(trackNumber))) {
+					expectedEncodingActions.add(new TrackImportedAction(artistCode, albumCode, trackNumber, trackCode, extension));
+				}
+				else {
+					expectedEncodingActions.add(new TrackEncodedAction(artistCode, albumCode, trackNumber, trackCode, extension));
+				}
 				expectedEncodingActions.add(new TrackOwnedAction("Alex", artistCode, albumCode, trackNumber, trackCode, extension));
 				if (coversExpected) {
 					expectedEncodingActions.add(new TrackTaggedAction(artistCode, albumCode, trackNumber, trackCode, extension));
@@ -171,7 +185,7 @@ public class GenericEncoderServiceTest extends EncoderServiceTest {
 		TestFlacProvider testFlacProvider = getTestFlacProvider();
 		testFlacProvider.removeFiles("metallica/owner.alex");
 		testFlacProvider.mergeResource("changeowner");
-		doTestEncoding("ChangeOwner", expectedEncodingActions);
+		doTestEncodingAndCheckActions("ChangeOwner", expectedEncodingActions);
 	}
 	
 	public FlacTrackDao getFlacTrackDao() {

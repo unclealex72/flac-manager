@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.log4j.Logger;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.dao.FileDao;
@@ -26,6 +27,8 @@ import uk.co.unclealex.music.base.visitor.DaoFileVisitor;
 @Transactional
 public class FileSystemServiceImpl implements FileSystemService {
 
+	private static final Logger log = Logger.getLogger(FileSystemServiceImpl.class);
+	
 	private TitleFormatService i_titleFormatService;
 	private OwnerService i_ownerService;
 	private OwnerDao i_ownerDao;
@@ -53,7 +56,7 @@ public class FileSystemServiceImpl implements FileSystemService {
 	
 	protected void addFile(
 			OwnerBean ownerBean, final EncodedTrackBean encodedTrackBean, Set<FileBean> fileBeans) throws WrongFileTypeException {
-		String path = getTitleFormatService().createTitle(encodedTrackBean, ownerBean);
+		String path = getTitleFormatService().createTitle(encodedTrackBean, ownerBean, true);
 		final FileDao fileDao = getFileDao();
 		final Date now = new Date();
 		ModelReturningFileVisitor fileVisitor = new ModelReturningFileVisitor(path, true, false) {
@@ -73,6 +76,7 @@ public class FileSystemServiceImpl implements FileSystemService {
 			encodedTrackFileBean.setCreationTimestamp(now);
 			encodedTrackFileBean.setModificationTimestamp(now);
 			encodedTrackFileBean.setEncodedTrackBean(encodedTrackBean);
+			encodedTrackFileBean.setOwnerBean(ownerBean);
 			encodedTrackFileBean.setPath(path);
 			encodedTrackFileBean.setParent(parent);
 			fileDao.store(encodedTrackFileBean);
@@ -85,6 +89,7 @@ public class FileSystemServiceImpl implements FileSystemService {
 				throw fileVisitor.getException();
 			}
 		}
+		log.info("Added file " + path);
 	}
 
 	protected DirectoryFileBean findOrCreateDirectory(String path, Set<FileBean> fileBeans) throws WrongFileTypeException {
@@ -141,7 +146,8 @@ public class FileSystemServiceImpl implements FileSystemService {
 	
 	protected void removeFile(FileBean fileBean, Set<String> paths) {
 		DirectoryFileBean parent = fileBean.getParent();
-		paths.add(fileBean.getPath());
+		String path = fileBean.getPath();
+		paths.add(path);
 		FileDao fileDao = getFileDao();
 		fileDao.remove(fileBean);
 		if (parent != null) {
@@ -155,10 +161,11 @@ public class FileSystemServiceImpl implements FileSystemService {
 				fileDao.store(parent);
 			}
 		}
+		log.info("Removed file " + path);
 	}
 
 	protected FileBean findFile(OwnerBean ownerBean, EncodedTrackBean encodedTrackBean) throws WrongFileTypeException {
-		String path = getTitleFormatService().createTitle(encodedTrackBean, ownerBean);
+		String path = getTitleFormatService().createTitle(encodedTrackBean, ownerBean, true);
 		return findByPath(path, true, false);
 	}
 	

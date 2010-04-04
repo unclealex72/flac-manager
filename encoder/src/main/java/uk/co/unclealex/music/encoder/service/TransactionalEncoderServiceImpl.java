@@ -3,15 +3,12 @@ package uk.co.unclealex.music.encoder.service;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
 import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 
-import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.IteratorUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,12 +49,12 @@ public class TransactionalEncoderServiceImpl implements TransactionalEncoderServ
 
 	@Override
 	public void encode(FlacTrackBean flacTrackBean, EncoderBean encoderBean, 
-			List<EncodingAction> encodingActions, Lock lock) throws EncodingException {
+			List<EncodingAction> encodingActions, List<EncodingEventListener> encodingEventListeners) throws EncodingException {
 		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
 		EncodedTrackBean encodedTrackBean = encodedTrackDao.findByUrlAndEncoderBean(flacTrackBean.getUrl(), encoderBean);
 		if (encodedTrackBean == null) {
 			log.info("No encoded bean found for track " + flacTrackBean.getUrl() + " and encoder " + encoderBean.getExtension());
-			doEncode(flacTrackBean, encoderBean, encodingActions, lock);
+			doEncode(flacTrackBean, encoderBean, encodingActions, encodingEventListeners);
 		}
 		else {
 			long flacTimestamp;
@@ -69,259 +66,211 @@ public class TransactionalEncoderServiceImpl implements TransactionalEncoderServ
 			} 
 			if (encodedTrackBean.getTimestamp().longValue() < flacTimestamp) {
 				log.info("The encoded bean for track " + flacTrackBean.getUrl() + " and encoder " + encoderBean.getExtension() + " is outdated.");
-				remove(encodedTrackBean, encodingActions, lock);
-				doEncode(flacTrackBean, encoderBean, encodingActions, lock);
+				remove(encodedTrackBean, encodingActions, encodingEventListeners);
+				doEncode(flacTrackBean, encoderBean, encodingActions, encodingEventListeners);
 			}
 		}
 		return;
 	}
 	
 	protected boolean doEncode(
-			FlacTrackBean flacTrackBean, EncoderBean encoderBean, List<EncodingAction> encodingActions, Lock lock) throws EventException {
+			FlacTrackBean flacTrackBean, EncoderBean encoderBean, List<EncodingAction> encodingActions, List<EncodingEventListener> encodingEventListeners) throws EventException {
 		EncodedTrackBean encodedTrackBean;
-		lock.lock();
-		try {
-			FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
-			FlacArtistBean flacArtistBean = flacAlbumBean.getFlacArtistBean();
-			String artistCode = flacArtistBean.getCode();
-			EncodedArtistBean encodedArtistBean = getEncodedArtistDao().findByCode(artistCode);
-			EncodedService encodedService = getEncodedService();
-			if (encodedArtistBean == null) {
-				encodedArtistBean = encodedService.createArtist(flacArtistBean);
-				fireEncodedArtistAdded(flacArtistBean, encodedArtistBean, encodingActions, null);
-			}
-			EncodedAlbumBean encodedAlbumBean = 
-				getEncodedAlbumDao().findByArtistCodeAndCode(artistCode, flacAlbumBean.getCode());
-			if (encodedAlbumBean == null) {
-				encodedAlbumBean = encodedService.createAlbum(encodedArtistBean, flacAlbumBean);
-				fireEncodedAlbumAdded(flacAlbumBean, encodedAlbumBean, encodingActions, null);
-			}
-			encodedTrackBean = encodedService.createTrack(encodedAlbumBean, encoderBean, flacTrackBean);
+		FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
+		FlacArtistBean flacArtistBean = flacAlbumBean.getFlacArtistBean();
+		String artistCode = flacArtistBean.getCode();
+		EncodedArtistBean encodedArtistBean = getEncodedArtistDao().findByCode(artistCode);
+		EncodedService encodedService = getEncodedService();
+		if (encodedArtistBean == null) {
+			encodedArtistBean = encodedService.createArtist(flacArtistBean);
+			fireEncodedArtistAdded(flacArtistBean, encodedArtistBean, encodingActions, null, encodingEventListeners);
 		}
-		finally {
-			lock.unlock();
+		EncodedAlbumDao encodedAlbumDao = getEncodedAlbumDao();
+		EncodedAlbumBean encodedAlbumBean = 
+			encodedAlbumDao.findByArtistCodeAndCode(artistCode, flacAlbumBean.getCode());
+		if (encodedAlbumBean == null) {
+			encodedAlbumBean = encodedService.createAlbum(encodedArtistBean, flacAlbumBean);
+			fireEncodedAlbumAdded(flacAlbumBean, encodedAlbumBean, encodingActions, null, encodingEventListeners);
 		}
-		fireEncodedTrackAdded(flacTrackBean, encodedTrackBean, encodingActions, lock);
+		encodedTrackBean = encodedService.createTrack(encodedAlbumBean, encoderBean, flacTrackBean);
+		fireEncodedTrackAdded(flacTrackBean, encodedTrackBean, encodingActions, encodingEventListeners);
+		encodedAlbumDao.flush();
 		return true;
 	}
 
 	@Override
-	public void remove(EncodedTrackBean encodedTrackBean, List<EncodingAction> encodingActions, Lock lock) throws EncodingException {
-		lock.lock();
-		try {
-			String trackCode = encodedTrackBean.getCode();
-			EncodedAlbumBean encodedAlbumBean = encodedTrackBean.getEncodedAlbumBean();
-			String albumCode = encodedAlbumBean.getCode();
-			EncodedArtistBean encodedArtistBean = encodedAlbumBean.getEncodedArtistBean();
-			String artistCode = encodedArtistBean.getCode();
-			fireEncodedTrackRemoved(artistCode, albumCode, trackCode, encodedTrackBean, encodingActions, lock);
-			SortedSet<EncodedTrackBean> encodedTrackBeans = encodedAlbumBean.getEncodedTrackBeans();
-			encodedTrackBeans.remove(encodedTrackBean);
-			getEncodedTrackDao().remove(encodedTrackBean);
-			if (encodedTrackBeans.isEmpty()) {
-				fireEncodedAlbumRemoved(artistCode, albumCode, encodedAlbumBean, encodingActions, null);
-				SortedSet<EncodedAlbumBean> encodedAlbumBeans = encodedArtistBean.getEncodedAlbumBeans();
-				encodedAlbumBeans.remove(encodedAlbumBean);
-				getEncodedAlbumDao().remove(encodedAlbumBean);
-				if (encodedAlbumBeans.isEmpty()) {
-					fireEncodedArtistRemoved(artistCode, encodedArtistBean, encodingActions, null);
-					getEncodedArtistDao().remove(encodedArtistBean);
-				}
+	public void remove(EncodedTrackBean encodedTrackBean, List<EncodingAction> encodingActions, List<EncodingEventListener> encodingEventListeners) throws EncodingException {
+		String trackCode = encodedTrackBean.getCode();
+		EncodedAlbumBean encodedAlbumBean = encodedTrackBean.getEncodedAlbumBean();
+		String albumCode = encodedAlbumBean.getCode();
+		EncodedArtistBean encodedArtistBean = encodedAlbumBean.getEncodedArtistBean();
+		String artistCode = encodedArtistBean.getCode();
+		fireEncodedTrackRemoved(artistCode, albumCode, trackCode, encodedTrackBean, encodingActions, encodingEventListeners);
+		SortedSet<EncodedTrackBean> encodedTrackBeans = encodedAlbumBean.getEncodedTrackBeans();
+		encodedTrackBeans.remove(encodedTrackBean);
+		getEncodedTrackDao().remove(encodedTrackBean);
+		if (encodedTrackBeans.isEmpty()) {
+			fireEncodedAlbumRemoved(artistCode, albumCode, encodedAlbumBean, encodingActions, null, encodingEventListeners);
+			SortedSet<EncodedAlbumBean> encodedAlbumBeans = encodedArtistBean.getEncodedAlbumBeans();
+			encodedAlbumBeans.remove(encodedAlbumBean);
+			getEncodedAlbumDao().remove(encodedAlbumBean);
+			if (encodedAlbumBeans.isEmpty()) {
+				fireEncodedArtistRemoved(artistCode, encodedArtistBean, encodingActions, null, encodingEventListeners);
+				getEncodedArtistDao().remove(encodedArtistBean);
 			}
-		}
-		finally {
-			lock.unlock();
 		}
 	}
 	
 	@Override
-	public void updateOwnership(List<EncodingAction> encodingActions) throws EventException {
-		SortedMap<OwnerBean, SortedSet<EncodedTrackBean>> requiredOwnership = new TreeMap<OwnerBean, SortedSet<EncodedTrackBean>>(); 
-		EncodedTrackDao encodedTrackDao = getEncodedTrackDao();
-		for (Map.Entry<OwnerBean, SortedSet<FlacTrackBean>> entry : getOwnerService().resolveOwnershipByFiles().entrySet()) {
-			SortedSet<EncodedTrackBean> encodedTrackBeans = new TreeSet<EncodedTrackBean>();
-			for (FlacTrackBean flacTrackBean : entry.getValue()) {
-				encodedTrackBeans.addAll(encodedTrackDao.findByUrl(flacTrackBean.getUrl()));
-			}
-			requiredOwnership.put(entry.getKey(), encodedTrackBeans);
-		}
-		// Calculate deltas for each owner.
-		for (OwnerBean ownerBean : getOwnerDao().getAll()) {
-			SortedSet<EncodedTrackBean> required = requiredOwnership.get(ownerBean);
-			SortedSet<EncodedTrackBean> current = encodedTrackDao.findByOwnerBean(ownerBean);
-			updateOwnershipDelta(
-					ownerBean, 
-					required==null?new TreeSet<EncodedTrackBean>():required, 
-					current==null?new TreeSet<EncodedTrackBean>():current,
-					encodingActions);
-		}
-	}
-
-	protected void updateOwnershipDelta(
-		OwnerBean ownerBean, SortedSet<EncodedTrackBean> required, 
-		SortedSet<EncodedTrackBean> current, List<EncodingAction> encodingActions) throws EventException {
-		SortedSet<EncodedTrackBean> missing = new TreeSet<EncodedTrackBean>(CollectionUtils.subtract(required, current));
-		for (EncodedTrackBean encodedTrackBean : missing) {
-			fireOwnerAdded(ownerBean, null, encodedTrackBean, encodingActions, null);
-		}
-		SortedSet<EncodedTrackBean> extra = new TreeSet<EncodedTrackBean>(CollectionUtils.subtract(current, required));
-		for (EncodedTrackBean encodedTrackBean : extra) {
-			fireOwnerRemoved(ownerBean, encodedTrackBean, encodingActions, null);
-		}
-	}
-
-	@Override
-	public void startEncoding() {
+	public void startEncoding(List<EncodingEventListener> encodingEventListeners) {
 		ExceptionlessListenerCallback callback = new ExceptionlessListenerCallback() {
 			@Override
 			public void doInListener(EncodingEventListener listener) {
 				listener.encodingStarted();
 			}
 		};
-		doFire(callback, null);
+		doFire(callback, encodingEventListeners);
 	}
 	
 	@Override
-	public void stopEncoding() {
+	public void stopEncoding(List<EncodingEventListener> encodingEventListeners) {
 		ExceptionlessListenerCallback callback = new ExceptionlessListenerCallback() {
 			@Override
 			public void doInListener(EncodingEventListener listener) {
 				listener.encodingFinished();
 			}
 		};
-		doFire(callback, null);
+		doFire(callback, encodingEventListeners);
+	}
+	
+	@Override
+	public void own(OwnerBean ownerBean, EncodedTrackBean encodedTrackBean, List<EncodingAction> encodingActions,
+			List<EncodingEventListener> encodingEventListeners) throws EventException {
+		fireOwnerAdded(ownerBean, encodedTrackBean, encodingActions, encodingEventListeners);
+	}
+	
+	@Override
+	public void unown(OwnerBean ownerBean, EncodedTrackBean encodedTrackBean, List<EncodingAction> encodingActions,
+			List<EncodingEventListener> encodingEventListeners) throws EventException {
+		fireOwnerRemoved(ownerBean, encodedTrackBean, encodingActions, encodingEventListeners);
 	}
 	
 	protected void fireOwnerRemoved(
 			final OwnerBean ownerBean, final EncodedTrackBean encodedTrackBean, 
-			final List<EncodingAction> encodingActions, Lock lock) throws EventException{
+			final List<EncodingAction> encodingActions, List<EncodingEventListener> encodingEventListeners) throws EventException{
 		ListenerCallback callback = new ListenerCallback() {
 			@Override
 			public void doInListener(EncodingEventListener listener) throws EventException {
 				listener.ownerRemoved(ownerBean, encodedTrackBean, encodingActions);
 			}
 		};
-		doFire(callback, lock);
+		doFire(callback, encodingEventListeners);
 	}
 
 	protected void fireOwnerAdded(
-			final OwnerBean ownerBean, final FlacTrackBean flacTrackBean, 
-			final EncodedTrackBean encodedTrackBean, final List<EncodingAction> encodingActions,
-			Lock lock) throws EventException {
+			final OwnerBean ownerBean, final EncodedTrackBean encodedTrackBean, 
+			final List<EncodingAction> encodingActions, List<EncodingEventListener> encodingEventListeners) throws EventException {
 		ListenerCallback callback = new ListenerCallback() {
 			@Override
 			public void doInListener(EncodingEventListener listener) throws EventException {
 				listener.ownerAdded(ownerBean, encodedTrackBean, encodingActions);
 			}
 		};
-		doFire(callback, lock);
+		doFire(callback, encodingEventListeners);
 	}
 
 	protected void fireEncodedTrackAdded(
 			final FlacTrackBean flacTrackBean, final EncodedTrackBean encodedTrackBean, 
-			final List<EncodingAction> encodingActions, Lock lock) throws EventException {
+			final List<EncodingAction> encodingActions, List<EncodingEventListener> encodingEventListeners) throws EventException {
 		ListenerCallback callback = new ListenerCallback() {
 			@Override
 			public void doInListener(EncodingEventListener listener) throws EventException {
 				listener.trackAdded(flacTrackBean, encodedTrackBean, encodingActions);
 			}
 		};
-		doFire(callback, lock);
+		doFire(callback, encodingEventListeners);
 	}
 
 	protected void fireEncodedAlbumAdded(
 			final FlacAlbumBean flacAlbumBean, final EncodedAlbumBean encodedAlbumBean,
-			final List<EncodingAction> encodingActions, Lock lock) throws EventException {
+			final List<EncodingAction> encodingActions, Lock lock, List<EncodingEventListener> encodingEventListeners) throws EventException {
 		ListenerCallback callback = new ListenerCallback() {
 			@Override
 			public void doInListener(EncodingEventListener listener) throws EventException {
 				listener.albumAdded(flacAlbumBean, encodedAlbumBean, encodingActions);
 			}
 		};
-		doFire(callback, lock);
+		doFire(callback, encodingEventListeners);
 	}
 
 	protected void fireEncodedArtistAdded(
 			final FlacArtistBean flacArtistBean, final EncodedArtistBean encodedArtistBean, 
-			final List<EncodingAction> encodingActions, Lock lock) throws EventException {
+			final List<EncodingAction> encodingActions, Lock lock, List<EncodingEventListener> encodingEventListeners) throws EventException {
 		ListenerCallback callback = new ListenerCallback() {
 			@Override
 			public void doInListener(EncodingEventListener listener) throws EventException {
 				listener.artistAdded(flacArtistBean, encodedArtistBean, encodingActions);
 			}
 		};
-		doFire(callback, lock);
+		doFire(callback, encodingEventListeners);
 	}
 
 	protected void fireEncodedArtistRemoved(
 			final String artistCode, final EncodedArtistBean encodedArtistBean, 
-			final List<EncodingAction> encodingActions, Lock lock) throws EventException {
+			final List<EncodingAction> encodingActions, Lock lock, List<EncodingEventListener> encodingEventListeners) throws EventException {
 		ListenerCallback callback = new ListenerCallback() {
 			@Override
 			public void doInListener(EncodingEventListener listener) throws EventException {
 				listener.artistRemoved(encodedArtistBean, encodingActions);
 			}
 		};
-		doFire(callback, lock);
+		doFire(callback, encodingEventListeners);
 	}
 
 	protected void fireEncodedAlbumRemoved(
 			final String artistCode, final String albumCode, 
 			final EncodedAlbumBean encodedAlbumBean, final List<EncodingAction> encodingActions,
-			Lock lock) throws EventException {
+			Lock lock, List<EncodingEventListener> encodingEventListeners) throws EventException {
 		ListenerCallback callback = new ListenerCallback() {
 			@Override
 			public void doInListener(EncodingEventListener listener) throws EventException {
 				listener.albumRemoved(encodedAlbumBean, encodingActions);
 			}
 		};
-		doFire(callback, lock);
+		doFire(callback, encodingEventListeners);
 	}
 
 	protected void fireEncodedTrackRemoved(
 			final String artistCode, final String albumCode,
 			final String trackCode, final EncodedTrackBean encodedTrackBean, 
-			final List<EncodingAction> encodingActions, Lock lock) throws EventException {
+			final List<EncodingAction> encodingActions, List<EncodingEventListener> encodingEventListeners) throws EventException {
 		ListenerCallback callback = new ListenerCallback() {
 			@Override
 			public void doInListener(EncodingEventListener listener) throws EventException {
 				listener.trackRemoved(encodedTrackBean, encodingActions);
 			}
 		};
-		doFire(callback, lock);
+		doFire(callback, encodingEventListeners);
 	}
 
-	protected void doFire(ListenerCallback callback, Lock lock) throws EventException {
-		for (EncodingEventListener listener : getEncodingEventListeners()) {
-			boolean synchronisationRequired = lock != null && listener.isSynchronisationRequired();
-			if (synchronisationRequired) {
-				lock.lock();
+	protected Iterable<EncodingEventListener> listEncodingEventListeners(final List<EncodingEventListener> encodingEventListeners) {
+		return new Iterable<EncodingEventListener>() {
+			@Override
+			public Iterator<EncodingEventListener> iterator() {
+				return IteratorUtils.chainedIterator(getEncodingEventListeners().iterator(), encodingEventListeners.iterator());
 			}
-			try {
-				callback.doInListener(listener);
-			}
-			finally {
-				if (synchronisationRequired) {
-					lock.unlock();
-				}
-			}
+		};
+	}
+	
+	protected void doFire(ListenerCallback callback, List<EncodingEventListener> encodingEventListeners) throws EventException {
+		for (EncodingEventListener listener : listEncodingEventListeners(encodingEventListeners)) {
+			callback.doInListener(listener);
 		}
 	}
 	
-	protected void doFire(ExceptionlessListenerCallback callback, Lock lock) {
-		for (EncodingEventListener listener : getEncodingEventListeners()) {
-			boolean synchronisationRequired = lock != null && listener.isSynchronisationRequired();
-			if (synchronisationRequired) {
-				lock.lock();
-			}
-			try {
-				callback.doInListener(listener);
-			}
-			finally {
-				if (synchronisationRequired) {
-					lock.unlock();
-				}
-			}
+	protected void doFire(ExceptionlessListenerCallback callback, List<EncodingEventListener> encodingEventListeners) {
+		for (EncodingEventListener listener : listEncodingEventListeners(encodingEventListeners)) {
+			callback.doInListener(listener);
 		}
 	}
 

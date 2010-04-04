@@ -1,6 +1,7 @@
 package uk.co.unclealex.music.encoder;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,12 @@ public abstract class SpringTest extends AbstractTransactionalSpringContextTests
 	
 
 	public <E> void assertEquals(String message, Collection<E> expected, Collection<E> actual) {
+		if (expected == null) {
+			expected = Collections.emptySet();
+		}
+		if (actual == null) {
+			actual = Collections.emptySet();
+		}
 		List<E> extra = new LinkedList<E>();
 		extra.addAll(actual);
 		extra.removeAll(expected);

@@ -39,6 +39,34 @@
 	   <artifactId>jaudiotagger</artifactId>
 	   <version>1.0.8.1</version>
 		</dependency>
+		<dependency>
+			<groupId>${groupId}</groupId>
+			<artifactId>fs</artifactId>
+			<version>${version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>uk.co.unclealex</groupId>
+			<artifactId>fuse-j</artifactId>
+			<version>2.4pr1-1-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
+	<build>
+		<plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemProperties>
+            <property>
+              <name>java.library.path</name>
+              <value>./src/test/lib</value>
+            </property>
+          </systemProperties>
+        </configuration>
+      </plugin>
+		</plugins>
+	</build>
 </project>

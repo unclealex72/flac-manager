@@ -17,11 +17,9 @@
 		<constructor-arg value="/tmp/music/import"/>
 	</bean>
 
-	<bean id="encodedMusicStorageDirectory" class="java.io.File">
+	<bean id="dataStorageDirectory" class="java.io.File">
 		<constructor-arg value="/tmp/music/tracks"/>
 	</bean>
-	
-	<bean id="speechWriter" class="uk.co.unclealex.music.test.TestSpeechWriter"/>
 	
 	<bean id="slimServerConfig" class="uk.co.unclealex.music.test.TestSlimServerConfig">
 		<property name="definiteArticles">
@@ -29,21 +27,6 @@
 				<value>The</value>
 			</list>
 		</property>
-	</bean>
-	
-	<!-- 
-	<bean id="abstractRepositoryManager" class="uk.co.unclealex.music.test.TestRepositoryManager" abstract="true">
-		<property name="baseDirectory" value="/"/>
-	</bean>
-	 -->
-	
-	<bean id="fileSystemTitleFormats" class="org.springframework.beans.factory.config.ListFactoryBean">
-		<property name="sourceList">
-			<list>
-				<value>${ext}/${1:artist}/${artist}/${album}/${2:track} - ${title}.${ext}</value>
-			</list>
-		</property>
-	</bean>
-
+	</bean>	
 </beans>
 

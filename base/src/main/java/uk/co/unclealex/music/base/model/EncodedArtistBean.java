@@ -2,8 +2,8 @@ package uk.co.unclealex.music.base.model;
 
 import java.util.Comparator;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 import org.hibernate.validator.NotNull;
@@ -31,7 +32,7 @@ public class EncodedArtistBean extends CodedBean<EncodedArtistBean> {
 	};
 	
 	private String i_name;
-	private SortedSet<EncodedAlbumBean> i_encodedAlbumBeans;
+	private SortedSet<EncodedAlbumBean> i_encodedAlbumBeans = new TreeSet<EncodedAlbumBean>();
 	
 	@Override
 	public int compareTo(EncodedArtistBean o) {
@@ -84,7 +85,7 @@ public class EncodedArtistBean extends CodedBean<EncodedArtistBean> {
 
 	@Override
 	@NotNull
-	@Column(name="code")
+	@Index(name="code")
 	public String getCode() {
 		return super.getCode();
 	}

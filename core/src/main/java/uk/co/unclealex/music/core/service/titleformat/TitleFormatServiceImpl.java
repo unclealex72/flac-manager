@@ -11,8 +11,8 @@ public class TitleFormatServiceImpl implements TitleFormatService {
 	private String i_titleFormat;
 	
 	@Override
-	public String createTitle(EncodedTrackBean encodedTrackBean, OwnerBean ownerBean) {
-		Substitutor substitutor = new Substitutor(getTitleFormat());
+	public String createTitle(EncodedTrackBean encodedTrackBean, OwnerBean ownerBean, boolean sanitise) {
+		Substitutor substitutor = new Substitutor(getTitleFormat(), sanitise);
 		Integer trackNumber = encodedTrackBean.getTrackNumber();
 		String title = encodedTrackBean.getTitle();
 		EncodedAlbumBean encodedAlbumBean = encodedTrackBean.getEncodedAlbumBean();

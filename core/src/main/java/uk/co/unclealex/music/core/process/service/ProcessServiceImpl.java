@@ -1,14 +1,24 @@
 package uk.co.unclealex.music.core.process.service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
+import uk.co.unclealex.music.base.process.service.ProcessCallback;
 import uk.co.unclealex.music.base.process.service.ProcessResult;
 import uk.co.unclealex.music.base.process.service.ProcessService;
 
@@ -18,11 +28,37 @@ public class ProcessServiceImpl implements ProcessService {
 	 * @see uk.co.unclealex.music.base.core.process.service.ProcessService#run(java.lang.ProcessBuilder)
 	 */
 	protected ProcessResult run(
-			ProcessBuilder processBuilder, InputStream in, Reader reader, boolean throwOnNonZeroReturn) throws IOException {
-		StringWriter errorWriter = new StringWriter();
-		StringWriter outputWriter = new StringWriter();
+			ProcessBuilder processBuilder, InputStream in, Reader reader, ProcessCallback processCallback, boolean throwOnNonZeroReturn) throws IOException {
 		int returnValue;
+		final ProcessCallback actualProcessCallback = 
+			processCallback!=null?
+					processCallback:
+					new ProcessCallback() {
+						@Override
+						public void lineWritten(String line) {
+						}
+						@Override
+						public void errorLineWritten(String line) {
+						}
+					};
 		Process process = processBuilder.start();
+		OutputWriter stdOutOutputWriter = new OutputWriter(process.getInputStream()) {
+			
+			@Override
+			protected void writeLine(String line) {
+				actualProcessCallback.lineWritten(line);
+			}
+		};
+		OutputWriter stdErrOutputWriter = new OutputWriter(process.getErrorStream()) {
+			
+			@Override
+			protected void writeLine(String line) {
+				actualProcessCallback.errorLineWritten(line);
+			}
+		};
+		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		Future<String> stdOutFuture = executorService.submit(stdOutOutputWriter);
+		Future<String> stdErrFuture = executorService.submit(stdErrOutputWriter);
 		try {
 			OutputStream stdin = process.getOutputStream();
 			if (in != null) {
@@ -44,31 +80,108 @@ public class ProcessServiceImpl implements ProcessService {
 					"The process " + StringUtils.join(processBuilder.command().iterator(), ' ') +" failed.\n" + 
 					writer, e);
 		}
-		IOUtils.copy(process.getInputStream(), outputWriter);
-		IOUtils.copy(process.getErrorStream(), errorWriter);
-		if (returnValue != 0 && throwOnNonZeroReturn) {
-			throw new IOException(
-					"The process " + StringUtils.join(processBuilder.command().iterator(), ' ') +
-					" failed with return value " + returnValue + ":\n" + errorWriter);
+		finally {
+			stdOutOutputWriter.setKeepRunning(false);
+			stdErrOutputWriter.setKeepRunning(false);
 		}
-		return new ProcessResult(returnValue, outputWriter.toString(), errorWriter.toString());
+		try {
+			String output;
+			String error;
+			try {
+				output = stdOutFuture.get(1, TimeUnit.SECONDS);
+				error = stdErrFuture.get(1, TimeUnit.SECONDS);
+			}
+			catch (TimeoutException e) {
+				throw new IOException(
+						"Reading from the process error streams failed for process " + StringUtils.join(processBuilder.command().iterator(), ' '));
+			}
+			if (returnValue != 0 && throwOnNonZeroReturn) {
+				throw new IOException(
+						"The process " + StringUtils.join(processBuilder.command().iterator(), ' ') +
+						" failed with return value " + returnValue + ":\n" + error);
+			}
+			return new ProcessResult(returnValue, output, error);
+		}
+		catch (ExecutionException e) {
+			throw new IOException("An unexpected error occurred.", e);
+		}
+		catch (InterruptedException e) {
+			throw new IOException("An unexpected error occurred.", e);
+		}
 	}
 
+	protected abstract class OutputWriter implements Callable<String> {
+	
+		private InputStream i_in;
+		private boolean i_keepRunning;
+		
+		public OutputWriter(InputStream in) {
+			super();
+			i_in = in;
+			i_keepRunning = true;
+		}
+
+		@Override
+		public String call() throws IOException {
+			StringBuilder builder = new StringBuilder();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(getIn()));
+			String line;
+			while (isKeepRunning() && (line = reader.readLine()) != null) {
+				builder.append(line).append('\n');
+				writeLine(line);
+			}
+			return builder.toString();
+		}
+
+		protected abstract void writeLine(String line);
+		
+		public InputStream getIn() {
+			return i_in;
+		}
+
+		public boolean isKeepRunning() {
+			return i_keepRunning;
+		}
+
+		public void setKeepRunning(boolean keepRunning) {
+			i_keepRunning = keepRunning;
+		}
+	}
+	
 	@Override
 	public ProcessResult run(ProcessBuilder processBuilder,
 			boolean throwOnNonZeroReturn) throws IOException {
-		return run(processBuilder, null, null, throwOnNonZeroReturn);
+		return run(processBuilder, null, null, null, throwOnNonZeroReturn);
 	}
 
 	@Override
 	public ProcessResult run(ProcessBuilder processBuilder, InputStream in,
 			boolean throwOnNonZeroReturn) throws IOException {
-		return run(processBuilder, in, null, throwOnNonZeroReturn);
+		return run(processBuilder, in, null, null, throwOnNonZeroReturn);
 	}
 
 	@Override
 	public ProcessResult run(ProcessBuilder processBuilder, Reader in,
 			boolean throwOnNonZeroReturn) throws IOException {
-		return run(processBuilder, null, in, throwOnNonZeroReturn);
+		return run(processBuilder, null, in, null, throwOnNonZeroReturn);
 	}
+	
+	@Override
+	public ProcessResult run(ProcessBuilder processBuilder, ProcessCallback processCallback,
+			boolean throwOnNonZeroReturn) throws IOException {
+		return run(processBuilder, null, null, processCallback, throwOnNonZeroReturn);
+	}
+
+	@Override
+	public ProcessResult run(ProcessBuilder processBuilder, InputStream in, ProcessCallback processCallback,
+			boolean throwOnNonZeroReturn) throws IOException {
+		return run(processBuilder, in, null, processCallback, throwOnNonZeroReturn);
+	}
+
+	@Override
+	public ProcessResult run(ProcessBuilder processBuilder, Reader in, ProcessCallback processCallback,
+			boolean throwOnNonZeroReturn) throws IOException {
+		return run(processBuilder, null, in, processCallback, throwOnNonZeroReturn);
+	}
+
 }

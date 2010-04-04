@@ -3,7 +3,7 @@ package uk.co.unclealex.music.encoder.listener;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
-public class ImportTrackKey implements Comparable<ImportTrackKey> {
+public class ImportTrackKey {
 
 	private String i_artist;
 	private String i_album;
@@ -27,30 +27,12 @@ public class ImportTrackKey implements Comparable<ImportTrackKey> {
 	
 	@Override
 	public boolean equals(Object obj) {
-		return (obj instanceof ImportTrackKey) && EqualsBuilder.reflectionEquals(this, obj);
+		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 	
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
-	}
-	
-	@Override
-	public int compareTo(ImportTrackKey o) {
-		int cmp = getArtist().compareTo(o.getArtist());
-		if (cmp == 0) {
-			cmp = getAlbum().compareTo(o.getAlbum());
-		}
-		if (cmp == 0) {
-			cmp = getTrackNumber() - o.getTrackNumber();
-		}
-		if (cmp == 0) {
-			cmp = getTitle().compareTo(o.getTitle());
-		}
-		if (cmp == 0) {
-			cmp = getExtension().compareTo(o.getExtension());
-		}
-		return cmp;
 	}
 	
 	public String getArtist() {

@@ -34,16 +34,20 @@ import uk.co.unclealex.music.base.model.ExternalCoverArtImage;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.model.FlacArtistBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.service.EncoderConfiguration;
 import uk.co.unclealex.music.base.service.ExternalCoverArtException;
 import uk.co.unclealex.music.base.service.ExternalCoverArtService;
 
-public class TestFlacProvider implements ExternalCoverArtService {
+public class TestFlacProvider implements ExternalCoverArtService, EncoderConfiguration {
 
 	private Map<File, FlacTrackBean> i_allFlacTrackBeans;
 	private Map<File, FlacAlbumBean> i_allFlacAlbumBeans;
 	private Map<File, FlacArtistBean> i_allFlacArtistBeans;
 	private Set<ExternalCoverArtImage> i_externalCoverArtImages;
 	private Set<CanonicalAlbumCover> i_canonicalAlbumCovers;
+	private int i_threadCount;
+	private File i_importDirectory;
+	
 	private int i_nextId;
 	
 	public File getWorkingDirectory() {
@@ -52,6 +56,7 @@ public class TestFlacProvider implements ExternalCoverArtService {
 	
 	public void initialise(String testBase) throws IOException {
 		File resourceDirectory = findResourceDirectory(testBase);
+		setImportDirectory(findImportDirectory(testBase));
 		File workingDirectory = getWorkingDirectory();
 		removeAll(workingDirectory);
 		FileUtils.copyDirectory(resourceDirectory, workingDirectory);
@@ -59,7 +64,17 @@ public class TestFlacProvider implements ExternalCoverArtService {
 	}
 
 	protected File findResourceDirectory(String testBase) throws IOException {
-		String resourceName = "testdata/" + testBase + "/ident.txt";
+		String type = "testdata";
+		return findResourceDirectory(type, testBase);
+	}
+
+	protected File findImportDirectory(String testBase) throws IOException {
+		String type = "import";
+		return findResourceDirectory(type, testBase);
+	}
+
+	protected File findResourceDirectory(String type, String testBase) throws FileNotFoundException, IOException {
+		String resourceName = type + "/" + testBase + "/ident.txt";
 		ClassLoader classLoader = getClass().getClassLoader();
 		URL resourceUrl = classLoader.getResource(resourceName);
 		if (resourceUrl == null) {
@@ -128,8 +143,10 @@ public class TestFlacProvider implements ExternalCoverArtService {
 	protected interface FileCallback {
 		public void doWithFile(File f) throws Exception;
 	}
+	
 	public void mergeResource(String testBase) throws IOException {
 		File resourceDirectory = findResourceDirectory(testBase);
+		setImportDirectory(findImportDirectory(testBase));
 		FileUtils.copyDirectory(resourceDirectory, getWorkingDirectory());
 		update();		
 	}
@@ -335,5 +352,21 @@ public class TestFlacProvider implements ExternalCoverArtService {
 
 	public void setCanonicalAlbumCovers(Set<CanonicalAlbumCover> canonicalAlbumCovers) {
 		i_canonicalAlbumCovers = canonicalAlbumCovers;
+	}
+
+	public int getThreadCount() {
+		return i_threadCount;
+	}
+
+	public void setThreadCount(int threadCount) {
+		i_threadCount = threadCount;
+	}
+
+	public File getImportDirectory() {
+		return i_importDirectory;
+	}
+
+	public void setImportDirectory(File importDirectory) {
+		i_importDirectory = importDirectory;
 	}
 }

@@ -14,7 +14,9 @@ import org.apache.log4j.Logger;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
+import org.jdom.Namespace;
 import org.jdom.Parent;
+import org.jdom.filter.Filter;
 import org.jdom.input.SAXBuilder;
 
 import uk.co.unclealex.music.base.model.ExternalCoverArtImage;
@@ -48,14 +50,15 @@ public class AmazonExternalCoverArtService implements ExternalCoverArtService {
 		Map<Parent, ExternalCoverArtImage> imagesByParentElement = new HashMap<Parent, ExternalCoverArtImage>();
 		for (Iterator<Element> iter = descendantsOf(doc); iter.hasNext(); ) {
 			Element el = iter.next();
+			Namespace ns = el.getNamespace();
 			if (el.getName().endsWith("Image")) {
 				Element urlElement;
 				Element heightElement;
 				Element widthElement;
 				if (
-						(urlElement = el.getChild("URL")) != null && 
-						(heightElement = el.getChild("Height")) != null &&
-						(widthElement = el.getChild("Width")) != null) {
+						(urlElement = el.getChild("URL", ns)) != null && 
+						(heightElement = el.getChild("Height", ns)) != null &&
+						(widthElement = el.getChild("Width", ns)) != null) {
 					String url = StringUtils.trimToEmpty(urlElement.getText());
 					String height = StringUtils.trimToEmpty(heightElement.getText());
 					String width = StringUtils.trimToEmpty(widthElement.getText());
@@ -81,7 +84,13 @@ public class AmazonExternalCoverArtService implements ExternalCoverArtService {
 
 	@SuppressWarnings("unchecked")
 	protected Iterator<Element> descendantsOf(Document doc) {
-		return doc.getDescendants();
+		Filter filter = new Filter() {
+			@Override
+			public boolean matches(Object obj) {
+				return obj instanceof Element;
+			}
+		};
+		return doc.getDescendants(filter);
 	}
 
 	public SignedRequestsService getSignedRequestsService() {

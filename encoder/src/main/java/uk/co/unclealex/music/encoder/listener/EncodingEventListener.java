@@ -26,5 +26,4 @@ public interface EncodingEventListener {
 	public void artistRemoved(EncodedArtistBean encodedArtistBean, List<EncodingAction> encodingActions) throws EventException;
 	public void ownerRemoved(
 			OwnerBean ownerBean, EncodedTrackBean encodedTrackBean, List<EncodingAction> encodingActions) throws EventException;
-	public boolean isSynchronisationRequired();
 }

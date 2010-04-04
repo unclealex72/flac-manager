@@ -17,15 +17,28 @@ import uk.co.unclealex.music.core.service.titleformat.TitleFormatVariable;
 public class Substitutor {
 
 	private String i_text;
-	
+	private boolean i_sanitise;
 	/**
 	 * @param text
 	 * @param variableName
 	 */
-	public Substitutor(String text) {
+	public Substitutor(String text, boolean sanitise) {
 		i_text = text;
+		i_sanitise = sanitise;
 	}
 
+	protected String sanitise(String filename) {
+		if (isSanitise()) {
+			while (filename.startsWith(".")) {
+				filename = filename.substring(1);
+			}
+			return filename.replaceAll("(/|:)", "_");
+		}
+		else {
+			return filename;
+		}
+	}
+	
 	public Substitutor substitute(TitleFormatVariable variable, String value) {
 		substitute(
 				variable,
@@ -34,7 +47,7 @@ public class Substitutor {
 						if (length == null || length >= value.length()) {
 							return value;
 						}
-						return value.substring(0, length).replace('/', '_');
+						return sanitise(value.substring(0, length));
 					}
 				},
 				value);
@@ -51,7 +64,7 @@ public class Substitutor {
 						while (length != null && buf.length() < length) {
 							buf.insert(0, '0');
 						}
-						return buf.toString();
+						return sanitise(buf.toString());
 					}
 				},
 				value);
@@ -76,7 +89,7 @@ public class Substitutor {
 			else {
 				substitution = subsBuilder.getObjectAsString(value, length);
 			}
-			setText(matcher.replaceFirst(substitution));
+			setText(matcher.replaceFirst(sanitise(substitution)));
 		}
 	}
 	
@@ -90,6 +103,10 @@ public class Substitutor {
 	
 	private interface SubsBuilder<T> {
 		public String getObjectAsString(T value, Integer length);
+	}
+
+	public boolean isSanitise() {
+		return i_sanitise;
 	}
 	
 	/**

@@ -2,11 +2,14 @@ package uk.co.unclealex.music.encoder.service;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,12 +25,14 @@ import org.apache.commons.collections15.FunctorException;
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.datatype.Artwork;
 
 import uk.co.unclealex.hibernate.dao.DataDao;
+import uk.co.unclealex.hibernate.service.DataService;
 import uk.co.unclealex.music.base.dao.AlbumCoverDao;
 import uk.co.unclealex.music.base.dao.EncodedArtistDao;
 import uk.co.unclealex.music.base.dao.EncodedTrackDao;
@@ -40,6 +45,7 @@ import uk.co.unclealex.music.base.model.AlbumCoverBean;
 import uk.co.unclealex.music.base.model.EncodedAlbumBean;
 import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
+import uk.co.unclealex.music.base.model.EncodedTrackFileBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.model.FlacArtistBean;
@@ -50,13 +56,13 @@ import uk.co.unclealex.music.base.service.titleformat.TitleFormatService;
 import uk.co.unclealex.music.encoder.EncoderSpringTest;
 import uk.co.unclealex.music.encoder.action.EncodingAction;
 import uk.co.unclealex.music.encoder.exception.EncodingException;
+import uk.co.unclealex.music.encoder.listener.EncodingEventListener;
+import uk.co.unclealex.music.fs.FileSystemMount;
 import uk.co.unclealex.music.test.CanonicalAlbumCover;
 import uk.co.unclealex.music.test.RawPictureData;
 import uk.co.unclealex.music.test.TestFlacProvider;
 
 public abstract class EncoderServiceTest extends EncoderSpringTest {
-
-	public static final int SIMULTANEOUS_THREADS = 2;
 
 	private EncoderService i_encoderService;
 	private TestFlacProvider i_testFlacProvider;
@@ -71,6 +77,10 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 	private TitleFormatService i_titleFormatService;
 	private FileDao i_fileDao;
 	private AlbumCoverDao i_albumCoverDao;
+	private DataService i_dataService;
+	private FileSystemMount i_fileSystemMount;
+	private File i_mountPoint;
+	private File i_dataStorageDirectory;
 	
 	private static boolean s_initialisationRequired = true;
 	
@@ -90,19 +100,23 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 		}
 	}
 	
-	protected List<EncodingAction> doTestEncoding(String testName) throws EncodingException, IOException {
-		List<EncodingAction> encodingActions = getEncoderService().encodeAll(SIMULTANEOUS_THREADS);
+	protected List<EncodingAction> doTestEncoding(String testName, List<EncodingEventListener> encodingEventListeners) throws EncodingException, IOException {
+		List<EncodingAction> encodingActions = getEncoderService().encodeAll(encodingEventListeners);
 		checkArtists(testName);
 		checkOwnership(testName);
 		checkFilesystem(testName);
 		checkCovers(testName);
 		checkData(testName);
+		checkFuseFilesystem(testName);
 		return encodingActions;
 	}
 	
-	protected void doTestEncoding(String testName, List<EncodingAction> expectedEncodingActions) throws EncodingException, IOException {
-		List<EncodingAction> actualEncodingActions = doTestEncoding(testName);
+	protected void doTestEncodingAndCheckActions(String testName, List<EncodingAction> expectedEncodingActions) throws EncodingException, IOException {
+		CalledEncodingEventListener calledEncodingEventListener = new CalledEncodingEventListener();
+		List<EncodingAction> actualEncodingActions =
+			doTestEncoding(testName, Collections.singletonList((EncodingEventListener) calledEncodingEventListener));
 		assertEquals("The wrong encoding actions were returned for test " + testName, expectedEncodingActions, actualEncodingActions);
+		assertTrue("The extra encoding event listener was not called.", calledEncodingEventListener.isCalled());
 	}
 	
 	protected void checkArtists(String testName) {
@@ -219,7 +233,7 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 		TitleFormatService titleFormatService = getTitleFormatService();
 		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
 			for (OwnerBean ownerBean : encodedTrackBean.getOwnerBeans()) {
-				String fullPath = titleFormatService.createTitle(encodedTrackBean, ownerBean);
+				String fullPath = titleFormatService.createTitle(encodedTrackBean, ownerBean, true);
 				String[] pathParts = StringUtils.split(fullPath, '/');
 				for (int idx = 0; idx < pathParts.length; idx++) {
 					String path = StringUtils.join(Arrays.copyOf(pathParts, idx), '/');
@@ -265,11 +279,12 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 			checkPicturesEqual(
 					flacAlbumBean.getFlacArtistBean().getCode(), flacAlbumBean.getCode(), flacTrackBean.getTitle(), flacTrackBean.getFile(), testName);
 		}
+		DataService dataService = getDataService();
 		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
 			EncodedAlbumBean encodedAlbumBean = encodedTrackBean.getEncodedAlbumBean();
 			checkPicturesEqual(
 					encodedAlbumBean.getEncodedArtistBean().getCode(), encodedAlbumBean.getCode(), 
-					encodedTrackBean.getTitle(), encodedTrackBean.getTrackDataBean().getFile(), testName);
+					encodedTrackBean.getTitle(), dataService.findFile(encodedTrackBean.getTrackDataBean()), testName);
 		}
 	}
 	
@@ -318,6 +333,53 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 		long dataCount = getDataDao().count();
 		assertEquals("The wrong number of data beans were found in test " + testName, trackAndCoverCount, dataCount);
 	}
+	
+	protected void checkFuseFilesystem(String testName) throws IOException {
+		File mountPoint = getMountPoint();
+		mountPoint.mkdirs();
+		FileSystemMount fileSystemMount = getFileSystemMount();
+		fileSystemMount.mount();
+		try {
+			SortedSet<String> expectedFileNames = new TreeSet<String>(getFileDao().findAllPaths());
+			SortedSet<String> actualFileNames = new TreeSet<String>();
+			listFiles(mountPoint, "", actualFileNames);
+			actualFileNames.add("");
+			assertEquals("The wrong files were mounted.", expectedFileNames, actualFileNames);
+			File dataStorageDirectory = getDataStorageDirectory();
+			for (EncodedTrackFileBean encodedTrackFileBean : getFileDao().getAllNormalFiles()) {
+				File expectedFile = 
+					new File(
+						dataStorageDirectory,
+						encodedTrackFileBean.getEncodedTrackBean().getTrackDataBean().getFilename());
+				String path = encodedTrackFileBean.getPath();
+				File actualFile = 
+					new File(mountPoint, path);
+				InputStream expectedIn = new FileInputStream(expectedFile);
+				InputStream actualIn = new FileInputStream(actualFile);
+				byte[] expectedData = IOUtils.toByteArray(expectedIn);
+				byte[] actualData = IOUtils.toByteArray(actualIn);
+				assertTrue("The wrong data was returned for path " + path, Arrays.equals(expectedData, actualData));
+			}
+		}
+		finally {
+			fileSystemMount.unmount();
+			mountPoint.delete();
+		}
+	}
+	
+	protected void listFiles(File directory, String directoryName, SortedSet<String> fileNames) {
+		if (!directory.isDirectory()) {
+			return;
+		}
+		for (File file : directory.listFiles()) {
+			String fullName = directoryName + file.getName();
+			fileNames.add(fullName);
+			if (file.isDirectory()) {
+				listFiles(file, fullName + "/", fileNames);
+			}
+		}
+	}
+
 	public EncoderService getEncoderService() {
 		return i_encoderService;
 	}
@@ -428,6 +490,38 @@ public abstract class EncoderServiceTest extends EncoderSpringTest {
 
 	public void setAlbumCoverDao(AlbumCoverDao albumCoverDao) {
 		i_albumCoverDao = albumCoverDao;
+	}
+
+	public DataService getDataService() {
+		return i_dataService;
+	}
+
+	public void setDataService(DataService dataService) {
+		i_dataService = dataService;
+	}
+
+	public FileSystemMount getFileSystemMount() {
+		return i_fileSystemMount;
+	}
+
+	public void setFileSystemMount(FileSystemMount fileSystemMount) {
+		i_fileSystemMount = fileSystemMount;
+	}
+
+	public File getMountPoint() {
+		return i_mountPoint;
+	}
+
+	public void setMountPoint(File mountPoint) {
+		i_mountPoint = mountPoint;
+	}
+
+	public File getDataStorageDirectory() {
+		return i_dataStorageDirectory;
+	}
+
+	public void setDataStorageDirectory(File dataStorageDirectory) {
+		i_dataStorageDirectory = dataStorageDirectory;
 	}
 	
 }

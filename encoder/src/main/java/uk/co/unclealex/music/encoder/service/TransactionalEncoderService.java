@@ -2,25 +2,31 @@ package uk.co.unclealex.music.encoder.service;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.model.OwnerBean;
 import uk.co.unclealex.music.encoder.action.EncodingAction;
 import uk.co.unclealex.music.encoder.exception.EncodingException;
+import uk.co.unclealex.music.encoder.exception.EventException;
+import uk.co.unclealex.music.encoder.listener.EncodingEventListener;
 
 public interface TransactionalEncoderService extends Serializable {
 
 	public void encode(
-			FlacTrackBean flacTrackBean, EncoderBean encoderBean, List<EncodingAction> encodingActions, Lock lock) throws EncodingException;
+			FlacTrackBean flacTrackBean, EncoderBean encoderBean, List<EncodingAction> encodingActions, List<EncodingEventListener> encodingEventListeners) throws EncodingException;
 	
 	public void remove(
-			EncodedTrackBean encodedTrackBean, List<EncodingAction> encodingActions, Lock lock) throws EncodingException;
+			EncodedTrackBean encodedTrackBean, List<EncodingAction> encodingActions, List<EncodingEventListener> encodingEventListeners) throws EncodingException;
 
-	public void updateOwnership(List<EncodingAction> encodingActions) throws EncodingException;
+	public void startEncoding(List<EncodingEventListener> encodingEventListeners);
 
-	public void startEncoding();
+	public void stopEncoding(List<EncodingEventListener> encodingEventListeners);
 
-	public void stopEncoding();
+	public void own(OwnerBean ownerBean, EncodedTrackBean encodedTrackBean, List<EncodingAction> encodingActions,
+			List<EncodingEventListener> encodingEventListeners) throws EventException;
+
+	public void unown(OwnerBean ownerBean, EncodedTrackBean encodedTrackBean, List<EncodingAction> encodingActions,
+			List<EncodingEventListener> encodingEventListeners) throws EventException;
 }

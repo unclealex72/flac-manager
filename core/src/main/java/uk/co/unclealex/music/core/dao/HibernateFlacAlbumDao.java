@@ -1,10 +1,10 @@
 package uk.co.unclealex.music.core.dao;
 
+import org.hibernate.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.music.base.dao.FlacAlbumDao;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
-import uk.co.unclealex.music.base.model.FlacArtistBean;
 
 @Transactional
 public class HibernateFlacAlbumDao extends HibernateCodeDao<FlacAlbumBean> implements
@@ -12,12 +12,10 @@ public class HibernateFlacAlbumDao extends HibernateCodeDao<FlacAlbumBean> imple
 
 	@Override
 	public FlacAlbumBean findByArtistAndAlbum(String artistCode, String albumCode) {
-		FlacAlbumBean example = createExampleBean();
-		example.setCode(albumCode);
-		FlacArtistBean flacArtistBean = new FlacArtistBean();
-		flacArtistBean.setCode(artistCode);
-		example.setFlacArtistBean(flacArtistBean);
-		return findByExample(example);
+		Query query = getSession().createQuery("from FlacAlbumBean where code = :albumCode and flacArtistBean.code = :artistCode");
+		query.setString("albumCode", albumCode);
+		query.setString("artistCode", artistCode);
+		return uniqueResult(query);
 	}
 
 	@Override

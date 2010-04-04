@@ -34,7 +34,7 @@ public interface AlbumCoverService {
 	
 	public AlbumCoverBean saveAndSelectCover(FlacAlbumBean flacAlbumBean, String imageUrl, InputStream urlStream) throws IOException, ArtworkTaggingException;
 
-	public void selectAlbumCover(AlbumCoverBean albumCoverBean) throws IOException, ArtworkTaggingException;
+	public void selectAlbumCover(AlbumCoverBean albumCoverBean, boolean updateTimestamp) throws IOException, ArtworkTaggingException;
 
 	public Predicate<FlacAlbumBean> createAlbumHasCoverPredicate();
 	
@@ -42,5 +42,7 @@ public interface AlbumCoverService {
 
 	public AlbumCoverBean findSelectedCoverForEncodedTrack(EncodedTrackBean encodedTrackBean);
 
-	public boolean tagFile(EncodedTrackBean encodedTrackBean) throws IOException, ArtworkTaggingException;
+	public boolean tagFile(EncodedTrackBean encodedTrackBean, boolean updateTimestamp) throws IOException, ArtworkTaggingException;
+
+	public int tagAll(boolean updateTimestamps);
 }

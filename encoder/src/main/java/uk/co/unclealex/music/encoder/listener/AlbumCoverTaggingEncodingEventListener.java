@@ -27,7 +27,7 @@ public class AlbumCoverTaggingEncodingEventListener extends AbstractEncodingEven
 	public void trackAdded(FlacTrackBean flacTrackBean, EncodedTrackBean encodedTrackBean,
 			List<EncodingAction> encodingActions) throws EventException {
 		try {
-			if (getAlbumCoverService().tagFile(encodedTrackBean)) {
+			if (getAlbumCoverService().tagFile(encodedTrackBean, false)) {
 				encodingActions.add(new TrackTaggedAction(encodedTrackBean));
 			}
 		}

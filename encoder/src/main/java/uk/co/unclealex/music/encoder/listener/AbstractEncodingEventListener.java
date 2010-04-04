@@ -67,10 +67,5 @@ public abstract class AbstractEncodingEventListener implements EncodingEventList
 	public void ownerRemoved(OwnerBean ownerBean, EncodedTrackBean encodedTrackBean, List<EncodingAction> encodingActions)
 			throws EventException {
 		// Do nothing
-	}
-	
-	@Override
-	public boolean isSynchronisationRequired() {
-		return true;
-	}
+	}	
 }

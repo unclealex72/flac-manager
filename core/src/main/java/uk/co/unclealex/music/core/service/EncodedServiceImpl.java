@@ -49,6 +49,7 @@ public class EncodedServiceImpl implements EncodedService {
 		encodedTrackBean.setEncoderBean(encoderBean);
 		encodedTrackBean.setCode(flacTrackBean.getCode());
 		injectFilename(encodedTrackBean);
+		encodedAlbumBean.getEncodedTrackBeans().add(encodedTrackBean);
 		return encodedTrackBean;
 	}
 	
@@ -60,6 +61,7 @@ public class EncodedServiceImpl implements EncodedService {
 		encodedAlbumBean.setTitle(flacAlbumBean.getTitle());
 		injectFilename(encodedAlbumBean);
 		encodedAlbumBean.setCode(flacAlbumBean.getCode());
+		encodedArtistBean.getEncodedAlbumBeans().add(encodedAlbumBean);
 		getEncodedAlbumDao().store(encodedAlbumBean);
 		return encodedAlbumBean;
 	}

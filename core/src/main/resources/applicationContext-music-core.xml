@@ -10,6 +10,10 @@
 
 	<tx:annotation-driven/>
 	
+	<!-- Bean post-processors -->
+	
+	<bean class="uk.co.unclealex.music.core.spring.PackageCheckingPostProcessor"/>
+	
 	<!-- DAO definitions -->
 	
  	<bean id="defaultLobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler">
@@ -23,7 +27,8 @@
 		<property name="properties">
 			<props>
 				<prop key="hibernate.hbm2ddl.auto">update</prop>
-				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.show_sql">false</prop>
+				<prop key="hibernate.connection.characterEncoding">utf8</prop>
 			</props>
 		</property>
 	</bean>
@@ -44,6 +49,11 @@
 				<value>uk.co.unclealex.music.base.model.EncodedTrackFileBean</value>
 				<value>uk.co.unclealex.music.base.model.DirectoryFileBean</value>
 				<value>uk.co.unclealex.hibernate.model.DataBean</value>
+				<value>uk.co.unclealex.music.base.model.DeviceBean</value>
+				<value>uk.co.unclealex.music.base.model.FileSystemDeviceBean</value>
+				<value>uk.co.unclealex.music.base.model.MtpDeviceBean</value>
+				<value>uk.co.unclealex.music.base.model.IpodDeviceBean</value>
+				<value>uk.co.unclealex.music.base.model.DeviceFileBean</value>
 			</list>
 		</property>
 	</bean>
@@ -69,18 +79,18 @@
 	<bean id="encodedTrackDao" class="uk.co.unclealex.music.core.dao.HibernateEncodedTrackDao"/>
 	<bean id="albumCoverDao" class="uk.co.unclealex.music.core.dao.HibernateAlbumCoverDao"/>
 	<bean id="ownerDao" class="uk.co.unclealex.music.core.dao.HibernateOwnerDao"/>
+	<bean id="deviceDao" class="uk.co.unclealex.music.core.dao.HibernateDeviceDao"/>
+	<bean id="deviceFileDao" class="uk.co.unclealex.music.core.dao.HibernateDeviceFileDao"/>
 	
 	<!-- Service definitions -->
 	<bean id="initialiser" class="uk.co.unclealex.music.core.initialise.InitialiserImpl"/>
 	<bean id="processService" class="uk.co.unclealex.music.core.process.service.ProcessServiceImpl"/>
 	<bean id="slimServerService" class="uk.co.unclealex.music.core.service.SlimServerServiceImpl"/>
-	<bean id="rockboxSpeechWriter" class="uk.co.unclealex.music.core.service.RockboxSpeechWriter"/>
-	<bean id="nullSpeechWriter" class="uk.co.unclealex.music.core.service.NullSpeechWriter"/>
 	<bean id="ownerService" class="uk.co.unclealex.music.core.service.OwnerServiceImpl"/>
 	<bean id="flacService" class="uk.co.unclealex.music.core.service.FlacServiceImpl"/>
 	<bean id="encodedService" class="uk.co.unclealex.music.core.service.EncodedServiceImpl"/>
 	<bean id="filenameService" class="uk.co.unclealex.music.core.service.FilenameServiceImpl"/>
-	<bean id="dataService" class="uk.co.unclealex.music.core.service.DataServiceImpl"/>
+	<bean id="dataService" class="uk.co.unclealex.music.core.service.DataServiceImpl" init-method="initialise"/>
 	
 	<bean id="titleFormatService" class="uk.co.unclealex.music.core.service.titleformat.TitleFormatServiceImpl">
 		<property name="titleFormat">
@@ -89,10 +99,6 @@
 	</bean>
 	
 	<bean id="fileSystemService" class="uk.co.unclealex.music.core.service.filesystem.FileSystemServiceImpl"/>
-	
-	<bean id="slimServerConfig" class="uk.co.unclealex.music.core.FileSlimServerConfig">
-		<property name="slimserverConfigFile" value="/var/lib/squeezecenter/prefs/server.prefs"/>
-	</bean>
 </beans>
 
 

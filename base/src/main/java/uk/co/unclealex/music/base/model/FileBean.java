@@ -13,6 +13,8 @@ import javax.persistence.InheritanceType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Index;
+
 import uk.co.unclealex.hibernate.model.KeyedBean;
 import uk.co.unclealex.music.base.visitor.DaoFileVisitor;
 
@@ -45,6 +47,7 @@ public abstract class FileBean extends KeyedBean<FileBean> {
 	/* (non-Javadoc)
 	 * @see uk.co.unclealex.music.base.model.FileBean#getPath()
 	 */
+	@Index(name="path")
 	public String getPath() {
 		return i_path;
 	}

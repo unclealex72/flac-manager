@@ -14,7 +14,7 @@ public abstract class EncoderSpringTest extends SpringTest {
 
 	private Initialiser i_initialiser;
 	private File i_importMusicDirectory;
-	private File i_encodedMusicStorageDirectory;
+	private File i_dataStorageDirectory;
 
 	protected void finalize() throws Exception {
 		for (File musicDirectory : getMusicDirectories()) {
@@ -25,7 +25,7 @@ public abstract class EncoderSpringTest extends SpringTest {
 	}
 	
 	protected Collection<File> getMusicDirectories() {
-		return Arrays.asList(new File[] { getImportMusicDirectory(), getEncodedMusicStorageDirectory() });
+		return Arrays.asList(new File[] { getImportMusicDirectory(), getDataStorageDirectory() });
 	}
 
 	@Override
@@ -35,7 +35,9 @@ public abstract class EncoderSpringTest extends SpringTest {
 			"classpath*:applicationContext-music-encoder.xml",
 			"classpath*:applicationContext-music-album-covers.xml",
 			"classpath*:applicationContext-music-core.xml",
+			"classpath*:applicationContext-music-fs.xml",
 			"classpath*:applicationContext-music-test.xml",
+			"classpath*:applicationContext-music-encoder-test.xml",
 			"classpath*:applicationContext-music-test-flac.xml"
 		};
 		String[] extraLocations = getExtraConfigLocations();
@@ -64,12 +66,12 @@ public abstract class EncoderSpringTest extends SpringTest {
 		i_importMusicDirectory = importMusicDirectory;
 	}
 
-	public File getEncodedMusicStorageDirectory() {
-		return i_encodedMusicStorageDirectory;
+	public File getDataStorageDirectory() {
+		return i_dataStorageDirectory;
 	}
 
-	public void setEncodedMusicStorageDirectory(File encodedMusicStorageDirectory) {
-		i_encodedMusicStorageDirectory = encodedMusicStorageDirectory;
+	public void setDataStorageDirectory(File dataStorageDirectory) {
+		i_dataStorageDirectory = dataStorageDirectory;
 	}
 
 }

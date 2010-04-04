@@ -37,4 +37,13 @@ public interface EncodedTrackDao extends KeyedDao<EncodedTrackBean> {
 	public SortedSet<EncodedTrackBean> findByArtist(EncodedArtistBean encodedArtistBean);
 
 	public Set<EncodedTrackBean> getAllOrphanedTracks(SortedSet<String> allFlacUrls);
+
+	public SortedSet<EncodedTrackBean> getAllWithOwners();
+
+	public SortedSet<EncodedTrackBean> findByAlbumAndEncoderCoverSupported(EncodedAlbumBean encodedAlbumBean, boolean b);
+
+	public SortedSet<EncodedTrackBean> findTracksEncodedAfter(long lastSyncTimestamp, OwnerBean ownerBean, EncoderBean encoderBean);
+
+	public EncodedTrackBean findByCodesAndEncoderAndOwner(String artistCode, String albumCode, int trackNumber,
+			String trackCode, OwnerBean ownerBean, EncoderBean encoderBean);
 }

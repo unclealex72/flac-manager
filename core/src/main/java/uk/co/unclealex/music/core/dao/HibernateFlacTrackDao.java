@@ -40,9 +40,14 @@ public class HibernateFlacTrackDao extends HibernateKeyedReadOnlyDao<FlacTrackBe
 	
 	@Override
 	public SortedSet<FlacTrackBean> findTracksStartingWith(String url) {
+		url = denormalise(url);
 		Query query = getSession().createQuery("from FlacTrackBean where url like :url and type = 'flc'");
 		query.setString("url", url + "%");
 		return asSortedSet(query);
+	}
+	
+	protected String denormalise(String url) {
+		return url.replaceFirst("^file:/([^/])", "file:///$1");
 	}
 	
 	@Override
@@ -50,5 +55,5 @@ public class HibernateFlacTrackDao extends HibernateKeyedReadOnlyDao<FlacTrackBe
 		FlacTrackBean example = new FlacTrackBean();
 		example.setType("flc");
 		return example;
-	}	
+	}
 }

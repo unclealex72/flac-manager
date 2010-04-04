@@ -18,7 +18,8 @@
 	</bean>
 
 	<alias name="testFlacProvider" alias="externalCoverArtService"/>
-		
+	<alias name="testFlacProvider" alias="encoderConfiguration"/>
+	
 	<bean id="slimServerInformationDao"
 		class="uk.co.unclealex.music.test.TestSlimServerInformationDao"/>
 </beans>

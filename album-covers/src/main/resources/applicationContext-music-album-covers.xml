@@ -11,8 +11,9 @@
 	
 	<bean id="albumCoverService" class="uk.co.unclealex.music.albumcover.service.AlbumCoverServiceImpl"/>
 	
-	<bean id="externalCoverArtService" class="uk.co.unclealex.music.albumcover.service.AmazonExternalCoverArtService"/>
+	<bean id="artworkTaggingService" class="uk.co.unclealex.music.albumcover.service.JAudioTaggerArtworkTaggingService"/>
 	
+	<bean id="externalCoverArtService" class="uk.co.unclealex.music.albumcover.service.AmazonExternalCoverArtService"/>
 	<bean id="signedRequestsService" class="uk.co.unclealex.music.albumcover.service.SignedRequestsServiceImpl" init-method="initialise">
 		<property name="awsAccessKeyId" value="1GK0A6KVNQEFVH5Q1Z82"/>
 		<property name="awsSecretKey" value="jq/BOXh4dOYXsso3jn/N8FGF7/40YCPHmTyas1ZF"/>

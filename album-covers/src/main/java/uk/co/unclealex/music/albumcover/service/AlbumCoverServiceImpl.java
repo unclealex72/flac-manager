@@ -22,21 +22,12 @@ import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.audio.exceptions.CannotReadException;
-import org.jaudiotagger.audio.exceptions.CannotWriteException;
-import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
-import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
-import org.jaudiotagger.tag.FieldDataInvalidException;
-import org.jaudiotagger.tag.KeyNotFoundException;
-import org.jaudiotagger.tag.Tag;
-import org.jaudiotagger.tag.TagException;
-import org.jaudiotagger.tag.datatype.Artwork;
 import org.springframework.transaction.annotation.Transactional;
 
+import uk.co.unclealex.hibernate.service.DataService;
 import uk.co.unclealex.music.base.dao.AlbumCoverDao;
 import uk.co.unclealex.music.base.dao.EncodedAlbumDao;
+import uk.co.unclealex.music.base.dao.EncodedTrackDao;
 import uk.co.unclealex.music.base.dao.FlacAlbumDao;
 import uk.co.unclealex.music.base.model.AlbumCoverBean;
 import uk.co.unclealex.music.base.model.EncodedAlbumBean;
@@ -47,7 +38,6 @@ import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.model.FlacArtistBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
 import uk.co.unclealex.music.base.service.ArtworkTaggingException;
-import uk.co.unclealex.music.base.service.DataService;
 import uk.co.unclealex.music.base.service.ExternalCoverArtException;
 import uk.co.unclealex.music.base.service.ExternalCoverArtService;
 
@@ -60,8 +50,10 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	private FlacAlbumDao i_flacAlbumDao;
 	private DataService i_dataService;
 	private EncodedAlbumDao i_encodedAlbumDao;
+	private EncodedTrackDao i_encodedTrackDao;
 	private ExternalCoverArtService i_externalCoverArtService;
-	
+	private ArtworkTaggingService i_artworkTaggingService;
+
 	@Override
 	public Predicate<FlacAlbumBean> createAlbumHasCoverPredicate() {
 		final AlbumCoverDao albumCoverDao = getAlbumCoverDao();
@@ -113,14 +105,16 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 		if (albumCoverBean == null) {
 			albumCoverBean = new AlbumCoverBean();
 			albumCoverBean.setUrl(imageUrl);
-			albumCoverBean.setCoverDataBean(getDataService().createDataBean(FilenameUtils.getExtension(imageUrl)));
+			String filename = String.format(
+					"%s-%s-%dx%d", flacAlbumBean.getFlacArtistBean().getCode(), flacAlbumBean.getCode(), image.getWidth(), image.getHeight());
+			albumCoverBean.setCoverDataBean(getDataService().createDataBean(filename, FilenameUtils.getExtension(imageUrl)));
 		}
 		albumCoverBean.setAlbumCode(flacAlbumBean.getCode());
 		albumCoverBean.setAlbumCoverSize((long) image.getWidth() * image.getHeight());
 		albumCoverBean.setArtistCode(flacAlbumBean.getFlacArtistBean().getCode());
 		albumCoverBean.setDateDownloaded(new Date());
 		albumCoverBean.setExtension(FilenameUtils.getExtension(imageUrl).toLowerCase());
-		OutputStream dataOutputStream = new FileOutputStream(albumCoverBean.getCoverDataBean().getFile());
+		OutputStream dataOutputStream = new FileOutputStream(fileOf(albumCoverBean));
 		try {
 			IOUtils.copy(new ByteArrayInputStream(buffer), dataOutputStream);
 		}
@@ -129,9 +123,13 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 		}
 		albumCoverDao.store(albumCoverBean);
 		if (select) {
-			selectAlbumCover(albumCoverBean);
+			selectAlbumCover(albumCoverBean, true);
 		}
 		return albumCoverBean;
+	}
+	
+	protected File fileOf(AlbumCoverBean albumCoverBean) {
+		return getDataService().findFile(albumCoverBean.getCoverDataBean());
 	}
 	
 	@Override
@@ -202,7 +200,7 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 	}
 
 	@Override
-	public void selectAlbumCover(AlbumCoverBean albumCoverBean) throws IOException, ArtworkTaggingException {
+	public void selectAlbumCover(AlbumCoverBean albumCoverBean, boolean updateTimestamp) throws IOException, ArtworkTaggingException {
 		AlbumCoverBean currentlySelectedCover = findSelectedCoverForAlbum(albumCoverBean.getArtistCode(), albumCoverBean.getAlbumCode());
 		AlbumCoverDao albumCoverDao = getAlbumCoverDao();
 		if (
@@ -215,12 +213,12 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 			albumCoverBean.setDateSelected(new Date());
 			albumCoverDao.store(albumCoverBean);
 			albumCoverDao.flush();
-			updateTags(albumCoverBean);
+			updateTags(albumCoverBean, updateTimestamp);
 		}
 	}
 
-	protected void updateTags(AlbumCoverBean albumCoverBean) throws IOException, ArtworkTaggingException {
-		File albumCoverFile = albumCoverBean.getCoverDataBean().getFile();
+	protected void updateTags(AlbumCoverBean albumCoverBean, boolean updateTimestamp) throws IOException, ArtworkTaggingException {
+		File albumCoverFile = fileOf(albumCoverBean);
 		Transformer<FlacAlbumBean, SortedSet<FlacTrackBean>> flacAlbumTransformer = new Transformer<FlacAlbumBean, SortedSet<FlacTrackBean>>() {
 			@Override
 			public SortedSet<FlacTrackBean> transform(FlacAlbumBean flacAlbumBean) {
@@ -247,13 +245,13 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 			new Transformer<EncodedAlbumBean, SortedSet<EncodedTrackBean>>() {
 			@Override
 			public SortedSet<EncodedTrackBean> transform(EncodedAlbumBean encodedAlbumBean) {
-				return encodedAlbumBean.getEncodedTrackBeans();
+				return getEncodedTrackDao().findByAlbumAndEncoderCoverSupported(encodedAlbumBean, true);
 			}
 		};
 		Transformer<EncodedTrackBean, File> encodedTrackTransformer = new Transformer<EncodedTrackBean, File>() {
 			@Override
 			public File transform(EncodedTrackBean encodedTrackBean) {
-				return encodedTrackBean.getTrackDataBean().getFile();
+				return getDataService().findFile(encodedTrackBean.getTrackDataBean());
 			}
 		};
 		String artistCode = albumCoverBean.getArtistCode();
@@ -262,23 +260,24 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 		doUpdateTags(
 				albumCoverFile, 
 				flacAlbumBean,
-				flacAlbumTransformer, flacTrackTransformer, flacTrackNameTransformer);
+				flacAlbumTransformer, flacTrackTransformer, flacTrackNameTransformer, updateTimestamp);
 		EncodedAlbumBean encodedAlbumBean = getEncodedAlbumDao().findByArtistCodeAndCode(artistCode, albumCode);
 		doUpdateTags(
 				albumCoverFile, 
 				encodedAlbumBean,
 				encodedAlbumTransformer, encodedTrackTransformer, 
-				new EncodedTrackNameTransformer());
+				new EncodedTrackNameTransformer(), updateTimestamp);
 	}
 
 	protected <A, T> void doUpdateTags(
 			File albumCoverFile, A album, Transformer<A, SortedSet<T>> albumTransformer, 
-			Transformer<T, File> trackTransformer, Transformer<T, String> trackNameTransformer) throws IOException, ArtworkTaggingException {
+			Transformer<T, File> trackTransformer, Transformer<T, String> trackNameTransformer, boolean updateTimestamp) throws IOException, ArtworkTaggingException {
 		if (album != null) {
+			ArtworkTaggingService artworkTaggingService = getArtworkTaggingService();
 			for (T track : albumTransformer.transform(album)) {
-				updateTag(
+				artworkTaggingService.updateTag(
 						albumCoverFile, trackTransformer.transform(track),
-						trackNameTransformer.transform(track));
+						trackNameTransformer.transform(track), updateTimestamp);
 			}
 		}
 	}
@@ -295,52 +294,38 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 		}
 	}
 	
-	protected void updateTag(File albumCoverFile, File trackFile, String trackName) throws IOException, ArtworkTaggingException {
-		log.info("Adding album cover tag to " + trackName + " (" + trackFile.getAbsolutePath() + ")");
-		try {
-			AudioFile audioFile = AudioFileIO.read(trackFile);
-			Tag tag = audioFile.getTag();
-			tag.deleteArtworkField();
-			Artwork artwork = Artwork.createArtworkFromFile(albumCoverFile);
-			artwork.setDescription("");
-			tag.createAndSetArtworkField(artwork);
-			audioFile.commit();
-		}
-		catch (KeyNotFoundException e) {
-			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
-		}
-		catch (FieldDataInvalidException e) {
-			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
-		}
-		catch (CannotReadException e) {
-			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
-		}
-		catch (TagException e) {
-			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
-		}
-		catch (ReadOnlyFileException e) {
-			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
-		}
-		catch (InvalidAudioFrameException e) {
-			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
-		}
-		catch (CannotWriteException e) {
-			throw new ArtworkTaggingException("Cannot tag " + trackName, e);
-		}
-	}
-
 	@Override
-	public boolean tagFile(EncodedTrackBean encodedTrackBean) throws IOException, ArtworkTaggingException {
+	public int tagAll(boolean updateTimestamps) {
+		int count = 0;
+		for (EncodedTrackBean encodedTrackBean : getEncodedTrackDao().getAll()) {
+			try {
+				if (tagFile(encodedTrackBean, updateTimestamps)) {
+					count++;
+				}
+			}
+			catch (IOException e) {
+				log.warn("Could not tag track " + encodedTrackBean, e);
+			}
+			catch (ArtworkTaggingException e) {
+				log.warn("Could not tag track " + encodedTrackBean, e);
+			}
+		}
+		return count;
+	}
+	
+	@Override
+	public boolean tagFile(EncodedTrackBean encodedTrackBean, boolean updateTimestamp) throws IOException, ArtworkTaggingException {
 		EncodedAlbumBean encodedAlbumBean = encodedTrackBean.getEncodedAlbumBean();
 		AlbumCoverBean albumCoverBean = 
 			getAlbumCoverDao().findSelectedCoverForAlbum(encodedAlbumBean.getEncodedArtistBean().getCode(), encodedAlbumBean.getCode());
 		if (albumCoverBean == null) {
 			return false;
 		}
-		updateTag(
-				albumCoverBean.getCoverDataBean().getFile(), 
-				encodedTrackBean.getTrackDataBean().getFile(), 
-				new EncodedTrackNameTransformer().transform(encodedTrackBean));
+		getArtworkTaggingService().updateTag(
+				fileOf(albumCoverBean), 
+				getDataService().findFile(encodedTrackBean.getTrackDataBean()), 
+				new EncodedTrackNameTransformer().transform(encodedTrackBean),
+				updateTimestamp);
 		return true;
 	}
 	
@@ -382,6 +367,22 @@ public class AlbumCoverServiceImpl implements AlbumCoverService {
 
 	public void setEncodedAlbumDao(EncodedAlbumDao encodedAlbumDao) {
 		i_encodedAlbumDao = encodedAlbumDao;
+	}
+
+	public ArtworkTaggingService getArtworkTaggingService() {
+		return i_artworkTaggingService;
+	}
+
+	public void setArtworkTaggingService(ArtworkTaggingService artworkTaggingService) {
+		i_artworkTaggingService = artworkTaggingService;
+	}
+
+	public EncodedTrackDao getEncodedTrackDao() {
+		return i_encodedTrackDao;
+	}
+
+	public void setEncodedTrackDao(EncodedTrackDao encodedTrackDao) {
+		i_encodedTrackDao = encodedTrackDao;
 	}
 
 }

@@ -4,15 +4,15 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.TreeMap;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.FileFileFilter;
@@ -23,11 +23,13 @@ import org.jaudiotagger.tag.Tag;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.hibernate.model.DataBean;
+import uk.co.unclealex.hibernate.service.DataService;
 import uk.co.unclealex.music.base.dao.EncoderDao;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
+import uk.co.unclealex.music.base.service.EncoderConfiguration;
 import uk.co.unclealex.music.encoder.action.EncodingAction;
 import uk.co.unclealex.music.encoder.action.TrackImportedAction;
 import uk.co.unclealex.music.encoder.exception.EventException;
@@ -37,14 +39,15 @@ public class ImportEncodingEventListener extends EncoderEncodingEventListener {
 
 	private static Logger log = Logger.getLogger(ImportEncodingEventListener.class);
 	
-	private File i_importMusicDirectory;
+	private EncoderConfiguration i_encoderConfiguration;
 	private Map<ImportTrackKey, File> i_fileMap;
 	private EncoderDao i_encoderDao;
+	private DataService i_dataService;
 	
 	@Override
 	public void encodingStarted() {
-		File importMusicDirectory = getImportMusicDirectory();
-		Map<ImportTrackKey, File> fileMap = new TreeMap<ImportTrackKey, File>();
+		File importMusicDirectory = getEncoderConfiguration().getImportDirectory();
+		Map<ImportTrackKey, File> fileMap = new HashMap<ImportTrackKey, File>();
 		if (importMusicDirectory != null && importMusicDirectory.isDirectory()) {
 			SortedSet<EncoderBean> encoderBeans = getEncoderDao().getAll();
 			for (File file : importMusicDirectory.listFiles((FileFilter) FileFileFilter.FILE)) {
@@ -81,13 +84,20 @@ public class ImportEncodingEventListener extends EncoderEncodingEventListener {
 		EncoderBean result = null;
 		for (Iterator<EncoderBean> iter = encoderBeans.iterator(); result == null && iter.hasNext(); ) {
 			EncoderBean encoderBean = iter.next();
-			String magicNumber = encoderBean.getMagicNumber();
-			Reader reader = null;
+			String magicNumberHex = encoderBean.getMagicNumber();
+			int length = magicNumberHex.length();
+			byte[] magicNumber = new byte[length / 2];
+	    for (int i = 0; i < length; i += 2) {
+	        magicNumber[i / 2] = 
+	        	(byte) ((Character.digit(magicNumberHex.charAt(i), 16) << 4)
+	                             + Character.digit(magicNumberHex.charAt(i+1), 16));
+	    }
+			InputStream in = null;
 			try {
-				reader = new FileReader(file);
-				char[] cbuf = new char[magicNumber.length()];
-				reader.read(cbuf);
-				if (magicNumber.equals(new String(cbuf))) {
+				in = new FileInputStream(file);
+				byte[] buf = new byte[magicNumber.length];
+				in.read(buf);
+				if (Arrays.equals(magicNumber, buf)) {
 					result = encoderBean;
 				}
 			}
@@ -95,7 +105,7 @@ public class ImportEncodingEventListener extends EncoderEncodingEventListener {
 				log.warn("Could not read file " + file, e);
 			}
 			finally {
-				IOUtils.closeQuietly(reader);
+				IOUtils.closeQuietly(in);
 			}
 		}
 		return result;
@@ -125,7 +135,8 @@ public class ImportEncodingEventListener extends EncoderEncodingEventListener {
 	@Override
 	public void trackAdded(FlacTrackBean flacTrackBean, EncodedTrackBean encodedTrackBean, final List<EncodingAction> encodingActions) throws EventException {
 		FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
-		String extension = encodedTrackBean.getEncoderBean().getExtension();
+		EncoderBean encoderBean = encodedTrackBean.getEncoderBean();
+		String extension = encoderBean.getExtension();
 		ImportTrackKey importTrackKey = 
 			new ImportTrackKey(
 					flacAlbumBean.getFlacArtistBean().getName(), flacAlbumBean.getTitle(), flacTrackBean.getTrackNumber(),
@@ -144,10 +155,10 @@ public class ImportEncodingEventListener extends EncoderEncodingEventListener {
 			encodingActions.add(new TrackImportedAction(encodedTrackBean));
 			FileInputStream in = null;
 			FileOutputStream out = null;
+			DataBean dataBean = createDataBean(flacTrackBean, encodedTrackBean);
 			try {
-				DataBean dataBean = getDataService().createDataBean(extension);
 				in = new FileInputStream(file);
-				out = new FileOutputStream(dataBean.getFile());
+				out = new FileOutputStream(getDataService().findFile(dataBean));
 				out.getChannel().transferFrom(in.getChannel(), 0, file.length());
 			}
 			catch (IOException e) {
@@ -182,11 +193,19 @@ public class ImportEncodingEventListener extends EncoderEncodingEventListener {
 		i_encoderDao = encoderDao;
 	}
 
-	public File getImportMusicDirectory() {
-		return i_importMusicDirectory;
+	public EncoderConfiguration getEncoderConfiguration() {
+		return i_encoderConfiguration;
 	}
 
-	public void setImportMusicDirectory(File importMusicDirectory) {
-		i_importMusicDirectory = importMusicDirectory;
+	public void setEncoderConfiguration(EncoderConfiguration encoderConfiguration) {
+		i_encoderConfiguration = encoderConfiguration;
+	}
+
+	public DataService getDataService() {
+		return i_dataService;
+	}
+
+	public void setDataService(DataService dataService) {
+		i_dataService = dataService;
 	}
 }

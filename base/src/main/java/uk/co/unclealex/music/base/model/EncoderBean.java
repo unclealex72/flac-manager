@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 import org.hibernate.validator.Length;
@@ -26,18 +27,20 @@ public class EncoderBean extends KeyedBean<EncoderBean> {
 	private String i_command;
 	private String i_magicNumber;
 	private String i_contentType;
+	private boolean i_coverSupported;
 	private SortedSet<EncodedTrackBean> i_encodedTrackBeans;
 
 	public EncoderBean() {
 		// Auto-generated constructor stub
 	}
 	
-	public EncoderBean(String extension, String command, String magicNumber, String contentType) {
+	public EncoderBean(String extension, String command, String magicNumber, String contentType, boolean coverSupported) {
 		super();
 		i_extension = extension;
 		i_command = command;
 		i_magicNumber = magicNumber;
 		i_contentType = contentType;
+		i_coverSupported = coverSupported;
 	}
 
 	@Override
@@ -72,6 +75,7 @@ public class EncoderBean extends KeyedBean<EncoderBean> {
 	
 	@NotEmpty(message="You must supply an extension.")
 	@Length(max=50, message="Please use a shorter extension.")
+	@Index(name="extension")
 	public String getExtension() {
 		return i_extension;
 	}
@@ -95,5 +99,13 @@ public class EncoderBean extends KeyedBean<EncoderBean> {
 
 	public void setContentType(String contentType) {
 		i_contentType = contentType;
+	}
+
+	public boolean isCoverSupported() {
+		return i_coverSupported;
+	}
+
+	public void setCoverSupported(boolean coverSupported) {
+		i_coverSupported = coverSupported;
 	}
 }

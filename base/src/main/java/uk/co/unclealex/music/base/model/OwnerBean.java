@@ -8,6 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.hibernate.annotations.Index;
 import org.hibernate.validator.Length;
 import org.hibernate.validator.NotEmpty;
 
@@ -57,6 +58,7 @@ public class OwnerBean extends KeyedBean<OwnerBean> {
 	@NotEmpty(message="An owner must have a name.")
 	@Length(max=50, message="Please use a shorter name.")
 	@Column(unique=true)
+	@Index(name="name")
 	public String getName() {
 		return i_name;
 	}

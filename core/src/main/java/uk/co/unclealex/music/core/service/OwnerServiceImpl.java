@@ -2,7 +2,11 @@ package uk.co.unclealex.music.core.service;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -15,6 +19,7 @@ import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +33,7 @@ import uk.co.unclealex.music.base.service.OwnerService;
 @Transactional
 public class OwnerServiceImpl implements OwnerService {
 
+	private static final Logger log = Logger.getLogger(OwnerServiceImpl.class);
 	private OwnerDao i_ownerDao;
 	private FlacTrackDao i_flacTrackDao;
 	private SlimServerConfig i_slimServerConfig;
@@ -35,6 +41,16 @@ public class OwnerServiceImpl implements OwnerService {
 	@Override
 	public SortedMap<OwnerBean, SortedSet<FlacTrackBean>> resolveOwnershipByFiles() {
 		File rootDirectory = new File(getSlimServerConfig().getRootDirectory());
+		final Map<String, FlacTrackBean> tracksByPath = new HashMap<String, FlacTrackBean>();
+		for (FlacTrackBean flacTrackBean : getFlacTrackDao().getAll()) {
+			try {
+				File flacFile = new File(new URI(flacTrackBean.getUrl()));
+				tracksByPath.put(flacFile.getAbsolutePath(), flacTrackBean);
+			}
+			catch (URISyntaxException e) {
+				log.warn("Invalid URI found: " + flacTrackBean.getUrl());
+			}
+		}
 		final SortedMap<OwnerBean, SortedSet<FlacTrackBean>> flacTrackBeansByOwner = new TreeMap<OwnerBean, SortedSet<FlacTrackBean>>();
 		final SortedMap<String, OwnerBean> ownerBeansByLowerCaseName = new TreeMap<String, OwnerBean>();
 		for (OwnerBean ownerBean : getOwnerDao().getAll()) {
@@ -60,8 +76,12 @@ public class OwnerServiceImpl implements OwnerService {
 						flacTrackBeans = new TreeSet<FlacTrackBean>();
 						flacTrackBeansByOwner.put(ownerBean, flacTrackBeans);
 					}
-					String directoryUrl = dir.toURI().toString();
-					flacTrackBeans.addAll(getFlacTrackDao().findTracksStartingWith(directoryUrl));
+					String directoryUrl = dir.getAbsolutePath() + "/";
+					for (Map.Entry<String, FlacTrackBean> entry : tracksByPath.entrySet()) {
+						if (entry.getKey().startsWith(directoryUrl)) {
+							flacTrackBeans.add(entry.getValue());
+						}
+					}
 				}
 				return false;
 			}

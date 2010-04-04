@@ -4,7 +4,6 @@ import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -14,6 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.apache.commons.collections15.ComparatorUtils;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortType;
 import org.hibernate.validator.NotNull;
@@ -108,7 +108,7 @@ public class EncodedAlbumBean extends CodedBean<EncodedAlbumBean> {
 
 	@Override
 	@NotNull
-	@Column(name="code")
+	@Index(name="code")
 	public String getCode() {
 		return super.getCode();
 	}

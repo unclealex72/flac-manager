@@ -42,7 +42,7 @@
 	<bean id="flacAlbumDao" class="uk.co.unclealex.music.core.dao.HibernateFlacAlbumDao" parent="flacDao"/>
 	<bean id="flacArtistDao" class="uk.co.unclealex.music.core.dao.HibernateFlacArtistDao" parent="flacDao"/>
 	<bean id="flacTrackDao" class="uk.co.unclealex.music.core.dao.HibernateFlacTrackDao" parent="flacDao"/>
-	<bean id="slimServerInformationDao" class="uk.co.unclealex.music.core.dao.HibernateSlimServerInformationDao"/>
+	<bean id="slimServerInformationDao" class="uk.co.unclealex.music.core.dao.HibernateSlimServerInformationDao" parent="flacDao"/>
 
 </beans>
 

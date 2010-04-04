@@ -15,18 +15,20 @@ import org.apache.log4j.Logger;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.co.unclealex.hibernate.model.DataBean;
+import uk.co.unclealex.hibernate.service.DataService;
+import uk.co.unclealex.music.base.RequiresPackages;
 import uk.co.unclealex.music.base.dao.EncodedTrackDao;
 import uk.co.unclealex.music.base.dao.FlacTrackDao;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
 import uk.co.unclealex.music.base.model.EncoderBean;
+import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
-import uk.co.unclealex.music.base.service.DataService;
 import uk.co.unclealex.music.encoder.action.EncodingAction;
 import uk.co.unclealex.music.encoder.action.TrackEncodedAction;
 import uk.co.unclealex.music.encoder.exception.EventException;
 
 @Transactional
-public class EncoderEncodingEventListener extends AbstractEncodingEventListener {
+public class EncoderEncodingEventListener extends AbstractEncodingEventListener implements RequiresPackages {
 
 	private static Logger log = Logger.getLogger(EncoderEncodingEventListener.class);
 
@@ -37,7 +39,8 @@ public class EncoderEncodingEventListener extends AbstractEncodingEventListener 
 	private Map<String, File> i_commandCache = new HashMap<String, File>();
 	
 	@Override
-	public void trackAdded(FlacTrackBean flacTrackBean, EncodedTrackBean encodedTrackBean, final List<EncodingAction> encodingActions) throws EventException {
+	public void trackAdded(FlacTrackBean flacTrackBean, EncodedTrackBean encodedTrackBean, final List<EncodingAction> encodingActions) 
+	throws EventException {
 		Map<String, File> commandCache = getCommandCache();
 		EncoderBean encoderBean = encodedTrackBean.getEncoderBean();
 		String extension = encoderBean.getExtension();
@@ -46,20 +49,11 @@ public class EncoderEncodingEventListener extends AbstractEncodingEventListener 
 			commandFile = createCommandFile(encoderBean);
 			commandCache.put(extension, commandFile);
 		}
-		DataBean dataBean;
-		try {
-			dataBean = getDataService().createDataBean(extension);
-		}
-		catch (IOException e) {
-			throw new EventException(
-					"Cannot create a data bean for file " + encodedTrackBean.getFlacUrl() + " and encoder " + extension, e);
-		}
-		encodedTrackBean.setTrackDataBean(dataBean);
-		getEncodedTrackDao().store(encodedTrackBean);
+		DataBean dataBean = createDataBean(flacTrackBean, encodedTrackBean);
 		String[] command;
 		try {
 			command = new String[] { 
-				commandFile.getCanonicalPath(), flacTrackBean.getFile().getCanonicalPath(), dataBean.getFile().getCanonicalPath() };
+				commandFile.getCanonicalPath(), flacTrackBean.getFile().getCanonicalPath(), getDataService().findFile(dataBean).getCanonicalPath() };
 		}
 		catch (IOException e) {
 			throw new EventException(
@@ -104,6 +98,29 @@ public class EncoderEncodingEventListener extends AbstractEncodingEventListener 
 		encodingActions.add(new TrackEncodedAction(encodedTrackBean));
 	}
 
+	protected DataBean createDataBean(FlacTrackBean flacTrackBean, EncodedTrackBean encodedTrackBean) throws EventException {
+		FlacAlbumBean flacAlbumBean = flacTrackBean.getFlacAlbumBean();
+		String filename = 
+			String.format(
+					"%s-%s-%02d-%s", 
+					flacAlbumBean.getFlacArtistBean().getCode(), 
+					flacAlbumBean.getCode(), 
+					flacTrackBean.getTrackNumber(), 
+					flacTrackBean.getCode());
+		DataBean dataBean;
+		String extension = encodedTrackBean.getEncoderBean().getExtension();
+		try {
+			dataBean = getDataService().createDataBean(filename, extension);
+		}
+		catch (IOException e) {
+			throw new EventException(
+					"Cannot create a data bean for file " + flacTrackBean.getUrl() + " and encoder " + extension, e);
+		}
+		encodedTrackBean.setTrackDataBean(dataBean);
+		getEncodedTrackDao().store(encodedTrackBean);
+		return dataBean;
+	}
+
 	public File createCommandFile(EncoderBean encoderBean) throws EventException {
 		try {
 			File commandFile = File.createTempFile(encoderBean.getExtension(), ".sh");
@@ -128,8 +145,8 @@ public class EncoderEncodingEventListener extends AbstractEncodingEventListener 
 	}
 	
 	@Override
-	public boolean isSynchronisationRequired() {
-		return false;
+	public String[] getRequiredPackageNames() {
+		return new String[] { "vorbis-tools", "lame", "id3v2" };
 	}
 	
 	public Map<String, File> getCommandCache() {
