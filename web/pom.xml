@@ -3,11 +3,10 @@
 	<modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>uk.co.unclealex.music</groupId>
-    <artifactId>parent</artifactId>
+    <artifactId>music-parent</artifactId>
     <version>3.0-SNAPSHOT</version>
   </parent>
-	<groupId>uk.co.unclealex.music</groupId>
-	<artifactId>web</artifactId>
+	<artifactId>music-web</artifactId>
 	<name>Music Web</name>
 	<url>http://maven.apache.org</url>
 	<packaging>war</packaging>

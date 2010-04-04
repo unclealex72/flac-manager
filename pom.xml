@@ -6,24 +6,20 @@
   	<version>2.0.0</version>
   </parent>
   <groupId>uk.co.unclealex.music</groupId>
-  <artifactId>parent</artifactId>
+  <artifactId>music-parent</artifactId>
   <name>Flac Music Manager And Encoder</name>
   <version>3.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
-    <module>base</module>
-    <module>test</module>
-    <module>core</module>
-    <module>encoder</module>
-    <module>album-covers</module>
+    <module>common</module>
+    <module>covers</module>
+    <module>encoding</module>
     <module>web</module>
-    <module>fs</module>
-    <module>sync</module>
   </modules>
 
   <properties>
-  	<spring-version>3.0.0.RELEASE</spring-version>
-  	<derby-version>10.4.2.0</derby-version>
+  	<spring-version>3.0.1.RELEASE</spring-version>
+  	
   	<slf4j-version>1.5.6</slf4j-version>
 	</properties>
 
