@@ -14,12 +14,16 @@
 			<groupId>${groupId}</groupId>
 			<artifactId>music-common</artifactId>
 			<version>${version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-collections</groupId>
-					<artifactId>commons-collections</artifactId>
-				</exclusion>
-			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>${groupId}</groupId>
+			<artifactId>music-covers</artifactId>
+			<version>${version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>3.0.2.RELEASE</version>
 		</dependency>
 	</dependencies>
 

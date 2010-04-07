@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd"
+	default-autowire="byName">
+
+	<bean id="devicesDirectory" class="java.io.File">
+		<constructor-arg value="/mnt/multimedia/devices"/>
+	</bean> 
+	
+	<bean id="encodedDirectory" class="java.io.File">
+		<constructor-arg value="/mnt/multimedia/encoded"/>
+	</bean> 
+	
+	<bean id="mp3Encoding" class="uk.co.unclealex.music.encoding.Encoding">
+		<property name="encodingScriptResourceName" value="flac2mp3"/>
+		<property name="extension" value="mp3"/>
+	</bean>
+	
+	<bean id="oggEncoding" class="uk.co.unclealex.music.encoding.Encoding">
+		<property name="encodingScriptResourceName" value="flac2ogg"/>
+		<property name="extension" value="ogg"/>
+	</bean>
+
+	<util:set id="encodings" set-class="java.util.TreeSet" value-type="uk.co.unclealex.music.encoding.Encoding">
+		<ref bean="mp3Encoding"/>
+		<ref bean="oggEncoding"/>
+	</util:set>
+	
+	<util:set id="allDevices" set-class="java.util.TreeSet" value-type="uk.co.unclealex.music.encoding.Device">
+		<bean class="uk.co.unclealex.music.encoding.Device">
+			<property name="name" value="ipod"/>
+			<property name="encoding" ref="mp3Encoding"/>
+			<property name="owner" value="alex"/>
+		</bean>
+		<bean class="uk.co.unclealex.music.encoding.Device">
+			<property name="name" value="creative zen"/>
+			<property name="encoding" ref="mp3Encoding"/>
+			<property name="owner" value="alex"/>
+		</bean>
+		<bean class="uk.co.unclealex.music.encoding.Device">
+			<property name="name" value="iriver"/>
+			<property name="encoding" ref="oggEncoding"/>
+			<property name="owner" value="trevor"/>
+		</bean>
+	</util:set>
+	
+	<util:map id="encodingArtworkManagers"
+		key-type="uk.co.unclealex.music.encoding.Encoding"
+		value-type="uk.co.unclealex.music.covers.ArtworkManager"
+		map-class="java.util.TreeMap">
+		<entry key-ref="mp3Encoding" value-ref="mp3ArtworkManager"/>
+	</util:map>
+	
+	<bean id="artworkUpdatingService" class="uk.co.unclealex.music.encoding.ArtworkUpdatingServiceImpl"/>
+	<bean id="deviceService" class="uk.co.unclealex.music.encoding.DeviceServiceImpl"/>
+	<bean id="encodingService" class="uk.co.unclealex.music.encoding.EncodingServiceImpl">
+		<property name="maximumThreads" value="4"/>
+	</bean>
+	<bean id="fileService" class="uk.co.unclealex.music.encoding.FileServiceImpl"/>
+	<bean id="singleEncodingService" class="uk.co.unclealex.music.encoding.SingleEncodingServiceImpl"/>
+	<bean id="importService" class="uk.co.unclealex.music.encoding.ImportServiceImpl"/>
+</beans>
