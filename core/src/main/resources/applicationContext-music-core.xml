@@ -84,7 +84,7 @@
 	
 	<!-- Service definitions -->
 	<bean id="initialiser" class="uk.co.unclealex.music.core.initialise.InitialiserImpl"/>
-	<bean id="processService" class="uk.co.unclealex.music.core.process.service.ProcessServiceImpl"/>
+	<bean id="processService" class="uk.co.unclealex.music.ProcessServiceImpl"/>
 	<bean id="slimServerService" class="uk.co.unclealex.music.core.service.SlimServerServiceImpl"/>
 	<bean id="ownerService" class="uk.co.unclealex.music.core.service.OwnerServiceImpl"/>
 	<bean id="flacService" class="uk.co.unclealex.music.core.service.FlacServiceImpl"/>

@@ -7,12 +7,11 @@ import org.apache.log4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-public abstract class SpringCommand implements Runnable {
+public abstract class SpringCommand {
 
 	private static final Logger log = Logger.getLogger(SpringCommand.class);
 	
-	@Override
-	public void run() {
+	public void run(String[] args) {
 		int exitValue = 0;
 		try {
 			List<String> contextResources = new ArrayList<String>();
@@ -21,7 +20,7 @@ public abstract class SpringCommand implements Runnable {
 			}
 			ClassPathXmlApplicationContext ctxt = new ClassPathXmlApplicationContext(contextResources.toArray(new String[0]));
 			try {
-				run(ctxt);
+				run(ctxt, args);
 			}
 			catch (Throwable t) {
 				log.error("The command errored.", t);
@@ -36,5 +35,5 @@ public abstract class SpringCommand implements Runnable {
 		}
 	}
 	
-	public abstract void run(ApplicationContext applicationContext) throws Exception;
+	public abstract void run(ApplicationContext applicationContext, String[] args) throws Exception;
 }

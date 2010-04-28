@@ -18,4 +18,6 @@ public interface FileService {
 
 	public SortedSet<File> listFiles(File f, FileFilter fileFilter);
 
+	public char getFirstLetter(String relativePath);
+
 }

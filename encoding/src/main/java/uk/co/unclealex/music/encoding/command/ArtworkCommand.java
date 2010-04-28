@@ -6,11 +6,11 @@ import uk.co.unclealex.music.encoding.EncodingService;
 public class ArtworkCommand extends SpringCommand {
 
 	public static void main(String[] args) {
-		new ArtworkCommand().run();
+		new ArtworkCommand().run(args);
 	}
 
 	@Override
-	public void run(ApplicationContext ctxt) {
+	public void run(ApplicationContext ctxt, String[] args) {
 		EncodingService encodingService = ctxt.getBean(EncodingService.class);
 		encodingService.refreshArtwork();
 	}

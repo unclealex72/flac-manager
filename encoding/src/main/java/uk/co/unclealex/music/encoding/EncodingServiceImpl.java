@@ -2,10 +2,12 @@ package uk.co.unclealex.music.encoding;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -15,6 +17,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -74,9 +77,10 @@ public class EncodingServiceImpl implements EncodingService {
 			}
 		};
 		log.info("Scanning for files in " + flacDirectory);
-		getFileService().listFiles(flacDirectory, fileFilter);
+		FileService fileService = getFileService();
+		fileService.listFiles(flacDirectory, fileFilter);
 		log.info("Checking artwork.");
-		updateArtwork(flacFilesByDirectory, nonFlacFilesByDirectory);
+		SortedSet<File> flacFilesWithoutArtwork = updateArtwork(flacFilesByDirectory, nonFlacFilesByDirectory);
 		log.info("Encoding.");
 		SortedSet<File> allFlacFiles = new TreeSet<File>();
 		for (SortedSet<File> flacFiles : flacFilesByDirectory.values()) {
@@ -93,23 +97,50 @@ public class EncodingServiceImpl implements EncodingService {
 			log.info("Creating device filesystems.");
 			createDeviceFilesystems(directoriesByOwner);
 		}
+		SortedSet<File> flacDirectoriesWithoutArtwork = 
+			CollectionUtils.collect(
+				flacFilesWithoutArtwork,
+				new Transformer<File, File>() {
+					@Override
+					public File transform(File flacFile) {
+						return flacFile.getParentFile();
+					}
+				},
+				new TreeSet<File>());
+		PrintWriter writer = null;
+		try {
+			writer = new PrintWriter(new File(flacDirectory, Constants.MISSING_ARTWORK));
+			for (File flacDirectoryWithoutArtwork : flacDirectoriesWithoutArtwork) {
+				writer.println(fileService.relativiseFile(flacDirectoryWithoutArtwork));
+			}
+		}
+		catch (FileNotFoundException e) {
+			log.warn("Could not create the missing artwork file.", e);
+		}
+		finally {
+			IOUtils.closeQuietly(writer);
+		}
 		log.info("Done.");
 	}
 
-	protected void updateArtwork(
+	protected SortedSet<File> updateArtwork(
 			SortedMap<File, SortedSet<File>> flacFilesByDirectory, SortedMap<File, SortedSet<File>> nonFlacFilesByDirectory) {
 		ArtworkUpdatingService artworkUpdatingService = getArtworkUpdatingService();
+		SortedSet<File> filesWithoutArtwork = new TreeSet<File>();
 		for (Entry<File, SortedSet<File>> entry : flacFilesByDirectory.entrySet()) {
 			File directory = entry.getKey();
 			SortedSet<File> flacFiles = entry.getValue();
 			SortedSet<File> possibleImageFiles = nonFlacFilesByDirectory.get(directory);
-			artworkUpdatingService.updateArtwork(flacFiles, possibleImageFiles);
+			if (!artworkUpdatingService.updateArtwork(flacFiles, possibleImageFiles)) {
+				filesWithoutArtwork.addAll(flacFiles);
+			}
 			if (possibleImageFiles != null) {
 				for (File possibleImageFile : possibleImageFiles) {
 					possibleImageFile.delete();
 				}
 			}
 		}
+		return filesWithoutArtwork;
 	}
 
 	protected int encodeFiles(SortedSet<File> allFlacFiles, SortedSet<Encoding> allEncodings) {

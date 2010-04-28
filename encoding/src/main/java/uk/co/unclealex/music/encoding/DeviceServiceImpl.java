@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
 
+import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.Predicate;
 import org.apache.log4j.Logger;
 
 import uk.co.unclealex.music.ProcessService;
@@ -50,15 +53,25 @@ public class DeviceServiceImpl implements DeviceService {
 	protected void createDeviceFileSystem(Device device, SortedMap<String, SortedSet<File>> directoriesByOwner) {
 		String owner = device.getOwner();
 		Encoding encoding = device.getEncoding();
+		File deviceDirectory = getDeviceDirectory(device);
+		if (deviceDirectory.exists()) {
+			return;
+		}
 		SortedSet<File> ownedFlacDirectories = directoriesByOwner.get(owner);
 		FileService fileService = getFileService();
-		File deviceDirectory = new File(getDevicesDirectory(), device.getName());
 		for (File ownedFlacDirectory : ownedFlacDirectories) {
 			File encodedDirectory = fileService.translateFlacDirectoryToEncodedDirectory(ownedFlacDirectory, encoding);
 			if (encodedDirectory.exists()) {
 				String relativeEncodedPath = fileService.relativiseFile(encodedDirectory);
-				File newSymlinkDirectory = 
-					relativeEncodedPath==null?deviceDirectory:new File(deviceDirectory, relativeEncodedPath);
+				File newSymlinkDirectory;
+				if (relativeEncodedPath == null) {
+					newSymlinkDirectory = deviceDirectory;
+				}
+				else {
+					char firstLetter = fileService.getFirstLetter(relativeEncodedPath);
+					newSymlinkDirectory = new File(
+							new File(deviceDirectory, Character.toString(firstLetter)), relativeEncodedPath);
+				}
 				try {
 					symLink(newSymlinkDirectory, encodedDirectory);
 				}
@@ -69,6 +82,12 @@ public class DeviceServiceImpl implements DeviceService {
 		}
 	}
 
+	protected File getDeviceDirectory(Device device) {
+		String name = String.format("%s %s", device.getOwner(), device.getEncoding().getExtension());
+		File deviceDirectory = new File(getDevicesDirectory(), name);
+		return deviceDirectory;
+	}
+
 	protected void symLink(File newSymlinkDirectory, File encodedDirectory) throws IOException {
 		log.info("Linking " + newSymlinkDirectory);
 		newSymlinkDirectory.getParentFile().mkdirs();
@@ -77,6 +96,36 @@ public class DeviceServiceImpl implements DeviceService {
 		getProcessService().run(processBuilder, true);
 	}
 
+	@Override
+	public SortedMap<String, File> listDeviceImageFilesByRelativePath(Device device) throws IOException {
+		SortedMap<String, File> deviceImageFilesByRelativePath = new TreeMap<String, File>();
+		listDeviceImageFiles("", getDeviceDirectory(device), deviceImageFilesByRelativePath);
+		return deviceImageFilesByRelativePath;
+	}
+	
+	protected void listDeviceImageFiles(String path, File f, SortedMap<String, File> deviceImageFilesByRelativePath) throws IOException {
+		f = f.getCanonicalFile();
+		if (f.isDirectory()) {
+			for (File child : f.listFiles()) {
+				listDeviceImageFiles(path + child.getName() + "/", child, deviceImageFilesByRelativePath);
+			}
+		}
+		else {
+			deviceImageFilesByRelativePath.put(path.substring(0, path.length() - 1), f);
+		}
+	}
+
+	@Override
+	public Device findByName(final String deviceName) {
+		Predicate<Device> predicate = new Predicate<Device>() {
+			@Override
+			public boolean evaluate(Device device) {
+				return deviceName.equals(device.getName());
+			}
+		};
+		return CollectionUtils.find(getAllDevices(), predicate);
+	}
+	
 	public SortedSet<Device> getAllDevices() {
 		return i_allDevices;
 	}

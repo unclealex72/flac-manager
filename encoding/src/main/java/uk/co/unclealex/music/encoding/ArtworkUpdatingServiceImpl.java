@@ -34,16 +34,16 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 	private Map<Encoding, ArtworkManager> i_encodingArtworkManagers;
 	
 	@Override
-	public void updateArtwork(SortedSet<File> flacFiles, SortedSet<File> possibleImageFiles) {
+	public boolean updateArtwork(SortedSet<File> flacFiles, SortedSet<File> possibleImageFiles) {
 		if (flacFiles.isEmpty()) {
-			return;
+			return false;
 		}
 		byte[] imageData = possibleImageFiles==null?null:findImageData(possibleImageFiles);
 		if (imageData == null) {
-			updateArtwork(flacFiles);
+			return updateArtwork(flacFiles);
 		}
 		else {
-			updateArtwork(flacFiles, imageData);
+			return updateArtwork(flacFiles, imageData);
 		}
 	}
 
@@ -75,7 +75,7 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 		return out.toByteArray();
 	}
 
-	protected void updateArtwork(SortedSet<File> flacFiles) {
+	protected boolean updateArtwork(SortedSet<File> flacFiles) {
 		final ArtworkManager flacArtworkManager = getFlacArtworkManager();
 		Predicate<File> hasArtworkPredicate = new Predicate<File>() {
 			@Override
@@ -102,24 +102,26 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 					imageData = retreiveImageDataExternally(flacFilesWithoutArtwork.first());
 				}
 				if (imageData != null) {
-					updateArtwork(flacFilesWithoutArtwork, imageData);
+					return updateArtwork(flacFilesWithoutArtwork, imageData);
 				}
 			}
 			catch (IOException e) {
 				log.warn("Could not read any artwork for flac files " + StringUtils.join(flacFilesWithoutArtwork, ", "), e);
 			}
+			return false;
 		}
+		return true;
 	}
 
 	private byte[] retreiveImageDataExternally(File flacFile) throws IOException {
-		List<URL> artworkUrls = getArtworkSearchingService().findArtwork(flacFile);
+		List<String> artworkUrls = getArtworkSearchingService().findArtwork(flacFile);
 		byte[] imageData;
 		if (artworkUrls.isEmpty()) {
 			log.info("No artwork could be found externally.");
 			imageData = null;
 		}
 		else {
-			URL url = artworkUrls.get(0);
+			URL url = new URL(artworkUrls.get(0));
 			log.info("Using image data from url " + url);
 			imageData = toByteArray(url.openStream());
 		}
@@ -131,15 +133,17 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 		return getFlacArtworkManager().getArtwork(flacFileWithArtwork);
 	}
 
-	protected void updateArtwork(SortedSet<File> flacFiles, byte[] imageData) {
+	protected boolean updateArtwork(SortedSet<File> flacFiles, byte[] imageData) {
 		ArtworkManager flacArtworkManager = getFlacArtworkManager();
 		String paths = StringUtils.join(flacFiles, ", ");
 		log.info("Updating artwork for files " + paths);
 		try {
 			flacArtworkManager.setArtwork(imageData, flacFiles.toArray(new File[0]));
+			return true;
 		}
 		catch (IOException e) {
 			log.warn("Could not update artwork for flac file " + paths, e);
+			return false;
 		}
 	}
 

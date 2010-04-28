@@ -6,11 +6,11 @@ import uk.co.unclealex.music.encoding.EncodingService;
 public class EncodeCommand extends SpringCommand {
 
 	public static void main(String[] args) {
-		new EncodeCommand().run();
+		new EncodeCommand().run(args);
 	}
 
 	@Override
-	public void run(ApplicationContext ctxt) {
+	public void run(ApplicationContext ctxt, String[] args) {
 		EncodingService encodingService = ctxt.getBean(EncodingService.class);
 		encodingService.encodeAll();
 	}

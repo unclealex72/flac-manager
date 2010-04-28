@@ -25,13 +25,18 @@ public class FileServiceImpl implements FileService {
 	
 	@Override
 	public String relativiseFile(File file) {
-		Transformer<Encoding, File> transformer = new Transformer<Encoding, File>() {
-			@Override
-			public File transform(Encoding encoding) {
-				return createEncodedRoot(encoding);
-			}
-		};
-		List<File> fileRoots = CollectionUtils.collect(getEncodings(), transformer, new ArrayList<File>());
+		List<File> fileRoots = new ArrayList<File>();
+		SortedSet<Encoding> encodings = getEncodings();
+		for (char ch = 'a'; ch <= 'z'; ch++) {
+			final char chr = ch;
+			Transformer<Encoding, File> transformer = new Transformer<Encoding, File>() {
+				@Override
+				public File transform(Encoding encoding) {
+					return new File(createEncodedRoot(encoding).getPath(), String.valueOf(chr));
+				}
+			};
+			CollectionUtils.collect(encodings, transformer, fileRoots);
+		}
 		fileRoots.add(getFlacDirectory());
 		String relativePath = null;
 		Predicate<File> isParentOfPredicate = new ParentFilePredicate(file);
@@ -68,7 +73,9 @@ public class FileServiceImpl implements FileService {
 	@Override
 	public File translateEncodedDirectoryToFlacDirectory(File encodedDirectory) {
 		File flacDirectory = getFlacDirectory();
-		if (getEncodedDirectory().equals(encodedDirectory.getParentFile())) {
+		File parentDirectory = encodedDirectory.getParentFile();
+		File rootEncodedDirectory = getEncodedDirectory();
+		if (rootEncodedDirectory.equals(parentDirectory) || rootEncodedDirectory.equals(parentDirectory.getParentFile())) {
 			return flacDirectory;
 		}
 		else {
@@ -85,8 +92,15 @@ public class FileServiceImpl implements FileService {
 		}
 		else {
 			String relativeDirectoryPath = relativiseFile(flacDirectory);
-			return new File(encodedRoot, renameFlacToEncoded(relativeDirectoryPath));
+			char firstLetterOfArtist = getFirstLetter(relativeDirectoryPath);
+			return new File(new File(encodedRoot, String.valueOf(firstLetterOfArtist)), renameFlacToEncoded(relativeDirectoryPath));
 		}
+	}
+
+	@Override
+	public char getFirstLetter(String relativePath) {
+		int offset = (relativePath.startsWith("the ") || relativePath.startsWith("the_"))?4:0;
+		return relativePath.charAt(offset);
 	}
 
 	protected String renameEncodedToFlac(String relativePath) {

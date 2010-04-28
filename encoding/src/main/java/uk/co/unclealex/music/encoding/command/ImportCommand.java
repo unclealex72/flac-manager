@@ -8,11 +8,11 @@ import uk.co.unclealex.music.encoding.ImportService;
 public class ImportCommand extends SpringCommand {
 
 	public static void main(String[] args) {
-		new ImportCommand().run();
+		new ImportCommand().run(args);
 	}
 
 	@Override
-	public void run(ApplicationContext ctxt) {
+	public void run(ApplicationContext ctxt, String[] args) {
 		ImportService importService = ctxt.getBean(ImportService.class);
 		importService.importFromDirectory(new File("/mnt/home/converted"));
 	}

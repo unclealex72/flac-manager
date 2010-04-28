@@ -5,7 +5,7 @@ import java.util.SortedSet;
 
 public interface ArtworkUpdatingService {
 
-	public void updateArtwork(SortedSet<File> flacFiles, SortedSet<File> possibleImageFiles);
+	public boolean updateArtwork(SortedSet<File> flacFiles, SortedSet<File> possibleImageFiles);
 
 	public void updateEncodedArtwork(Encoding encoding, File flacFile, File encodedDestination);
 

@@ -35,6 +35,7 @@ import uk.co.unclealex.music.encoder.exception.EncodingException;
 import uk.co.unclealex.music.encoder.exception.EventException;
 import uk.co.unclealex.music.encoder.exception.MultipleEncodingException;
 import uk.co.unclealex.music.encoder.listener.EncodingEventListener;
+import uk.co.unclealex.music.encoding.service.TransactionalEncoderService;
 
 public class EncoderServiceImpl implements EncoderService, RequiresPackages {
 

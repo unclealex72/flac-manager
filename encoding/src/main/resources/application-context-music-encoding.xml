@@ -31,20 +31,22 @@
 	</util:set>
 	
 	<util:set id="allDevices" set-class="java.util.TreeSet" value-type="uk.co.unclealex.music.encoding.Device">
-		<bean class="uk.co.unclealex.music.encoding.Device">
+		<bean class="uk.co.unclealex.music.encoding.IpodDevice">
 			<property name="name" value="ipod"/>
 			<property name="encoding" ref="mp3Encoding"/>
 			<property name="owner" value="alex"/>
+			<property name="mountPoint" value="/media/IPOD"/>
 		</bean>
-		<bean class="uk.co.unclealex.music.encoding.Device">
+		<bean class="uk.co.unclealex.music.encoding.MtpDevice">
 			<property name="name" value="creative zen"/>
 			<property name="encoding" ref="mp3Encoding"/>
 			<property name="owner" value="alex"/>
 		</bean>
-		<bean class="uk.co.unclealex.music.encoding.Device">
+		<bean class="uk.co.unclealex.music.encoding.FileSystemDevice">
 			<property name="name" value="iriver"/>
 			<property name="encoding" ref="oggEncoding"/>
 			<property name="owner" value="trevor"/>
+			<property name="mountPoint" value="/media/disk"/>
 		</bean>
 	</util:set>
 	
@@ -63,4 +65,18 @@
 	<bean id="fileService" class="uk.co.unclealex.music.encoding.FileServiceImpl"/>
 	<bean id="singleEncodingService" class="uk.co.unclealex.music.encoding.SingleEncodingServiceImpl"/>
 	<bean id="importService" class="uk.co.unclealex.music.encoding.ImportServiceImpl"/>
+	
+	<bean id="SynchroniseServiceFactory" class="uk.co.unclealex.music.sync.SynchroniseServiceFactoryImpl">
+		<property name="fileSystemSynchroniseServiceBeanName" value="fileSystemSynchroniseService"/>
+		<property name="ipodSynchroniseServiceBeanName" value="ipodSynchroniseService"/>
+		<property name="mtpSynchroniseServiceBeanName" value="mtpSynchroniseService"/>
+	</bean>
+	
+	<bean id="fileSystemSynchroniseService" class="uk.co.unclealex.music.sync.FileSystemSynchroniseService" scope="prototype"/>
+	<bean id="ipodSynchroniseService" class="uk.co.unclealex.music.sync.IpodSynchroniseService" scope="prototype">
+		<property name="port" value="17203"/>
+	</bean>
+	<bean id="mtpSynchroniseService" class="uk.co.unclealex.music.sync.MtpSynchroniseService" scope="prototype">
+		<property name="port" value="17202"/>
+	</bean>
 </beans>

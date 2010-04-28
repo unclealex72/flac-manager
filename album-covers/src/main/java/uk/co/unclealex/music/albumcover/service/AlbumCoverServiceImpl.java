@@ -33,13 +33,13 @@ import uk.co.unclealex.music.base.model.AlbumCoverBean;
 import uk.co.unclealex.music.base.model.EncodedAlbumBean;
 import uk.co.unclealex.music.base.model.EncodedArtistBean;
 import uk.co.unclealex.music.base.model.EncodedTrackBean;
-import uk.co.unclealex.music.base.model.ExternalCoverArtImage;
 import uk.co.unclealex.music.base.model.FlacAlbumBean;
 import uk.co.unclealex.music.base.model.FlacArtistBean;
 import uk.co.unclealex.music.base.model.FlacTrackBean;
 import uk.co.unclealex.music.base.service.ArtworkTaggingException;
 import uk.co.unclealex.music.base.service.ExternalCoverArtException;
 import uk.co.unclealex.music.base.service.ExternalCoverArtService;
+import uk.co.unclealex.music.covers.ExternalCoverArtImage;
 
 @Transactional
 public class AlbumCoverServiceImpl implements AlbumCoverService {

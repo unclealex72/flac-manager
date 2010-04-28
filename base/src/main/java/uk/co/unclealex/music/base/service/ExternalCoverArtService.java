@@ -3,7 +3,7 @@ package uk.co.unclealex.music.base.service;
 import java.io.IOException;
 import java.util.SortedSet;
 
-import uk.co.unclealex.music.base.model.ExternalCoverArtImage;
+import uk.co.unclealex.music.covers.ExternalCoverArtImage;
 
 public interface ExternalCoverArtService {
 

@@ -38,7 +38,7 @@ public class AmazonArtworkSearchingService implements ArtworkSearchingService {
 	private SignedRequestsService i_signedRequestsService;
 	
 	@Override
-	public List<URL> findArtwork(File flacFile) throws IOException {
+	public List<String> findArtwork(File flacFile) throws IOException {
 		AudioFile audioFile;
 		try {
 			audioFile = AudioFileIO.read(flacFile);
@@ -61,7 +61,7 @@ public class AmazonArtworkSearchingService implements ArtworkSearchingService {
 		return findArtwork(artist, album);
 	}
 	
-	protected List<URL> findArtwork(String artist, String album) throws IOException {
+	public List<String> findArtwork(String artist, String album) throws IOException {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("Service", "AWSECommerceService");
 		parameters.put("Operation", "ItemSearch");
@@ -111,13 +111,13 @@ public class AmazonArtworkSearchingService implements ArtworkSearchingService {
 				}
 			}
 		}
-		Transformer<ExternalCoverArtImage, URL> transformer = new Transformer<ExternalCoverArtImage, URL>() {
+		Transformer<ExternalCoverArtImage, String> transformer = new Transformer<ExternalCoverArtImage, String>() {
 			@Override
-			public URL transform(ExternalCoverArtImage externalCoverArtImage) {
-				return externalCoverArtImage.getUrl();
+			public String transform(ExternalCoverArtImage externalCoverArtImage) {
+				return externalCoverArtImage.getUrl().toString();
 			}
 		};
-		return CollectionUtils.collect(imagesByParentElement.values(), transformer, new ArrayList<URL>());
+		return CollectionUtils.collect(imagesByParentElement.values(), transformer, new ArrayList<String>());
 	}
 
 	@SuppressWarnings("unchecked")
