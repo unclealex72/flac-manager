@@ -1,0 +1,28 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder 
+  xmlns:ui="urn:ui:com.google.gwt.uibinder"
+  xmlns:g="urn:import:com.google.gwt.user.client.ui">
+	
+	<ui:style>
+		.contactsViewButtonHPanel {
+		 margin: 5px 0px 0x 5px;	
+		}
+	  .contactsViewContactsFlexTable {
+	   margin: 5px 0px 5px 0px; 
+	  }
+	</ui:style>
+
+  <g:DecoratorPanel>
+  	<g:HorizontalPanel>
+  		<g:DecoratorPanel>
+  			<g:Hyperlink ui:field="missingCoversHyperlink">Missing Covers</g:Hyperlink>
+  		</g:DecoratorPanel>
+  		<g:DecoratorPanel>
+	  		<g:Hyperlink ui:field="artistHyperlink"/>
+	  	</g:DecoratorPanel>
+	  	<g:DecoratorPanel>
+  			<g:HorizontalPanel ui:field="lettersPanel"/>
+  		</g:DecoratorPanel>
+  	</g:HorizontalPanel>
+  </g:DecoratorPanel>
+</ui:UiBinder> 

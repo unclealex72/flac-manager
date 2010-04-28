@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+      	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      	 xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+      	 version="2.5">
+	<servlet>
+	  <servlet-name>albumCoverService</servlet-name>
+	  <servlet-class>uk.co.unclealex.music.gwt.server.GwtAlbumCoverServiceServlet</servlet-class>
+	</servlet>
+	
+	<servlet>
+	  <servlet-name>artworkServlet</servlet-name>
+	  <servlet-class>uk.co.unclealex.music.gwt.server.ArtworkServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+	  <servlet-name>albumCoverService</servlet-name>
+	  <url-pattern>/uk.co.unclealex.music.gwt.Application/albumCoverService</url-pattern>
+	</servlet-mapping>
+	
+	<servlet-mapping>
+	  <servlet-name>artworkServlet</servlet-name>
+	  <url-pattern>/artwork/*</url-pattern>
+	</servlet-mapping>
+
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:application-context-music-gwt.xml</param-value>
+	</context-param>
+	
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+</web-app>
