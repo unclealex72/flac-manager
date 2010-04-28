@@ -8,6 +8,4 @@ public interface Device {
 	public String getOwner();
 	
 	public Encoding getEncoding();
-	
-	public void accept(DeviceVisitor deviceVisitor);
 }
