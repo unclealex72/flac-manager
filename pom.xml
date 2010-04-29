@@ -16,6 +16,7 @@
     <module>covers</module>
     <module>encoding</module>
     <module>gwt</module>
+    <module>sync</module>
   </modules>
 
   <properties>
