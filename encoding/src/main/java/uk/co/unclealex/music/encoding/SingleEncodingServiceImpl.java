@@ -8,6 +8,7 @@ import java.util.Date;
 
 import org.apache.log4j.Logger;
 
+import uk.co.unclealex.music.Encoding;
 import uk.co.unclealex.music.ProcessService;
 
 public class SingleEncodingServiceImpl implements SingleEncodingService {
@@ -32,9 +33,15 @@ public class SingleEncodingServiceImpl implements SingleEncodingService {
 			log.info("Encoding as " + encodedDestination + " does not exist.");
 		}
 		try {
+			String encodedDestinationPath = encodedDestination.getCanonicalPath();
+			File tempFile = new File(encodedDestinationPath + ".part");
 			ProcessBuilder processBuilder = new ProcessBuilder(
-					encodingScript.getCanonicalPath(), flacFile.getCanonicalPath(), encodedDestination.getCanonicalPath());
+					encodingScript.getCanonicalPath(), flacFile.getCanonicalPath(), tempFile.getCanonicalPath());
 			getProcessService().run(processBuilder, true);
+			if (encodedDestination.exists()) {
+				encodedDestination.delete();
+			}
+			tempFile.renameTo(encodedDestination);
 			getArtworkUpdatingService().updateEncodedArtwork(encoding, flacFile, encodedDestination);
 		}
 		catch (IOException e) {

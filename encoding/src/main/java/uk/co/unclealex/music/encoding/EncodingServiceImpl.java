@@ -23,6 +23,10 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import uk.co.unclealex.music.Constants;
+import uk.co.unclealex.music.DeviceService;
+import uk.co.unclealex.music.Encoding;
+import uk.co.unclealex.music.FileService;
+import uk.co.unclealex.music.ParentFilePredicate;
 
 public class EncodingServiceImpl implements EncodingService {
 
@@ -149,7 +153,7 @@ public class EncodingServiceImpl implements EncodingService {
 		for (Encoding encoding : allEncodings) {
 			try {
 				File encodingScriptFile = File.createTempFile("music-encoding-", ".sh");
-				InputStream in = clazz.getResourceAsStream(encoding.getEncodingScriptResourceName());
+				InputStream in = clazz.getResourceAsStream("flac2" + encoding.getExtension());
 				OutputStream out = new FileOutputStream(encodingScriptFile);
 				IOUtils.copy(in, out);
 				IOUtils.closeQuietly(in);

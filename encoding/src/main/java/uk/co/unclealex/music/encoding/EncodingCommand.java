@@ -2,6 +2,8 @@ package uk.co.unclealex.music.encoding;
 
 import java.io.File;
 
+import uk.co.unclealex.music.Encoding;
+
 public class EncodingCommand {
 
 	private Encoding i_encoding;

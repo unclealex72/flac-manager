@@ -25,6 +25,13 @@
 			<artifactId>spring-context</artifactId>
 			<version>3.0.2.RELEASE</version>
 		</dependency>
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>1.6</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 
 </project>

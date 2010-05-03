@@ -25,6 +25,8 @@ import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 
 import uk.co.unclealex.music.Constants;
+import uk.co.unclealex.music.Encoding;
+import uk.co.unclealex.music.FileService;
 
 public class ImportServiceImpl implements ImportService {
 
