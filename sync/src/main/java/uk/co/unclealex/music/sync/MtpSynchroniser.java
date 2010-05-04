@@ -54,7 +54,7 @@ public class MtpSynchroniser extends AbstractFileSystemSynchroniser<MtpDevice> {
 
 	@Override
 	protected void disconnect() throws IOException {
-		ProcessBuilder processBuilder = new ProcessBuilder("fusermount", getMountPoint().getAbsolutePath());
+		ProcessBuilder processBuilder = new ProcessBuilder("fusermount", "-u", getMountPoint().getAbsolutePath());
 		try {
 			processBuilder.start().waitFor();
 		}
