@@ -56,6 +56,7 @@ public abstract class AbstractSynchroniser<D extends Device> implements Synchron
 				}
 				else if (deviceFile != null) {
 					log.info(String.format("File %s will be kept.", deviceFile));
+					deviceFilesByRelativePath.remove(relativePath);
 				}
 			}
 			deviceFilesToRemove.addAll(deviceFilesByRelativePath.values());
@@ -88,8 +89,7 @@ public abstract class AbstractSynchroniser<D extends Device> implements Synchron
 		SortedSet<R> relativePathFiles = new TreeSet<R>();
 		Device device = getDevice();
 		String extension = device.getEncoding().getExtension();
-		File deviceDirectory = getDeviceService().getDeviceDirectory(device);
-		for (File file : deviceDirectory.listFiles()) {
+		for (File file : directory.listFiles()) {
 			listRelativePathFiles(relativePathFiles, file, "", extension, factory);
 		}
 		return relativePathFiles;

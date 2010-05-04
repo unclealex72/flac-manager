@@ -23,7 +23,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>3.0.2.RELEASE</version>
+			<version>${spring-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>joda-time</groupId>
@@ -33,5 +33,4 @@
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
-
 </project>
