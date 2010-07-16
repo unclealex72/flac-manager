@@ -2,11 +2,15 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd"
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
 	default-autowire="byName">
 
+	<context:annotation-config/>
+	
 	<bean id="devicesDirectory" class="java.io.File">
 		<constructor-arg value="/mnt/multimedia/devices"/>
 	</bean> 
@@ -29,8 +33,8 @@
 			<property name="name" value="ipod"/>
 			<property name="encoding" ref="mp3Encoding"/>
 			<property name="owner" value="alex"/>
-			<property name="mountPoint" value="/home/alex/ipod"/>
-			<!-- <property name="mountPoint" value="/media/IPOD"/> -->
+			<!-- <property name="mountPoint" value="/home/alex/ipod"/> -->
+			<property name="mountPoint" value="/media/IPOD"/>
 		</bean>
 		<bean class="uk.co.unclealex.music.MtpDevice">
 			<property name="name" value="creative zen"/>
@@ -50,6 +54,8 @@
 	<bean id="flacDirectory" class="java.io.File">
 		<constructor-arg value="/mnt/multimedia/flac"/>
 	</bean>
+	
+	<bean id="latinService" class="uk.co.unclealex.music.LatinServiceImpl"/>
 	
 	<bean id="deviceService" class="uk.co.unclealex.music.DeviceServiceImpl"/>
 	<bean id="fileService" class="uk.co.unclealex.music.FileServiceImpl"/>

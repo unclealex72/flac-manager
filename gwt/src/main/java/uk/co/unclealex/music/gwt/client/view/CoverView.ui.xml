@@ -6,8 +6,6 @@
 	<ui:style>
 	</ui:style>
 
-	<g:Hyperlink ui:field="link">
-		<g:Image ui:field="image"/>
-	</g:Hyperlink>
+	<g:Image ui:field="image"/>
 
 </ui:UiBinder> 

@@ -31,11 +31,14 @@ import org.jdom.Parent;
 import org.jdom.filter.Filter;
 import org.jdom.input.SAXBuilder;
 
+import uk.co.unclealex.music.LatinService;
+
 public class AmazonArtworkSearchingService implements ArtworkSearchingService {
 
 	private static final Logger log = Logger.getLogger(AmazonArtworkSearchingService.class);
 	
 	private SignedRequestsService i_signedRequestsService;
+	private LatinService i_latinService;
 	
 	@Override
 	public List<String> findArtwork(File flacFile) throws IOException {
@@ -62,12 +65,13 @@ public class AmazonArtworkSearchingService implements ArtworkSearchingService {
 	}
 	
 	public List<String> findArtwork(String artist, String album) throws IOException {
+		LatinService latinService = getLatinService();
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("Service", "AWSECommerceService");
 		parameters.put("Operation", "ItemSearch");
 		parameters.put("SearchIndex", "Music");
-		parameters.put("Artist", artist);
-		parameters.put("Title", album);
+		parameters.put("Artist", latinService.removeCommonAccents(artist));
+		parameters.put("Title", latinService.removeCommonAccents(album));
 		parameters.put("ResponseGroup", "Images");
 		String signedUrl = getSignedRequestsService().sign(parameters);
 		log.info(String.format("Looking for covers for %s: %s", artist, album));
@@ -137,6 +141,14 @@ public class AmazonArtworkSearchingService implements ArtworkSearchingService {
 
 	public void setSignedRequestsService(SignedRequestsService signedRequestsService) {
 		i_signedRequestsService = signedRequestsService;
+	}
+
+	public LatinService getLatinService() {
+		return i_latinService;
+	}
+
+	public void setLatinService(LatinService latinService) {
+		i_latinService = latinService;
 	}
 
 }
