@@ -18,7 +18,7 @@ public class MtpSynchroniser extends AbstractFileSystemSynchroniser<MtpDevice> {
 		File tempDir = new File(System.getProperty("java.io.tmpdir"));
 		File mountPoint;
 		long time = System.currentTimeMillis();
-		while (!(mountPoint = new File(tempDir, "sync" + time)).exists()) {
+		while ((mountPoint = new File(tempDir, "sync" + time)).exists()) {
 			time++;
 		}
 		mountPoint.mkdir();

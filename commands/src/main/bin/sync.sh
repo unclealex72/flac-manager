@@ -8,4 +8,4 @@ do
   CLASSPATH=$CLASSPATH:$JAR
 done
 
-java -Djava.util.logging.config.file=$BASE_DIR/../conf/logging.properties -cp $CLASSPATH uk.co.unclealex.music.command.SynchroniseCommand
+java -Djava.util.logging.config.file=$BASE_DIR/../conf/logging.properties -cp $CLASSPATH uk.co.unclealex.music.command.SynchroniseCommand "$@"
