@@ -9,7 +9,7 @@
   <groupId>uk.co.unclealex.music</groupId>
   <artifactId>music-parent</artifactId>
   <name>Flac Music Manager And Encoder</name>
-  <version>3.1-SNAPSHOT</version>
+  <version>3.1</version>
   <packaging>pom</packaging>
   <modules>
     <module>commands</module>
@@ -27,8 +27,8 @@
 	</properties>
 
   <scm>
-  	<url>scm:svn:http://hurst/svn/trunk/personal/Music</url>
-  	<connection>scm:svn:http://hurst/svn/trunk/personal/Music</connection>
-    <developerConnection>scm:svn:http://hurst/svn/tags/personal/parent/2.0.0/music-parent</developerConnection>
+  	<url>scm:svn:http://hurst/svn/tags/personal/Music/3.1</url>
+  	<connection>scm:svn:http://hurst/svn/tags/personal/Music/3.1</connection>
+    <developerConnection>scm:svn:http://hurst/svn/tags/personal/Music/3.1</developerConnection>
   </scm>
 </project>
