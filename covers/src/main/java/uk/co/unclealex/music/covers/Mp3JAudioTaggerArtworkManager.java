@@ -7,6 +7,6 @@ public class Mp3JAudioTaggerArtworkManager extends JAudioTaggerArtworkManager<MP
 
 	@Override
 	protected Tag getTag(MP3File audioFile) {
-		return audioFile.getID3v2TagAsv24();
+		return audioFile.getID3v2Tag();
 	}
 }
