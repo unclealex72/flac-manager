@@ -42,6 +42,12 @@
 			<property name="owner" value="alex"/>
 		</bean>
 		<bean class="uk.co.unclealex.music.FileSystemDevice">
+			<property name="name" value="walkman"/>
+			<property name="encoding" ref="mp3Encoding"/>
+			<property name="owner" value="alex"/>
+			<property name="mountPoint" value="/media/WALKMAN/MUSIC"/>
+		</bean>
+		<bean class="uk.co.unclealex.music.FileSystemDevice">
 			<property name="name" value="iriver"/>
 			<property name="encoding" ref="oggEncoding"/>
 			<property name="owner" value="trevor"/>
@@ -59,4 +65,5 @@
 	
 	<bean id="deviceService" class="uk.co.unclealex.music.DeviceServiceImpl"/>
 	<bean id="fileService" class="uk.co.unclealex.music.FileServiceImpl"/>
+	
 </beans>

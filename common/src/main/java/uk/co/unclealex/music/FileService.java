@@ -2,6 +2,7 @@ package uk.co.unclealex.music;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.SortedSet;
 
 
@@ -21,4 +22,7 @@ public interface FileService {
 
 	public char getFirstLetter(String relativePath);
 
+	public void copy(File source, File target, boolean overwrite) throws IOException;
+	
+	public boolean move(File source, File target, boolean overwrite) throws IOException;
 }

@@ -2,6 +2,9 @@ package uk.co.unclealex.music;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,9 +17,13 @@ import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 
 public class FileServiceImpl implements FileService {
 
+	private static final Logger log = Logger.getLogger(FileServiceImpl.class);
+	
 	private File i_flacDirectory;
 	private File i_encodedDirectory;
 	private SortedSet<Encoding> i_encodings;
@@ -128,6 +135,49 @@ public class FileServiceImpl implements FileService {
 			if (fileFilter.accept(f)) {
 				acceptedFiles.add(f);
 			}
+		}
+	}
+
+	@Override
+	public void copy(File source, File target, boolean overwrite) throws IOException {
+		doCopy("Copying", source, target, overwrite);
+	}
+	
+	@Override
+	public boolean move(File source, File target, boolean overwrite) throws IOException {
+		boolean moved = !source.equals(target);
+		if (moved) {
+			doCopy("Moving", source, target, overwrite);
+			if (!source.delete()) {
+				throw new IOException("Cannot delete file " + source.getAbsolutePath());
+			}
+		}
+		return moved;
+	}
+	
+	protected void doCopy(String message, File source, File target, boolean overwrite) throws IOException {
+		String targetPath = target.getAbsolutePath();
+		String sourcePath = source.getAbsolutePath();
+		log.info(message + " " + sourcePath + " to " + targetPath);
+		if (target.exists()) {
+			if (overwrite) {
+				log.info("Existing target " + targetPath + " will be overwritten.");
+			}
+			else {
+				throw new IOException(message + " " + sourcePath + " failed as target " + targetPath + " exists.");
+			}
+		}
+		target.getParentFile().mkdirs();
+		FileInputStream in = null;
+		FileOutputStream out = null;
+		try {
+			in = new FileInputStream(source);
+			out = new FileOutputStream(target);
+			in.getChannel().transferTo(0, source.length(), out.getChannel());
+		}
+		finally {
+			IOUtils.closeQuietly(in);
+			IOUtils.closeQuietly(out);
 		}
 	}
 
