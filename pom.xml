@@ -9,7 +9,7 @@
   <groupId>uk.co.unclealex.music</groupId>
   <artifactId>music-parent</artifactId>
   <name>Flac Music Manager And Encoder</name>
-  <version>3.3-SNAPSHOT</version>
+  <version>3.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
     <module>commands</module>

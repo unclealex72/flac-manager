@@ -7,7 +7,7 @@
   <parent>
         <artifactId>music-parent</artifactId>
         <groupId>uk.co.unclealex.music</groupId>
-        <version>3.3-SNAPSHOT</version>
+        <version>3.2-SNAPSHOT</version>
     </parent>
   <artifactId>music-gwt</artifactId>
   <packaging>war</packaging>
