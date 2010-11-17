@@ -1,9 +1,7 @@
 package uk.co.unclealex.music.encoding;
 
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -12,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import javax.imageio.ImageIO;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
@@ -33,6 +29,7 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 	private ArtworkManager i_flacArtworkManager;
 	private ArtworkSearchingService i_artworkSearchingService;
 	private Map<Encoding, ArtworkManager> i_encodingArtworkManagers;
+	private ImageService i_imageService;
 	
 	@Override
 	public boolean updateArtwork(SortedSet<File> flacFiles, SortedSet<File> possibleImageFiles) {
@@ -50,13 +47,11 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 
 	protected byte[] findImageData(SortedSet<File> possibleImageFiles) {
 		byte[] imageData = null;
+		ImageService imageService = getImageService();
 		for (Iterator<File> iter = possibleImageFiles.iterator(); imageData == null && iter.hasNext(); ) {
 			File possibleImageFile = iter.next();
 			try {
-				BufferedImage img = ImageIO.read(possibleImageFile);
-				if (img != null) {
-					imageData = toByteArray(new FileInputStream(possibleImageFile));
-				}
+				imageData = imageService.loadImage(possibleImageFile);
 			}
 			catch (IOException e) {
 				log.warn("Could not read image data from file " + possibleImageFile, e);
@@ -187,6 +182,14 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 
 	public void setEncodingArtworkManagers(Map<Encoding, ArtworkManager> encodingArtworkManagers) {
 		i_encodingArtworkManagers = encodingArtworkManagers;
+	}
+
+	public ImageService getImageService() {
+		return i_imageService;
+	}
+
+	public void setImageService(ImageService imageService) {
+		i_imageService = imageService;
 	}
 
 }

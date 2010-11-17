@@ -24,7 +24,10 @@
 	</bean>
 	<bean id="singleEncodingService" class="uk.co.unclealex.music.encoding.SingleEncodingServiceImpl"/>
 	<bean id="importService" class="uk.co.unclealex.music.encoding.ImportServiceImpl"/>
-	
+	<bean id="imageService" class="uk.co.unclealex.music.encoding.ImageServiceImpl"/>
+	<bean id="fileFixingService" class="uk.co.unclealex.music.encoding.FileFixingServiceImpl"/>
+	<bean id="renamingService" class="uk.co.unclealex.music.encoding.RenamingServiceImpl"/>
+		
 	<!--
 	<bean id="SynchroniseServiceFactory" class="uk.co.unclealex.music.sync.SynchroniseServiceFactoryImpl">
 		<property name="fileSystemSynchroniseServiceBeanName" value="fileSystemSynchroniseService"/>
