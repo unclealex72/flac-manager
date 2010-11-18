@@ -25,7 +25,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.Constants;
 import uk.co.unclealex.music.DeviceService;
@@ -35,7 +36,7 @@ import uk.co.unclealex.music.ParentFilePredicate;
 
 public class EncodingServiceImpl implements EncodingService {
 
-	private static final Logger log = Logger.getLogger(EncodingServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(EncodingServiceImpl.class);
 	
 	private File i_flacDirectory;
 	private File i_encodedDirectory;

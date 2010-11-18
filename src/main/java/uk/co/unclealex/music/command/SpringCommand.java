@@ -13,14 +13,15 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public abstract class SpringCommand {
 
 	protected static final char HELP_OPTION = 'h';
-	private static final Logger log = Logger.getLogger(SpringCommand.class);
+	private static final Logger log = LoggerFactory.getLogger(SpringCommand.class);
 	
 	public void run(String[] args) {
 		int exitValue = 0;
@@ -34,13 +35,9 @@ public abstract class SpringCommand {
 				throw new ParseException(null);
 			}
 			checkCommandLine(commandLine);
-			List<String> contextResources = new ArrayList<String>();
-			for (String contextResource : new String[] { "common", "encoding", "covers", "sync" }) {
-				contextResources.add(String.format("classpath*:application-context-music-%s.xml", contextResource));
-			}
 			ClassPathXmlApplicationContext ctxt = null;
 			try {
-				ctxt = new ClassPathXmlApplicationContext(contextResources.toArray(new String[0]));
+				ctxt = new ClassPathXmlApplicationContext("classpath*:application-context-music.xml");
 				run(ctxt, commandLine);
 			}
 			catch (Throwable t) {

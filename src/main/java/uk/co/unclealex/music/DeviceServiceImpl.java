@@ -8,11 +8,12 @@ import java.util.TreeMap;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DeviceServiceImpl implements DeviceService {
 
-	private static final Logger log = Logger.getLogger(DeviceServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(DeviceServiceImpl.class);
 	
 	private SortedSet<Device> i_allDevices;
 	private File i_devicesDirectory;

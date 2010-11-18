@@ -14,7 +14,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.Device;
 import uk.co.unclealex.music.DeviceService;
@@ -23,7 +24,7 @@ import uk.co.unclealex.music.FileService;
 
 public abstract class AbstractSynchroniser<D extends Device> implements Synchroniser {
 
-	protected Logger log = Logger.getLogger(getClass());
+	protected Logger log = LoggerFactory.getLogger(getClass());
 	
 	private D i_device;
 	private DeviceService i_deviceService;

@@ -14,7 +14,6 @@ import java.util.Map;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
@@ -30,12 +29,14 @@ import org.jdom.Namespace;
 import org.jdom.Parent;
 import org.jdom.filter.Filter;
 import org.jdom.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.LatinService;
 
 public class AmazonArtworkSearchingService implements ArtworkSearchingService {
 
-	private static final Logger log = Logger.getLogger(AmazonArtworkSearchingService.class);
+	private static final Logger log = LoggerFactory.getLogger(AmazonArtworkSearchingService.class);
 	
 	private SignedRequestsService i_signedRequestsService;
 	private LatinService i_latinService;

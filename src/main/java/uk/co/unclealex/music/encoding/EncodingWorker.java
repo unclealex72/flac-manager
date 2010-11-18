@@ -2,12 +2,13 @@ package uk.co.unclealex.music.encoding;
 
 import java.util.concurrent.BlockingQueue;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public abstract class EncodingWorker extends Thread {
 
-	private static final Logger log = Logger.getLogger(EncodingWorker.class);
+	private static final Logger log = LoggerFactory.getLogger(EncodingWorker.class);
 	
 	private BlockingQueue<EncodingCommand> i_queue;
 	private int i_count;

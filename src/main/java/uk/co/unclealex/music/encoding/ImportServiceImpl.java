@@ -13,7 +13,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.log4j.Logger;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
@@ -23,6 +22,8 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.Constants;
 import uk.co.unclealex.music.Encoding;
@@ -30,7 +31,7 @@ import uk.co.unclealex.music.FileService;
 
 public class ImportServiceImpl implements ImportService {
 
-	private static final Logger log = Logger.getLogger(ImportServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(ImportServiceImpl.class);
 	
 	private SortedSet<Encoding> i_encodings;
 	private FileService i_fileService;

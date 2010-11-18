@@ -15,7 +15,7 @@ public abstract class RelativePathFile<R extends RelativePathFile<R>> implements
 		i_relativePath = relativePath;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean equals(Object obj) {
 		return 

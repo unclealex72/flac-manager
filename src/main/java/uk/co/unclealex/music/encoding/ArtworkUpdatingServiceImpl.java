@@ -16,7 +16,8 @@ import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.PredicateUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.Encoding;
 import uk.co.unclealex.music.covers.ArtworkManager;
@@ -24,7 +25,7 @@ import uk.co.unclealex.music.covers.ArtworkSearchingService;
 
 public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 
-	private static final Logger log = Logger.getLogger(ArtworkUpdatingServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(ArtworkUpdatingServiceImpl.class);
 	
 	private ArtworkManager i_flacArtworkManager;
 	private ArtworkSearchingService i_artworkSearchingService;

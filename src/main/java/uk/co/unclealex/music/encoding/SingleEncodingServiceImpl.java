@@ -6,14 +6,15 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.Encoding;
 import uk.co.unclealex.music.ProcessService;
 
 public class SingleEncodingServiceImpl implements SingleEncodingService {
 
-	private static final Logger log = Logger.getLogger(SingleEncodingServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(SingleEncodingServiceImpl.class);
 	
 	private ProcessService i_processService;
 	private ArtworkUpdatingService i_artworkUpdatingService;

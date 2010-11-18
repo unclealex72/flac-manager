@@ -18,11 +18,12 @@ import java.util.TreeSet;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.Constants;
 import uk.co.unclealex.music.FileService;
@@ -30,7 +31,7 @@ import uk.co.unclealex.music.LatinService;
 
 public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 
-	private static final Logger log = Logger.getLogger(FileFixingServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(FileFixingServiceImpl.class);
 
 	private FileService i_fileService;
 	private LatinService i_latinService;

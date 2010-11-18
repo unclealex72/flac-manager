@@ -18,11 +18,12 @@ import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileServiceImpl implements FileService {
 
-	private static final Logger log = Logger.getLogger(FileServiceImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(FileServiceImpl.class);
 	
 	private File i_flacDirectory;
 	private File i_encodedDirectory;
