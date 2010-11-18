@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+	default-autowire="byName">
+	
+	<bean id="jaudioTaggerArtworkManager" class="uk.co.unclealex.music.covers.JAudioTaggerArtworkManager"/>
+	<alias alias="flacArtworkManager" name="jaudioTaggerArtworkManager"/>
+	
+	<bean id="mp3ArtworkManager" class="uk.co.unclealex.music.covers.Mp3JAudioTaggerArtworkManager"/>
+	
+	<bean id="artworkSearchingService" class="uk.co.unclealex.music.covers.AmazonArtworkSearchingService"/>
+	
+	<bean id="signedRequestsService" class="uk.co.unclealex.music.covers.SignedRequestsServiceImpl" init-method="initialise">
+		<property name="awsAccessKeyId" value="1GK0A6KVNQEFVH5Q1Z82"/>
+		<property name="awsSecretKey" value="jq/BOXh4dOYXsso3jn/N8FGF7/40YCPHmTyas1ZF"/>
+		<property name="endpoint" value="ecs.amazonaws.co.uk"/>
+	</bean>	
+
+</beans>
