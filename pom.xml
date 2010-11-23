@@ -7,7 +7,7 @@
         <version>2.0.0</version>
   </parent>
 	<artifactId>music</artifactId>
-	<version>4.0-SNAPSHOT</version>
+	<version>4.0</version>
 	<name>Music</name>
 	<url>http://maven.apache.org</url>
 
@@ -113,4 +113,10 @@
 			</plugin>
 			</plugins>
 		</build>
+
+  <scm>
+    <connection>scm:svn:http://hurst/svn/tags/personal/Music/4.0</connection>
+    <developerConnection>scm:svn:http://hurst/svn/tags/personal/Music/4.0</developerConnection>
+    <url>http://hurst/svn/tags/personal/Music/4.0</url>
+  </scm>
 </project>
