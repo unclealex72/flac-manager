@@ -63,6 +63,7 @@ public class EncodingServiceImpl implements EncodingService {
 		buildFileLists(flacDirectory, flacFilesByDirectory, directoriesByOwner, nonFlacFilesByDirectory, allFlacFiles);
 		log.info("Checking artwork.");
 		SortedSet<File> flacFilesWithoutArtwork = updateArtwork(flacFilesByDirectory, nonFlacFilesByDirectory);
+		writeMissingArtworkFiles(flacDirectory, flacFilesWithoutArtwork);
 		log.info("Encoding.");
 		int changeCount = doEncodeFiles(allFlacFiles, getEncodings());
 		log.info("Purging orphan encoded files.");
@@ -74,7 +75,6 @@ public class EncodingServiceImpl implements EncodingService {
 			log.info("Creating device filesystems.");
 			createDeviceFilesystems(directoriesByOwner);
 		}
-		writeMissingArtworkFiles(flacDirectory, flacFilesWithoutArtwork);
 		log.info("Done.");
 	}
 

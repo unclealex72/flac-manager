@@ -24,6 +24,8 @@ import uk.co.unclealex.music.FileService;
 
 public abstract class AbstractSynchroniser<D extends Device> implements Synchroniser {
 
+	private static final long MILLISECONDS_IN_HOUR = 60 * 60 * 1000;
+
 	protected Logger log = LoggerFactory.getLogger(getClass());
 	
 	private D i_device;
@@ -48,7 +50,7 @@ public abstract class AbstractSynchroniser<D extends Device> implements Synchron
 				String relativePath = entry.getKey();
 				LocalFile localFile = entry.getValue();
 				DeviceFile deviceFile = deviceFilesByRelativePath.get(relativePath);
-				if (deviceFile == null || localFile.getLastModified() > deviceFile.getLastModified()) {
+				if (deviceFile == null || laterThan(localFile.getLastModified(), deviceFile.getLastModified())) {
 					if (deviceFile != null) {
 						deviceFilesToRemove.add(deviceFile);
 						deviceFilesByRelativePath.remove(relativePath);
@@ -70,11 +72,29 @@ public abstract class AbstractSynchroniser<D extends Device> implements Synchron
 				add(localFile);
 			}
 		}
+		catch (RuntimeException e) {
+			log.error("There was an unexpected error trying to synchronise " + getDevice(), e);
+		}
 		finally {
 			closeDevice();
 		}
 	}
 	
+	/**
+	 * Test if the lhs is later than the rhs but also that there is not exactly an hour's difference.
+	 * @param lhs
+	 * @param rhs
+	 * @return
+	 */
+	protected boolean laterThan(long lhs, long rhs) {
+		if (Math.abs(lhs - rhs) == MILLISECONDS_IN_HOUR) {
+			return false;
+		}
+		else {
+			return lhs > rhs;
+		}
+	}
+
 	protected SortedSet<LocalFile> listLocalFiles() throws IOException {
 		RelativePathFileFactory<LocalFile> factory = new RelativePathFileFactory<LocalFile>() {
 			@Override

@@ -10,11 +10,10 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
-import org.springframework.context.ApplicationContext;
 
 import uk.co.unclealex.music.encoding.RenamingService;
 
-public class MergeCommand extends SpringCommand implements Transformer<String, File> {
+public class MergeCommand extends AbstractRenamingCommand implements Transformer<String, File> {
 
 	private static final String ALBUM_OPTION = "album";
 	private static final String DIRS_OPTION = "dirs";
@@ -49,12 +48,11 @@ public class MergeCommand extends SpringCommand implements Transformer<String, F
 	}
 		
 	@Override
-	public void run(ApplicationContext ctxt, CommandLine commandLine) throws IOException {
+	public void run(RenamingService renamingService, CommandLine commandLine) throws IOException {
 		Set<File> flacDirectories  = 
 			CollectionUtils.collect(
 				Arrays.asList(commandLine.getOptionValues(DIRS_OPTION)), this, new LinkedHashSet<File>());
 		String album = commandLine.getOptionValue(ALBUM_OPTION);
-		RenamingService renamingService = ctxt.getBean(RenamingService.class);
 		renamingService.merge(album, flacDirectories);
-	}
+	}	
 }

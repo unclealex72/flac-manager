@@ -11,23 +11,24 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Transformer;
-import org.springframework.context.ApplicationContext;
 
 import uk.co.unclealex.music.encoding.RenamingService;
 
-public class RenameCommand extends SpringCommand implements Transformer<String, File> {
+public class RenameCommand extends AbstractRenamingCommand implements Transformer<String, File> {
 
 	private static final String ALBUM_OPTION = "album";
 	private static final String ARTIST_OPTION = "artist";
 	private static final String TRACK_NUMBER_OPTION = "track";
 	private static final String TITLE_OPTION = "title";
 	private static final String FILES_OPTION = "files";
+	private static final String COMPILATION_OPTION = "compilation";
 	
 	private Set<File> i_flacFiles;
 	private String i_artist;
 	private String i_album;
 	private Integer i_trackNumber;
 	private String i_title;
+	private Boolean i_compilation;
 	
 	public static void main(String[] args) {
 		new RenameCommand().run(args);
@@ -65,6 +66,12 @@ public class RenameCommand extends SpringCommand implements Transformer<String, 
 					withArgName("title").
 					withDescription("The new track title.").
 					create(TITLE_OPTION);
+		Option compilationOption = 
+			OptionBuilder.
+				hasArgs().
+				withArgName("compilation").
+				withDescription("The track is part of a compilation.").
+				create(COMPILATION_OPTION);
 		Option filesOption = 
 			OptionBuilder.
 				hasArgs().
@@ -72,7 +79,7 @@ public class RenameCommand extends SpringCommand implements Transformer<String, 
 				withDescription("The files to alter.").
 				isRequired().
 				create(FILES_OPTION);
-		return new Option[] { artistOption, albumOption, trackNumberOption, titleOption, filesOption };
+		return new Option[] { artistOption, albumOption, trackNumberOption, titleOption, compilationOption, filesOption };
 	}
 	
 	@Override
@@ -85,6 +92,7 @@ public class RenameCommand extends SpringCommand implements Transformer<String, 
 		String album = commandLine.getOptionValue(ALBUM_OPTION);
 		String trackNumber = commandLine.getOptionValue(TRACK_NUMBER_OPTION);
 		String title = commandLine.getOptionValue(TITLE_OPTION);
+		String compilation = commandLine.getOptionValue(COMPILATION_OPTION);
 		Integer trackNo = null;
 		if (trackNumber != null) {
 			try {
@@ -94,11 +102,13 @@ public class RenameCommand extends SpringCommand implements Transformer<String, 
 				throw new ParseException("A supplied track number must be numeric.");
 			}
 		}
-		if (artist == null && album == null && trackNo == null && title == null) {
+		Boolean isCompilation = compilation==null?null:Boolean.valueOf(compilation);
+		
+		if (artist == null && album == null && trackNo == null && title == null && isCompilation == null) {
 			throw new ParseException(
 				String.format(
-					"At least one of %s, %s, %s or %s must be supplied.", 
-					ARTIST_OPTION, ALBUM_OPTION, TRACK_NUMBER_OPTION, TITLE_OPTION));
+					"At least one of %s, %s, %s, %s or %s must be supplied.", 
+					ARTIST_OPTION, ALBUM_OPTION, COMPILATION_OPTION, TRACK_NUMBER_OPTION, TITLE_OPTION));
 		}
 		if ((trackNo != null || title != null) && flacFiles.size() != 1) {
 			throw new ParseException(
@@ -110,12 +120,12 @@ public class RenameCommand extends SpringCommand implements Transformer<String, 
 		setTrackNumber(trackNo);
 		setTitle(title);
 		setFlacFiles(flacFiles);
+		setCompilation(isCompilation);
 	}
 	
 	@Override
-	public void run(ApplicationContext ctxt, CommandLine commandLine) throws IOException {
-		RenamingService renamingService = ctxt.getBean(RenamingService.class);
-		renamingService.rename(getFlacFiles(), getArtist(), getAlbum(), getTrackNumber(), getTitle());
+	public void run(RenamingService renamingService, CommandLine commandLine) throws IOException {
+		renamingService.rename(getFlacFiles(), getArtist(), getAlbum(), getCompilation(), getTrackNumber(), getTitle());
 	}
 
 	public Set<File> getFlacFiles() {
@@ -156,5 +166,13 @@ public class RenameCommand extends SpringCommand implements Transformer<String, 
 
 	public void setTitle(String title) {
 		i_title = title;
+	}
+
+	public Boolean getCompilation() {
+		return i_compilation;
+	}
+
+	public void setCompilation(Boolean compilation) {
+		i_compilation = compilation;
 	}
 }

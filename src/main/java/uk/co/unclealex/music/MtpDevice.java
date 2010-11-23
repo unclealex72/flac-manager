@@ -8,4 +8,8 @@ public class MtpDevice extends AbstractDevice {
 		return deviceVisitor.visit(this);
 	}
 
+	@Override
+	public boolean isConnected() {
+		return false;
+	}
 }

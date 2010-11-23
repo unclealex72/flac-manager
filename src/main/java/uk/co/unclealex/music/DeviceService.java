@@ -17,4 +17,6 @@ public interface DeviceService {
 	public Device findByName(String deviceName);
 
 	public File getDeviceDirectory(Device device);
+
+	public SortedSet<Device> getAllConnectedDevices();
 }

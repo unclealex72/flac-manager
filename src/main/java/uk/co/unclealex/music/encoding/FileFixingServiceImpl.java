@@ -87,16 +87,23 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 	}
 
 	protected File normaliseFlacFilename(TrackInformationBean trackInformationBean, File baseDirectory) {
-		String artistName = normalise(trackInformationBean.getArtist());
-		String albumName = normalise(trackInformationBean.getAlbum());
-		String trackName = normalise(String.format("%02d %s", trackInformationBean.getTrackNumber(), trackInformationBean.getTitle()));
-		File newFlacFile = new File(new File(new File(baseDirectory, artistName), albumName), trackName + "." + Constants.FLAC);
+		String artist = trackInformationBean.getArtist();
+		String album = trackInformationBean.getAlbum();
+		int trackNumber = trackInformationBean.getTrackNumber();
+		String title = trackInformationBean.getTitle();
+		boolean compilation = trackInformationBean.isCompilation();
+		String artistName = normalise(compilation?Constants.VARIOUS_ARTISTS:artist);
+		String albumName = normalise(album);
+		String trackName = 
+			normalise(String.format("%02d %s %s", trackNumber, compilation?artist:"", title));
+		File newFlacFile = 
+			new File(new File(new File(baseDirectory, artistName), albumName), trackName + "." + Constants.FLAC);
 		return newFlacFile;
 	}
 
 	@Override
-	public File getFixedFlacFilename(String artist, String album, int trackNumber, String title) {
-		return normaliseFlacFilename(new TrackInformationBean(artist, album, trackNumber, title), getFlacDirectory());
+	public File getFixedFlacFilename(String artist, String album, boolean compilation, int trackNumber, String title) {
+		return normaliseFlacFilename(new TrackInformationBean(artist, album, compilation, trackNumber, title), getFlacDirectory());
 	}
 	
 	@Override
@@ -177,12 +184,14 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 		try {
 			AudioFile audioFile = AudioFileIO.read(flacFile);
 			List<String> missingFields = new ArrayList<String>();
-			String artist = extractTag(audioFile.getTag(), FieldKey.ARTIST, missingFields);
-			String album = extractTag(audioFile.getTag(), FieldKey.ALBUM, missingFields);
-			Integer trackNumber = extractIntegerTag(audioFile.getTag(), FieldKey.TRACK, missingFields);
-			String title = extractTag(audioFile.getTag(), FieldKey.TITLE, missingFields);
+			Tag tag = audioFile.getTag();
+			String artist = extractTag(tag, FieldKey.ARTIST, missingFields);
+			String album = extractTag(tag, FieldKey.ALBUM, missingFields);
+			Integer trackNumber = extractIntegerTag(tag, FieldKey.TRACK, missingFields);
+			String title = extractTag(tag, FieldKey.TITLE, missingFields);
+			boolean compilation = Constants.VARIOUS_ARTISTS.equals(tag.getFirst(FieldKey.ALBUM_ARTIST));
 			if (missingFields.isEmpty()) {
-				trackInformationBean = new TrackInformationBean(artist, album, trackNumber, title);
+				trackInformationBean = new TrackInformationBean(artist, album, compilation, trackNumber, title);
 			}
 			else {
 				log.warn(

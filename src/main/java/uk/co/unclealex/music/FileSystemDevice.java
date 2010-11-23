@@ -11,6 +11,11 @@ public class FileSystemDevice extends AbstractDevice {
 		return deviceVisitor.visit(this);
 	}
 
+	@Override
+	public boolean isConnected() {
+		return getMountPoint().exists();
+	}
+	
 	public File getMountPoint() {
 		return i_mountPoint;
 	}

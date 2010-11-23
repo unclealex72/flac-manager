@@ -8,5 +8,6 @@ public interface RenamingService {
 
 	public void merge(String albumTitle, Set<File> flacDirectories) throws IOException;
 	
-	public void rename(Set<File> flacFiles, String artist, String album, Integer trackNumber, String title) throws IOException;
+	public void rename(
+			Set<File> flacFiles, String artist, String album, Boolean compilation, Integer trackNumber, String title) throws IOException;
 }

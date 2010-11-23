@@ -22,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
@@ -45,6 +46,9 @@ public abstract class ProcessSynchroniser<D extends Device> extends AbstractSync
 		OutputStream out = null;
 		try {
 			in = getCommandAsStream();
+			if (in == null) {
+				throw new NullPointerException("Cannot find a synchronising process file");
+			}
 			out = new FileOutputStream(commandFile);
 			IOUtils.copy(in, out);
 		}
@@ -94,8 +98,9 @@ public abstract class ProcessSynchroniser<D extends Device> extends AbstractSync
 		Set<DeviceFile> deviceFiles = new TreeSet<DeviceFile>();
 		for (String deviceFileString : deviceFileStrings) {
 			String[] deviceFileParts = StringUtils.split(deviceFileString, '|');
+			DateTime dateTime = formatter.parseDateTime(deviceFileParts[2]);
 			deviceFiles.add(
-				new DeviceFile(deviceFileParts[0], deviceFileParts[1], formatter.parseDateTime(deviceFileParts[2]).getMillis()));
+				new DeviceFile(deviceFileParts[0], deviceFileParts[1], dateTime.getMillis()));
 		}
 		return deviceFiles;
 	}	

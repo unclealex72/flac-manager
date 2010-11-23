@@ -29,6 +29,7 @@ public class ProcessServiceImpl implements ProcessService {
 		InputStream stdout = null;
 		OutputStream stdin = null;
 		InputStream stderr = null;
+		ExecutorService executorService = Executors.newFixedThreadPool(2);
 		try {
 			final ProcessCallback actualProcessCallback = 
 				processCallback!=null?
@@ -58,7 +59,6 @@ public class ProcessServiceImpl implements ProcessService {
 					actualProcessCallback.errorLineWritten(line);
 				}
 			};
-			ExecutorService executorService = Executors.newFixedThreadPool(2);
 			Future<String> stdOutFuture = executorService.submit(stdOutOutputWriter);
 			Future<String> stdErrFuture = executorService.submit(stdErrOutputWriter);
 			try {
@@ -112,6 +112,7 @@ public class ProcessServiceImpl implements ProcessService {
 			}
 		}
 		finally {
+			executorService.shutdownNow();
 			IOUtils.closeQuietly(stdin);
 			IOUtils.closeQuietly(stdout);
 			IOUtils.closeQuietly(stderr);

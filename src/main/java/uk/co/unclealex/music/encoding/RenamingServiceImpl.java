@@ -36,22 +36,22 @@ public class RenamingServiceImpl implements RenamingService {
 		}
 		int trackNumber = 1;
 		for (File flacFile : flacFiles) {
-			alterFlacFile(flacFile, null, albumTitle, trackNumber, null);
+			alterFlacFile(flacFile, null, albumTitle, null, trackNumber, null);
 			trackNumber++;
 		}
 		getFileFixingService().fixFlacFilenames(flacFiles);
 	}
 
 	@Override
-	public void rename(Set<File> flacFiles, String artist, String album, Integer trackNumber, String title)
+	public void rename(Set<File> flacFiles, String artist, String album, Boolean compilation, Integer trackNumber, String title)
 			throws IOException {
 		for (File flacFile : flacFiles) {
-			alterFlacFile(flacFile, artist, album, trackNumber, title);
+			alterFlacFile(flacFile, artist, album, compilation, trackNumber, title);
 		}
 		getFileFixingService().fixFlacFilenames(flacFiles);
 	}
 	
-	protected void alterFlacFile(File flacFile, String artist, String album, Integer trackNumber, String title) throws IOException {
+	protected void alterFlacFile(File flacFile, String artist, String album, Boolean compilation, Integer trackNumber, String title) throws IOException {
 		try {
 			AudioFile flacAudioFile = AudioFileIO.read(flacFile);
 			Tag tag = flacAudioFile.getTag();
@@ -59,6 +59,15 @@ public class RenamingServiceImpl implements RenamingService {
 			alterTag(tag, FieldKey.ALBUM, album);
 			alterTag(tag, FieldKey.TRACK, trackNumber);
 			alterTag(tag, FieldKey.TITLE, title);
+			if (compilation != null) {
+				boolean isCompilation = compilation.booleanValue();
+				if (isCompilation) {
+					tag.setField(FieldKey.ALBUM_ARTIST, Constants.VARIOUS_ARTISTS);
+				}
+				else {
+					tag.deleteField(FieldKey.ALBUM_ARTIST);
+				}
+			}
 			flacAudioFile.commit();
 		}
 		catch (KeyNotFoundException e) {

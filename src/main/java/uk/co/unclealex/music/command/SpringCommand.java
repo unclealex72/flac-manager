@@ -15,10 +15,9 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-public abstract class SpringCommand {
+public abstract class SpringCommand<S> {
 
 	protected static final char HELP_OPTION = 'h';
 	private static final Logger log = LoggerFactory.getLogger(SpringCommand.class);
@@ -38,7 +37,8 @@ public abstract class SpringCommand {
 			ClassPathXmlApplicationContext ctxt = null;
 			try {
 				ctxt = new ClassPathXmlApplicationContext("classpath*:application-context-music.xml");
-				run(ctxt, commandLine);
+				Class<? extends S> serviceClass = getServiceClass();
+				run(ctxt.getBean(serviceClass), commandLine);
 			}
 			catch (Throwable t) {
 				log.error("The command errored.", t);
@@ -68,6 +68,8 @@ public abstract class SpringCommand {
 		}
 	}
 	
+	protected abstract Class<? extends S> getServiceClass();
+
 	protected void checkCommandLine(CommandLine commandLine) throws ParseException {
 	}
 
@@ -86,5 +88,5 @@ public abstract class SpringCommand {
 		return new Option[0];
 	}
 	
-	protected abstract void run(ApplicationContext applicationContext, CommandLine commandLine) throws Exception;
+	protected abstract void run(S service, CommandLine commandLine) throws Exception;
 }

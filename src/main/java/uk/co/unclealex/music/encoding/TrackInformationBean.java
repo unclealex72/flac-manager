@@ -7,13 +7,15 @@ public class TrackInformationBean implements Comparable<TrackInformationBean> {
 	private String i_album;
 	private int i_trackNumber;
 	private String i_title;
+	private boolean i_compilation;
 	
-	public TrackInformationBean(String artist, String album, int trackNumber, String title) {
+	public TrackInformationBean(String artist, String album, boolean compilation, int trackNumber, String title) {
 		super();
 		i_artist = artist;
 		i_album = album;
 		i_trackNumber = trackNumber;
 		i_title = title;
+		i_compilation = compilation;
 	}
 
 	@Override
@@ -25,6 +27,9 @@ public class TrackInformationBean implements Comparable<TrackInformationBean> {
 				cmp = getTrackNumber() - other.getTrackNumber();
 				if (cmp == 0) {
 					cmp = getTitle().compareTo(other.getTitle());
+					if (cmp == 0) {
+						cmp = Boolean.valueOf(isCompilation()).compareTo(other.isCompilation());
+					}
 				}
 			}
 		}
@@ -39,14 +44,16 @@ public class TrackInformationBean implements Comparable<TrackInformationBean> {
 			(getArtist().equals((other = (TrackInformationBean) obj).getArtist())) &&
 			(getAlbum().equals(other.getAlbum())) &&
 			(getTrackNumber() == other.getTrackNumber()) &&
+			(isCompilation() == other.isCompilation()) &&
 			(getTitle().equals(other.getTitle()));
 	}
 	
 	@Override
 	public int hashCode() {
-		int[] hashes = new int[] { getArtist().hashCode(), getAlbum().hashCode(), getTrackNumber(), getTitle().hashCode() };
+		Object[] objects = new Object[] { getArtist(), getAlbum(), getTrackNumber(), getTitle(), isCompilation()};
 		int hashCode = 17;
-		for (int hash : hashes) {
+		for (Object obj : objects) {
+			int hash = obj.hashCode();
 			hashCode = hashCode * 37 + hash;
 		}
 		return hashCode;
@@ -54,7 +61,11 @@ public class TrackInformationBean implements Comparable<TrackInformationBean> {
 	
 	@Override
 	public String toString() {
-		return String.format("%s, %s: %02d - %s", getArtist(), getAlbum(), getTrackNumber(), getTitle());
+		String str = String.format("%s, %s: %02d - %s", getArtist(), getAlbum(), getTrackNumber(), getTitle());
+		if (isCompilation()) {
+			str += " (Compilation)";
+		}
+		return str;
 	}
 	
 	public String getArtist() {
@@ -71,6 +82,10 @@ public class TrackInformationBean implements Comparable<TrackInformationBean> {
 
 	public String getTitle() {
 		return i_title;
+	}
+
+	public boolean isCompilation() {
+		return i_compilation;
 	}
 	
 	

@@ -111,5 +111,5 @@
 	<bean id="imageService" class="uk.co.unclealex.music.encoding.ImageServiceImpl"/>
 	<bean id="fileFixingService" class="uk.co.unclealex.music.encoding.FileFixingServiceImpl"/>
 	<bean id="renamingService" class="uk.co.unclealex.music.encoding.RenamingServiceImpl"/>
-
+	<bean id="artistFixingService" class="uk.co.unclealex.music.ArtistFixingServiceImpl"/>
 </beans>

@@ -5,13 +5,14 @@ import java.io.IOException;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.commons.collections15.CollectionUtils;
 import org.apache.commons.collections15.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeviceServiceImpl implements DeviceService {
+public class DeviceServiceImpl implements DeviceService, Predicate<Device> {
 
 	private static final Logger log = LoggerFactory.getLogger(DeviceServiceImpl.class);
 	
@@ -124,6 +125,16 @@ public class DeviceServiceImpl implements DeviceService {
 			}
 		};
 		return CollectionUtils.find(getAllDevices(), predicate);
+	}
+	
+	@Override
+	public SortedSet<Device> getAllConnectedDevices() {
+		return CollectionUtils.select(getAllDevices(), this, new TreeSet<Device>());
+	}
+	
+	@Override
+	public boolean evaluate(Device device) {
+		return device.isConnected();
 	}
 	
 	public SortedSet<Device> getAllDevices() {

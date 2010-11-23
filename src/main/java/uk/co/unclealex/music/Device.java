@@ -9,4 +9,6 @@ public interface Device extends Comparable<Device> {
 	public Encoding getEncoding();
 	
 	public <R> R accept(DeviceVisitor<R> deviceVisitor);
+
+	public boolean isConnected();
 }

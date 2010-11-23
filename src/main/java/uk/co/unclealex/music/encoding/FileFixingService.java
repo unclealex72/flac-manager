@@ -7,5 +7,5 @@ public interface FileFixingService {
 
 	public void fixFlacFilenames(Collection<File> flacFiles);
 
-	public File getFixedFlacFilename(String artist, String album, int trackNumber, String title);
+	public File getFixedFlacFilename(String artist, String album, boolean compilation, int trackNumber, String title);
 }

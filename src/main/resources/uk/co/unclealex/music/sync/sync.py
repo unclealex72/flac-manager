@@ -4,6 +4,9 @@ import string
 import gpod
 import datetime
 import os
+import eyeD3
+import tempfile
+import gtk.gdk
 #import pymtp
 
 class device_file:
@@ -74,12 +77,28 @@ class ipod_synchroniser(synchroniser):
     track = self.db.new_Track(filename=audio_file)
     track['comment'] = path
     track['time_modified'] = os.path.getmtime(audio_file)
-    self.db.copy_delayed_files()
-  
+    # Check for any album art and albumartist information and add if found.
+    tag = eyeD3.Tag()
+    tag.link(audio_file)
+    if (len(tag.getImages()) != 0):
+      img = tag.getImages()[0]
+      img_file = tempfile.NamedTemporaryFile(suffix=".jpg")
+      img_filename = img_file.name
+      img.writeFile(os.path.dirname(img_filename), os.path.basename(img_filename))
+      pixbuf = gtk.gdk.pixbuf_new_from_file(img_filename)
+      img_file.close()
+      track.set_coverart(pixbuf)
+      track.copy_to_ipod()
+    albumartist = tag.getArtist(eyeD3.frames.BAND_FID)
+    if (albumartist != ""):
+      track['albumartist'] = albumartist
+      track['compilation'] = 1
+      
   def remove(self, id):
     self.db.remove(self.tracks[id], ipod=True)
   
   def quit(self):
+    self.db.copy_delayed_files()
     self.db.close()
 
 #Note that this doesn't work due to pymtp not working on Ubuntu 10.04
