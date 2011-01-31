@@ -86,7 +86,6 @@ public class EncodingServiceImpl implements EncodingService {
 				return Constants.FLAC.equalsIgnoreCase(FilenameUtils.getExtension(name));
 			}
 		};
-		@SuppressWarnings("unchecked")
 		Collection<File> allFlacFiles = 
 			FileUtils.listFiles(flacDirectory, FileFilterUtils.asFileFilter(flacFilenameFilter), TrueFileFilter.INSTANCE);
 		getFileFixingService().fixFlacFilenames(allFlacFiles);

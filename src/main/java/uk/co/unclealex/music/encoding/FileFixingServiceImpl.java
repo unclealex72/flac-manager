@@ -15,13 +15,20 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.commons.collections15.CollectionUtils;
+import org.apache.commons.collections15.Predicate;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.CannotWriteException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.TagException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +58,7 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 	}
 
 	protected void fixFlacFilenames(Set<File> flacFiles) {
+		addAlbumArtistTags(flacFiles);
 		SortedMap<TrackInformationBean, SortedSet<File>> filesByTrackInformationAndLastModified = 
 			sortFilesByTrackInformationAndLastModified(flacFiles);
 		SortedMap<TrackInformationBean, File> filesByTrackInformation = purgeOlderFiles(filesByTrackInformationAndLastModified);
@@ -63,6 +71,50 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 		}
 		removeEmptyDirectories(alteredAlbumDirectories);
 		removeEmptyDirectories(alteredArtistDirectories);
+	}
+
+	protected void addAlbumArtistTags(Set<File> flacFiles) {
+		Predicate<File> variousFlacFilenamePredicate = new Predicate<File>() {
+			@Override
+			public boolean evaluate(File file) {
+				File artistDirectory = file.getParentFile().getParentFile();
+				return artistDirectory.getName().toLowerCase().startsWith("various");
+			}
+		};
+		Set<File> variousArtistFlacFiles = CollectionUtils.select(flacFiles, variousFlacFilenamePredicate, new TreeSet<File>());
+		for (File variousArtistFlacFile : variousArtistFlacFiles) {
+			addAlbumArtist(variousArtistFlacFile);
+		}
+	}
+
+	protected void addAlbumArtist(File variousArtistFlacFile) {
+		try {
+			AudioFile audioFile = AudioFileIO.read(variousArtistFlacFile);
+			Tag tag = audioFile.getTag();
+			if (tag.getFields(FieldKey.ALBUM_ARTIST).isEmpty()) {
+				log.info("Adding various artist tag to " + variousArtistFlacFile);
+				tag.setField(FieldKey.ALBUM_ARTIST, Constants.VARIOUS_ARTISTS);
+				audioFile.commit();
+			}
+		}
+		catch (CannotReadException e) {
+			log.warn("Could not add the various artist tag to " + variousArtistFlacFile, e);
+		}
+		catch (IOException e) {
+			log.warn("Could not add the various artist tag to " + variousArtistFlacFile, e);
+		}
+		catch (TagException e) {
+			log.warn("Could not add the various artist tag to " + variousArtistFlacFile, e);
+		}
+		catch (ReadOnlyFileException e) {
+			log.warn("Could not add the various artist tag to " + variousArtistFlacFile, e);
+		}
+		catch (InvalidAudioFrameException e) {
+			log.warn("Could not add the various artist tag to " + variousArtistFlacFile, e);
+		}
+		catch (CannotWriteException e) {
+			log.warn("Could not add the various artist tag to " + variousArtistFlacFile, e);
+		}
 	}
 
 	protected void moveFile(TrackInformationBean trackInformationBean, File flacFile,
