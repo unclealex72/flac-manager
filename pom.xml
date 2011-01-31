@@ -7,7 +7,7 @@
         <version>2.0.1</version>
   </parent>
 	<artifactId>music</artifactId>
-	<version>4.1</version>
+	<version>4.2-SNAPSHOT</version>
 	<name>Music</name>
 	<url>http://maven.apache.org</url>
 
@@ -18,9 +18,9 @@
         </properties>
 
 		<scm>
-			<connection>scm:svn:http://hurst/svn/tags/personal/Music/4.1</connection>
-			<developerConnection>scm:svn:http://hurst/svn/tags/personal/Music/4.1</developerConnection>
-		  <url>http://hurst/svn/tags/personal/Music/4.1</url>
+			<connection>scm:svn:http://hurst/svn/trunk/personal/Music</connection>
+			<developerConnection>scm:svn:http://hurst/svn/trunk/personal/Music</developerConnection>
+		  <url>http://hurst/svn/tags/personal/parent/2.0.1/music</url>
   </scm>
 
 	<dependencies>
