@@ -17,6 +17,11 @@
         <slf4j-version>1.5.6</slf4j-version>
         </properties>
 
+		<scm>
+			<connection>scm:svn:http://hurst/svn/trunk/personal/Music</connection>
+			<developerConnection>scm:svn:http://hurst/svn/trunk/personal/Music</developerConnection>
+		</scm>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework</groupId>
