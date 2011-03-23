@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.SortedSet;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.jaudiotagger.audio.AudioFile;
@@ -28,6 +27,11 @@ import org.slf4j.LoggerFactory;
 import uk.co.unclealex.music.Constants;
 import uk.co.unclealex.music.Encoding;
 import uk.co.unclealex.music.FileService;
+import uk.co.unclealex.music.inject.Encodings;
+import uk.co.unclealex.music.inject.FlacDirectory;
+
+import com.google.common.io.Closeables;
+import com.google.inject.Inject;
 
 public class ImportServiceImpl implements ImportService {
 
@@ -36,6 +40,14 @@ public class ImportServiceImpl implements ImportService {
 	private SortedSet<Encoding> i_encodings;
 	private FileService i_fileService;
 	private File i_flacDirectory;
+
+	@Inject
+	protected ImportServiceImpl(@Encodings SortedSet<Encoding> encodings, FileService fileService, @FlacDirectory File flacDirectory) {
+		super();
+		i_encodings = encodings;
+		i_fileService = fileService;
+		i_flacDirectory = flacDirectory;
+	}
 
 	@Override
 	public void importFromDirectory(File importDirectory) {
@@ -101,8 +113,8 @@ public class ImportServiceImpl implements ImportService {
 			log.warn("Copying failed.", e);
 		}
 		finally {
-			IOUtils.closeQuietly(in);
-			IOUtils.closeQuietly(out);
+			Closeables.closeQuietly(in);
+			Closeables.closeQuietly(out);
 		}
 	}
 
@@ -186,31 +198,17 @@ public class ImportServiceImpl implements ImportService {
 		public String getTrack() {
 			return i_track;
 		}
-		
-		
 	}
 
 	public SortedSet<Encoding> getEncodings() {
 		return i_encodings;
 	}
 
-	public void setEncodings(SortedSet<Encoding> encodings) {
-		i_encodings = encodings;
-	}
-
 	public FileService getFileService() {
 		return i_fileService;
 	}
 
-	public void setFileService(FileService fileService) {
-		i_fileService = fileService;
-	}
-
 	public File getFlacDirectory() {
 		return i_flacDirectory;
-	}
-
-	public void setFlacDirectory(File flacDirectory) {
-		i_flacDirectory = flacDirectory;
 	}
 }

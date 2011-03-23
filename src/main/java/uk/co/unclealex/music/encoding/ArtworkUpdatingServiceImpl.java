@@ -9,19 +9,24 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
-import org.apache.commons.collections15.CollectionUtils;
-import org.apache.commons.collections15.Predicate;
-import org.apache.commons.collections15.PredicateUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.Encoding;
 import uk.co.unclealex.music.covers.ArtworkManager;
 import uk.co.unclealex.music.covers.ArtworkSearchingService;
+import uk.co.unclealex.music.inject.EncodingArtworkManagers;
+import uk.co.unclealex.music.inject.FlacArtworkManager;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Closeables;
+import com.google.inject.Inject;
 
 public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 
@@ -32,6 +37,19 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 	private Map<Encoding, ArtworkManager> i_encodingArtworkManagers;
 	private ImageService i_imageService;
 	
+	@Inject
+	protected ArtworkUpdatingServiceImpl(
+			@FlacArtworkManager ArtworkManager flacArtworkManager,
+			ArtworkSearchingService artworkSearchingService,
+			@EncodingArtworkManagers Map<Encoding, ArtworkManager> encodingArtworkManagers,
+			ImageService imageService) {
+		super();
+		i_flacArtworkManager = flacArtworkManager;
+		i_artworkSearchingService = artworkSearchingService;
+		i_encodingArtworkManagers = encodingArtworkManagers;
+		i_imageService = imageService;
+	}
+
 	@Override
 	public boolean updateArtwork(SortedSet<File> flacFiles, SortedSet<File> possibleImageFiles) {
 		if (flacFiles.isEmpty()) {
@@ -64,10 +82,10 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 	protected byte[] toByteArray(InputStream in) throws IOException {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
-			IOUtils.copy(in, out);
+			ByteStreams.copy(in, out);
 		}
 		finally {
-			IOUtils.closeQuietly(in);
+			Closeables.closeQuietly(in);
 		}
 		return out.toByteArray();
 	}
@@ -76,7 +94,7 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 		final ArtworkManager flacArtworkManager = getFlacArtworkManager();
 		Predicate<File> hasArtworkPredicate = new Predicate<File>() {
 			@Override
-			public boolean evaluate(File flacFile) {
+			public boolean apply(File flacFile) {
 				try {
 					return flacArtworkManager.artworkExists(flacFile);
 				}
@@ -86,11 +104,10 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 				}
 			}
 		};
-		SortedSet<File> flacFilesWithoutArtwork = 
-			CollectionUtils.select(flacFiles, PredicateUtils.notPredicate(hasArtworkPredicate), new TreeSet<File>());
+		SortedSet<File> flacFilesWithoutArtwork = Sets.newTreeSet(Iterables.filter(flacFiles, Predicates.not(hasArtworkPredicate))); 
 		if (!flacFilesWithoutArtwork.isEmpty()) {
 			try {
-				File flacFileWithArtwork = CollectionUtils.find(flacFiles, hasArtworkPredicate);
+				File flacFileWithArtwork = Iterables.find(flacFiles, hasArtworkPredicate, null);
 				byte[] imageData;
 				if (flacFileWithArtwork != null) {
 					imageData = retrieveImageDataFromFlacFile(flacFileWithArtwork);
@@ -103,7 +120,7 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 				}
 			}
 			catch (IOException e) {
-				log.warn("Could not read any artwork for flac files " + StringUtils.join(flacFilesWithoutArtwork, ", "), e);
+				log.warn("Could not read any artwork for flac files " + Joiner.on(", ").join(flacFilesWithoutArtwork), e);
 			}
 			return false;
 		}
@@ -132,7 +149,7 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 
 	protected boolean updateArtwork(SortedSet<File> flacFiles, byte[] imageData) {
 		ArtworkManager flacArtworkManager = getFlacArtworkManager();
-		String paths = StringUtils.join(flacFiles, ", ");
+		String paths = Joiner.on(", ").join(flacFiles);
 		log.info("Updating artwork for files " + paths);
 		try {
 			flacArtworkManager.setArtwork(imageData, flacFiles.toArray(new File[0]));
@@ -165,32 +182,15 @@ public class ArtworkUpdatingServiceImpl implements ArtworkUpdatingService {
 		return i_flacArtworkManager;
 	}
 
-	public void setFlacArtworkManager(ArtworkManager flacArtworkManager) {
-		i_flacArtworkManager = flacArtworkManager;
-	}
-
 	public ArtworkSearchingService getArtworkSearchingService() {
 		return i_artworkSearchingService;
-	}
-
-	public void setArtworkSearchingService(ArtworkSearchingService artworkSearchingService) {
-		i_artworkSearchingService = artworkSearchingService;
 	}
 
 	public Map<Encoding, ArtworkManager> getEncodingArtworkManagers() {
 		return i_encodingArtworkManagers;
 	}
 
-	public void setEncodingArtworkManagers(Map<Encoding, ArtworkManager> encodingArtworkManagers) {
-		i_encodingArtworkManagers = encodingArtworkManagers;
-	}
-
 	public ImageService getImageService() {
 		return i_imageService;
 	}
-
-	public void setImageService(ImageService imageService) {
-		i_imageService = imageService;
-	}
-
 }

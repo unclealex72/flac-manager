@@ -38,7 +38,15 @@ class synchroniser:
         elif cmd == "REMOVE":
           self.remove(parts[1])
           self.okay();
-      
+        elif cmd == "REMOVEPLAYLISTS":
+          self.remove_all_playlists()
+          self.okay()
+        elif cmd == "ADDPLAYLIST":
+          playlist_name = parts[1]
+          track_ids = parts[2:]
+          self.add_playlist(playlist_name, track_ids)
+          self.okay()
+          
   def okay(self):
     self.out("OK")
     
@@ -58,14 +66,22 @@ class synchroniser:
   def unflatten_relative_path(self, path):
     return string.replace(path, "_", "/")
   
+  def clone(self, list):
+    my_clone = []
+    for item in list:
+      my_clone.append(item)
+    return my_clone
+  
 class ipod_synchroniser(synchroniser):
   def __init__(self, mount_point):
+    self.mount_point = mount_point
     self.db = gpod.Database(mount_point)
-    self.tracks = {}
+    self.added_file_count = 0;
     
   def list_device_files(self):
     device_files = []
     self.tracks = {}
+    self.reset_db()
     for track in self.db:
       id = str(track['id'])
       this_device_file = device_file(id, track['comment'], track['time_modified'].isoformat())
@@ -93,10 +109,31 @@ class ipod_synchroniser(synchroniser):
     if (albumartist != ""):
       track['albumartist'] = albumartist
       track['compilation'] = 1
+    self.added_file_count += 1
+    if (self.added_file_count % 50 == 0):
+      self.reset_db()
+
+  def reset_db(self):
+      self.db.copy_delayed_files()
+      self.db.close()
+      self.db = gpod.Database(self.mount_point)
+      self.out("** Database reset **")
       
   def remove(self, id):
     self.db.remove(self.tracks[id], ipod=True)
   
+  def remove_all_playlists(self):
+    for playlist in self.clone(self.db.get_playlists()):
+      if (not (playlist.get_smart() or playlist.get_master() or playlist.get_podcast())):
+        for track in self.clone(playlist):
+          playlist.remove(track)
+        self.db.remove(playlist, ipod=True)
+
+  def add_playlist(self, playlist_name, track_ids):
+    playlist = self.db.new_Playlist(title = playlist_name)
+    for id in track_ids:
+      playlist.add(self.tracks[id])
+    
   def quit(self):
     self.db.copy_delayed_files()
     self.db.close()

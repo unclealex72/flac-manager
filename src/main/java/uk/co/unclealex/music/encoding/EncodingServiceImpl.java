@@ -9,20 +9,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.apache.commons.collections15.CollectionUtils;
-import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.slf4j.Logger;
@@ -33,7 +36,20 @@ import uk.co.unclealex.music.DeviceService;
 import uk.co.unclealex.music.Encoding;
 import uk.co.unclealex.music.FileService;
 import uk.co.unclealex.music.ParentFilePredicate;
+import uk.co.unclealex.music.inject.EncodedDirectory;
+import uk.co.unclealex.music.inject.Encodings;
+import uk.co.unclealex.music.inject.FlacDirectory;
+import uk.co.unclealex.music.inject.MaximumThreads;
+import uk.co.unclealex.process.PackagesRequired;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Closeables;
+import com.google.inject.Inject;
+
+@PackagesRequired(packageNames={"vorbis-tools", "flac", "lame", "id3v2"})
 public class EncodingServiceImpl implements EncodingService {
 
 	private static final Logger log = LoggerFactory.getLogger(EncodingServiceImpl.class);
@@ -41,6 +57,7 @@ public class EncodingServiceImpl implements EncodingService {
 	private File i_flacDirectory;
 	private File i_encodedDirectory;
 	private SortedSet<Encoding> i_encodings;
+	private ExecutorService i_executorService;
 	
 	private int i_maximumThreads;
 	
@@ -50,6 +67,23 @@ public class EncodingServiceImpl implements EncodingService {
 	private DeviceService i_deviceService;
 	private FileService i_fileService;
 	
+	@Inject
+	protected EncodingServiceImpl(@FlacDirectory File flacDirectory, @EncodedDirectory File encodedDirectory, @Encodings SortedSet<Encoding> encodings,
+			@MaximumThreads int maximumThreads, ExecutorService executorService, SingleEncodingService singleEncodingService, ArtworkUpdatingService artworkUpdatingService,
+			FileFixingService fileFixingService, DeviceService deviceService, FileService fileService) {
+		super();
+		i_flacDirectory = flacDirectory;
+		i_encodedDirectory = encodedDirectory;
+		i_encodings = encodings;
+		i_maximumThreads = maximumThreads;
+		i_singleEncodingService = singleEncodingService;
+		i_artworkUpdatingService = artworkUpdatingService;
+		i_fileFixingService = fileFixingService;
+		i_deviceService = deviceService;
+		i_fileService = fileService;
+		i_executorService = executorService;
+	}
+
 	@Override
 	public void encodeAll() {
 		File flacDirectory = getFlacDirectory();
@@ -73,7 +107,7 @@ public class EncodingServiceImpl implements EncodingService {
 		}
 		else {
 			log.info("Creating device filesystems.");
-			createDeviceFilesystems(directoriesByOwner);
+			createDeviceFilesystems(directoriesByOwner, flacFilesByDirectory.keySet());
 		}
 		log.info("Done.");
 	}
@@ -92,16 +126,13 @@ public class EncodingServiceImpl implements EncodingService {
 	}
 
 	protected void writeMissingArtworkFiles(File flacDirectory, SortedSet<File> flacFilesWithoutArtwork) {
-		SortedSet<File> flacDirectoriesWithoutArtwork = 
-			CollectionUtils.collect(
-				flacFilesWithoutArtwork,
-				new Transformer<File, File>() {
-					@Override
-					public File transform(File flacFile) {
-						return flacFile.getParentFile();
-					}
-				},
-				new TreeSet<File>());
+		Function<File, File> parentFunction = new Function<File, File>() {
+			@Override
+			public File apply(File flacFile) {
+				return flacFile.getParentFile();
+			}
+		};
+		SortedSet<File> flacDirectoriesWithoutArtwork = Sets.newTreeSet(Iterables.transform(flacFilesWithoutArtwork, parentFunction)); 
 		PrintWriter writer = null;
 		try {
 			writer = new PrintWriter(new File(flacDirectory, Constants.MISSING_ARTWORK));
@@ -113,7 +144,7 @@ public class EncodingServiceImpl implements EncodingService {
 			log.warn("Could not create the missing artwork file.", e);
 		}
 		finally {
-			IOUtils.closeQuietly(writer);
+			Closeables.closeQuietly(writer);
 		}
 	}
 
@@ -134,7 +165,7 @@ public class EncodingServiceImpl implements EncodingService {
 						ownedDirectories = new TreeSet<File>();
 						directoriesByOwner.put(ownerName, ownedDirectories);
 					}
-					if (CollectionUtils.find(ownedDirectories, new ParentFilePredicate(directory)) == null) {
+					if (!Iterables.contains(ownedDirectories, new ParentFilePredicate(directory))) {
 						ownedDirectories.add(directory);
 					}
 				}
@@ -185,9 +216,9 @@ public class EncodingServiceImpl implements EncodingService {
 				File encodingScriptFile = File.createTempFile("music-encoding-", ".sh");
 				InputStream in = clazz.getResourceAsStream("flac2" + encoding.getExtension());
 				OutputStream out = new FileOutputStream(encodingScriptFile);
-				IOUtils.copy(in, out);
-				IOUtils.closeQuietly(in);
-				IOUtils.closeQuietly(out);
+				ByteStreams.copy(in, out);
+				Closeables.closeQuietly(in);
+				Closeables.closeQuietly(out);
 				encodingScriptFile.deleteOnExit();
 				encodingScriptFile.setExecutable(true);
 				encodingScriptFilesByEncoding.put(encoding, encodingScriptFile);
@@ -206,10 +237,12 @@ public class EncodingServiceImpl implements EncodingService {
 	protected int encodeFiles(SortedSet<File> allFlacFiles, SortedMap<Encoding, File> encodingScriptFilesByEncoding) {
 		int maximumThreads = getMaximumThreads();
 		final BlockingQueue<EncodingCommand> encodingCommands = new LinkedBlockingQueue<EncodingCommand>();
-		EncodingWorker[] workers = new EncodingWorker[maximumThreads];
+		List<EncodingWorker> workers = new ArrayList<EncodingWorker>(maximumThreads);
+		List<Future<Integer>> futures = new ArrayList<Future<Integer>>(maximumThreads);
 		final SingleEncodingService singleEncodingService = getSingleEncodingService();
+		ExecutorService executorService = getExecutorService();
 		for (int idx = 0; idx < maximumThreads; idx++) {
-			workers[idx] = new EncodingWorker(encodingCommands) {
+			EncodingWorker worker = new EncodingWorker(encodingCommands, idx + 1) {
 				@Override
 				protected void process(EncodingCommand encodingCommand) throws EncodingException {
 					singleEncodingService.encode(
@@ -218,7 +251,8 @@ public class EncodingServiceImpl implements EncodingService {
 							encodingCommand.getEncodingScriptFile(), encodingCommand.getDestinationFile());
 				}
 			};
-			workers[idx].start();
+			workers.add(worker);
+			futures.add(executorService.submit(worker));
 		}
 		FileService fileService = getFileService();
 		for (File flacFile : allFlacFiles) {
@@ -235,14 +269,16 @@ public class EncodingServiceImpl implements EncodingService {
 			encodingCommands.offer(worker.getEndOfWorkCommand());
 		}
 		int totalCount = 0;
-		for (EncodingWorker worker : workers) {
+		for (Future<Integer> future : futures) {
 			try {
-				worker.join();
+				totalCount += future.get();
 			}
 			catch (InterruptedException e) {
 				// Do nothing
 			}
-			totalCount += worker.getCount();
+			catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+			}
 		}
 		return totalCount;
 	}
@@ -272,8 +308,8 @@ public class EncodingServiceImpl implements EncodingService {
 		} while (encodedFile != null && encodedFile.list().length == 0);
 	}
 
-	protected void createDeviceFilesystems(SortedMap<String, SortedSet<File>> directoriesByOwner) {
-		getDeviceService().createDeviceFileSystems(directoriesByOwner);
+	protected void createDeviceFilesystems(SortedMap<String, SortedSet<File>> directoriesByOwner, Set<File> flacDirectories) {
+		getDeviceService().createDeviceFileSystems(directoriesByOwner, flacDirectories);
 	}
 
 	@Override
@@ -368,4 +404,13 @@ public class EncodingServiceImpl implements EncodingService {
 		i_fileFixingService = fileFixingService;
 	}
 
+	public ExecutorService getExecutorService() {
+		return i_executorService;
+	}
+
+	public void setExecutorService(ExecutorService executorService) {
+		i_executorService = executorService;
+	}
+
+	
 }

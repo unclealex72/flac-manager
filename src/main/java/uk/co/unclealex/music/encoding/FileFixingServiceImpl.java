@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -15,11 +13,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.commons.collections15.CollectionUtils;
-import org.apache.commons.collections15.Predicate;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
@@ -35,6 +29,14 @@ import org.slf4j.LoggerFactory;
 import uk.co.unclealex.music.Constants;
 import uk.co.unclealex.music.FileService;
 import uk.co.unclealex.music.LatinService;
+import uk.co.unclealex.music.inject.FlacDirectory;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
+import com.google.inject.Inject;
 
 public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 
@@ -44,15 +46,25 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 	private LatinService i_latinService;
 	private ImageService i_imageService;
 	private File i_flacDirectory;
-	
+
+	@Inject
+	protected FileFixingServiceImpl(FileService fileService, LatinService latinService, ImageService imageService,
+			@FlacDirectory File flacDirectory) {
+		super();
+		i_fileService = fileService;
+		i_latinService = latinService;
+		i_imageService = imageService;
+		i_flacDirectory = flacDirectory;
+	}
+
 	@Override
-	public void fixFlacFilenames(Collection<File> flacFiles) {
+	public void fixFlacFilenames(Iterable<File> flacFiles) {
 		Set<File> flacFileSet;
 		if (flacFiles instanceof Set) {
 			flacFileSet = (Set<File>) flacFiles;
 		}
 		else {
-			flacFileSet = new HashSet<File>(flacFiles);
+			flacFileSet = Sets.newHashSet(flacFiles);
 		}
 		fixFlacFilenames(flacFileSet);
 	}
@@ -76,12 +88,12 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 	protected void addAlbumArtistTags(Set<File> flacFiles) {
 		Predicate<File> variousFlacFilenamePredicate = new Predicate<File>() {
 			@Override
-			public boolean evaluate(File file) {
+			public boolean apply(File file) {
 				File artistDirectory = file.getParentFile().getParentFile();
 				return artistDirectory.getName().toLowerCase().startsWith("various");
 			}
 		};
-		Set<File> variousArtistFlacFiles = CollectionUtils.select(flacFiles, variousFlacFilenamePredicate, new TreeSet<File>());
+		Set<File> variousArtistFlacFiles = Sets.newTreeSet(Iterables.filter(flacFiles, variousFlacFilenamePredicate));
 		for (File variousArtistFlacFile : variousArtistFlacFiles) {
 			addAlbumArtist(variousArtistFlacFile);
 		}
@@ -193,7 +205,7 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 		if (directory.list().length == directory.listFiles(this).length) {
 			try {
 				log.info("Deleting empty directory " + directory.getAbsolutePath());
-				FileUtils.deleteDirectory(directory);
+				Files.deleteRecursively(directory);
 			}
 			catch (IOException e) {
 				log.error("Cannot delete directory " + directory.getAbsolutePath());
@@ -248,7 +260,7 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 			else {
 				log.warn(
 					"Ignoring file " + flacFile.getAbsolutePath() + " as the following fields are missing: " + 
-					StringUtils.join(missingFields, ", "));
+					Joiner.on(", ").join(missingFields));
 			}
 		}
 		catch (Throwable t) {
@@ -302,32 +314,15 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 		return i_fileService;
 	}
 
-	public void setFileService(FileService fileService) {
-		i_fileService = fileService;
-	}
-
 	public LatinService getLatinService() {
 		return i_latinService;
-	}
-
-	public void setLatinService(LatinService latinService) {
-		i_latinService = latinService;
 	}
 
 	public ImageService getImageService() {
 		return i_imageService;
 	}
 
-	public void setImageService(ImageService imageService) {
-		i_imageService = imageService;
-	}
-
 	public File getFlacDirectory() {
 		return i_flacDirectory;
 	}
-
-	public void setFlacDirectory(File flacDirectory) {
-		i_flacDirectory = flacDirectory;
-	}
-
 }

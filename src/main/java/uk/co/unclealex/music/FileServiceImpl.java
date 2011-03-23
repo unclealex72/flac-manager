@@ -4,22 +4,31 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.collections15.CollectionUtils;
-import org.apache.commons.collections15.Predicate;
-import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import uk.co.unclealex.music.inject.EncodedDirectory;
+import uk.co.unclealex.music.inject.Encodings;
+import uk.co.unclealex.music.inject.FlacDirectory;
+
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import com.google.common.io.Closeables;
+import com.google.inject.Inject;
 
 public class FileServiceImpl implements FileService {
 
@@ -28,27 +37,49 @@ public class FileServiceImpl implements FileService {
 	private File i_flacDirectory;
 	private File i_encodedDirectory;
 	private SortedSet<Encoding> i_encodings;
-	
+		
+	@Inject
+	protected FileServiceImpl(@FlacDirectory File flacDirectory, @EncodedDirectory File encodedDirectory, @Encodings SortedSet<Encoding> encodings) {
+		i_flacDirectory = flacDirectory;
+		i_encodedDirectory = encodedDirectory;
+		i_encodings = encodings;
+	}
+
 	@Override
 	public String relativiseFile(File file) {
 		List<File> fileRoots = new ArrayList<File>();
 		SortedSet<Encoding> encodings = getEncodings();
 		for (char ch = 'a'; ch <= 'z'; ch++) {
 			final char chr = ch;
-			Transformer<Encoding, File> transformer = new Transformer<Encoding, File>() {
+			Function<Encoding, File> function = new Function<Encoding, File>() {
 				@Override
-				public File transform(Encoding encoding) {
+				public File apply(Encoding encoding) {
 					return new File(createEncodedRoot(encoding).getPath(), String.valueOf(chr));
 				}
 			};
-			CollectionUtils.collect(encodings, transformer, fileRoots);
+			Iterables.addAll(fileRoots, Iterables.transform(encodings, function));
 		}
 		fileRoots.add(getFlacDirectory());
+		return relativiseFile(file, fileRoots);
+	}
+
+	@Override
+	public String relativiseEncodedFileKeepingFirstLetter(File file) {
+		Function<Encoding, File> function = new Function<Encoding, File>() {
+			@Override
+			public File apply(Encoding encoding) {
+				return createEncodedRoot(encoding);
+			}
+		};
+		return relativiseFile(file, Iterables.transform(getEncodings(), function));
+	}
+
+	protected String relativiseFile(File file, Iterable<File> fileRoots) {
 		String relativePath = null;
 		Predicate<File> isParentOfPredicate = new ParentFilePredicate(file);
 		for (Iterator<File> iter = fileRoots.iterator(); relativePath == null && iter.hasNext(); ) {
 			File rootFile = iter.next();
-			if (isParentOfPredicate.evaluate(rootFile)) {
+			if (isParentOfPredicate.apply(rootFile)) {
 				URI parentUri = rootFile.toURI();
 				URI childUri = file.toURI();
 				URI relativeUri = parentUri.relativize(childUri);
@@ -118,6 +149,26 @@ public class FileServiceImpl implements FileService {
 	}
 
 	@Override
+	public boolean isFlacFileIsOwnedBy(File flacFile, final String owner) {
+		FilenameFilter filter = new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return ("owner." + owner).equals(name);
+			}
+		};
+		return isFlacFileIsOwnedBy(flacFile.getParentFile(), filter);
+	}
+	
+	protected boolean isFlacFileIsOwnedBy(File directory, FilenameFilter filter) {
+		if (directory == null) {
+			return false;
+		}
+		else {
+			return directory.listFiles(filter).length != 0 || isFlacFileIsOwnedBy(directory.getParentFile(), filter);
+		}
+	}	
+	
+	@Override
 	public SortedSet<File> listFiles(File f, FileFilter fileFilter) {
 		TreeSet<File> acceptedFiles = new TreeSet<File>();
 		listFiles(f, fileFilter, acceptedFiles);
@@ -177,33 +228,43 @@ public class FileServiceImpl implements FileService {
 			in.getChannel().transferTo(0, source.length(), out.getChannel());
 		}
 		finally {
-			IOUtils.closeQuietly(in);
-			IOUtils.closeQuietly(out);
+			Closeables.closeQuietly(in);
+			Closeables.closeQuietly(out);
 		}
 	}
 
+	@Override
+	public SortedSet<File> expandOwnedDirectories(SortedSet<File> ownedFlacDirectories, Set<File> flacDirectories) {
+		if (ownedFlacDirectories.contains(getFlacDirectory())) {
+			Function<File, File> artistDirectoryFunction = new Function<File, File>() {
+				@Override
+				public File apply(File f) {
+					return f.getParentFile();
+				}
+			};
+			ownedFlacDirectories = Sets.newTreeSet(Iterables.transform(flacDirectories, artistDirectoryFunction));
+		}
+		return ownedFlacDirectories;
+	}
+	
+	@Override
+	public File makeFile(String... names) {
+		File f = new File("/");
+		for (String name : names) {
+			f = new File(f, name);
+		}
+		return f;
+	}
+	
 	public File getFlacDirectory() {
 		return i_flacDirectory;
-	}
-
-	public void setFlacDirectory(File flacDirectory) {
-		i_flacDirectory = flacDirectory;
 	}
 
 	public File getEncodedDirectory() {
 		return i_encodedDirectory;
 	}
 
-	public void setEncodedDirectory(File encodedDirectory) {
-		i_encodedDirectory = encodedDirectory;
-	}
-
 	public SortedSet<Encoding> getEncodings() {
 		return i_encodings;
 	}
-
-	public void setEncodings(SortedSet<Encoding> encodings) {
-		i_encodings = encodings;
-	}
-
 }

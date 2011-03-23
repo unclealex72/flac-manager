@@ -9,10 +9,17 @@ import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.io.IOUtils;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Closeables;
+import com.google.inject.Inject;
 
 public class ImageServiceImpl implements ImageService {
 
+	@Inject
+	protected ImageServiceImpl() {
+		super();
+	}
+	
 	@Override
 	public byte[] loadImage(File imageFile) throws IOException {
 		BufferedImage img = ImageIO.read(imageFile);
@@ -27,10 +34,10 @@ public class ImageServiceImpl implements ImageService {
 	protected byte[] toByteArray(InputStream in) throws IOException {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
-			IOUtils.copy(in, out);
+			ByteStreams.copy(in, out);
 		}
 		finally {
-			IOUtils.closeQuietly(in);
+			Closeables.closeQuietly(in);
 		}
 		return out.toByteArray();
 	}

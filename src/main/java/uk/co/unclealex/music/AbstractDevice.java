@@ -10,6 +10,13 @@ public abstract class AbstractDevice implements Device {
 	private String i_owner;
 	private Encoding i_encoding;
 	
+	public AbstractDevice(String name, String owner, Encoding encoding) {
+		super();
+		i_name = name;
+		i_owner = owner;
+		i_encoding = encoding;
+	}
+
 	@Override
 	public int compareTo(Device o) {
 		return toString().compareTo(o.toString());
@@ -34,24 +41,12 @@ public abstract class AbstractDevice implements Device {
 		return i_name;
 	}
 	
-	public void setName(String name) {
-		i_name = name;
-	}
-	
 	public String getOwner() {
 		return i_owner;
 	}
 	
-	public void setOwner(String owner) {
-		i_owner = owner;
-	}
-	
 	public Encoding getEncoding() {
 		return i_encoding;
-	}
-	
-	public void setEncoding(Encoding encoding) {
-		i_encoding = encoding;
 	}
 	
 }

@@ -9,8 +9,10 @@ import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+
 import uk.co.unclealex.music.Encoding;
-import uk.co.unclealex.music.ProcessService;
+import uk.co.unclealex.process.ProcessService;
 
 public class SingleEncodingServiceImpl implements SingleEncodingService {
 
@@ -20,6 +22,13 @@ public class SingleEncodingServiceImpl implements SingleEncodingService {
 	private ArtworkUpdatingService i_artworkUpdatingService;
 	private DateFormat i_dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 	
+	@Inject
+	protected SingleEncodingServiceImpl(ProcessService processService, ArtworkUpdatingService artworkUpdatingService) {
+		super();
+		i_processService = processService;
+		i_artworkUpdatingService = artworkUpdatingService;
+	}
+
 	@Override
 	public void encode(Encoding encoding, File flacFile, File encodingScript, File encodedDestination) throws EncodingException {
 		log.info("Encoding " + flacFile + " to " + encodedDestination);

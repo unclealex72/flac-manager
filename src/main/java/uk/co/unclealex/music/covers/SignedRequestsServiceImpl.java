@@ -13,10 +13,17 @@ import java.util.SortedMap;
 import java.util.TimeZone;
 import java.util.TreeMap;
 
+import javax.annotation.PostConstruct;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
+
+import com.google.inject.Inject;
+
+import uk.co.unclealex.music.inject.AwsAccessKeyId;
+import uk.co.unclealex.music.inject.AwsEndpoint;
+import uk.co.unclealex.music.inject.AwsSecretKey;
 
 public class SignedRequestsServiceImpl implements SignedRequestsService {
   private static final String UTF8_CHARSET = "UTF-8";
@@ -24,14 +31,23 @@ public class SignedRequestsServiceImpl implements SignedRequestsService {
   private static final String REQUEST_URI = "/onca/xml";
   private static final String REQUEST_METHOD = "GET";
 
-  private String i_endpoint;
+  private String i_awsEndpoint;
   private String i_awsAccessKeyId;
   private String i_awsSecretKey;
 
   private SecretKeySpec i_secretKeySpec = null;
   private Mac i_mac = null;
 
-  public void initialise() throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
+  @Inject
+  protected SignedRequestsServiceImpl(@AwsEndpoint String awsEndpoint, @AwsAccessKeyId String awsAccessKeyId, @AwsSecretKey String awsSecretKey) {
+		super();
+		i_awsEndpoint = awsEndpoint;
+		i_awsAccessKeyId = awsAccessKeyId;
+		i_awsSecretKey = awsSecretKey;
+	}
+
+  @PostConstruct
+	public void initialise() throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
     byte[] secretyKeyBytes = getAwsSecretKey().getBytes(UTF8_CHARSET);
     SecretKeySpec secretKeySpec = new SecretKeySpec(secretyKeyBytes, HMAC_SHA256_ALGORITHM);
     Mac mac = Mac.getInstance(HMAC_SHA256_ALGORITHM);
@@ -50,7 +66,7 @@ public class SignedRequestsServiceImpl implements SignedRequestsService {
     sortedParamMap.put("Timestamp", timestamp());
 
     String canonicalQS = canonicalize(sortedParamMap);
-    String endpoint = getEndpoint();
+    String endpoint = getAwsEndpoint();
 		String toSign =
       REQUEST_METHOD + "\n"
       + endpoint + "\n"
@@ -124,28 +140,16 @@ public class SignedRequestsServiceImpl implements SignedRequestsService {
     return out;
   }
 
-	public String getEndpoint() {
-		return i_endpoint;
-	}
-
-	public void setEndpoint(String endpoint) {
-		i_endpoint = endpoint;
+	public String getAwsEndpoint() {
+		return i_awsEndpoint;
 	}
 
 	public String getAwsAccessKeyId() {
 		return i_awsAccessKeyId;
 	}
 
-	public void setAwsAccessKeyId(String awsAccessKeyId) {
-		i_awsAccessKeyId = awsAccessKeyId;
-	}
-
 	public String getAwsSecretKey() {
 		return i_awsSecretKey;
-	}
-
-	public void setAwsSecretKey(String awsSecretKey) {
-		i_awsSecretKey = awsSecretKey;
 	}
 
 	public SecretKeySpec getSecretKeySpec() {

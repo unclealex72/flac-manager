@@ -2,7 +2,7 @@ package uk.co.unclealex.music;
 
 import java.io.File;
 
-import org.apache.commons.collections15.Predicate;
+import com.google.common.base.Predicate;
 
 public class ParentFilePredicate implements Predicate<File> {
 
@@ -14,7 +14,7 @@ public class ParentFilePredicate implements Predicate<File> {
 	}
 
 	@Override
-	public boolean evaluate(File f) {
+	public boolean apply(File f) {
 		File childFile = getChildFile();
 		return !f.equals(childFile) && doEvaluate(childFile, f);
 	}

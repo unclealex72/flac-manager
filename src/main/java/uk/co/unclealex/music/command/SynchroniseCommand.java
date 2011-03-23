@@ -1,23 +1,25 @@
 package uk.co.unclealex.music.command;
 import java.io.IOException;
+import java.util.ArrayList;
 
-import org.apache.commons.cli.CommandLine;
-
+import uk.co.flamingpenguin.jewel.cli.CommandLineInterface;
+import uk.co.flamingpenguin.jewel.cli.Unparsed;
+import uk.co.unclealex.executable.CommandLine;
 import uk.co.unclealex.music.sync.SynchroniserService;
 
-public class SynchroniseCommand extends SpringCommand<SynchroniserService> {
+public class SynchroniseCommand extends AbstractMusicCommand<SynchroniseCommandLine, SynchroniserService> {
 
 	public static void main(String[] args) {
-		new SynchroniseCommand().run(args);
+		new SynchroniseCommand().execute(new ArrayList<String>());
 	}
-
+	
 	@Override
-	public void run(SynchroniserService synchroniserService, CommandLine commandLine) throws IOException {
-		if (commandLine.getArgs().length == 0) {
+	protected void run(SynchroniserService synchroniserService, SynchroniseCommandLine commandLine) throws IOException {
+		if (!commandLine.isDeviceName()) {
 			synchroniserService.synchroniseAll();
 		}
 		else {
-			synchroniserService.synchronise(commandLine.getArgs()[0]);
+			synchroniserService.synchronise(commandLine.getDeviceName());
 		}
 	}
 	
@@ -25,4 +27,13 @@ public class SynchroniseCommand extends SpringCommand<SynchroniserService> {
 	protected Class<? extends SynchroniserService> getServiceClass() {
 		return SynchroniserService.class;
 	}
+}
+
+@CommandLineInterface(application="flac-sync")
+interface SynchroniseCommandLine extends CommandLine {
+	
+	@Unparsed(name="device name")
+	public String getDeviceName();
+	
+	public boolean isDeviceName();
 }

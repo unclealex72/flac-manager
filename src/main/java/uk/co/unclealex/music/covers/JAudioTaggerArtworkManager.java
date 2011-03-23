@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.apache.commons.io.IOUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
@@ -17,6 +16,9 @@ import org.jaudiotagger.tag.FieldDataInvalidException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.datatype.Artwork;
+
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Closeables;
 
 public class JAudioTaggerArtworkManager<F extends AudioFile> implements ArtworkManager {
 
@@ -63,15 +65,15 @@ public class JAudioTaggerArtworkManager<F extends AudioFile> implements ArtworkM
 		OutputStream out = null;
 		try {
 			out = new FileOutputStream(tempFile);
-			IOUtils.copy(new ByteArrayInputStream(artworkData), out);
-			IOUtils.closeQuietly(out);
+			ByteStreams.copy(new ByteArrayInputStream(artworkData), out);
+			Closeables.closeQuietly(out);
 			Artwork artwork = Artwork.createArtworkFromFile(tempFile);
 			for (File audioFile : audioFiles) {
 				setArtwork(audioFile, artwork);
 			}
 		}
 		finally {
-			IOUtils.closeQuietly(out);
+			Closeables.closeQuietly(out);
 			tempFile.delete();
 		}
 	}

@@ -16,9 +16,6 @@ import java.util.TreeSet;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.collections15.CollectionUtils;
-import org.apache.commons.collections15.Predicate;
-import org.apache.commons.collections15.Transformer;
 import org.apache.commons.io.FileUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -32,9 +29,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.encoding.RenamingService;
+import uk.co.unclealex.music.inject.FlacDirectory;
 import uk.co.unclealex.music.jaxb.artiststracks.ArtistTracks;
 import uk.co.unclealex.music.jaxb.artiststracks.ArtistsTracks;
 import uk.co.unclealex.music.jaxb.artiststracks.ObjectFactory;
+
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 
 public class ArtistFixingServiceImpl implements ArtistFixingService {
 
@@ -43,10 +47,16 @@ public class ArtistFixingServiceImpl implements ArtistFixingService {
 	private File i_flacDirectory;
 	private RenamingService i_renamingService;
 	
+	@Inject
+	protected ArtistFixingServiceImpl(@FlacDirectory File flacDirectory, RenamingService renamingService) {
+		super();
+		i_flacDirectory = flacDirectory;
+		i_renamingService = renamingService;
+	}
+
 	@Override
 	public SortedSet<String> listArtists(final File cacheFile) throws IOException {
 		Map<String, Set<String>> tracksByArtist = new HashMap<String, Set<String>>();
-		@SuppressWarnings("unchecked")
 		Collection<File> flacFiles = FileUtils.listFiles(getFlacDirectory(), new String[] { Constants.FLAC }, true);
 		for (File flacFile : flacFiles) {
 			Tag tag = readFile(flacFile).getTag();
@@ -138,9 +148,9 @@ public class ArtistFixingServiceImpl implements ArtistFixingService {
 			}
 		};
 		ArtistsTracks artistsTracks = execute(callback);
-		Transformer<String, File> transformer = new Transformer<String, File>() {
+		Function<String, File> function = new Function<String, File>() {
 			@Override
-			public File transform(String path) {
+			public File apply(String path) {
 				return new File(path);
 			}
 		};
@@ -150,10 +160,10 @@ public class ArtistFixingServiceImpl implements ArtistFixingService {
 			String originalArtistName = entry.getKey();
 			String newArtistName = entry.getValue();
 			Predicate<ArtistTracks> originalArtistPredicate = createArtistPredicate(originalArtistName);
-			ArtistTracks artistTracks = CollectionUtils.find(artistTracksList, originalArtistPredicate);
+			ArtistTracks artistTracks = Iterables.find(artistTracksList, originalArtistPredicate, null);
 			if (artistTracks != null) {
 				log.info("Renaming artist " + originalArtistName + " to " + newArtistName);
-				SortedSet<File> flacFiles = CollectionUtils.collect(artistTracks.getTracks(), transformer, new TreeSet<File>());
+				SortedSet<File> flacFiles = Sets.newTreeSet(Iterables.transform(artistTracks.getTracks(), function));
 				renamingService.rename(flacFiles, newArtistName, null, null, null, null);
 				artistTracksList.remove(artistTracks);
 			}
@@ -167,7 +177,7 @@ public class ArtistFixingServiceImpl implements ArtistFixingService {
 	protected Predicate<ArtistTracks> createArtistPredicate(final String artist) {
 		Predicate<ArtistTracks> predicate = new Predicate<ArtistTracks>() {
 			@Override
-			public boolean evaluate(ArtistTracks artistTracks) {
+			public boolean apply(ArtistTracks artistTracks) {
 				return artist.equals(artistTracks.getArtist());
 			}
 		};
@@ -178,15 +188,7 @@ public class ArtistFixingServiceImpl implements ArtistFixingService {
 		return i_flacDirectory;
 	}
 
-	public void setFlacDirectory(File flacDirectory) {
-		i_flacDirectory = flacDirectory;
-	}
-
 	public RenamingService getRenamingService() {
 		return i_renamingService;
-	}
-
-	public void setRenamingService(RenamingService renamingService) {
-		i_renamingService = renamingService;
 	}
 }

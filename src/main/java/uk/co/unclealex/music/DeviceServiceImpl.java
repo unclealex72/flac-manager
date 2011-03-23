@@ -2,17 +2,24 @@ package uk.co.unclealex.music;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
-import org.apache.commons.collections15.CollectionUtils;
-import org.apache.commons.collections15.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeviceServiceImpl implements DeviceService, Predicate<Device> {
+import uk.co.unclealex.music.inject.AllDevices;
+import uk.co.unclealex.music.inject.DevicesDirectory;
+import uk.co.unclealex.process.ProcessService;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+
+public class DeviceServiceImpl implements DeviceService {
 
 	private static final Logger log = LoggerFactory.getLogger(DeviceServiceImpl.class);
 	
@@ -21,8 +28,17 @@ public class DeviceServiceImpl implements DeviceService, Predicate<Device> {
 	private FileService i_fileService;
 	private ProcessService i_processService;
 	
+	@Inject
+	protected DeviceServiceImpl(@AllDevices SortedSet<Device> allDevices, @DevicesDirectory File devicesDirectory, FileService fileService, ProcessService processService) {
+		super();
+		i_allDevices = allDevices;
+		i_devicesDirectory = devicesDirectory;
+		i_fileService = fileService;
+		i_processService = processService;
+	}
+
 	@Override
-	public void createDeviceFileSystems(SortedMap<String, SortedSet<File>> directoriesByOwner) {
+	public void createDeviceFileSystems(SortedMap<String, SortedSet<File>> directoriesByOwner, Set<File> flacDirectories) {
 		File devicesDirectory = getDevicesDirectory();
 		try {
 			for (File deviceDirectory : devicesDirectory.listFiles()) {
@@ -30,7 +46,7 @@ public class DeviceServiceImpl implements DeviceService, Predicate<Device> {
 				delete(deviceDirectory);
 			}
 			for (Device device : getAllDevices()) {
-				createDeviceFileSystem(device, directoriesByOwner);
+				createDeviceFileSystem(device, directoriesByOwner, flacDirectories);
 			}
 		}
 		catch (IOException e) {
@@ -50,7 +66,7 @@ public class DeviceServiceImpl implements DeviceService, Predicate<Device> {
 		}
 	}
 
-	protected void createDeviceFileSystem(Device device, SortedMap<String, SortedSet<File>> directoriesByOwner) {
+	protected void createDeviceFileSystem(Device device, SortedMap<String, SortedSet<File>> directoriesByOwner, Set<File> flacDirectories) {
 		String owner = device.getOwner();
 		Encoding encoding = device.getEncoding();
 		File deviceDirectory = getDeviceDirectory(device);
@@ -59,6 +75,7 @@ public class DeviceServiceImpl implements DeviceService, Predicate<Device> {
 		}
 		SortedSet<File> ownedFlacDirectories = directoriesByOwner.get(owner);
 		FileService fileService = getFileService();
+		ownedFlacDirectories = fileService.expandOwnedDirectories(ownedFlacDirectories, flacDirectories);
 		for (File ownedFlacDirectory : ownedFlacDirectories) {
 			File encodedDirectory = fileService.translateFlacDirectoryToEncodedDirectory(ownedFlacDirectory, encoding);
 			if (encodedDirectory.exists()) {
@@ -120,53 +137,50 @@ public class DeviceServiceImpl implements DeviceService, Predicate<Device> {
 	public Device findByName(final String deviceName) {
 		Predicate<Device> predicate = new Predicate<Device>() {
 			@Override
-			public boolean evaluate(Device device) {
+			public boolean apply(Device device) {
 				return deviceName.equals(device.getName());
 			}
 		};
-		return CollectionUtils.find(getAllDevices(), predicate);
+		return Iterables.find(getAllDevices(), predicate, null);
 	}
 	
 	@Override
 	public SortedSet<Device> getAllConnectedDevices() {
-		return CollectionUtils.select(getAllDevices(), this, new TreeSet<Device>());
+		Predicate<Device> predicate = new DeviceIsConnectedPredicate();
+		return Sets.newTreeSet(Iterables.filter(getAllDevices(), predicate));
 	}
 	
-	@Override
-	public boolean evaluate(Device device) {
-		return device.isConnected();
+	protected class DeviceIsConnectedPredicate extends IpodAgnosticDeviceVisitor<Boolean> implements Predicate<Device> {
+
+		@Override
+		public boolean apply(Device device) {
+			return device.accept(this);
+		}
+
+		@Override
+		public Boolean visit(FileSystemDevice fileSystemDevice) {
+			return fileSystemDevice.getMountPoint().isDirectory();
+		}
+
+		@Override
+		public Boolean visit(MtpDevice mtpDevice) {
+			return false;
+		}
 	}
 	
 	public SortedSet<Device> getAllDevices() {
 		return i_allDevices;
 	}
 
-	public void setAllDevices(SortedSet<Device> allDevices) {
-		i_allDevices = allDevices;
-	}
-
 	public File getDevicesDirectory() {
 		return i_devicesDirectory;
-	}
-
-	public void setDevicesDirectory(File devicesDirectory) {
-		i_devicesDirectory = devicesDirectory;
 	}
 
 	public FileService getFileService() {
 		return i_fileService;
 	}
 
-	public void setFileService(FileService fileService) {
-		i_fileService = fileService;
-	}
-
 	public ProcessService getProcessService() {
 		return i_processService;
 	}
-
-	public void setProcessService(ProcessService processService) {
-		i_processService = processService;
-	}
-
 }

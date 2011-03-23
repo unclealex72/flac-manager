@@ -1,178 +1,67 @@
 package uk.co.unclealex.music.command;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.TreeSet;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.collections15.CollectionUtils;
-import org.apache.commons.collections15.Transformer;
-
+import uk.co.flamingpenguin.jewel.JewelException;
+import uk.co.flamingpenguin.jewel.cli.CommandLineInterface;
+import uk.co.flamingpenguin.jewel.cli.Option;
+import uk.co.flamingpenguin.jewel.cli.Unparsed;
+import uk.co.unclealex.executable.CommandLine;
 import uk.co.unclealex.music.encoding.RenamingService;
 
-public class RenameCommand extends AbstractRenamingCommand implements Transformer<String, File> {
-
-	private static final String ALBUM_OPTION = "album";
-	private static final String ARTIST_OPTION = "artist";
-	private static final String TRACK_NUMBER_OPTION = "track";
-	private static final String TITLE_OPTION = "title";
-	private static final String FILES_OPTION = "files";
-	private static final String COMPILATION_OPTION = "compilation";
-	
-	private Set<File> i_flacFiles;
-	private String i_artist;
-	private String i_album;
-	private Integer i_trackNumber;
-	private String i_title;
-	private Boolean i_compilation;
-	
-	public static void main(String[] args) {
-		new RenameCommand().run(args);
-	}
+public class RenameCommand extends AbstractRenamingCommand<RenameCommandLine> {
 
 	@Override
-	public File transform(String path) {
-		return new File(path);
-	}
-	
-	@SuppressWarnings("static-access")
-	@Override
-	protected Option[] addOptions() {
-		Option artistOption =
-			OptionBuilder.
-				hasArg().
-				withArgName("artist name").
-				withDescription("The new artist name.").
-				create(ARTIST_OPTION);
-		Option albumOption = 
-			OptionBuilder.
-				hasArg().
-				withArgName("album name").
-				withDescription("The new album name.").
-				create(ALBUM_OPTION);
-		Option trackNumberOption = 
-			OptionBuilder.
-				hasArg().
-				withArgName("track number").
-				withDescription("The new track number.").
-				create(TRACK_NUMBER_OPTION);
-		Option titleOption = 
-				OptionBuilder.
-					hasArg().
-					withArgName("title").
-					withDescription("The new track title.").
-					create(TITLE_OPTION);
-		Option compilationOption = 
-			OptionBuilder.
-				hasArgs().
-				withArgName("compilation").
-				withDescription("The track is part of a compilation.").
-				create(COMPILATION_OPTION);
-		Option filesOption = 
-			OptionBuilder.
-				hasArgs().
-				withArgName("files").
-				withDescription("The files to alter.").
-				isRequired().
-				create(FILES_OPTION);
-		return new Option[] { artistOption, albumOption, trackNumberOption, titleOption, compilationOption, filesOption };
+	protected void validateCommandLine(RenameCommandLine commandLine) throws JewelException {
+		if (!(commandLine.isArtist()|| commandLine.isAlbum() || commandLine.isTrackNumber() || commandLine.isTitle() || commandLine.isCompilation() || commandLine.isNotCompilation())) {
+			throw new JewelException("You must supply at least one property to change.");
+		}
+		if (commandLine.isCompilation() && commandLine.isNotCompilation()) {
+			throw new JewelException("You cannot specify tracks to be both a compilation and not a compilation.");
+		}
+		if ((commandLine.isTrackNumber() || commandLine.isTitle()) && commandLine.getFlacFiles().size() != 1) {
+			throw new JewelException("If a track number or title is specified you may only change one flac file.");
+		}
 	}
 	
 	@Override
-	protected void checkCommandLine(CommandLine commandLine) throws ParseException {
-		Set<File> flacFiles = CollectionUtils.collect(Arrays.asList(commandLine.getOptionValues(FILES_OPTION)), this, new LinkedHashSet<File>());
-		if (flacFiles.isEmpty()) {
-			throw new ParseException("You must supply at least one flac file.");
-		}
-		String artist = commandLine.getOptionValue(ARTIST_OPTION);
-		String album = commandLine.getOptionValue(ALBUM_OPTION);
-		String trackNumber = commandLine.getOptionValue(TRACK_NUMBER_OPTION);
-		String title = commandLine.getOptionValue(TITLE_OPTION);
-		String compilation = commandLine.getOptionValue(COMPILATION_OPTION);
-		Integer trackNo = null;
-		if (trackNumber != null) {
-			try {
-				trackNo = Integer.valueOf(trackNumber);
-			}
-			catch (NumberFormatException e) {
-				throw new ParseException("A supplied track number must be numeric.");
-			}
-		}
-		Boolean isCompilation = compilation==null?null:Boolean.valueOf(compilation);
-		
-		if (artist == null && album == null && trackNo == null && title == null && isCompilation == null) {
-			throw new ParseException(
-				String.format(
-					"At least one of %s, %s, %s, %s or %s must be supplied.", 
-					ARTIST_OPTION, ALBUM_OPTION, COMPILATION_OPTION, TRACK_NUMBER_OPTION, TITLE_OPTION));
-		}
-		if ((trackNo != null || title != null) && flacFiles.size() != 1) {
-			throw new ParseException(
-				String.format(
-					"If either of the %s or %s options are selected there can be only one flac file.", TRACK_NUMBER_OPTION, TITLE_OPTION));
-		}
-		setArtist(artist);
-		setAlbum(album);
-		setTrackNumber(trackNo);
-		setTitle(title);
-		setFlacFiles(flacFiles);
-		setCompilation(isCompilation);
+	public void run(RenamingService renamingService, RenameCommandLine commandLine) throws IOException {
+		Integer trackNumber = commandLine.isTrackNumber()?commandLine.getTrackNumber():null;
+		Boolean compilation = commandLine.isCompilation()?true:(commandLine.isNotCompilation()?false:null);
+		renamingService.rename(
+				new TreeSet<File>(commandLine.getFlacFiles()), commandLine.getArtist(), commandLine.getAlbum(), 
+				compilation, trackNumber, commandLine.getTitle());
 	}
+}
+
+@CommandLineInterface(application="flac-rename")
+interface RenameCommandLine extends CommandLine {
+
+	@Option(shortName="ar", description = "The new artist name.")
+	public String getArtist();
+	public boolean isArtist();
+
+	@Option(shortName="al", description = "The new album name.")
+	public String getAlbum();
+	public boolean isAlbum();
 	
-	@Override
-	public void run(RenamingService renamingService, CommandLine commandLine) throws IOException {
-		renamingService.rename(getFlacFiles(), getArtist(), getAlbum(), getCompilation(), getTrackNumber(), getTitle());
-	}
+	@Option(shortName="tn", description = "The new track number.")
+	public int getTrackNumber();
+	public boolean isTrackNumber();
+	
+	@Option(shortName="ti", description = "The new track title.")
+	public String getTitle();
+	public boolean isTitle();
+	
+	@Option(shortName="c", description = "Indicate that theses files are part of a compilation.")
+	public boolean isCompilation();
 
-	public Set<File> getFlacFiles() {
-		return i_flacFiles;
-	}
+	@Option(shortName="nc", description = "Indicate that theses files are not part of a compilation.")
+	public boolean isNotCompilation();
 
-	public void setFlacFiles(Set<File> flacFiles) {
-		i_flacFiles = flacFiles;
-	}
+	@Unparsed(name="The files to rename.")
+	public List<File> getFlacFiles();
 
-	public String getArtist() {
-		return i_artist;
-	}
-
-	public void setArtist(String artist) {
-		i_artist = artist;
-	}
-
-	public String getAlbum() {
-		return i_album;
-	}
-
-	public void setAlbum(String album) {
-		i_album = album;
-	}
-
-	public Integer getTrackNumber() {
-		return i_trackNumber;
-	}
-
-	public void setTrackNumber(Integer trackNumber) {
-		i_trackNumber = trackNumber;
-	}
-
-	public String getTitle() {
-		return i_title;
-	}
-
-	public void setTitle(String title) {
-		i_title = title;
-	}
-
-	public Boolean getCompilation() {
-		return i_compilation;
-	}
-
-	public void setCompilation(Boolean compilation) {
-		i_compilation = compilation;
-	}
 }

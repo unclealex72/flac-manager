@@ -1,18 +1,15 @@
 package uk.co.unclealex.music.command;
 import java.io.File;
 
-import org.apache.commons.cli.CommandLine;
-
+import uk.co.flamingpenguin.jewel.cli.CommandLineInterface;
+import uk.co.flamingpenguin.jewel.cli.Unparsed;
+import uk.co.unclealex.executable.CommandLine;
 import uk.co.unclealex.music.encoding.ImportService;
 
-public class ImportCommand extends SpringCommand<ImportService> {
-
-	public static void main(String[] args) {
-		new ImportCommand().run(args);
-	}
+public class ImportCommand extends AbstractMusicCommand<ImportCommandLine, ImportService> {
 
 	@Override
-	public void run(ImportService importService, CommandLine commandLine) {
+	public void run(ImportService importService, ImportCommandLine commandLine) {
 		importService.importFromDirectory(new File("/mnt/home/converted"));
 	}
 	
@@ -20,4 +17,13 @@ public class ImportCommand extends SpringCommand<ImportService> {
 	protected Class<? extends ImportService> getServiceClass() {
 		return ImportService.class;
 	}
+}
+
+@CommandLineInterface(application="flac-import")
+interface ImportCommandLine extends CommandLine {
+	
+	@Unparsed(name="import directory")
+	public File getImportDirectory();
+	
+	public boolean isImportDirectory();
 }

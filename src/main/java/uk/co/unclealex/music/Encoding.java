@@ -4,6 +4,11 @@ public class Encoding implements Comparable<Encoding> {
 
 	private String i_extension;
 	
+	public Encoding(String extension) {
+		super();
+		i_extension = extension;
+	}
+
 	@Override
 	public int hashCode() {
 		return getExtension().hashCode();
@@ -26,9 +31,5 @@ public class Encoding implements Comparable<Encoding> {
 	
 	public String getExtension() {
 		return i_extension;
-	}
-
-	public void setExtension(String extension) {
-		i_extension = extension;
 	}
 }

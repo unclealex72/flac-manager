@@ -20,17 +20,23 @@ import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 
+import com.google.inject.Inject;
+
 import uk.co.unclealex.music.Constants;
 
 public class RenamingServiceImpl implements RenamingService {
 
 	private FileFixingService i_fileFixingService;
 	
+	@Inject
+	protected RenamingServiceImpl(FileFixingService fileFixingService) {
+		i_fileFixingService = fileFixingService;
+	}
+
 	@Override
 	public void merge(String albumTitle, Set<File> flacDirectories) throws IOException {
 		Set<File> flacFiles = new LinkedHashSet<File>();
 		for (File flacDirectory : flacDirectories) {
-			@SuppressWarnings("unchecked")
 			Collection<File> files = FileUtils.listFiles(flacDirectory, new String[] { Constants.FLAC }, false);
 			flacFiles.addAll(new TreeSet<File>(files));
 		}
@@ -109,9 +115,4 @@ public class RenamingServiceImpl implements RenamingService {
 	public FileFixingService getFileFixingService() {
 		return i_fileFixingService;
 	}
-
-	public void setFileFixingService(FileFixingService fileFixingService) {
-		i_fileFixingService = fileFixingService;
-	}
-
 }
