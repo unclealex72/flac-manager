@@ -43,7 +43,6 @@ import uk.co.unclealex.music.IpodDevice;
 import uk.co.unclealex.music.MtpDevice;
 import uk.co.unclealex.music.PlaylistService;
 import uk.co.unclealex.process.NamedRunnable;
-import uk.co.unclealex.process.PackagesRequired;
 import uk.co.unclealex.process.ProcessService;
 
 import com.google.common.base.Function;
@@ -60,7 +59,6 @@ import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.inject.Inject;
 
-@PackagesRequired(packageNames={"python-gpod", "python-eyed3", "python-gtk2", "pmount"})
 public class DeviceSynchroniser implements Synchroniser {
 
 	private static final long MILLISECONDS_IN_HOUR = 60 * 60 * 1000;
