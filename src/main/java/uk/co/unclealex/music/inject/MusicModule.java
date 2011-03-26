@@ -1,6 +1,7 @@
 package uk.co.unclealex.music.inject;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -42,6 +43,8 @@ import uk.co.unclealex.music.encoding.RenamingService;
 import uk.co.unclealex.music.encoding.RenamingServiceImpl;
 import uk.co.unclealex.music.encoding.SingleEncodingService;
 import uk.co.unclealex.music.encoding.SingleEncodingServiceImpl;
+import uk.co.unclealex.music.sync.DeviceSynchroniser;
+import uk.co.unclealex.music.sync.Synchroniser;
 import uk.co.unclealex.music.sync.SynchroniserFactory;
 import uk.co.unclealex.music.sync.SynchroniserService;
 import uk.co.unclealex.music.sync.SynchroniserServiceImpl;
@@ -50,6 +53,8 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 public class MusicModule extends AbstractModule implements Module {
 
@@ -76,14 +81,14 @@ public class MusicModule extends AbstractModule implements Module {
 		bind(ArtistFixingService.class).to(ArtistFixingServiceImpl.class);
 		bind(EncodingService.class).to(EncodingServiceImpl.class);
 		bind(PlaylistService.class).to(PlaylistServiceImpl.class);
-		bind(SignedRequestsService.class).to(SignedRequestsServiceImpl.class).asEagerSingleton();
+		bind(SignedRequestsService.class).to(SignedRequestsServiceImpl.class).in(Singleton.class);
 	}
 
 	protected void bindValues() {
-		bind(File.class).annotatedWith(DevicesDirectory.class).toInstance(new File("/mnt/multimedia/devices"));
-		bind(File.class).annotatedWith(EncodedDirectory.class).toInstance(new File("/mnt/multimedia/encoded"));
-		bind(File.class).annotatedWith(FlacDirectory.class).toInstance(new File("/mnt/multimedia/flac"));
-		bind(File.class).annotatedWith(PlaylistsDirectory.class).toInstance(new File("/mnt/multimedia/playlists"));
+		bindDirectory(DevicesDirectory.class, "devices");
+		bindDirectory(EncodedDirectory.class, "encoded");
+		bindDirectory(FlacDirectory.class, "flac");
+		bindDirectory(PlaylistsDirectory.class, "playlists");
 		bindConstant().annotatedWith(MaximumThreads.class).to(4);
 		bindConstant().annotatedWith(AwsEndpoint.class).to("ecs.amazonaws.co.uk");
 		bindConstant().annotatedWith(AwsAccessKeyId.class).to("1GK0A6KVNQEFVH5Q1Z82");
@@ -93,6 +98,10 @@ public class MusicModule extends AbstractModule implements Module {
 		bind(Encoding.class).annotatedWith(OggEncoding.class).toInstance(new Encoding("ogg"));
 		
 	}
+
+	protected void bindDirectory(Class<? extends Annotation> annotationType, String directory) {
+	  bind(File.class).annotatedWith(annotationType).toInstance(new File(new File("/mnt/mulitmedia"), directory));
+  }
 
 	protected void bindArtwork() {
 		bind(ArtworkManager.class).annotatedWith(FlacArtworkManager.class).to(FlacJAudioTaggerArtworkManager.class);
@@ -104,7 +113,7 @@ public class MusicModule extends AbstractModule implements Module {
 	}
 	
 	protected void bindSynchronisers() {
-		bind(SynchroniserFactory.class).to(GuiceSynchroniserFactory.class);
+		install(new FactoryModuleBuilder().implement(Synchroniser.class, DeviceSynchroniser.class).build(SynchroniserFactory.class));
 	}
 
 	@Provides @AllDevices SortedSet<Device> provideAllDevices(@Mp3Encoding Encoding mp3Encoding, @OggEncoding Encoding oggEncoding) {
