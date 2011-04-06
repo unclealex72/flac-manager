@@ -100,7 +100,7 @@ public class MusicModule extends AbstractModule implements Module {
 	}
 
 	protected void bindDirectory(Class<? extends Annotation> annotationType, String directory) {
-	  bind(File.class).annotatedWith(annotationType).toInstance(new File(new File("/mnt/mulitmedia"), directory));
+	  bind(File.class).annotatedWith(annotationType).toInstance(new File(new File("/mnt/multimedia"), directory));
   }
 
 	protected void bindArtwork() {
