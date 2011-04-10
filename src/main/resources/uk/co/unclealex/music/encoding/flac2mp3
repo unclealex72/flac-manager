@@ -8,7 +8,7 @@ GENRE=$(metaflac --show-tag=GENRE $1 | sed s/GENRE=//I)
 # Encode
 
 flac -dcs "$1" \
-    | lame --resample 44100 -h -b 192 --add-id3v2 \
+    | lame --resample 44100 -h -b 320 --add-id3v2 \
 	--tt "$(metaflac --show-tag=TITLE $1 | sed s/TITLE=//I)" \
 	--ta "$(metaflac --show-tag=ARTIST $1 | sed s/ARTIST=//I)" \
 	--tl "$(metaflac --show-tag=ALBUM $1 | sed s/ALBUM=//I)" \
