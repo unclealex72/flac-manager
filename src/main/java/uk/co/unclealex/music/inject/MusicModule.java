@@ -121,6 +121,7 @@ public class MusicModule extends AbstractModule implements Module {
 			(Device) new IpodDevice("ipod", "alex", mp3Encoding, new File("/media/ALEX'S IPOD")),
 			(Device) new MtpDevice("creative zen", "alex", mp3Encoding),
 			(Device) new FileSystemDevice("walkman", "alex", mp3Encoding, new File("/media/WALKMAN"), "MUSIC"),
+			(Device) new FileSystemDevice("jaguar", "trevor", mp3Encoding, new File("/media/JAGUAR"), "Music"),
 			(Device) new IpodDevice("ipod", "trevor", mp3Encoding, new File("/media/TREVOR'S IP")),
 			(Device) new FileSystemDevice("iriver", "trevor", oggEncoding, new File("/media/disk"))
 		);
