@@ -2,6 +2,7 @@ package uk.co.unclealex.music.sync;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -145,24 +146,26 @@ public class DeviceSynchroniser implements Synchroniser {
 				log.info("Adding " + relativePath);
 				deviceImplementation.add(localFile);
 			}
-			log.info("Removing all playlists.");
-			deviceImplementation.removePlaylists();
-			
-			deviceFilesByRelativePath = mapByRelativePath(deviceImplementation.listDeviceFiles());
-			Map<String, Iterable<String>> playlists = getPlaylistService().createPlaylists(device.getOwner(), device.getEncoding());
-			final Function<String, DeviceFile> deviceFileFunction = Functions.forMap(deviceFilesByRelativePath);
-			Function<Iterable<String>, Iterable<DeviceFile>> deviceFilesFunction = new Function<Iterable<String>, Iterable<DeviceFile>>() {
-				@Override
-				public Iterable<DeviceFile> apply(Iterable<String> relativePaths) {
-					return Iterables.transform(relativePaths, deviceFileFunction);
+			if (device.arePlaylistsSupported()) {
+				log.info("Removing all playlists.");
+				deviceImplementation.removePlaylists();
+				
+				deviceFilesByRelativePath = mapByRelativePath(deviceImplementation.listDeviceFiles());
+				Map<String, Iterable<String>> playlists = getPlaylistService().createPlaylists(device.getOwner(), device.getEncoding());
+				final Function<String, DeviceFile> deviceFileFunction = Functions.forMap(deviceFilesByRelativePath);
+				Function<Iterable<String>, Iterable<DeviceFile>> deviceFilesFunction = new Function<Iterable<String>, Iterable<DeviceFile>>() {
+					@Override
+					public Iterable<DeviceFile> apply(Iterable<String> relativePaths) {
+						return Iterables.transform(relativePaths, deviceFileFunction);
+					}
+				};
+				Map<String, Iterable<DeviceFile>> deviceFilesPlaylists = Maps.transformValues(playlists, deviceFilesFunction);
+				for (Entry<String, Iterable<DeviceFile>> entry : deviceFilesPlaylists.entrySet()) {
+					String playlistName = entry.getKey();
+					Iterable<DeviceFile> playlistDeviceFiles = entry.getValue();
+					log.info("Adding playlist " + playlistName);
+					deviceImplementation.addPlaylist(playlistName, playlistDeviceFiles);
 				}
-			};
-			Map<String, Iterable<DeviceFile>> deviceFilesPlaylists = Maps.transformValues(playlists, deviceFilesFunction);
-			for (Entry<String, Iterable<DeviceFile>> entry : deviceFilesPlaylists.entrySet()) {
-				String playlistName = entry.getKey();
-				Iterable<DeviceFile> playlistDeviceFiles = entry.getValue();
-				log.info("Adding playlist " + playlistName);
-				deviceImplementation.addPlaylist(playlistName, playlistDeviceFiles);
 			}
 		}
 		catch (RuntimeException e) {
@@ -291,7 +294,7 @@ public class DeviceSynchroniser implements Synchroniser {
 			return i_device;
 		}
 	}
-	protected abstract class AbstractFileSystemDeviceImplementation<D extends Device> extends AbstractDeviceImplementation<D> {
+	protected abstract class AbstractFileSystemDeviceImplementation<D extends Device> extends AbstractDeviceImplementation<D> implements FileFilter {
 
 		private File i_deviceRoot;
 		
@@ -352,7 +355,7 @@ public class DeviceSynchroniser implements Synchroniser {
 		}
 
 		protected void removeEmptyDirectories(File dir, boolean deleteDirectory, String extension) {
-			for (File child : dir.listFiles()) {
+			for (File child : dir.listFiles(this)) {
 				if (child.isDirectory()) {
 					removeEmptyDirectories(child, true, extension);
 				}
@@ -365,6 +368,11 @@ public class DeviceSynchroniser implements Synchroniser {
 			}
 		}
 
+		@Override
+		public boolean accept(File f) {
+			return !f.isHidden();
+		}
+		
 		protected abstract DeviceFile createDeviceFile(String relativePath, File f);
 
 		protected abstract String createRemoteRelativeFilePath(LocalFile localFile);
@@ -387,7 +395,7 @@ public class DeviceSynchroniser implements Synchroniser {
 		
 		protected FileSystemDeviceImplementation(FileSystemDevice device) throws IOException {
 			super(device);
-			File mountPoint = device.getMountPoint();
+			File mountPoint = device.getMountPointFinder().findMountPoint();
 			i_mountPoint = mountPoint;
 			String relativeMusicRoot = device.getRelativeMusicRoot();
 			i_musicRoot = relativeMusicRoot==null?mountPoint:new File(mountPoint, relativeMusicRoot);
@@ -736,7 +744,7 @@ public class DeviceSynchroniser implements Synchroniser {
 
 		@Override
 		protected String[] getCommandArguments() {
-			return new String[] { "ipod", getDevice().getMountPoint().getPath() };
+			return new String[] { "ipod", getDevice().getMountPointFinder().findMountPoint().getPath() };
 		}
 
 	}

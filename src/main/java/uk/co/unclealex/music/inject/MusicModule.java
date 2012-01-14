@@ -44,6 +44,8 @@ import uk.co.unclealex.music.encoding.RenamingServiceImpl;
 import uk.co.unclealex.music.encoding.SingleEncodingService;
 import uk.co.unclealex.music.encoding.SingleEncodingServiceImpl;
 import uk.co.unclealex.music.sync.DeviceSynchroniser;
+import uk.co.unclealex.music.sync.DynamicMountPointFinder;
+import uk.co.unclealex.music.sync.StaticMountPointFinder;
 import uk.co.unclealex.music.sync.Synchroniser;
 import uk.co.unclealex.music.sync.SynchroniserFactory;
 import uk.co.unclealex.music.sync.SynchroniserService;
@@ -118,12 +120,12 @@ public class MusicModule extends AbstractModule implements Module {
 
 	@Provides @AllDevices SortedSet<Device> provideAllDevices(@Mp3Encoding Encoding mp3Encoding, @OggEncoding Encoding oggEncoding) {
 		return sortedSetOf(
-			(Device) new IpodDevice("ipod", "alex", mp3Encoding, new File("/media/ALEX'S IPOD")),
-			(Device) new MtpDevice("creative zen", "alex", mp3Encoding),
-			(Device) new FileSystemDevice("walkman", "alex", mp3Encoding, new File("/media/WALKMAN"), "MUSIC"),
-			(Device) new FileSystemDevice("jaguar", "trevor", mp3Encoding, new File("/media/JAGUAR"), "Music"),
-			(Device) new IpodDevice("ipod", "trevor", mp3Encoding, new File("/media/TREVOR'S IP")),
-			(Device) new FileSystemDevice("iriver", "trevor", oggEncoding, new File("/media/disk"))
+			(Device) new IpodDevice("ipod", "alex", mp3Encoding, new StaticMountPointFinder(new File("/media/ALEX'S IPOD"))),
+			(Device) new MtpDevice("creative zen", "alex", mp3Encoding, false),
+			(Device) new FileSystemDevice("walkman", "alex", mp3Encoding, new StaticMountPointFinder(new File("/media/WALKMAN")), "MUSIC", false),
+			(Device) new FileSystemDevice("jaguar", "trevor", mp3Encoding, new StaticMountPointFinder(new File("/media/JAGUAR")), "Music", false),
+			(Device) new IpodDevice("ipod", "trevor", mp3Encoding, new StaticMountPointFinder(new File("/media/TREVOR'S IP"))),
+			(Device) new FileSystemDevice("iriver", "trevor", oggEncoding, new DynamicMountPointFinder(new File("/media"), ".rockbox"), false)
 		);
 	}
 	

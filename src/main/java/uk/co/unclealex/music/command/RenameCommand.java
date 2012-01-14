@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 import uk.co.flamingpenguin.jewel.JewelException;
@@ -38,7 +39,7 @@ public class RenameCommand extends AbstractRenamingCommand<RenameCommandLine> {
 		String artist = commandLine.isArtist()?commandLine.getArtist():null;
 		String album = commandLine.isAlbum()?commandLine.getAlbum():null;
 		String title = commandLine.isTitle()?commandLine.getTitle():null;
-		TreeSet<File> flacFiles = new TreeSet<File>(commandLine.getFlacFiles());
+		Set<File> flacFiles = canonicalise(new TreeSet<File>(), commandLine.getFlacFiles(), false);
 		renamingService.rename(flacFiles, artist, album, compilationResult, trackNumber, title);
 	}
 }

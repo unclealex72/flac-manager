@@ -6,15 +6,22 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 
 public abstract class AbstractDevice implements Device {
 
-	private String i_name;
-	private String i_owner;
-	private Encoding i_encoding;
+	private final String i_name;
+	private final String i_owner;
+	private final Encoding i_encoding;
+	private final boolean i_playlistsSupported;
 	
-	public AbstractDevice(String name, String owner, Encoding encoding) {
+	public AbstractDevice(String name, String owner, Encoding encoding, boolean playlistsSupported) {
 		super();
 		i_name = name;
 		i_owner = owner;
 		i_encoding = encoding;
+		i_playlistsSupported = playlistsSupported;
+	}
+
+	@Override
+	public boolean arePlaylistsSupported() {
+		return isPlaylistsSupported();
 	}
 
 	@Override
@@ -47,6 +54,10 @@ public abstract class AbstractDevice implements Device {
 	
 	public Encoding getEncoding() {
 		return i_encoding;
+	}
+
+	public boolean isPlaylistsSupported() {
+		return i_playlistsSupported;
 	}
 	
 }

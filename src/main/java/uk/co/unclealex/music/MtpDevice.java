@@ -6,8 +6,8 @@ import com.google.inject.Inject;
 public class MtpDevice extends AbstractDevice {
 
 	@Inject
-	public MtpDevice(String name, String owner, Encoding encoding) {
-		super(name, owner, encoding);
+	public MtpDevice(String name, String owner, Encoding encoding, boolean arePlaylistsAvailable) {
+		super(name, owner, encoding, arePlaylistsAvailable);
 	}
 
 	@Override

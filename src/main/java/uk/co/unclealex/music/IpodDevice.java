@@ -1,11 +1,11 @@
 package uk.co.unclealex.music;
 
-import java.io.File;
+import uk.co.unclealex.music.sync.MountPointFinder;
 
 public class IpodDevice extends FileSystemDevice {
 
-	public IpodDevice(String name, String owner, Encoding encoding, File mountPoint) {
-		super(name, owner, encoding, mountPoint, null, true);
+	public IpodDevice(String name, String owner, Encoding encoding, MountPointFinder mountPointFinder) {
+		super(name, owner, encoding, mountPointFinder, null, true);
 	}
 
 	@Override

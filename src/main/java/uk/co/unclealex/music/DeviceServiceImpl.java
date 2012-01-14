@@ -159,7 +159,7 @@ public class DeviceServiceImpl implements DeviceService {
 
 		@Override
 		public Boolean visit(FileSystemDevice fileSystemDevice) {
-			return fileSystemDevice.getMountPoint().isDirectory();
+			return fileSystemDevice.getMountPointFinder().findMountPoint() != null;
 		}
 
 		@Override

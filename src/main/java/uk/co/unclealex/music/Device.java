@@ -8,5 +8,7 @@ public interface Device extends Comparable<Device> {
 	
 	public Encoding getEncoding();
 	
+	public boolean arePlaylistsSupported();
+	
 	public <R> R accept(DeviceVisitor<R> deviceVisitor);
 }
