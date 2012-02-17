@@ -1,9 +1,9 @@
 package uk.co.unclealex.music.encoding;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -13,7 +13,6 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.commons.io.FilenameUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
@@ -35,41 +34,41 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 import com.google.inject.Inject;
 
-public class FileFixingServiceImpl implements FileFixingService, FileFilter {
+/**
+ * The default implementation of {@link FileFixingService}
+ * @author alex
+ *
+ */
+public class FileFixingServiceImpl implements FileFixingService {
 
 	private static final Logger log = LoggerFactory.getLogger(FileFixingServiceImpl.class);
 
-	private FileService i_fileService;
-	private LatinService i_latinService;
-	private ImageService i_imageService;
-	private File i_flacDirectory;
-
+	private final FileService i_fileService;
+	private final LatinService i_latinService;
+	private final ImageService i_imageService;
+	private final OwnerOrPictureFileService i_ownerOrPictureFileService;
+	private final File i_flacDirectory;
+	
 	@Inject
-	protected FileFixingServiceImpl(FileService fileService, LatinService latinService, ImageService imageService,
+	protected FileFixingServiceImpl(
+			FileService fileService, LatinService latinService,
+			ImageService imageService, OwnerOrPictureFileService ownerOrPictureFileService,
 			@FlacDirectory File flacDirectory) {
 		super();
 		i_fileService = fileService;
 		i_latinService = latinService;
 		i_imageService = imageService;
+		i_ownerOrPictureFileService = ownerOrPictureFileService;
 		i_flacDirectory = flacDirectory;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	public void fixFlacFilenames(Iterable<File> flacFiles) {
-		Set<File> flacFileSet;
-		if (flacFiles instanceof Set) {
-			flacFileSet = (Set<File>) flacFiles;
-		}
-		else {
-			flacFileSet = Sets.newHashSet(flacFiles);
-		}
-		fixFlacFilenames(flacFileSet);
-	}
-
-	protected void fixFlacFilenames(Set<File> flacFiles) {
+	public void fixVariousArtistsAndFlacFilenames(SortedSet<File> flacFiles) {
 		addAlbumArtistTags(flacFiles);
 		SortedMap<TrackInformationBean, SortedSet<File>> filesByTrackInformationAndLastModified = 
 			sortFilesByTrackInformationAndLastModified(flacFiles);
@@ -85,11 +84,15 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 		removeEmptyDirectories(alteredArtistDirectories);
 	}
 
+	/**
+	 * Add <code>ALBUMARTIST<code> tags to any files under a directory called <code>Various</code>.
+	 * @param flacFiles Candidate files to add the tag to.
+	 */
 	protected void addAlbumArtistTags(Set<File> flacFiles) {
 		Predicate<File> variousFlacFilenamePredicate = new Predicate<File>() {
 			@Override
 			public boolean apply(File file) {
-				File artistDirectory = file.getParentFile().getParentFile();
+				File artistDirectory = file.getAbsoluteFile().getParentFile().getParentFile();
 				return artistDirectory.getName().toLowerCase().startsWith("various");
 			}
 		};
@@ -99,6 +102,10 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 		}
 	}
 
+	/**
+	 * Set the <code>ALBUMARTIST</code> tag to {@link Constants.VARIOUS_ARTISTS}.
+	 * @param variousArtistFlacFile The file to alter.
+	 */
 	protected void addAlbumArtist(File variousArtistFlacFile) {
 		try {
 			AudioFile audioFile = AudioFileIO.read(variousArtistFlacFile);
@@ -170,21 +177,9 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 		return normaliseFlacFilename(new TrackInformationBean(artist, album, compilation, trackNumber, title), getFlacDirectory());
 	}
 	
-	@Override
-	public boolean accept(File file) {
-		try {
-			return 
-				file.isFile() && 
-				(Constants.OWNER.equals(FilenameUtils.getBaseName(file.getName())) || getImageService().loadImage(file) != null);
-		}
-		catch (IOException e) {
-			return false;
-		}
-	}
-	
 	protected void copyOwnershipAndPictureFiles(File sourceDirectory, File targetDirectory) {
 		FileService fileService = getFileService();
-		for (File file : sourceDirectory.listFiles(this)) {
+		for (File file : sourceDirectory.listFiles(getOwnerOrPictureFileService().asFileFilter())) {
 			File targetFile = new File(targetDirectory, file.getName());
 			try {
 				fileService.copy(file, targetFile, true);
@@ -202,14 +197,13 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 	}
 
 	protected void removeEmptyDirectory(File directory) {
-		if (directory.list().length == directory.listFiles(this).length) {
-			try {
-				log.info("Deleting empty directory " + directory.getAbsolutePath());
-				Files.deleteRecursively(directory);
+		File[] childFiles = directory.listFiles();
+		if (Iterables.all(Arrays.asList(childFiles), getOwnerOrPictureFileService().asPredicate())) {
+			log.info("Deleting empty directory " + directory.getAbsolutePath());
+			for (File childFile : childFiles) {
+				childFile.delete();
 			}
-			catch (IOException e) {
-				log.error("Cannot delete directory " + directory.getAbsolutePath());
-			}
+			directory.delete();
 		}
 	}
 
@@ -324,5 +318,9 @@ public class FileFixingServiceImpl implements FileFixingService, FileFilter {
 
 	public File getFlacDirectory() {
 		return i_flacDirectory;
+	}
+
+	public OwnerOrPictureFileService getOwnerOrPictureFileService() {
+		return i_ownerOrPictureFileService;
 	}
 }

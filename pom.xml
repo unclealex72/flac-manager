@@ -1,47 +1,48 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-  <parent>
-        <groupId>uk.co.unclealex</groupId>
-        <artifactId>parent</artifactId>
-        <version>2.0.1</version>
-  </parent>
+	<parent>
+		<groupId>uk.co.unclealex</groupId>
+		<artifactId>parent</artifactId>
+		<version>2.0.1</version>
+	</parent>
 	<artifactId>music</artifactId>
 	<version>4.8-SNAPSHOT</version>
 	<name>Music</name>
 	<url>http://maven.apache.org</url>
 
-  <properties>
-  	<executable-version>1.0.5</executable-version>
-  	<slf4j-version>1.5.6</slf4j-version>
-  </properties>
+	<properties>
+		<executable-version>1.0.5</executable-version>
+		<slf4j-version>1.5.6</slf4j-version>
+	</properties>
 
-		<scm>
-			<connection>scm:svn:http://hurst/svn/trunk/personal/Music</connection>
-			<developerConnection>scm:svn:http://hurst/svn/trunk/personal/Music</developerConnection>
-		  <url>http://hurst/svn/tags/personal/parent/2.0.1/music</url>
-  </scm>
+	<scm>
+		<connection>scm:svn:http://hurst/svn/trunk/personal/Music</connection>
+		<developerConnection>scm:svn:http://hurst/svn/trunk/personal/Music</developerConnection>
+		<url>http://hurst/svn/tags/personal/parent/2.0.1/music</url>
+	</scm>
 
 	<dependencies>
-	  <dependency>
-	    <groupId>com.google.guava</groupId>
-	    <artifactId>guava</artifactId>
-	    <version>r08</version>
-	  </dependency>
-    <dependency>
-      <groupId>org.guice-recipes</groupId>
-      <artifactId>guice-recipes-core</artifactId>
-      <version>3.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.inject.extensions</groupId>
-      <artifactId>guice-assistedinject</artifactId>
-      <version>3.0-rc2</version>
-    </dependency>
 		<dependency>
-	   <groupId>org</groupId>
-	   <artifactId>jaudiotagger</artifactId>
-	   <version>2.0.3</version>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>11.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.guice-recipes</groupId>
+			<artifactId>guice-recipes-core</artifactId>
+			<version>3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-assistedinject</artifactId>
+			<version>3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org</groupId>
+			<artifactId>jaudiotagger</artifactId>
+			<version>2.0.3</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
@@ -68,43 +69,49 @@
 			<artifactId>process-support</artifactId>
 			<version>1.0.1</version>
 		</dependency>
-		
-  	<dependency>
-  		<artifactId>executable</artifactId>
-  		<groupId>uk.co.unclealex</groupId>
-  		<version>${executable-version}</version>
-  	</dependency>
+
+		<dependency>
+			<artifactId>executable</artifactId>
+			<groupId>uk.co.unclealex</groupId>
+			<version>${executable-version}</version>
+		</dependency>
 
 		<dependency>
 			<artifactId>commons-lang</artifactId>
 			<groupId>commons-lang</groupId>
 			<version>2.5</version>
 		</dependency>
-		
+
 		<dependency>
 			<artifactId>commons-io</artifactId>
 			<groupId>commons-io</groupId>
 			<version>2.0.1</version>
 		</dependency>
 
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
-  <build>
-    <plugins>
-  		<plugin>
-  			<artifactId>maven-executable-plugin</artifactId>
-	  		<groupId>uk.co.unclealex</groupId>
-	  		<version>${executable-version}</version>
-        <executions>
-        	<execution>
-        		<id>script</id>
-        		<phase>package</phase>
-        		<goals>
-        			<goal>executable</goal>
-        		</goals>
-        	</execution>
-        </executions>
-  		</plugin>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-executable-plugin</artifactId>
+				<groupId>uk.co.unclealex</groupId>
+				<version>${executable-version}</version>
+				<executions>
+					<execution>
+						<id>script</id>
+						<phase>package</phase>
+						<goals>
+							<goal>executable</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.jvnet.jaxb2.maven2</groupId>
 				<artifactId>maven-jaxb2-plugin</artifactId>
@@ -120,6 +127,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			</plugins>
-		</build>
+		</plugins>
+	</build>
 </project>

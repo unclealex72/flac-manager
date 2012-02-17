@@ -3,8 +3,8 @@ package uk.co.unclealex.music.encoding;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.commons.io.FileUtils;
@@ -20,9 +20,9 @@ import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 
-import com.google.inject.Inject;
-
 import uk.co.unclealex.music.Constants;
+
+import com.google.inject.Inject;
 
 public class RenamingServiceImpl implements RenamingService {
 
@@ -35,7 +35,7 @@ public class RenamingServiceImpl implements RenamingService {
 
 	@Override
 	public void merge(String albumTitle, Set<File> flacDirectories) throws IOException {
-		Set<File> flacFiles = new LinkedHashSet<File>();
+		SortedSet<File> flacFiles = new TreeSet<File>();
 		for (File flacDirectory : flacDirectories) {
 			Collection<File> files = FileUtils.listFiles(flacDirectory, new String[] { Constants.FLAC }, false);
 			flacFiles.addAll(new TreeSet<File>(files));
@@ -45,16 +45,16 @@ public class RenamingServiceImpl implements RenamingService {
 			alterFlacFile(flacFile, null, albumTitle, null, trackNumber, null);
 			trackNumber++;
 		}
-		getFileFixingService().fixFlacFilenames(flacFiles);
+		getFileFixingService().fixVariousArtistsAndFlacFilenames(flacFiles);
 	}
 
 	@Override
-	public void rename(Set<File> flacFiles, String artist, String album, Boolean compilation, Integer trackNumber, String title)
+	public void rename(SortedSet<File> flacFiles, String artist, String album, Boolean compilation, Integer trackNumber, String title)
 			throws IOException {
 		for (File flacFile : flacFiles) {
 			alterFlacFile(flacFile, artist, album, compilation, trackNumber, title);
 		}
-		getFileFixingService().fixFlacFilenames(flacFiles);
+		getFileFixingService().fixVariousArtistsAndFlacFilenames(flacFiles);
 	}
 	
 	protected void alterFlacFile(File flacFile, String artist, String album, Boolean compilation, Integer trackNumber, String title) throws IOException {

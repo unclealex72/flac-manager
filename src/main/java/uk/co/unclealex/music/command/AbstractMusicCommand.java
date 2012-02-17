@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
+import java.util.SortedSet;
 
 import uk.co.unclealex.executable.CommandLine;
 import uk.co.unclealex.executable.GuiceCommand;
@@ -16,7 +16,7 @@ import com.google.inject.Module;
 
 public abstract class AbstractMusicCommand<C extends CommandLine, S> extends GuiceCommand<C, S> {
 
-	protected Set<File> canonicalise(Set<File> result, List<File> nonCanonicalFiles, boolean expectDirectories) throws IOException {
+	protected SortedSet<File> canonicalise(SortedSet<File> result, List<File> nonCanonicalFiles, boolean expectDirectories) throws IOException {
 		for (File file : nonCanonicalFiles) {
 			if (!file.canRead()) {
 				throw new FileNotFoundException(file.getPath());

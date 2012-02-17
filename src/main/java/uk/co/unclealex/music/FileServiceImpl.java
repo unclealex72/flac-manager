@@ -33,13 +33,14 @@ import com.google.inject.Inject;
 public class FileServiceImpl implements FileService {
 
 	private static final Logger log = LoggerFactory.getLogger(FileServiceImpl.class);
-	
+
 	private File i_flacDirectory;
 	private File i_encodedDirectory;
 	private SortedSet<Encoding> i_encodings;
-		
+
 	@Inject
-	protected FileServiceImpl(@FlacDirectory File flacDirectory, @EncodedDirectory File encodedDirectory, @Encodings SortedSet<Encoding> encodings) {
+	protected FileServiceImpl(@FlacDirectory File flacDirectory, @EncodedDirectory File encodedDirectory,
+			@Encodings SortedSet<Encoding> encodings) {
 		i_flacDirectory = flacDirectory;
 		i_encodedDirectory = encodedDirectory;
 		i_encodings = encodings;
@@ -77,7 +78,7 @@ public class FileServiceImpl implements FileService {
 	protected String relativiseFile(File file, Iterable<File> fileRoots) {
 		String relativePath = null;
 		Predicate<File> isParentOfPredicate = new ParentFilePredicate(file);
-		for (Iterator<File> iter = fileRoots.iterator(); relativePath == null && iter.hasNext(); ) {
+		for (Iterator<File> iter = fileRoots.iterator(); relativePath == null && iter.hasNext();) {
 			File rootFile = iter.next();
 			if (isParentOfPredicate.apply(rootFile)) {
 				URI parentUri = rootFile.toURI();
@@ -130,13 +131,14 @@ public class FileServiceImpl implements FileService {
 		else {
 			String relativeDirectoryPath = relativiseFile(flacDirectory);
 			char firstLetterOfArtist = getFirstLetter(relativeDirectoryPath);
-			return new File(new File(encodedRoot, String.valueOf(firstLetterOfArtist)), renameFlacToEncoded(relativeDirectoryPath));
+			return new File(new File(encodedRoot, String.valueOf(firstLetterOfArtist)),
+					renameFlacToEncoded(relativeDirectoryPath));
 		}
 	}
 
 	@Override
 	public char getFirstLetter(String relativePath) {
-		int offset = (relativePath.startsWith("the ") || relativePath.startsWith("the_"))?4:0;
+		int offset = (relativePath.startsWith("the ") || relativePath.startsWith("the_")) ? 4 : 0;
 		return relativePath.charAt(offset);
 	}
 
@@ -158,7 +160,7 @@ public class FileServiceImpl implements FileService {
 		};
 		return isFlacFileIsOwnedBy(flacFile.getParentFile(), filter);
 	}
-	
+
 	protected boolean isFlacFileIsOwnedBy(File directory, FilenameFilter filter) {
 		if (directory == null) {
 			return false;
@@ -166,15 +168,15 @@ public class FileServiceImpl implements FileService {
 		else {
 			return directory.listFiles(filter).length != 0 || isFlacFileIsOwnedBy(directory.getParentFile(), filter);
 		}
-	}	
-	
+	}
+
 	@Override
 	public SortedSet<File> listFiles(File f, FileFilter fileFilter) {
 		TreeSet<File> acceptedFiles = new TreeSet<File>();
 		listFiles(f, fileFilter, acceptedFiles);
 		return acceptedFiles;
 	}
-	
+
 	protected void listFiles(File f, FileFilter fileFilter, SortedSet<File> acceptedFiles) {
 		if (f.isDirectory()) {
 			File[] children = f.listFiles();
@@ -194,7 +196,7 @@ public class FileServiceImpl implements FileService {
 	public void copy(File source, File target, boolean overwrite) throws IOException {
 		doCopy("Copying", source, target, overwrite);
 	}
-	
+
 	@Override
 	public boolean move(File source, File target, boolean overwrite) throws IOException {
 		boolean moved = !source.equals(target);
@@ -206,7 +208,7 @@ public class FileServiceImpl implements FileService {
 		}
 		return moved;
 	}
-	
+
 	protected void doCopy(String message, File source, File target, boolean overwrite) throws IOException {
 		String targetPath = target.getAbsolutePath();
 		String sourcePath = source.getAbsolutePath();
@@ -246,7 +248,7 @@ public class FileServiceImpl implements FileService {
 		}
 		return ownedFlacDirectories;
 	}
-	
+
 	@Override
 	public File makeFile(String... names) {
 		File f = new File("/");
@@ -255,7 +257,7 @@ public class FileServiceImpl implements FileService {
 		}
 		return f;
 	}
-	
+
 	public File getFlacDirectory() {
 		return i_flacDirectory;
 	}

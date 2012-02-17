@@ -83,6 +83,7 @@ public class MusicModule extends AbstractModule implements Module {
 		bind(ArtistFixingService.class).to(ArtistFixingServiceImpl.class);
 		bind(EncodingService.class).to(EncodingServiceImpl.class);
 		bind(PlaylistService.class).to(PlaylistServiceImpl.class);
+		bind(FileFixingService.class).to(FileFixingServiceImpl.class);
 		bind(SignedRequestsService.class).to(SignedRequestsServiceImpl.class).in(Singleton.class);
 	}
 
@@ -123,7 +124,7 @@ public class MusicModule extends AbstractModule implements Module {
 			(Device) new IpodDevice("ipod", "alex", mp3Encoding, new StaticMountPointFinder(new File("/media/ALEX'S IPOD"))),
 			(Device) new MtpDevice("creative zen", "alex", mp3Encoding, false),
 			(Device) new FileSystemDevice("walkman", "alex", mp3Encoding, new StaticMountPointFinder(new File("/media/WALKMAN")), "MUSIC", false),
-			(Device) new FileSystemDevice("jaguar", "trevor", mp3Encoding, new StaticMountPointFinder(new File("/media/JAGUAR")), "Music", false),
+			(Device) new FileSystemDevice("cowon", "trevor", mp3Encoding, new StaticMountPointFinder(new File("/media/X7 HDD")), "Music", false),
 			(Device) new IpodDevice("ipod", "trevor", mp3Encoding, new StaticMountPointFinder(new File("/media/TREVOR'S IP"))),
 			(Device) new FileSystemDevice("iriver", "trevor", oggEncoding, new DynamicMountPointFinder(new File("/media"), ".rockbox"), false)
 		);
