@@ -39,6 +39,8 @@ import uk.co.unclealex.music.encoding.ImageService;
 import uk.co.unclealex.music.encoding.ImageServiceImpl;
 import uk.co.unclealex.music.encoding.ImportService;
 import uk.co.unclealex.music.encoding.ImportServiceImpl;
+import uk.co.unclealex.music.encoding.OwnerOrPictureFileService;
+import uk.co.unclealex.music.encoding.OwnerOrPictureFileServiceImpl;
 import uk.co.unclealex.music.encoding.RenamingService;
 import uk.co.unclealex.music.encoding.RenamingServiceImpl;
 import uk.co.unclealex.music.encoding.SingleEncodingService;
@@ -84,6 +86,7 @@ public class MusicModule extends AbstractModule implements Module {
 		bind(EncodingService.class).to(EncodingServiceImpl.class);
 		bind(PlaylistService.class).to(PlaylistServiceImpl.class);
 		bind(FileFixingService.class).to(FileFixingServiceImpl.class);
+		bind(OwnerOrPictureFileService.class).to(OwnerOrPictureFileServiceImpl.class);
 		bind(SignedRequestsService.class).to(SignedRequestsServiceImpl.class).in(Singleton.class);
 	}
 

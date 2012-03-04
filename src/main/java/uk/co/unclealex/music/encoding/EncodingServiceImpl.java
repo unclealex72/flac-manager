@@ -279,7 +279,7 @@ public class EncodingServiceImpl implements EncodingService {
 				// Do nothing
 			}
 			catch (ExecutionException e) {
-				// TODO Auto-generated catch block
+				// Do nothing
 			}
 		}
 		return totalCount;
