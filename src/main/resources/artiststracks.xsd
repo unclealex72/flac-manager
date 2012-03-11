@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema
 	xmlns="http://www.w3.org/2001/XMLSchema" 
-	targetNamespace="http://jaxb.music.unclealex.co.uk/artiststracks" 
-	xmlns:tns="http://jaxb.music.unclealex.co.uk/artiststracks"
+	targetNamespace="http://jaxb.legacy.music.unclealex.co.uk/artiststracks" 
+	xmlns:tns="http://jaxb.legacy.music.unclealex.co.uk/artiststracks"
 	xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
 	xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
   jaxb:version="2.1"
