@@ -112,17 +112,17 @@
           </execution>
         </executions>
       </plugin>
-    </plugins>
-  </build>
-  <reporting>
-    <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>cobertura-maven-plugin</artifactId>
-        <version>2.5.1</version>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
       </plugin>
     </plugins>
-  </reporting>
+  </build>
+
   <scm>
     <connection>scm:svn:http://hurst/svn/trunk/personal/Music</connection>
     <developerConnection>scm:svn:http://hurst/svn/trunk/personal/Music</developerConnection>
