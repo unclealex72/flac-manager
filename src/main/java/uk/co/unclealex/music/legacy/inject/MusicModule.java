@@ -7,8 +7,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.SortedSet;
 
-import uk.co.unclealex.music.legacy.ArtistFixingService;
-import uk.co.unclealex.music.legacy.ArtistFixingServiceImpl;
 import uk.co.unclealex.music.legacy.Device;
 import uk.co.unclealex.music.legacy.DeviceService;
 import uk.co.unclealex.music.legacy.DeviceServiceImpl;
@@ -82,7 +80,6 @@ public class MusicModule extends AbstractModule implements Module {
 		bind(ImageService.class).to(ImageServiceImpl.class);
 		bind(FileFixingService.class).to(FileFixingServiceImpl.class);
 		bind(RenamingService.class).to(RenamingServiceImpl.class);
-		bind(ArtistFixingService.class).to(ArtistFixingServiceImpl.class);
 		bind(EncodingService.class).to(EncodingServiceImpl.class);
 		bind(PlaylistService.class).to(PlaylistServiceImpl.class);
 		bind(FileFixingService.class).to(FileFixingServiceImpl.class);
