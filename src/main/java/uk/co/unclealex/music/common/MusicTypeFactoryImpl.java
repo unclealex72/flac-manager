@@ -103,7 +103,7 @@ public class MusicTypeFactoryImpl implements MusicTypeFactory {
 
 		@Override
 		public boolean equals(Object obj) {
-			return (obj instanceof MusicType) && compareTo((MusicType) obj) == 0;
+			return Equals.isEqual(MusicType.class, this, obj);
 		}
 
 		@Override

@@ -213,7 +213,7 @@ public abstract class AbstractFileSystemRepository implements ReadableRepository
 			Path path = getPathsByMusicTrack().get(musicTrack);
 			log.info("Removing path " + path);
 			if (Files.deleteIfExists(path)) {
-				getFileUtils().cleanIfEmpty(getBasePath(), path.getParent());
+				getFileUtils().cleanIfEmpty(getBasePath(), path.getParent(), createPathIsOfTypePredicate(musicType));
 			}
 			return true;
 		}
@@ -222,6 +222,10 @@ public abstract class AbstractFileSystemRepository implements ReadableRepository
 		}
 	}
 
+	protected Predicate<Path> createPathIsOfTypePredicate(MusicType musicType) {
+		String extension = getExtensionFactory().getExtensionForMusicType(musicType);
+		return getFileUtils().createFileHasExtensionPredicate(extension);
+	}
 	/**
 	 * @return the basePath
 	 */

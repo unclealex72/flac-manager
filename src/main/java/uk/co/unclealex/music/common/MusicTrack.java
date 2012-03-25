@@ -94,7 +94,7 @@ public class MusicTrack implements Serializable, Comparable<MusicTrack> {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		return (obj instanceof MusicTrack) && compareTo((MusicTrack) obj) == 0;
+		return Equals.isEqual(MusicTrack.class, this, obj);
 	}
 	
 	/**

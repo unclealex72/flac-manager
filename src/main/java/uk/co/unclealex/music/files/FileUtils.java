@@ -71,16 +71,20 @@ public interface FileUtils {
 	public String createFileSuffix(String extension);
 
 	/**
-	 * Remove a directory if it is empty. If this then means the parent directory
-	 * is then empty, clean that, too, until a top level directory is reached.
+	 * Remove a directory if it is empty (i.e. it has no paths that are to be
+	 * preserved). If this then means the parent directory is then empty, clean
+	 * that, too, until a top level directory is reached.
 	 * 
 	 * @param topLevelPath
 	 *          The top level path that should not be deleted.
 	 * @param directory
 	 *          The directory to delete if it is empty.
+	 * @param preservePathPredicate
+	 *          A predicate that returns true if a path should not be deleted by
+	 *          this method or false otherwise.
 	 * @throws IOException
 	 */
-	public void cleanIfEmpty(Path topLevelPath, Path directory) throws IOException;
+	public void cleanIfEmpty(Path topLevelPath, Path directory, Predicate<Path> preservePathPredicate) throws IOException;
 
 	/**
 	 * Deletes a file. If file is a directory, delete it and all sub-directories.
@@ -124,8 +128,11 @@ public interface FileUtils {
 	public void deleteDirectory(Path directory) throws IOException;
 
 	/**
-	 * Return a file's base name. That, is the filename of the file without the file's suffix.
-	 * @param path The path whose base name will be returned.
+	 * Return a file's base name. That, is the filename of the file without the
+	 * file's suffix.
+	 * 
+	 * @param path
+	 *          The path whose base name will be returned.
 	 * @return The file's base name.
 	 */
 	public String filenameWithoutSuffix(Path path);

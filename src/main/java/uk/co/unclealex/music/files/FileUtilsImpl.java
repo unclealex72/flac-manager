@@ -30,12 +30,14 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.SortedSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Sets;
 
 /**
  * The default implementation of {@link FileUtils}.
@@ -93,7 +95,7 @@ public class FileUtilsImpl implements FileUtils {
 	@Override
 	public String filenameWithoutSuffix(Path path) {
 		String filename = path.getFileName().toString();
-		int dotPos = filename.indexOf('.');
+		int dotPos = filename.lastIndexOf('.');
 		return dotPos < 0?filename:filename.substring(0, dotPos);
 	}
 	
@@ -137,14 +139,29 @@ public class FileUtilsImpl implements FileUtils {
 	}
 	
 	@Override
-	public void cleanIfEmpty(Path topLevelPath, Path directory) throws IOException {
+	public void cleanIfEmpty(Path topLevelPath, Path directory, Predicate<Path> preservePathPredicate) throws IOException {
 		if (topLevelPath.equals(directory) || !Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS)) {
 			return;
 		}
 		try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory)) {
-			if (!directoryStream.iterator().hasNext()) {
+			boolean empty = true;
+			SortedSet<Path> nonPreservedPathsToRemove = Sets.newTreeSet();
+			for (Path path : directoryStream) {
+				if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS) || preservePathPredicate.apply(path)) {
+					empty = false;
+				}
+				else {
+					nonPreservedPathsToRemove.add(path);
+				}
+			}
+			if (empty) {
+				for (Path nonPreservedPathToRemove : nonPreservedPathsToRemove) {
+					log.info("Removing non preserved file " + nonPreservedPathToRemove);
+					Files.delete(nonPreservedPathToRemove);
+				}
+				log.info("Removing empty directory " + directory);
 				Files.delete(directory);
-				cleanIfEmpty(topLevelPath, directory.getParent());
+				cleanIfEmpty(topLevelPath, directory.getParent(), preservePathPredicate);
 			}
 		}
 	}
