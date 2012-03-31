@@ -32,6 +32,12 @@ package uk.co.unclealex.music.common;
 public interface MusicType extends Comparable<MusicType> {
 
 	/**
+	 * Get the file extension for this music type.
+	 * @return The file extension for this music type.
+	 */
+	public String getExtension();
+	
+	/**
 	 * Accept a {@link MusicTypeVisitor}.
 	 * @param musicTypeVisitor The {@link MusicTypeVisitor} to accept.
 	 */

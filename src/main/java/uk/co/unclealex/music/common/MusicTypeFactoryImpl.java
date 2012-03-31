@@ -25,7 +25,6 @@
 package uk.co.unclealex.music.common;
 
 import com.google.common.base.Function;
-import com.google.common.base.Functions;
 
 /**
  * The default implementation of {@link MusicTypeFactory}.
@@ -87,46 +86,45 @@ public class MusicTypeFactoryImpl implements MusicTypeFactory {
 		}
 	}
 
-	abstract class AbstractMusicType<C extends MusicType> implements MusicType {
+	abstract class AbstractMusicType {
 
-		private final Class<C> interfaceClass;
-
-		public AbstractMusicType(Class<C> interfaceClass) {
+		/**
+		 * The file extension for this music type.
+		 */
+		private String extension;
+		
+		public AbstractMusicType(String extension) {
 			super();
-			this.interfaceClass = interfaceClass;
+			this.extension = extension;
 		}
 
 		@Override
 		public int hashCode() {
-			return getInterfaceClass().hashCode();
+			return getExtension().hashCode();
 		}
 
-		@Override
 		public boolean equals(Object obj) {
-			return Equals.isEqual(MusicType.class, this, obj);
+			return obj != null && getExtension().equals(((MusicType) obj).getExtension());
 		}
 
-		@Override
 		public int compareTo(MusicType o) {
-			Function<MusicType, String> f = Functions.compose(Functions.toStringFunction(), new CompareFunction());
-			return f.apply(this).compareTo(f.apply(o));
+			return getExtension().compareTo(o.getExtension());
 		}
 
 		@Override
 		public String toString() {
-			return getInterfaceClass().toString();
+			return getExtension();
 		}
 		
-		public Class<C> getInterfaceClass() {
-			return interfaceClass;
+		public String getExtension() {
+			return extension;
 		}
-
 	}
 
-	class FlacTypeImpl extends AbstractMusicType<FlacType> implements FlacType {
+	class FlacTypeImpl extends AbstractMusicType implements FlacType {
 
 		public FlacTypeImpl() {
-			super(FlacType.class);
+			super("flac");
 		}
 
 		/**
@@ -134,14 +132,14 @@ public class MusicTypeFactoryImpl implements MusicTypeFactory {
 		 */
 		@Override
 		public void accept(MusicTypeVisitor musicTypeVisitor) {
-			musicTypeVisitor.visit((FlacType) this);
+			musicTypeVisitor.visit(this);
 		}
 	}
 
-	class OggTypeImpl extends AbstractMusicType<OggType> implements OggType {
+	class OggTypeImpl extends AbstractMusicType implements OggType {
 
 		public OggTypeImpl() {
-			super(OggType.class);
+			super("ogg");
 		}
 
 		/**
@@ -149,14 +147,14 @@ public class MusicTypeFactoryImpl implements MusicTypeFactory {
 		 */
 		@Override
 		public void accept(MusicTypeVisitor musicTypeVisitor) {
-			musicTypeVisitor.visit((OggType) this);
+			musicTypeVisitor.visit(this);
 		}
 	}
 	
-	class Mp3TypeImpl extends AbstractMusicType<Mp3Type> implements Mp3Type {
+	class Mp3TypeImpl extends AbstractMusicType implements Mp3Type {
 
 		public Mp3TypeImpl() {
-			super(Mp3Type.class);
+			super("mp3");
 		}
 
 		/**
@@ -164,7 +162,7 @@ public class MusicTypeFactoryImpl implements MusicTypeFactory {
 		 */
 		@Override
 		public void accept(MusicTypeVisitor musicTypeVisitor) {
-			musicTypeVisitor.visit((Mp3Type) this);
+			musicTypeVisitor.visit(this);
 		}
 	}
 
