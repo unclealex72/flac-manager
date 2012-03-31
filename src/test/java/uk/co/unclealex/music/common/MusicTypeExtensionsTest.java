@@ -32,7 +32,7 @@ import org.junit.Test;
  * @author alex
  *
  */
-public class ExtensionFactoryImplTest {
+public class MusicTypeExtensionsTest {
 
 	@Test
 	public void testFlac() {
@@ -69,8 +69,7 @@ public class ExtensionFactoryImplTest {
 		public Tester(String expectedExtension) {
 			MusicTypeFactory musicTypeFactory = new MusicTypeFactoryImpl();
 			MusicType musicType = createMusicType(musicTypeFactory);
-			ExtensionFactory extensionFactory = new ExtensionFactoryImpl();
-			String actualExtension = extensionFactory.getExtensionForMusicType(musicType);
+			String actualExtension = musicType.getExtension();
 			Assert.assertEquals("The wrong extension was returned.", expectedExtension, actualExtension);
 		}
 		

@@ -36,7 +36,6 @@ import java.util.SortedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.co.unclealex.music.common.ExtensionFactory;
 import uk.co.unclealex.music.common.MusicTrack;
 import uk.co.unclealex.music.common.MusicType;
 import uk.co.unclealex.music.common.Normaliser;
@@ -81,8 +80,6 @@ public abstract class AbstractFileSystemRepository implements ReadableRepository
 	 */
 	private final FilenameService filenameService;
 
-	private final ExtensionFactory extensionFactory;
-
 	/**
 	 * True if the first directory should be the first letter of the artist, false
 	 * otherwise.
@@ -91,10 +88,9 @@ public abstract class AbstractFileSystemRepository implements ReadableRepository
 
 	private final BiMap<MusicTrack, Path> pathsByMusicTrack = HashBiMap.create();
 
-	protected AbstractFileSystemRepository(FilenameService filenameService, ExtensionFactory extensionFactory,
+	protected AbstractFileSystemRepository(FilenameService filenameService,
 			FileUtils fileUtils, Path basePath, boolean precedePathsWithFirstLetterOfArtist, MusicType readableMusicType) {
 		super();
-		this.extensionFactory = extensionFactory;
 		this.filenameService = filenameService;
 		this.fileUtils = fileUtils;
 		this.basePath = basePath;
@@ -108,7 +104,7 @@ public abstract class AbstractFileSystemRepository implements ReadableRepository
 	 * @throws IOException
 	 */
 	public void initialise() throws IOException {
-		String extension = getExtensionFactory().getExtensionForMusicType(getReadableMusicType());
+		String extension = getReadableMusicType().getExtension();
 		final Predicate<Path> isMusicTrackPredicate = getFileUtils().createFileHasExtensionPredicate(extension);
 		FileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
 			@Override
@@ -223,9 +219,10 @@ public abstract class AbstractFileSystemRepository implements ReadableRepository
 	}
 
 	protected Predicate<Path> createPathIsOfTypePredicate(MusicType musicType) {
-		String extension = getExtensionFactory().getExtensionForMusicType(musicType);
+		String extension = musicType.getExtension();
 		return getFileUtils().createFileHasExtensionPredicate(extension);
 	}
+	
 	/**
 	 * @return the basePath
 	 */
@@ -263,12 +260,5 @@ public abstract class AbstractFileSystemRepository implements ReadableRepository
 	 */
 	public boolean isPrecedePathsWithFirstLetterOfArtist() {
 		return precedePathsWithFirstLetterOfArtist;
-	}
-
-	/**
-	 * @return the extensionFactory
-	 */
-	public ExtensionFactory getExtensionFactory() {
-		return extensionFactory;
 	}
 }

@@ -30,7 +30,6 @@ import java.nio.file.Path;
 import org.junit.Assert;
 import org.junit.Test;
 
-import uk.co.unclealex.music.common.ExtensionFactoryImpl;
 import uk.co.unclealex.music.common.MusicTrack;
 import uk.co.unclealex.music.common.MusicType;
 import uk.co.unclealex.music.common.MusicTypeFactory;
@@ -125,6 +124,6 @@ public class FilenameServiceImplTest {
 	}
 
 	protected FilenameService createFilenameService() {
-		return new FilenameServiceImpl(new FileUtilsImpl(), new ExtensionFactoryImpl());
+		return new FilenameServiceImpl(new FileUtilsImpl());
 	}
 }

@@ -26,7 +26,6 @@ package uk.co.unclealex.music.files;
 
 import java.nio.file.Path;
 
-import uk.co.unclealex.music.common.ExtensionFactory;
 import uk.co.unclealex.music.common.MusicTrack;
 import uk.co.unclealex.music.common.MusicType;
 
@@ -38,12 +37,10 @@ import uk.co.unclealex.music.common.MusicType;
 public class FilenameServiceImpl implements FilenameService {
 
 	private final FileUtils fileUtils;
-	private final ExtensionFactory extensionFactory;
 	
-	public FilenameServiceImpl(FileUtils fileUtils, ExtensionFactory extensionFactory) {
+	public FilenameServiceImpl(FileUtils fileUtils) {
 		super();
 		this.fileUtils = fileUtils;
-		this.extensionFactory = extensionFactory;
 	}
 
 	/**
@@ -71,7 +68,7 @@ public class FilenameServiceImpl implements FilenameService {
 			String firstLetter = artistWithoutDefiniteArticle.substring(0, 1);
 			result = result.resolve(firstLetter);
 		}
-		String suffix = "." + getExtensionFactory().getExtensionForMusicType(musicType);
+		String suffix = "." + musicType.getExtension();
 		return result.resolve(artist).resolve(musicTrack.getAlbum()).resolve(musicTrack.getTrack() + suffix);
 	}
 
@@ -85,12 +82,4 @@ public class FilenameServiceImpl implements FilenameService {
 	public FileUtils getFileUtils() {
 		return fileUtils;
 	}
-
-	/**
-	 * @return the extensionFactory
-	 */
-	public ExtensionFactory getExtensionFactory() {
-		return extensionFactory;
-	}
-
 }
