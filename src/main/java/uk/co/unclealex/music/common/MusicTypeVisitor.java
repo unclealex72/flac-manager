@@ -29,35 +29,35 @@ package uk.co.unclealex.music.common;
  * @author alex
  *
  */
-public interface MusicTypeVisitor {
+public interface MusicTypeVisitor<E> {
 
 	/**
 	 * Visit a {@link MusicType}.
 	 * @param musicType The {@link MusicType} to visit.
 	 */
-	public void visit(MusicType musicType);
+	public E visit(MusicType musicType);
 	
 	/**
 	 * Visit a {@link FlacType}.
 	 * @param flacType The {@link FlacType} to visit.
 	 */
-	public void visit(FlacType flacType);
+	public E visit(FlacType flacType);
 
 	/**
 	 * Visit an {@link OggType}.
 	 * @param oggType The {@link OggType} to visit.
 	 */
-	public void visit(OggType oggType);
+	public E visit(OggType oggType);
 
 	/**
 	 * Visit a {@link Mp3Type}.
 	 * @param mp3Type The {@link Mp3Type} to visit.
 	 */
-	public void visit(Mp3Type mp3Type);
+	public E visit(Mp3Type mp3Type);
 	
-	public abstract class Default implements MusicTypeVisitor {
+	public abstract class Default<E> implements MusicTypeVisitor<E> {
 		
-		public final void visit(MusicType musicType) {
+		public final E visit(MusicType musicType) {
 			throw new IllegalArgumentException(musicType.getClass() + " is not a valid music type.");
 		}
 	}

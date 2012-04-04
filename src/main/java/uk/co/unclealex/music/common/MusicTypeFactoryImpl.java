@@ -62,27 +62,24 @@ public class MusicTypeFactoryImpl implements MusicTypeFactory {
 
 		@Override
 		public Class<? extends MusicType> apply(MusicType musicType) {
-			class Visitor extends MusicTypeVisitor.Default {
-				Class<? extends MusicType> interfaceClass;
-
+			class Visitor extends MusicTypeVisitor.Default<Class<? extends MusicType>> {
 				@Override
-				public void visit(FlacType flacType) {
-					interfaceClass = FlacType.class;
+				public Class<? extends MusicType> visit(FlacType flacType) {
+					return FlacType.class;
 				}
 
 				@Override
-				public void visit(OggType oggType) {
-					interfaceClass = OggType.class;
+				public Class<? extends MusicType> visit(OggType oggType) {
+					return OggType.class;
 				}
 
 				@Override
-				public void visit(Mp3Type mp3Type) {
-					interfaceClass = Mp3Type.class;
+				public Class<? extends MusicType> visit(Mp3Type mp3Type) {
+					return Mp3Type.class;
 				}
 			}
 			Visitor visitor = new Visitor();
-			musicType.accept(visitor);
-			return visitor.interfaceClass;
+			return musicType.accept(visitor);
 		}
 	}
 
@@ -131,8 +128,8 @@ public class MusicTypeFactoryImpl implements MusicTypeFactory {
 		 * {@inheritDoc}
 		 */
 		@Override
-		public void accept(MusicTypeVisitor musicTypeVisitor) {
-			musicTypeVisitor.visit(this);
+		public <E> E accept(MusicTypeVisitor<E> musicTypeVisitor) {
+			return musicTypeVisitor.visit(this);
 		}
 	}
 
@@ -146,8 +143,8 @@ public class MusicTypeFactoryImpl implements MusicTypeFactory {
 		 * {@inheritDoc}
 		 */
 		@Override
-		public void accept(MusicTypeVisitor musicTypeVisitor) {
-			musicTypeVisitor.visit(this);
+		public <E> E accept(MusicTypeVisitor<E> musicTypeVisitor) {
+			return musicTypeVisitor.visit(this);
 		}
 	}
 	
@@ -161,8 +158,8 @@ public class MusicTypeFactoryImpl implements MusicTypeFactory {
 		 * {@inheritDoc}
 		 */
 		@Override
-		public void accept(MusicTypeVisitor musicTypeVisitor) {
-			musicTypeVisitor.visit(this);
+		public <E> E accept(MusicTypeVisitor<E> musicTypeVisitor) {
+			return musicTypeVisitor.visit(this);
 		}
 	}
 

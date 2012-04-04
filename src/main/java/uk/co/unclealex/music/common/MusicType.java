@@ -41,5 +41,5 @@ public interface MusicType extends Comparable<MusicType> {
 	 * Accept a {@link MusicTypeVisitor}.
 	 * @param musicTypeVisitor The {@link MusicTypeVisitor} to accept.
 	 */
-	public void accept(MusicTypeVisitor musicTypeVisitor);
+	public <E> E accept(MusicTypeVisitor<E> musicTypeVisitor);
 }
