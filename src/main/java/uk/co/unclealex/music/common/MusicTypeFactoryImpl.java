@@ -101,7 +101,7 @@ public class MusicTypeFactoryImpl implements MusicTypeFactory {
 		}
 
 		public boolean equals(Object obj) {
-			return obj != null && getExtension().equals(((MusicType) obj).getExtension());
+			return (obj instanceof MusicType) && getExtension().equals(((MusicType) obj).getExtension());
 		}
 
 		public int compareTo(MusicType o) {
