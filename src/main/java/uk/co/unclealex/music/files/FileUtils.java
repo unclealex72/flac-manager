@@ -24,12 +24,8 @@
 
 package uk.co.unclealex.music.files;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
-
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 
 /**
  * Utilities for manipulating files and directories in ways not directly
@@ -40,101 +36,36 @@ import com.google.common.base.Predicate;
  */
 public interface FileUtils {
 
-	/**
-	 * Create a {@link Function} that returns the update time of a {@link Path}.
-	 * The update time of a symbolic link is the time the symbolic link itself was
-	 * updated.
-	 * 
-	 * @return A {@link Function} that returns the update time of a {@link Path}.
-	 */
-	public Function<Path, Long> createUpdateTimeFunction();
+  /**
+   * Alter a file and its parent directories that that they are either writeable
+   * or not.
+   * 
+   * @param basePath
+   *          The limiting base path such that its parents will not be
+   *          traversed.
+   * @param relativePath
+   *          The path, relative to the base path that will be made writeable or
+   *          not.
+   * @param allowWrites
+   *          True if files and directories should be made writeable, false if
+   *          not.
+   * @throws IOException
+   */
+  public void alterWriteable(Path basePath, Path relativePath, boolean allowWrites) throws IOException;
 
-	/**
-	 * Create a {@link Predicate} that returns true if and only if a {@link Path}
-	 * has the supplied extension.
-	 * 
-	 * @param extension
-	 *          The extension to check for.
-	 * @return A {@link Predicate} that returns true if and only if a {@link Path}
-	 *         has the supplied extension.
-	 */
-	public Predicate<Path> createFileHasExtensionPredicate(String extension);
-
-	/**
-	 * Turn an extension into a filesuffix.
-	 * 
-	 * @param extension
-	 *          The extension in question.
-	 * @return The extension as a suffix. That is, the extension preceded by a
-	 *         dot.
-	 */
-	public String createFileSuffix(String extension);
-
-	/**
-	 * Remove a directory if it is empty (i.e. it has no paths that are to be
-	 * preserved). If this then means the parent directory is then empty, clean
-	 * that, too, until a top level directory is reached.
-	 * 
-	 * @param topLevelPath
-	 *          The top level path that should not be deleted.
-	 * @param directory
-	 *          The directory to delete if it is empty.
-	 * @param preservePathPredicate
-	 *          A predicate that returns true if a path should not be deleted by
-	 *          this method or false otherwise.
-	 * @throws IOException
-	 */
-	public void cleanIfEmpty(Path topLevelPath, Path directory, Predicate<Path> preservePathPredicate) throws IOException;
-
-	/**
-	 * Deletes a file. If file is a directory, delete it and all sub-directories.
-	 * <p>
-	 * The difference between File.delete() and this method are:
-	 * <ul>
-	 * <li>A directory to be deleted does not have to be empty.</li>
-	 * <li>You get exceptions when a file or directory cannot be deleted.
-	 * (java.io.File methods returns a boolean)</li>
-	 * </ul>
-	 * 
-	 * @param path
-	 *          file or directory to delete, must not be <code>null</code>
-	 * @throws NullPointerException
-	 *           if the directory is <code>null</code>
-	 * @throws FileNotFoundException
-	 *           if the file was not found
-	 * @throws IOException
-	 *           in case deletion is unsuccessful
-	 */
-	public void forceDelete(Path path) throws IOException;
-
-	/**
-	 * Cleans a directory without deleting it.
-	 * 
-	 * @param directory
-	 *          directory to clean
-	 * @throws IOException
-	 *           in case cleaning is unsuccessful
-	 */
-	public void cleanDirectory(Path directory) throws IOException;
-
-	/**
-	 * Deletes a directory recursively.
-	 * 
-	 * @param directory
-	 *          directory to delete
-	 * @throws IOException
-	 *           in case deletion is unsuccessful
-	 */
-	public void deleteDirectory(Path directory) throws IOException;
-
-	/**
-	 * Return a file's base name. That, is the filename of the file without the
-	 * file's suffix.
-	 * 
-	 * @param path
-	 *          The path whose base name will be returned.
-	 * @return The file's base name.
-	 */
-	public String filenameWithoutSuffix(Path path);
+  /**
+   * Move a path from a source directory to a target directory using an atomic file system move, creating any
+   * required directories. Any directories left empty in the source base path
+   * due to the move operation will be removed.
+   * 
+   * @param sourceBasePath
+   *          The source path.
+   * @param relativePath
+   *          The path, relative to the source base path, to move.
+   * @param targetBasePath
+   *          The path where directories will be created and the file moved to.
+   * @throws IOException
+   */
+  public void move(Path sourceBasePath, Path relativePath, Path targetBasePath) throws IOException;
 
 }

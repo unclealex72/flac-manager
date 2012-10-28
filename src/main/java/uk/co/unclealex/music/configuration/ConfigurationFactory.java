@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 Alex Jones
+ * Copyright 2012 Alex Jones
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,36 +22,28 @@
  *
  */
 
-package uk.co.unclealex.music.files;
+package uk.co.unclealex.music.configuration;
 
-import java.nio.file.Path;
-
-import uk.co.unclealex.music.common.MusicFile;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * 
- * A service for translating between file names and {@link MusicTrack}s.
+ * An interface for classes that can load {@link Configuration} objects from a
+ * stream.
  * 
  * @author alex
  * 
  */
-public interface FilenameService {
+public interface ConfigurationFactory {
 
   /**
-   * Convert a {@link MusicFile} into a relative path. The path will in the
-   * following format:
+   * Load a {@link Configuration} object.
    * 
-   * <code>firstLetterOfSortedAlbumArtist/sortedAlbumArtist/album (diskNumber)/trackNumber title.ext
-   * </code>
-   * 
-   * Track and disk numbers will always have two digits. Disk numbers are only
-   * included if they are greater than 1.
-   * @param musicFile
-   *          The {@link MusicFile} used a
-   * @param extension
-   *          The file extension to append to the end of the path.
-   * 
-   * @return A path representing the supplied {@link MusicFile}.
+   * @param in
+   *          The stream to read.
+   * @return A {@link Configuration} object based on the data in the given
+   *         stream.
+   * @throws IOException 
    */
-  public Path toPath(MusicFile musicFile, String extension);
+  public Configuration load(InputStream in) throws IOException;
 }

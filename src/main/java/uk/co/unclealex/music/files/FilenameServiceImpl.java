@@ -25,61 +25,48 @@
 package uk.co.unclealex.music.files;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.Normalizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import uk.co.unclealex.music.common.MusicTrack;
-import uk.co.unclealex.music.common.MusicType;
+import uk.co.unclealex.music.common.MusicFile;
 
 /**
  * The default implementation of {@link FilenameService}.
+ * 
  * @author alex
- *
+ * 
  */
 public class FilenameServiceImpl implements FilenameService {
 
-	private final FileUtils fileUtils;
-	
-	public FilenameServiceImpl(FileUtils fileUtils) {
-		super();
-		this.fileUtils = fileUtils;
-	}
+  /**
+   * {@inheritDoc} firstLetterOfSortedAlbumArtist/sortedAlbumArtist/album
+   * (diskNumber)/trackNumber title.ext
+   */
+  @Override
+  public Path toPath(MusicFile musicFile, String extension) {
+    String albumArtistSort = musicFile.getAlbumArtistSort();
+    String firstLetter = albumArtistSort.substring(0, 1);
+    StringBuilder album = new StringBuilder(musicFile.getAlbum());
+    int totalDiscs = musicFile.getTotalDiscs().intValue();
+    if (totalDiscs != 1) {
+      album.append(String.format(" %02d", totalDiscs));
+    }
+    String title = String.format("%02d %s", musicFile.getTrackNumber(), musicFile.getTitle());
+    return Paths.get(normalise(firstLetter), normalise(albumArtistSort), normalise(album), normalise(title) + "." + extension);
+  }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public MusicTrack toMusicTrack(Path path) {
-		String track = getFileUtils().filenameWithoutSuffix(path);
-		int pos = path.getNameCount() - 2;
-		String album = path.getName(pos).toString();
-		String artist = path.getName(pos - 1).toString();
-		MusicTrack musicTrack = new MusicTrack(artist, album, track);
-		return musicTrack;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Path toPath(Path basePath, MusicTrack musicTrack, MusicType musicType, boolean precedeWithFirstLetter) {
-		Path result = basePath;
-		String artist = musicTrack.getArtist();
-		if (precedeWithFirstLetter) {
-			String artistWithoutDefiniteArticle = removeDefiniteArticle(artist);
-			String firstLetter = artistWithoutDefiniteArticle.substring(0, 1);
-			result = result.resolve(firstLetter);
-		}
-		String suffix = "." + musicType.getExtension();
-		return result.resolve(artist).resolve(musicTrack.getAlbum()).resolve(musicTrack.getTrack() + suffix);
-	}
-
-	protected String removeDefiniteArticle(String artist) {
-		return artist.toLowerCase().startsWith("the ")?artist.substring(4):artist;
-	}
-	
-	/**
-	 * @return the fileUtils
-	 */
-	public FileUtils getFileUtils() {
-		return fileUtils;
-	}
+  protected String normalise(CharSequence charSequence) {
+    String nfdNormalizedString = Normalizer.normalize(charSequence, Normalizer.Form.NFD);
+    Pattern accentPattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+    String nonAccentedString = accentPattern.matcher(nfdNormalizedString).replaceAll("");
+    Pattern validCharactersPattern = Pattern.compile("(?:[a-zA-Z0-9]|\\s)+");
+    StringBuilder normalisedSequence = new StringBuilder();
+    Matcher m = validCharactersPattern.matcher(nonAccentedString);
+    while (m.find()) {
+      normalisedSequence.append(m.group());
+    }
+    return normalisedSequence.toString().replaceAll("\\s+", " ");
+  }
 }

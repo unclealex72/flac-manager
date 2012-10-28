@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 Alex Jones
+ * Copyright 2012 Alex Jones
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,36 +22,21 @@
  *
  */
 
-package uk.co.unclealex.music.files;
+package uk.co.unclealex.music.configuration;
 
 import java.nio.file.Path;
 
-import uk.co.unclealex.music.common.MusicFile;
-
 /**
- * 
- * A service for translating between file names and {@link MusicTrack}s.
- * 
  * @author alex
- * 
+ *
  */
-public interface FilenameService {
+public interface FileSystemDevice extends Device {
 
   /**
-   * Convert a {@link MusicFile} into a relative path. The path will in the
-   * following format:
-   * 
-   * <code>firstLetterOfSortedAlbumArtist/sortedAlbumArtist/album (diskNumber)/trackNumber title.ext
-   * </code>
-   * 
-   * Track and disk numbers will always have two digits. Disk numbers are only
-   * included if they are greater than 1.
-   * @param musicFile
-   *          The {@link MusicFile} used a
-   * @param extension
-   *          The file extension to append to the end of the path.
-   * 
-   * @return A path representing the supplied {@link MusicFile}.
+   * Gets the path, relative to the mount pount, where music is stored, or null if music is stored at the root level.
+   *
+   * @return the path, relative to the mount pount, where music is stored, or null if music is stored at the root level
    */
-  public Path toPath(MusicFile musicFile, String extension);
+  public Path getRelativeMusicPath();
+
 }

@@ -22,18 +22,13 @@
  *
  */
 
-package uk.co.unclealex.music.legacy;
+package uk.co.unclealex.music.configuration;
 
-import uk.co.unclealex.music.legacy.sync.MountPointFinder;
+/**
+ * A interface to represent an MTP {@link Device}.
+ * @author alex
+ *
+ */
+public interface MtpDevice extends Device {
 
-public class IpodDevice extends AbstractFileSystemDevice {
-
-	public IpodDevice(String name, String owner, Encoding encoding, MountPointFinder mountPointFinder) {
-		super(name, owner, encoding, mountPointFinder, null, true);
-	}
-
-	@Override
-	public <R> R accept(DeviceVisitor<R> deviceVisitor) {
-		return deviceVisitor.visit(this);
-	}
 }

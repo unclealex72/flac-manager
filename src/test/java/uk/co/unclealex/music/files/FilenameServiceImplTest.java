@@ -24,16 +24,15 @@
 
 package uk.co.unclealex.music.files;
 
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
-import org.junit.Assert;
+import junit.framework.Assert;
+
 import org.junit.Test;
 
-import uk.co.unclealex.music.common.MusicTrack;
-import uk.co.unclealex.music.common.MusicType;
-import uk.co.unclealex.music.common.MusicTypeFactory;
-import uk.co.unclealex.music.common.MusicTypeFactoryImpl;
+import uk.co.unclealex.music.common.MusicFile;
+import uk.co.unclealex.music.common.MusicFileBean;
 
 /**
  * @author alex
@@ -41,89 +40,27 @@ import uk.co.unclealex.music.common.MusicTypeFactoryImpl;
  */
 public class FilenameServiceImplTest {
 
-	@Test
-	public void testMp3ToMusicTrack() {
-		testToMusicTrack(
-				FileSystems.getDefault().getPath("mnt", "multimedia", "mp3", "Queen", "A Night at the Opera",
-						"01 - Death on Two Legs.mp3"), "Queen", "A Night at the Opera", "01 - Death on Two Legs");
-	}
+  @Test
+  public void testSingleDisc() {
+    runTest("Mötörhead", "Good - Stuff", 1, 1, 2, "The Ace of Spades", "flac",
+        Paths.get("M", "Motorhead", "Good Stuff", "02 The Ace of Spades.flac"));
+  }
 
-	@Test
-	public void testOggToMusicTrack() {
-		testToMusicTrack(
-				FileSystems.getDefault().getPath("mnt", "multimedia", "ogg", "Slayer", "Reign in Blood",
-						"02 - Piece by Piece.ogg"), "Slayer", "Reign in Blood", "02 - Piece by Piece");
-	}
-
-	@Test
-	public void testFlacToMusicTrack() {
-		testToMusicTrack(
-				FileSystems.getDefault().getPath("mnt", "multimedia", "flac", "Metallica", "Master of Puppets",
-						"05 - Disposable Heroes.flac"), "Metallica", "Master of Puppets", "05 - Disposable Heroes");
-	}
-
-	@Test
-	public void testFlacToPath() {
-		new TestToPath("Queen", "A Night at the Opera", "01 - Death on Two Legs", false, "Queen", "A Night at the Opera",
-				"01 - Death on Two Legs.flac") {
-
-			@Override
-			MusicType createMusicType(MusicTypeFactory musicTypeFactory) {
-				return musicTypeFactory.createFlacType();
-			}
-		};
-	}
-
-	@Test
-	public void testMp3ToPath() {
-		new TestToPath("The Stranglers", "The Singles (The UA Years)", "04 - Something Better Change", true, "S",
-				"The Stranglers", "The Singles (The UA Years)", "04 - Something Better Change.mp3") {
-
-			@Override
-			MusicType createMusicType(MusicTypeFactory musicTypeFactory) {
-				return musicTypeFactory.createMp3Type();
-			}
-		};
-	}
-
-	@Test
-	public void testOggToPath() {
-		new TestToPath("Slayer", "Reign in Blood", "03 - Necrophobic", true, "S",
-				"Slayer", "Reign in Blood", "03 - Necrophobic.ogg") {
-
-			@Override
-			MusicType createMusicType(MusicTypeFactory musicTypeFactory) {
-				return musicTypeFactory.createOggType();
-			}
-		};
-	}
-
-	abstract class TestToPath {
-		public TestToPath(String artist, String album, String track, boolean precedeWithFirstLetter,
-				String... expectedComponents) {
-			super();
-			Path basePath = FileSystems.getDefault().getPath("repository");
-			MusicTypeFactory musicTypeFactory = new MusicTypeFactoryImpl();
-			MusicType musicType = createMusicType(musicTypeFactory);
-			Path actualPath = createFilenameService().toPath(basePath, new MusicTrack(artist, album, track), musicType,
-					precedeWithFirstLetter);
-			Path expectedPath = basePath;
-			for (String expectedComponent : expectedComponents) {
-				expectedPath = expectedPath.resolve(expectedComponent);
-			}
-			Assert.assertEquals("The wrong path was returned.", expectedPath, actualPath);
-		}
-
-		abstract MusicType createMusicType(MusicTypeFactory musicTypeFactory);
-	}
-
-	public void testToMusicTrack(Path path, String expectedArtist, String expectedAlbum, String expectedTrack) {
-		MusicTrack actualMusicTrack = createFilenameService().toMusicTrack(path);
-		MusicTrack expectedMusicTrack = new MusicTrack(expectedArtist, expectedAlbum, expectedTrack);
-		Assert.assertEquals("The wrong music track was returned.", expectedMusicTrack, actualMusicTrack);
-	}
-
-	protected FilenameService createFilenameService() {
-		return new FilenameServiceImpl(new FileUtilsImpl());
-	}
+  @Test
+  public void testMultipleDiscs() {
+    runTest("Mötörhead", "Good - Stuff", 2, 2, 2, "The Ace of Spades", "flac",
+        Paths.get("M", "Motorhead", "Good Stuff 02", "02 The Ace of Spades.flac"));
+  }
+  
+  protected void runTest(String albumArtistSort, String album, int discNumber, int totalDiscs, int trackNumber, String title, String extension, Path expectedPath) {
+    MusicFile musicFile = new MusicFileBean();
+    musicFile.setAlbumArtistSort(albumArtistSort);
+    musicFile.setAlbum(album);
+    musicFile.setDiscNumber(discNumber);
+    musicFile.setTotalDiscs(totalDiscs);
+    musicFile.setTrackNumber(trackNumber);
+    musicFile.setTitle(title);
+    Path actualPath = new FilenameServiceImpl().toPath(musicFile, extension);
+    Assert.assertEquals("The wrong path was generated.", expectedPath, actualPath);
+  }
 }

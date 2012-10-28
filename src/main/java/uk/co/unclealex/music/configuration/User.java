@@ -22,18 +22,37 @@
  *
  */
 
-package uk.co.unclealex.music.legacy;
+package uk.co.unclealex.music.configuration;
 
-import uk.co.unclealex.music.legacy.sync.MountPointFinder;
+import java.util.List;
 
-public class IpodDevice extends AbstractFileSystemDevice {
+/**
+ * A configuration item for a user. Users must also have a MusicBrainz login and can own
+ * a number of {@link Device}s.
+ * @author alex
+ *
+ */
+public interface User {
 
-	public IpodDevice(String name, String owner, Encoding encoding, MountPointFinder mountPointFinder) {
-		super(name, owner, encoding, mountPointFinder, null, true);
-	}
+  /**
+   * Gets the MusicBrainz user name for this user.
+   *
+   * @return the MusicBrainz user name for this user
+   */
+  public abstract String getUserName();
 
-	@Override
-	public <R> R accept(DeviceVisitor<R> deviceVisitor) {
-		return deviceVisitor.visit(this);
-	}
+  /**
+   * Gets the MusicBrainz password for this user.
+   *
+   * @return the MusicBrainz password for this user
+   */
+  public abstract String getPassword();
+
+  /**
+   * Gets the {@link Device}s owned by this user.
+   *
+   * @return the {@link Device}s owned by this user
+   */
+  public abstract List<Device> getDevices();
+
 }

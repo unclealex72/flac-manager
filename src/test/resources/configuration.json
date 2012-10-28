@@ -1,0 +1,24 @@
+{
+  "directories" : {
+    "flacPath" : "flacPath",
+    "devicesPath" : "devicesPath",
+    "encodedPath" : "encodedPath",
+    "stagingPath" : "stagingPath"
+  },
+  "users" : [ {
+    "userName" : "alex",
+    "password" : "pwd",
+    "devices" : [ {
+      "type" : "ipod",
+      "mountPoint" : "/media/IPOD"
+    }, {
+      "type" : "mtp",
+      "name" : "mtp device"
+    }, {
+      "type" : "hd",
+      "name" : "hd device",
+      "mountPoint" : "mountPoint",
+      "relativeMusicPath" : "music"
+    } ]
+  } ]
+}

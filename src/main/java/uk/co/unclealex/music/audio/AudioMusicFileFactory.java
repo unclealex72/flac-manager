@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 Alex Jones
+ * Copyright 2012 Alex Jones
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,36 +22,34 @@
  *
  */
 
-package uk.co.unclealex.music.files;
+package uk.co.unclealex.music.audio;
 
+import java.io.IOException;
 import java.nio.file.Path;
+
+import javax.validation.ConstraintViolationException;
 
 import uk.co.unclealex.music.common.MusicFile;
 
 /**
- * 
- * A service for translating between file names and {@link MusicTrack}s.
+ * An interface for classes that can load and validate {@link MusicFile}s from a
+ * file system.
  * 
  * @author alex
  * 
  */
-public interface FilenameService {
+public interface AudioMusicFileFactory {
 
   /**
-   * Convert a {@link MusicFile} into a relative path. The path will in the
-   * following format:
+   * Load a {@link MusicFile}.
    * 
-   * <code>firstLetterOfSortedAlbumArtist/sortedAlbumArtist/album (diskNumber)/trackNumber title.ext
-   * </code>
-   * 
-   * Track and disk numbers will always have two digits. Disk numbers are only
-   * included if they are greater than 1.
-   * @param musicFile
-   *          The {@link MusicFile} used a
-   * @param extension
-   *          The file extension to append to the end of the path.
-   * 
-   * @return A path representing the supplied {@link MusicFile}.
+   * @param musicFilePath
+   *          The location of the file.
+   * @return A {@link MusicFile} loaded from a path.
+   * @throws IOException
+   *           Thrown if the file cannot be read.
+   * @throws ConstraintViolationException
+   *           Thrown if the music file does not have all the required tags.
    */
-  public Path toPath(MusicFile musicFile, String extension);
+  public MusicFile load(Path musicFilePath) throws IOException, ConstraintViolationException;
 }
