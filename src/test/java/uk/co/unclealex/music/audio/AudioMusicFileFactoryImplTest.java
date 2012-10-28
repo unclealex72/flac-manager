@@ -24,8 +24,7 @@
 
 package uk.co.unclealex.music.audio;
 
-import static org.junit.Assert.fail;
-
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -33,14 +32,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-import junit.framework.Assert;
+import javax.validation.ConstraintViolationException;
+import javax.validation.constraints.NotNull;
 
+import org.hamcrest.Matchers;
+import org.hibernate.validator.constraints.NotEmpty;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import uk.co.unclealex.music.common.CoverArt;
 import uk.co.unclealex.music.common.MusicFile;
 import uk.co.unclealex.music.common.Validator;
+import uk.co.unclealex.music.violations.Violation;
+
+import com.google.common.io.ByteStreams;
 
 /**
  * @author alex
@@ -64,8 +71,75 @@ public class AudioMusicFileFactoryImplTest {
 
   @Test
   public void testUntagged() throws IOException {
-    MusicFile musicFile = load("untagged.flac");
-    Assert.fail("Booo!");
+    try {
+      load("untagged.flac");
+      Assert.fail("An invalid music file was not found to be invalid.");
+    }
+    catch (ConstraintViolationException e) {
+      Violation[] expectedViolations = new Violation[] {
+          Violation.expect(NotEmpty.class,"albumArtistSort"),
+          Violation.expect(NotNull.class,"totalDiscs"),
+          Violation.expect(NotEmpty.class,"albumId"),
+          Violation.expect(NotNull.class,"trackNumber"),
+          Violation.expect(NotEmpty.class,"title"),
+          Violation.expect(NotEmpty.class,"artistId"),
+          Violation.expect(NotEmpty.class,"albumArtist"),
+          Violation.expect(NotEmpty.class,"albumArtistId"),
+          Violation.expect(NotEmpty.class,"artist"),
+          Violation.expect(NotNull.class,"totalTracks"),
+          Violation.expect(NotEmpty.class,"trackId"),
+          Violation.expect(NotEmpty.class,"album"),
+          Violation.expect(NotEmpty.class,"artistSort"),
+          Violation.expect(NotNull.class,"discNumber")          
+      };
+      
+      Assert.assertThat(
+          "The wrong violations were reported.",
+          Violation.untypedViolations(e.getConstraintViolations()),
+          Matchers.containsInAnyOrder(expectedViolations));
+    }
+  }
+
+  @Test
+  public void testTagged() throws IOException {
+    MusicFile musicFile = load("tagged.flac");
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    try (InputStream in = getClass().getClassLoader().getResourceAsStream("cover.jpg")) {
+      ByteStreams.copy(in, out);
+    }
+    CoverArt expectedCoverArt = new CoverArt(out.toByteArray(), "image/jpeg");
+    Assert.assertEquals("The music file has the wrong album.", "Metal: A Headbanger's Companion", musicFile.getAlbum());
+    Assert.assertEquals("The music file has the wrong album artist.", "Various Artists", musicFile.getAlbumArtist());
+    Assert.assertEquals(
+        "The music file has the wrong album artist ID.",
+        "89ad4ac3-39f7-470e-963a-56509c546377",
+        musicFile.getAlbumArtistId());
+    Assert.assertEquals(
+        "The music file has the wrong album artist sort.",
+        "Various Artists Sort",
+        musicFile.getAlbumArtistSort());
+    Assert.assertEquals(
+        "The music file has the wrong album ID.",
+        "6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e",
+        musicFile.getAlbumId());
+    Assert.assertEquals("The music file has the wrong artist.", "Napalm Death", musicFile.getArtist());
+    Assert.assertEquals(
+        "The music file has the wrong artist ID.",
+        "ce7bba8b-026b-4aa6-bddb-f98ed6d595e4",
+        musicFile.getArtistId());
+    Assert.assertEquals("The music file has the wrong artist sort.", "Napalm Death Sort", musicFile.getArtistSort());
+    Assert.assertEquals("The music file has the wrong Amazon ID.", "B000Q66HUA", musicFile.getAsin());
+    Assert.assertEquals("The music file has the wrong title.", "Suffer The Children", musicFile.getTitle());
+    Assert.assertEquals(
+        "The music file has the wrong track ID.",
+        "5b0ef8e9-9b55-4a3e-aca6-d816d6bbc00f",
+        musicFile.getTrackId());
+    Assert.assertEquals("The music file has the wrong cover art.", expectedCoverArt, musicFile.getCoverArt());
+    Assert.assertEquals("The music file has the wrong disc number.", 1, musicFile.getDiscNumber().intValue());
+    Assert.assertEquals("The music file has the wrong number of discs.", 6, musicFile.getTotalDiscs().intValue());
+    Assert.assertEquals("The music file has the wrong number of tracks.", 17, musicFile.getTotalTracks().intValue());
+    Assert.assertEquals("The music file has the wrong track number.", 3, musicFile.getTrackNumber().intValue());
+
   }
 
   public MusicFile load(String resourceName) throws IOException {
