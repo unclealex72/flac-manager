@@ -31,27 +31,38 @@ import java.util.Set;
 import javax.validation.ConstraintViolation;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.validator.constraints.NotEmpty;
+
+import uk.co.unclealex.music.common.DataObject;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 
 /**
+ * The Class Violation.
+ *
  * @author alex
- * 
  */
-public class Violation {
+public class Violation extends DataObject {
 
+  /**
+   * The Class AnnotationHolder.
+   */
   static class AnnotationHolder {
+    
+    /** The dummy. */
     @NotNull
     @NotEmpty
     public transient String dummy;
   }
 
+  /**
+   * Expect.
+   *
+   * @param expectedAnnotation the expected annotation
+   * @param expectedPropertyPath the expected property path
+   * @return the violation
+   */
   public static Violation expect(Class<? extends Annotation> expectedAnnotation, String... expectedPropertyPath) {
     Annotation annotation;
     try {
@@ -70,10 +81,23 @@ public class Violation {
     }
   }
 
+  /**
+   * Actual.
+   *
+   * @param constraintViolation the constraint violation
+   * @return the violation
+   */
   public static Violation actual(ConstraintViolation<?> constraintViolation) {
     return new Violation(constraintViolation.getMessageTemplate(), constraintViolation.getPropertyPath().toString());
   }
 
+  /**
+   * Typed violations.
+   *
+   * @param <T> the generic type
+   * @param constraintViolations the constraint violations
+   * @return the sets the
+   */
   public static <T> Set<Violation> typedViolations(Set<ConstraintViolation<T>> constraintViolations) {
     Set<Violation> violations = Sets.newHashSet();
     for (ConstraintViolation<?> constraintViolation : constraintViolations) {
@@ -82,6 +106,12 @@ public class Violation {
     return violations;
   }
 
+  /**
+   * Untyped violations.
+   *
+   * @param constraintViolations the constraint violations
+   * @return the sets the
+   */
   public static Set<Violation> untypedViolations(Set<ConstraintViolation<?>> constraintViolations) {
     Set<Violation> violations = Sets.newHashSet();
     for (ConstraintViolation<?> constraintViolation : constraintViolations) {
@@ -100,6 +130,12 @@ public class Violation {
    */
   private final String messageTemplate;
 
+  /**
+   * Instantiates a new violation.
+   *
+   * @param messageTemplate the message template
+   * @param propertyPath the property path
+   */
   public Violation(String messageTemplate, String propertyPath) {
     super();
     this.propertyPath = propertyPath;
@@ -107,33 +143,19 @@ public class Violation {
   }
 
   /**
-   * {@inheritDoc}
+   * Gets the path of the property.
+   *
+   * @return the path of the property
    */
-  @Override
-  public String toString() {
-    return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int hashCode() {
-    return HashCodeBuilder.reflectionHashCode(this);
-  }
-  
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean equals(Object obj) {
-    return EqualsBuilder.reflectionEquals(this, obj);
-  }
-
   public String getPropertyPath() {
     return propertyPath;
   }
 
+  /**
+   * Gets the generated message template.
+   *
+   * @return the generated message template
+   */
   public String getMessageTemplate() {
     return messageTemplate;
   }

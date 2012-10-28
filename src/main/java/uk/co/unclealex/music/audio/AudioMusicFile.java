@@ -82,9 +82,21 @@ public class AudioMusicFile implements MusicFile {
    */
   private final AudioFile audioFile;
 
+  /**
+   * The {@link Path} that contains the audio file information.
+   */
+  private final Path audioPath;
+  
+  /**
+   * Instantiates a new audio music file.
+   *
+   * @param audioFile the audio file
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   public AudioMusicFile(Path audioFile) throws IOException {
     super();
     try {
+      this.audioPath = audioFile;
       this.audioFile = AudioFileIO.read(audioFile.toFile());
     }
     catch (IOException | CannotReadException | TagException | ReadOnlyFileException | InvalidAudioFrameException e) {
@@ -408,6 +420,12 @@ public class AudioMusicFile implements MusicFile {
     return Strings.isNullOrEmpty(value) ? null : Integer.valueOf(value);
   }
 
+  /**
+   * Sets the tag.
+   *
+   * @param fieldKey the field key
+   * @param value the value
+   */
   public void setTag(FieldKey fieldKey, Object value) {
     Tag tag = getTag();
     if (value == null) {
@@ -432,8 +450,22 @@ public class AudioMusicFile implements MusicFile {
     return getAudioFile().getTag();
   }
 
+  /**
+   * Gets the {@link AudioFile} that provides the tags for this music file.
+   *
+   * @return the {@link AudioFile} that provides the tags for this music file
+   */
   public AudioFile getAudioFile() {
     return audioFile;
+  }
+
+  /**
+   * Gets the {@link Path} that contains the audio file information.
+   *
+   * @return the {@link Path} that contains the audio file information
+   */
+  public Path getAudioPath() {
+    return audioPath;
   }
 
 }

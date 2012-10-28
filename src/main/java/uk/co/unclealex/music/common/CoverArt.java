@@ -24,10 +24,6 @@
 
 package uk.co.unclealex.music.common;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
@@ -35,7 +31,7 @@ import org.hibernate.validator.constraints.NotEmpty;
  * @author alex
  *
  */
-public class CoverArt {
+public class CoverArt extends DataObject {
 
   /**
    * The binary image data for the cover art.
@@ -58,30 +54,6 @@ public class CoverArt {
     super();
     this.imageData = imageData;
     this.mimeType = mimeType;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean equals(Object obj) {
-    return EqualsBuilder.reflectionEquals(this, obj);
-  }
-  
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int hashCode() {
-    return HashCodeBuilder.reflectionHashCode(this);
-  }
-  
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString() {
-    return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
   }
 
   /**

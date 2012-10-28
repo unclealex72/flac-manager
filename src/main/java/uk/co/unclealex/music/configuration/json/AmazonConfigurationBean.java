@@ -24,84 +24,76 @@
 
 package uk.co.unclealex.music.configuration.json;
 
-import java.util.List;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import org.hibernate.validator.constraints.NotEmpty;
-
-import uk.co.unclealex.music.common.DataObject;
-import uk.co.unclealex.music.configuration.Device;
-import uk.co.unclealex.music.configuration.User;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import uk.co.unclealex.music.common.DataObject;
+import uk.co.unclealex.music.configuration.AmazonConfiguration;
+
 /**
- * A bean version of {@link User}.
- * 
+ * An immutable properties based implementation of {@link AmazonConfiguration}.
  * @author alex
+ *
  */
-public class UserBean extends DataObject implements User {
+public class AmazonConfigurationBean extends DataObject implements AmazonConfiguration {
 
   /**
-   * 
-   * @param userName
-   * @param password
-   * @param devices
-   */
-  @JsonCreator
-  public UserBean(
-      @JsonProperty("userName") String userName,
-      @JsonProperty("password") String password,
-      @JsonProperty("devices") List<Device> devices) {
-    super();
-    this.userName = userName;
-    this.password = password;
-    this.devices = devices;
-  }
-
-  /**
-   * The MusicBrainz user name for this user.
-   */
-  @NotNull
-  private final String userName;
-
-  /**
-   * The MusicBrainz password for this user.
-   */
-  @NotNull
-  private final String password;
-
-  /**
-   * The {@link Device}s owned by this user.
+   * The endpoint URI used to talk to Amazon.
    */
   @NotEmpty
-  @Valid
-  private final List<Device> devices;
+  private final String endpoint;
 
   /**
-   * {@inheritDoc}
+   * The public key used to authenticate with Amazon.
    */
-  @Override
-  public String getUserName() {
-    return userName;
+  @NotEmpty
+  private final String accessKey;
+
+  /**
+   * The private key used to authenticate with Amazon.
+   */
+  @NotEmpty
+  private final String secretKey;
+
+  /**
+   * Instantiates a new amazon configuration bean.
+   *
+   * @param endpoint the aws endpoint
+   * @param accessKey the aws access key
+   * @param secretKey the aws secret key
+   */
+  @JsonCreator
+  public AmazonConfigurationBean(
+      @JsonProperty("endpoint") String endpoint, @JsonProperty("accessKey") String accessKey, 
+      @JsonProperty("secretKey") String secretKey) {
+    super();
+    this.endpoint = endpoint;
+    this.accessKey = accessKey;
+    this.secretKey = secretKey;
   }
 
   /**
    * {@inheritDoc}
    */
-  @Override
-  public String getPassword() {
-    return password;
+  public String getEndpoint() {
+    return endpoint;
   }
 
   /**
    * {@inheritDoc}
    */
-  @Override
-  public List<Device> getDevices() {
-    return devices;
+  public String getAccessKey() {
+    return accessKey;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getSecretKey() {
+    return secretKey;
+  }
+
+  
 }

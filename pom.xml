@@ -12,15 +12,34 @@
   <url>http://unclealex.co.uk</url>
   <properties>
     <executable-version>1.0.5</executable-version>
-    <slf4j-version>1.5.6</slf4j-version>
   </properties>
+
   <dependencies>
+
+    <dependency>
+        <groupId>uk.co.unclealex</groupId>
+        <artifactId>process-support</artifactId>
+        <version>2.0.0</version>
+    </dependency>
+    
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>13.0.1</version>
     </dependency>
 
+    <dependency>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>3.0</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>javax.inject</groupId>
+        <artifactId>javax.inject</artifactId>
+        <version>1</version>
+    </dependency>
+    
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-client</artifactId>
@@ -51,6 +70,12 @@
     </dependency>
 
     <dependency>
+        <groupId>org.jdom</groupId>
+        <artifactId>jdom</artifactId>
+        <version>2.0.2</version>
+    </dependency>
+    
+    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>0.9.26</version>
@@ -63,6 +88,12 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-all</artifactId>
+        <version>1.9.5</version>
+        <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>

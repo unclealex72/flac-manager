@@ -34,7 +34,7 @@ import java.io.IOException;
  * @author alex
  * 
  */
-public class MusicFileBean implements MusicFile {
+public class MusicFileBean extends DataObject implements MusicFile {
 
   /**
    * The string used to sort the artist for the album of this track.

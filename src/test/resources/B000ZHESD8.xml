@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ItemLookupResponse xmlns="http://webservices.amazon.com/AWSECommerceService/2011-08-01">
+  <OperationRequest>
+    <HTTPHeaders>
+      <Header Name="UserAgent" Value="Java/1.8.0-ea" />
+    </HTTPHeaders>
+    <RequestId>7e143896-9129-432d-b173-da86275b2729</RequestId>
+    <Arguments>
+      <Argument Name="Operation" Value="ItemLookup" />
+      <Argument Name="Service" Value="AWSECommerceService" />
+      <Argument Name="Signature" Value="hbnCp1NcyVcvO2JnO6k2j0c7UYOo944ZBQmemN0i9uE=" />
+      <Argument Name="AssociateTag" Value="dummy" />
+      <Argument Name="ItemId" Value="B000ZHESD8" />
+      <Argument Name="AWSAccessKeyId" Value="1GK0A6KVNQEFVH5Q1Z82" />
+      <Argument Name="Timestamp" Value="2012-10-28T18:18:58Z" />
+      <Argument Name="ResponseGroup" Value="Images" />
+    </Arguments>
+    <RequestProcessingTime>0.0903970000000000</RequestProcessingTime>
+  </OperationRequest>
+  <Items>
+    <Request>
+      <IsValid>True</IsValid>
+      <ItemLookupRequest>
+        <IdType>ASIN</IdType>
+        <ItemId>B000ZHESD8</ItemId>
+        <ResponseGroup>Images</ResponseGroup>
+        <VariationPage>All</VariationPage>
+      </ItemLookupRequest>
+    </Request>
+    <Item>
+      <ASIN>B000ZHESD8</ASIN>
+    </Item>
+  </Items>
+</ItemLookupResponse>

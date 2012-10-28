@@ -20,5 +20,10 @@
       "mountPoint" : "mountPoint",
       "relativeMusicPath" : "music"
     } ]
-  } ]
+  } ],
+  "amazon" : {
+      "endpoint" : "endpoint",
+      "accessKey" : "accessKey", 
+      "secretKey" : "secretKey"
+  }
 }

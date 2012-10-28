@@ -4,11 +4,7 @@ import java.nio.file.Path;
 
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
+import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.configuration.Directories;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -20,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author alex
  * 
  */
-public class PathsBean implements Directories {
+public class PathsBean extends DataObject implements Directories {
 
   /**
    * The top level path where FLAC files are stored.
@@ -64,30 +60,6 @@ public class PathsBean implements Directories {
     this.devicesPath = devicesPath;
     this.encodedPath = encodedPath;
     this.stagingPath = stagingPath;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int hashCode() {
-    return HashCodeBuilder.reflectionHashCode(this);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean equals(Object obj) {
-    return EqualsBuilder.reflectionEquals(this, obj);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString() {
-    return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
   }
 
   /**

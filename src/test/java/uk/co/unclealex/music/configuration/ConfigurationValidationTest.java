@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Set;
 
 import javax.validation.constraints.NotNull;
@@ -12,6 +13,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.junit.Test;
 
 import uk.co.unclealex.music.common.Validator;
+import uk.co.unclealex.music.configuration.json.AmazonConfigurationBean;
 import uk.co.unclealex.music.configuration.json.ConfigurationBean;
 import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
 import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
@@ -53,22 +55,23 @@ import com.google.common.collect.Lists;
 public class ConfigurationValidationTest {
 
   PathsBean defaultPathBean = new PathsBean(Paths.get("a"), Paths.get("a"), Paths.get("a"), Paths.get("a"));
+  AmazonConfigurationBean defaultAmazonBean = new AmazonConfigurationBean("endpoint", "accessKey", "secretKey");
+  List<UserBean> defaultUsers = Lists.newArrayList(new UserBean("alex", "pwd", Lists
+      .newArrayList((Device) new MtpDeviceBean("mtp"))));
 
   @Test
   public void testConfigurationRequiresPathAndUsers() throws Exception {
     testValidate(
-        new ConfigurationBean(null, null),
+        new ConfigurationBean(null, null, null),
         Violation.expect(NotNull.class, "directories"),
+        Violation.expect(NotNull.class, "amazon"),
         Violation.expect(NotEmpty.class, "users"));
   }
 
   @Test
   public void testConfigurationRequiresAllPaths() throws Exception {
     testValidate(
-        new ConfigurationBean(new PathsBean(null, null, null, null), Lists.newArrayList(new UserBean(
-            "alex",
-            "pwd",
-            Lists.newArrayList((Device) new MtpDeviceBean("mtp"))))),
+        new ConfigurationBean(new PathsBean(null, null, null, null), defaultUsers, defaultAmazonBean),
         Violation.expect(NotNull.class, "directories", "stagingPath"),
         Violation.expect(NotNull.class, "directories", "encodedPath"),
         Violation.expect(NotNull.class, "directories", "flacPath"),
@@ -78,10 +81,19 @@ public class ConfigurationValidationTest {
   @Test
   public void testUserRequiresUserNamePasswordAndDevices() throws Exception {
     testValidate(
-        new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean(null, null, null))),
+        new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean(null, null, null)), defaultAmazonBean),
         Violation.expect(NotNull.class, "users[0]", "userName"),
         Violation.expect(NotNull.class, "users[0]", "password"),
         Violation.expect(NotEmpty.class, "users[0]", "devices"));
+  }
+
+  @Test
+  public void testAmazonRequiresUrlAndKeys() throws Exception {
+    testValidate(
+        new ConfigurationBean(defaultPathBean, defaultUsers, new AmazonConfigurationBean(null, null, null)),
+        Violation.expect(NotEmpty.class, "amazon", "endpoint"),
+        Violation.expect(NotEmpty.class, "amazon", "accessKey"),
+        Violation.expect(NotEmpty.class, "amazon", "secretKey"));
   }
 
   @Test
@@ -90,7 +102,7 @@ public class ConfigurationValidationTest {
         new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean("aj", "aj", Lists.newArrayList(
             (Device) new MtpDeviceBean(null),
             new FileSystemDeviceBean(null, null, null),
-            new IpodDeviceBean(null))))),
+            new IpodDeviceBean(null)))), defaultAmazonBean),
         Violation.expect(NotNull.class, "users[0]", "devices[0]", "name"),
         Violation.expect(NotNull.class, "users[0]", "devices[1]", "name"),
         Violation.expect(NotNull.class, "users[0]", "devices[1]", "mountPoint"),

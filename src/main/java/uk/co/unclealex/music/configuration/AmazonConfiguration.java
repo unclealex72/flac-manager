@@ -22,52 +22,31 @@
  *
  */
 
-package uk.co.unclealex.music.configuration.json;
+package uk.co.unclealex.music.configuration;
 
-import javax.validation.constraints.NotNull;
-
-import uk.co.unclealex.music.common.DataObject;
-import uk.co.unclealex.music.configuration.DeviceVisitor;
-import uk.co.unclealex.music.configuration.MtpDevice;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * A bean version of {@link MtpDevice}.
  * @author alex
  *
  */
-public class MtpDeviceBean extends DataObject implements MtpDevice {
+public interface AmazonConfiguration {
 
   /**
-   * The name of this device.
+   * Get the endpoint URI used to talk to Amazon.
+   * @return the endpoint URI used to talk to Amazon.
    */
-  @NotNull
-  private final String name;
+  public String getEndpoint();
 
   /**
-   * 
-   * @param name
+   * Get the public access key used to talk to Amazon.
+   * @return the public access key used to talk to Amazon.
    */
-  @JsonCreator
-  public MtpDeviceBean(@JsonProperty("name") String name) {
-    super();
-    this.name = name;
-  }
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public <R> R accept(DeviceVisitor<R> deviceVisitor) {
-		return deviceVisitor.visit((MtpDevice) this);
-	}
+  public String getAccessKey();
 
   /**
-   * {@inheritDoc}
+   * Get the secret key used to talk to Amazon.
+   * @return the secret key used to talk to Amazon.
    */
-  public String getName() {
-    return name;
-  }
+  public String getSecretKey();
+
 }

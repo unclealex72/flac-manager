@@ -22,4 +22,10 @@ public interface Configuration {
    * @return A list of all the known {@link User}s.
    */
   public List<? extends User> getUsers();
+  
+  /**
+   * Get the configuration object required to talk to Amazon web services.
+   * @return the configuration object required to talk to Amazon web services.
+   */
+  public AmazonConfiguration getAmazon();
 }

@@ -5,18 +5,16 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+import uk.co.unclealex.music.common.DataObject;
+import uk.co.unclealex.music.configuration.AmazonConfiguration;
 import uk.co.unclealex.music.configuration.Configuration;
 import uk.co.unclealex.music.configuration.Directories;
 import uk.co.unclealex.music.configuration.User;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The main interface for holding configuration information about where files are stored as well as for users and
@@ -25,7 +23,7 @@ import uk.co.unclealex.music.configuration.User;
  * @author alex
  *
  */
-public class ConfigurationBean implements Configuration {
+public class ConfigurationBean extends DataObject implements Configuration {
 
   /**
    * A {@link Directories} object containing the directories where files are stored.
@@ -42,15 +40,25 @@ public class ConfigurationBean implements Configuration {
   private final List<UserBean> users;
 
   /**
-   * 
-   * @param directories
-   * @param users
+   * The {@link AmazonConfiguration} used to talk to Amazon.
+   */
+  @NotNull
+  @Valid
+  private final AmazonConfigurationBean amazon;
+  
+  /**
+   * Instantiates a new configuration bean.
+   *
+   * @param directories the directories
+   * @param users the users
+   * @param amazon the amazon configuration bean
    */
   @JsonCreator
-  public ConfigurationBean(@JsonProperty("directories") PathsBean directories, @JsonProperty("users") List<UserBean> users) {
+  public ConfigurationBean(@JsonProperty("directories") PathsBean directories, @JsonProperty("users") List<UserBean> users, @JsonProperty("amazon") AmazonConfigurationBean amazonConfigurationBean) {
     super();
     this.directories = directories;
     this.users = users;
+    this.amazon = amazonConfigurationBean;
   }
 
   /**
@@ -63,31 +71,14 @@ public class ConfigurationBean implements Configuration {
   /**
    * {@inheritDoc}
    */
-  @Override
-  public int hashCode() {
-    return HashCodeBuilder.reflectionHashCode(this);
-  }
-  
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean equals(Object obj) {
-    return EqualsBuilder.reflectionEquals(this, obj);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString() {
-    return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public List<UserBean> getUsers() {
     return users;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public AmazonConfigurationBean getAmazon() {
+    return amazon;
   }
 }

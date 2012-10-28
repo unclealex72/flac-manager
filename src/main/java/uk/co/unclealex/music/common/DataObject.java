@@ -22,52 +22,47 @@
  *
  */
 
-package uk.co.unclealex.music.configuration.json;
+package uk.co.unclealex.music.common;
 
-import javax.validation.constraints.NotNull;
-
-import uk.co.unclealex.music.common.DataObject;
-import uk.co.unclealex.music.configuration.DeviceVisitor;
-import uk.co.unclealex.music.configuration.MtpDevice;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 /**
- * A bean version of {@link MtpDevice}.
+ * A data object is a base class for any sort of data transfer object. It
+ * defines {@link Object#equals(Object)}, {@link Object#hashCode()},
+ * {@link Object#toString()} using {@link EqualsBuilder},
+ * {@link HashCodeBuilder} and {@link ToStringBuilder} respectively.
+ * 
  * @author alex
- *
+ * 
  */
-public class MtpDeviceBean extends DataObject implements MtpDevice {
-
-  /**
-   * The name of this device.
-   */
-  @NotNull
-  private final String name;
-
-  /**
-   * 
-   * @param name
-   */
-  @JsonCreator
-  public MtpDeviceBean(@JsonProperty("name") String name) {
-    super();
-    this.name = name;
-  }
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public <R> R accept(DeviceVisitor<R> deviceVisitor) {
-		return deviceVisitor.visit((MtpDevice) this);
-	}
+public abstract class DataObject {
 
   /**
    * {@inheritDoc}
    */
-  public String getName() {
-    return name;
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
   }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object obj) {
+    return EqualsBuilder.reflectionEquals(this, obj);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+  }
+
+
 }

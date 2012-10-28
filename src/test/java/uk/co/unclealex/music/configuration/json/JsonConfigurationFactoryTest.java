@@ -35,6 +35,7 @@ import org.junit.Test;
 
 import uk.co.unclealex.music.configuration.Configuration;
 import uk.co.unclealex.music.configuration.ConfigurationFactory;
+import uk.co.unclealex.music.configuration.Device;
 
 import com.google.common.collect.Lists;
 
@@ -52,12 +53,13 @@ public class JsonConfigurationFactoryTest {
             Paths.get("devicesPath"),
             Paths.get("encodedPath"),
             Paths.get("stagingPath"));
-    IpodDeviceBean ipod = new IpodDeviceBean(Paths.get("/media/IPOD"));
-    MtpDeviceBean mtp = new MtpDeviceBean("mtp device");
-    FileSystemDeviceBean hd = new FileSystemDeviceBean("hd device", Paths.get("mountPoint"), Paths.get("music"));
+    Device ipod = new IpodDeviceBean(Paths.get("/media/IPOD"));
+    Device mtp = new MtpDeviceBean("mtp device");
+    Device hd = new FileSystemDeviceBean("hd device", Paths.get("mountPoint"), Paths.get("music"));
     UserBean alex = new UserBean("alex", "pwd", Lists.newArrayList(ipod, mtp, hd));
     List<UserBean> expectedUsers = Lists.newArrayList(alex);
-    ConfigurationBean expectedConfigurationBean = new ConfigurationBean(expectedDirectories, expectedUsers);
+    AmazonConfigurationBean expectedAmazon = new AmazonConfigurationBean("endpoint", "accessKey", "secretKey");
+    ConfigurationBean expectedConfigurationBean = new ConfigurationBean(expectedDirectories, expectedUsers, expectedAmazon);
 
     ConfigurationFactory configurationFactory = new JsonConfigurationFactory();
     try (InputStream in = getClass().getClassLoader().getResourceAsStream("configuration.json")) {

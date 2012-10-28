@@ -22,43 +22,16 @@
  *
  */
 
-package uk.co.unclealex.music.configuration.json;
+package uk.co.unclealex.music.encoding;
 
 import java.nio.file.Path;
 
-import javax.validation.constraints.NotNull;
-
-import uk.co.unclealex.music.common.DataObject;
-import uk.co.unclealex.music.configuration.Device;
-
 /**
- * A base bean for {@link Device}s that present their contents as part of the UNIX file system.
+ * An interface for classes that process an incoming FLAC file.
  * @author alex
  *
  */
-public abstract class AbstractFileSystemDeviceBean extends DataObject implements Device {
+public interface IncomingFlacProcessor {
 
-  /**
-   * The {@link Path} where this device is mounted.
-   */
-  @NotNull
-	private final Path mountPoint;
-
-	/**
-	 * 
-	 * @param mountPoint
-	 */
-  public AbstractFileSystemDeviceBean(Path mountPoint) {
-    super();
-    this.mountPoint = mountPoint;
-  }
-
-  /**
-   * Gets the {@link Path} where this device is mounted.
-   *
-   * @return the {@link Path} where this device is mounted
-   */
-  public Path getMountPoint() {
-    return mountPoint;
-  }
+  public void processFlacFile(Path flacPath);
 }
