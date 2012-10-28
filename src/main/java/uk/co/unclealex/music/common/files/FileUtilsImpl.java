@@ -57,11 +57,11 @@ public class FileUtilsImpl implements FileUtils {
       if (Files.exists(currentPath)) {
         Set<PosixFilePermission> posixFilePermissions = Files.getPosixFilePermissions(currentPath);
         if (allowWrites) {
-          log.info("Setting " + currentPath + " to read and write.");
+          log.debug("Setting " + currentPath + " to read and write.");
           posixFilePermissions.add(PosixFilePermission.OWNER_WRITE);
         }
         else {
-          log.info("Setting " + currentPath + " to read only.");
+          log.debug("Setting " + currentPath + " to read only.");
           posixFilePermissions.removeAll(Arrays.asList(
               PosixFilePermission.OWNER_WRITE,
               PosixFilePermission.GROUP_WRITE,
