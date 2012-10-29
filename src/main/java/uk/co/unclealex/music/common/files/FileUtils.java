@@ -26,6 +26,7 @@ package uk.co.unclealex.music.common.files;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.SortedSet;
 
 /**
  * Utilities for manipulating files and directories in ways not directly
@@ -76,4 +77,11 @@ public interface FileUtils {
    */
   public void remove(Path basePath, Path currentPath) throws IOException;
 
+  /**
+   * Find all the FLAC files underneath a given directory
+   * @param basePath The path to search.
+   * @return A sorted set of flac files, each of which contains the base path information.
+   * @throws IOException
+   */
+  public SortedSet<Path> findAllFlacFiles(Path basePath) throws IOException;
 }

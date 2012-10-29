@@ -24,11 +24,14 @@
 
 package uk.co.unclealex.music.common.files;
 
+import static org.hamcrest.Matchers.contains;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.SortedSet;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -36,8 +39,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import uk.co.unclealex.music.common.files.FileUtilsImpl;
 
 /**
  * @author alex
@@ -102,14 +103,11 @@ public class FileUtilsImplTest {
     Assert.assertTrue(
         "File target/dir/moveme.txt does not exist.",
         Files.exists(target.resolve(Paths.get("dir", "moveme.txt"))));
-    Assert.assertFalse("File target/dir/moveme.txt is a directory.", 
-        Files.isDirectory(target.resolve(Paths.get("dir", "moveme.txt"))));
-    Assert.assertTrue(
-        "File source/dir/keepme.txt does not exist.",
-        Files.exists(fileToKeep));
     Assert.assertFalse(
-        "File source/dir/moveme.txt exists.",
-        Files.exists(fileToMove));
+        "File target/dir/moveme.txt is a directory.",
+        Files.isDirectory(target.resolve(Paths.get("dir", "moveme.txt"))));
+    Assert.assertTrue("File source/dir/keepme.txt does not exist.", Files.exists(fileToKeep));
+    Assert.assertFalse("File source/dir/moveme.txt exists.", Files.exists(fileToMove));
   }
 
   @Test
@@ -118,20 +116,40 @@ public class FileUtilsImplTest {
     Path target = testDirectory.resolve("target");
     Files.createDirectories(target);
     Path fileToMove = source.resolve(Paths.get("dir", "moveme.txt"));
-      Files.createDirectories(fileToMove.getParent());
-      Files.createFile(fileToMove);
+    Files.createDirectories(fileToMove.getParent());
+    Files.createFile(fileToMove);
     new FileUtilsImpl().move(source, source.relativize(fileToMove), target);
     Assert.assertTrue(
         "File target/dir/moveme.txt does not exist.",
         Files.exists(target.resolve(Paths.get("dir", "moveme.txt"))));
-    Assert.assertFalse("File target/dir/moveme.txt is a directory.", 
-        Files.isDirectory(target.resolve(Paths.get("dir", "moveme.txt"))));
     Assert.assertFalse(
-        "File source/dir exists.",
-        Files.exists(fileToMove.getParent()));
-    Assert.assertTrue(
-        "File source does not exist.",
-        Files.exists(source));
+        "File target/dir/moveme.txt is a directory.",
+        Files.isDirectory(target.resolve(Paths.get("dir", "moveme.txt"))));
+    Assert.assertFalse("File source/dir exists.", Files.exists(fileToMove.getParent()));
+    Assert.assertTrue("File source does not exist.", Files.exists(source));
+  }
+
+  @Test
+  public void testFindFlacFiles() throws IOException {
+    for (Path path : new Path[] {
+        Paths.get("dir.flac", "myfile.flac"),
+        Paths.get("dir.flac", "myfile.xml"),
+        Paths.get("my.flac"),
+        Paths.get("my.xml"),
+        Paths.get("dir", "your.flac"),
+        Paths.get("dir", "your.mp3") }) {
+      Path fullPath = testDirectory.resolve(path);
+      Files.createDirectories(fullPath.getParent());
+      Files.createFile(fullPath);
+    }
+    SortedSet<Path> actualFlacFiles = new FileUtilsImpl().findAllFlacFiles(testDirectory);
+    Assert.assertThat(
+        "The wrong flac files were found.",
+        actualFlacFiles,
+        contains(
+            testDirectory.resolve(Paths.get("dir.flac", "myfile.flac")),
+            testDirectory.resolve(Paths.get("dir", "your.flac")),
+            testDirectory.resolve("my.flac")));
   }
 
   @After

@@ -59,5 +59,11 @@ public enum Extension {
     return fileExtension;
   }
   
-  
+  /**
+   * Convert this extension into a file suffix.
+   * @return A period followed by the extension.
+   */
+  public String asSuffix() {
+    return "." + getFileExtension();
+  }
 }

@@ -26,15 +26,22 @@ package uk.co.unclealex.music.common.files;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.SortedSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Sets;
 
 /**
  * The default implementation of {@link FileUtils}.
@@ -106,4 +113,23 @@ public class FileUtilsImpl implements FileUtils {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SortedSet<Path> findAllFlacFiles(Path basePath) throws IOException {
+    final SortedSet<Path> flacFiles = Sets.newTreeSet();
+    final String suffix = Extension.FLAC.asSuffix();
+    FileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        if (file.getFileName().toString().endsWith(suffix)) {
+          flacFiles.add(file);
+        }
+        return super.visitFile(file, attrs);
+      }
+    };
+    Files.walkFileTree(basePath, visitor);
+    return flacFiles;
+  }
 }
