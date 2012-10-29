@@ -27,10 +27,11 @@ package uk.co.unclealex.music.common.files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 
+import static uk.co.unclealex.music.common.files.Extension.*;
 import uk.co.unclealex.music.common.MusicFile;
 import uk.co.unclealex.music.common.MusicFileBean;
 import uk.co.unclealex.music.common.files.FilenameServiceImpl;
@@ -43,17 +44,17 @@ public class FilenameServiceImplTest {
 
   @Test
   public void testSingleDisc() {
-    runTest("Mötörhead", "Good - Stuff", 1, 1, 2, "The Ace of Spades", "flac",
+    runTest("Mötörhead", "Good - Stuff", 1, 1, 2, "The Ace of Spades", FLAC,
         Paths.get("M", "Motorhead", "Good Stuff", "02 The Ace of Spades.flac"));
   }
 
   @Test
   public void testMultipleDiscs() {
-    runTest("Mötörhead", "Good - Stuff", 2, 2, 2, "The Ace of Spades", "flac",
+    runTest("Mötörhead", "Good - Stuff", 2, 2, 2, "The Ace of Spades", FLAC,
         Paths.get("M", "Motorhead", "Good Stuff 02", "02 The Ace of Spades.flac"));
   }
   
-  protected void runTest(String albumArtistSort, String album, int discNumber, int totalDiscs, int trackNumber, String title, String extension, Path expectedPath) {
+  protected void runTest(String albumArtistSort, String album, int discNumber, int totalDiscs, int trackNumber, String title, Extension extension, Path expectedPath) {
     MusicFile musicFile = new MusicFileBean();
     musicFile.setAlbumArtistSort(albumArtistSort);
     musicFile.setAlbum(album);

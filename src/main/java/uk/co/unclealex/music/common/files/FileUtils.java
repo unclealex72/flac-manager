@@ -68,4 +68,12 @@ public interface FileUtils {
    */
   public void move(Path sourceBasePath, Path relativePath, Path targetBasePath) throws IOException;
 
+  /**
+   * Remove directories if they are empty and recurse up the directory tree.
+   * @param basePath The base directory that should not be removed.
+   * @param currentPath The path to remove if it is empty.
+   * @throws IOException
+   */
+  public void remove(Path basePath, Path currentPath) throws IOException;
+
 }

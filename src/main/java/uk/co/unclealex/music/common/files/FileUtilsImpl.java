@@ -83,19 +83,27 @@ public class FileUtilsImpl implements FileUtils {
     Files.createDirectories(targetPath.getParent());
     Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE);
     Path currentDirectory = sourcePath.getParent();
-    boolean directoryIsEmpty;
-    do {
-      directoryIsEmpty = !currentDirectory.equals(sourceBasePath);
-      if (directoryIsEmpty) {
-        try (DirectoryStream<Path> dir = Files.newDirectoryStream(currentDirectory)) {
-          directoryIsEmpty = !dir.iterator().hasNext();
-        }
+    remove(sourceBasePath, currentDirectory);
+  }
+
+  @Override
+  public void remove(Path basePath, Path currentPath) throws IOException {
+    if (Files.isSameFile(basePath, currentPath)) {
+      return;
+    }
+    else if (Files.isDirectory(currentPath)) {
+      try (DirectoryStream<Path> dir = Files.newDirectoryStream(currentPath)) {
+        boolean directoryIsEmpty = !dir.iterator().hasNext();
         if (directoryIsEmpty) {
-          Files.delete(currentDirectory);
+          Files.delete(currentPath);
+          remove(basePath, currentPath.getParent());
         }
       }
-      currentDirectory = currentDirectory.getParent();
-    } while (directoryIsEmpty);
+    }
+    else {
+      Files.delete(currentPath);
+      remove(basePath, currentPath.getParent());
+    }
   }
 
 }

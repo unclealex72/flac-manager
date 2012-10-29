@@ -45,7 +45,7 @@ public class FilenameServiceImpl implements FilenameService {
    * (diskNumber)/trackNumber title.ext
    */
   @Override
-  public Path toPath(MusicFile musicFile, String extension) {
+  public Path toPath(MusicFile musicFile, Extension extension) {
     String albumArtistSort = musicFile.getAlbumArtistSort();
     String firstLetter = albumArtistSort.substring(0, 1);
     StringBuilder album = new StringBuilder(musicFile.getAlbum());
@@ -54,7 +54,7 @@ public class FilenameServiceImpl implements FilenameService {
       album.append(String.format(" %02d", totalDiscs));
     }
     String title = String.format("%02d %s", musicFile.getTrackNumber(), musicFile.getTitle());
-    return Paths.get(normalise(firstLetter), normalise(albumArtistSort), normalise(album), normalise(title) + "." + extension);
+    return Paths.get(normalise(firstLetter), normalise(albumArtistSort), normalise(album), normalise(title) + "." + extension.getFileExtension());
   }
 
   protected String normalise(CharSequence charSequence) {

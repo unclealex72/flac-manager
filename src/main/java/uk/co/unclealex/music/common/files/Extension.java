@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 Alex Jones
+ * Copyright 2012 Alex Jones
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,34 +24,40 @@
 
 package uk.co.unclealex.music.common.files;
 
-import java.nio.file.Path;
-
-import uk.co.unclealex.music.common.MusicFile;
-
 /**
- * 
- * A service for translating between file names and {@link MusicTrack}s.
- * 
+ * An enumeration of all the known music file extensions.
  * @author alex
- * 
+ *
  */
-public interface FilenameService {
+public enum Extension {
+  
+  /** The fileExtension for MP3 files. */
+  MP3("mp3"), 
+ /** The fileExtension for FLAC files. */
+ FLAC("flac");
+  
+  /**
+   * The fileExtension required for files.
+   */
+  private final String fileExtension;
 
   /**
-   * Convert a {@link MusicFile} into a relative path. The path will in the
-   * following format:
-   * 
-   * <code>firstLetterOfSortedAlbumArtist/sortedAlbumArtist/album (diskNumber)/trackNumber title.ext
-   * </code>
-   * 
-   * Track and disk numbers will always have two digits. Disk numbers are only
-   * included if they are greater than 1.
-   * @param musicFile
-   *          The {@link MusicFile} used a
-   * @param extension
-   *          The file extension to append to the end of the path.
-   * 
-   * @return A path representing the supplied {@link MusicFile}.
+   * Instantiates a new fileExtension.
+   *
+   * @param fileExtension the fileExtension
    */
-  public Path toPath(MusicFile musicFile, Extension extension);
+  private Extension(String fileExtension) {
+    this.fileExtension = fileExtension;
+  }
+
+  /**
+   * Gets the fileExtension required for files.
+   *
+   * @return the fileExtension required for files
+   */
+  public String getFileExtension() {
+    return fileExtension;
+  }
+  
+  
 }
