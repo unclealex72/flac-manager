@@ -28,6 +28,10 @@ import java.nio.file.Path;
 
 import javax.validation.constraints.NotNull;
 
+import uk.co.unclealex.validator.paths.CanRead;
+import uk.co.unclealex.validator.paths.CanWrite;
+import uk.co.unclealex.validator.paths.IsDirectory;
+
 /**
  * A configuration interface that is used to hold where the various directories are.
  * @author alex
@@ -40,6 +44,8 @@ public interface Directories {
    *
    * @return the top level path where FLAC files are stored
    */
+  @IsDirectory
+  @CanRead
   @NotNull
   public Path getFlacPath();
 
@@ -48,6 +54,9 @@ public interface Directories {
    *
    * @return the top level path where symbolic links for devices are created
    */
+  @IsDirectory
+  @CanRead
+  @CanWrite
   @NotNull
   public Path getDevicesPath();
 
@@ -56,6 +65,9 @@ public interface Directories {
    *
    * @return the top level path where encoded files are stored
    */
+  @IsDirectory
+  @CanRead
+  @CanWrite
   @NotNull
   public Path getEncodedPath();
 
@@ -64,6 +76,9 @@ public interface Directories {
    *
    * @return the top level path where new and altered FLAC files are staged
    */
+  @IsDirectory
+  @CanRead
+  @CanWrite
   @NotNull
   public abstract Path getStagingPath();
 

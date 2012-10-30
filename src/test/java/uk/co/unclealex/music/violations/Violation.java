@@ -32,8 +32,12 @@ import javax.validation.ConstraintViolation;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.NotEmpty;
+import org.junit.Assert;
 
 import uk.co.unclealex.music.common.DataObject;
+import uk.co.unclealex.validator.paths.CanRead;
+import uk.co.unclealex.validator.paths.CanWrite;
+import uk.co.unclealex.validator.paths.IsDirectory;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
@@ -53,6 +57,9 @@ public class Violation extends DataObject {
     /** The dummy. */
     @NotNull
     @NotEmpty
+    @CanRead
+    @CanWrite
+    @IsDirectory
     public transient String dummy;
   }
 
@@ -67,6 +74,9 @@ public class Violation extends DataObject {
     Annotation annotation;
     try {
       annotation = AnnotationHolder.class.getField("dummy").getAnnotation(expectedAnnotation);
+      if (annotation == null) {
+        Assert.fail("The annotation holder requires annotation " + expectedAnnotation + " to be declared.");
+      }
       String messageTemplate = (String) annotation.getClass().getMethod("message").invoke(annotation);
       return new Violation(messageTemplate, Joiner.on('.').join(expectedPropertyPath));
     }

@@ -3,6 +3,7 @@ package uk.co.unclealex.music.common.configuration;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +23,9 @@ import uk.co.unclealex.music.common.configuration.json.MtpDeviceBean;
 import uk.co.unclealex.music.common.configuration.json.PathsBean;
 import uk.co.unclealex.music.common.configuration.json.UserBean;
 import uk.co.unclealex.music.violations.Violation;
+import uk.co.unclealex.validator.paths.CanRead;
+import uk.co.unclealex.validator.paths.CanWrite;
+import uk.co.unclealex.validator.paths.IsDirectory;
 
 import com.google.common.collect.Lists;
 
@@ -55,7 +59,8 @@ import com.google.common.collect.Lists;
  */
 public class ConfigurationValidationTest {
 
-  PathsBean defaultPathBean = new PathsBean(Paths.get("a"), Paths.get("a"), Paths.get("a"), Paths.get("a"));
+  Path homeDir = Paths.get(System.getProperty("user.home"));
+  PathsBean defaultPathBean = new PathsBean(homeDir, homeDir, homeDir, homeDir);
   AmazonConfigurationBean defaultAmazonBean = new AmazonConfigurationBean("endpoint", "accessKey", "secretKey");
   List<UserBean> defaultUsers = Lists.newArrayList(new UserBean("alex", "pwd", Lists
       .newArrayList((Device) new MtpDeviceBean("mtp"))));
@@ -77,6 +82,29 @@ public class ConfigurationValidationTest {
         Violation.expect(NotNull.class, "directories", "encodedPath"),
         Violation.expect(NotNull.class, "directories", "flacPath"),
         Violation.expect(NotNull.class, "directories", "devicesPath"));
+  }
+
+  @Test
+  public void testConfigurationRequiresValidPaths() throws Exception {
+    testValidate(new ConfigurationBean(
+        new PathsBean(Paths.get("a"), Paths.get("a"), Paths.get("a"), Paths.get("a")),
+        defaultUsers,
+        defaultAmazonBean), Violation.expect(IsDirectory.class, "directories", "stagingPath"), Violation.expect(
+        CanRead.class,
+        "directories",
+        "stagingPath"), Violation.expect(CanWrite.class, "directories", "stagingPath"), Violation.expect(
+        IsDirectory.class,
+        "directories",
+        "encodedPath"), Violation.expect(CanRead.class, "directories", "encodedPath"), Violation.expect(
+        CanWrite.class,
+        "directories",
+        "encodedPath"), Violation.expect(IsDirectory.class, "directories", "flacPath"), Violation.expect(
+        CanRead.class,
+        "directories",
+        "flacPath"), Violation.expect(IsDirectory.class, "directories", "devicesPath"), Violation.expect(
+        CanRead.class,
+        "directories",
+        "devicesPath"), Violation.expect(CanWrite.class, "directories", "devicesPath"));
   }
 
   @Test

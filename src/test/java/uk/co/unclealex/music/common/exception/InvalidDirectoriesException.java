@@ -22,24 +22,12 @@
  *
  */
 
-package uk.co.unclealex.music.common.configuration;
-
-import java.nio.file.Path;
-
-import uk.co.unclealex.validator.paths.IsRelative;
+package uk.co.unclealex.music.common.exception;
 
 /**
  * @author alex
  *
  */
-public interface FileSystemDevice extends MountedDevice {
-
-  /**
-   * Gets the path, relative to the mount pount, where music is stored, or null if music is stored at the root level.
-   *
-   * @return the path, relative to the mount pount, where music is stored, or null if music is stored at the root level
-   */
-  @IsRelative
-  public Path getRelativeMusicPath();
+public class InvalidDirectoriesException extends Exception {
 
 }

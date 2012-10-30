@@ -22,24 +22,27 @@
  *
  */
 
-package uk.co.unclealex.music.common.configuration;
+package uk.co.unclealex.music.checkout;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
-import uk.co.unclealex.validator.paths.IsRelative;
+import uk.co.unclealex.music.common.exception.InvalidDirectoriesException;
 
 /**
+ * An interface for classes that contain the checkout logic.
+ * 
  * @author alex
- *
+ * 
  */
-public interface FileSystemDevice extends MountedDevice {
+public interface Checkout {
 
   /**
-   * Gets the path, relative to the mount pount, where music is stored, or null if music is stored at the root level.
-   *
-   * @return the path, relative to the mount pount, where music is stored, or null if music is stored at the root level
+   * Checkout a list of flac files by moving them into the staging directory and
+   * also removing any related lossy encoded files.
+   * 
+   * @param directories A list of directories whose flac files will be checked out.
+   * @throws IOException
    */
-  @IsRelative
-  public Path getRelativeMusicPath();
-
+  public void checkout(Iterable<Path> directories) throws IOException, InvalidDirectoriesException;
 }
