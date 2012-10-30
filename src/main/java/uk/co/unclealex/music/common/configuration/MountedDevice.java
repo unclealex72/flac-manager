@@ -24,11 +24,21 @@
 
 package uk.co.unclealex.music.common.configuration;
 
+import java.nio.file.Path;
+
+import javax.validation.constraints.NotNull;
+
 /**
- * An interface for iPOD {@link Device}s.
+ * An interface for devices that are mounted somewhere on the file system.
  * @author alex
  *
  */
-public interface IpodDevice extends MountedDevice {
+public interface MountedDevice extends Device {
 
+  /**
+   * Get the path where this device is expected to be mounted.
+   * @return the path where this device is expected to be mounted.
+   */
+  @NotNull
+  public Path getMountPoint();
 }

@@ -30,7 +30,7 @@ import java.nio.file.Path;
  * @author alex
  *
  */
-public interface FileSystemDevice extends Device {
+public interface FileSystemDevice extends MountedDevice {
 
   /**
    * Gets the path, relative to the mount pount, where music is stored, or null if music is stored at the root level.

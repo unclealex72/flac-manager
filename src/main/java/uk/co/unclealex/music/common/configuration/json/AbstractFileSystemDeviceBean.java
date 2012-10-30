@@ -26,8 +26,6 @@ package uk.co.unclealex.music.common.configuration.json;
 
 import java.nio.file.Path;
 
-import javax.validation.constraints.NotNull;
-
 import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.common.configuration.Device;
 
@@ -41,7 +39,6 @@ public abstract class AbstractFileSystemDeviceBean extends DataObject implements
   /**
    * The {@link Path} where this device is mounted.
    */
-  @NotNull
 	private final Path mountPoint;
 
 	/**
