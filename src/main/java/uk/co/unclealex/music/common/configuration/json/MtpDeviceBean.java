@@ -24,8 +24,6 @@
 
 package uk.co.unclealex.music.common.configuration.json;
 
-import javax.validation.constraints.NotNull;
-
 import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.common.configuration.DeviceVisitor;
 import uk.co.unclealex.music.common.configuration.MtpDevice;
@@ -43,7 +41,6 @@ public class MtpDeviceBean extends DataObject implements MtpDevice {
   /**
    * The name of this device.
    */
-  @NotNull
   private final String name;
 
   /**

@@ -83,8 +83,8 @@ public class ConfigurationValidationTest {
   public void testUserRequiresUserNamePasswordAndDevices() throws Exception {
     testValidate(
         new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean(null, null, null)), defaultAmazonBean),
-        Violation.expect(NotNull.class, "users[0]", "userName"),
-        Violation.expect(NotNull.class, "users[0]", "password"),
+        Violation.expect(NotEmpty.class, "users[0]", "userName"),
+        Violation.expect(NotEmpty.class, "users[0]", "password"),
         Violation.expect(NotEmpty.class, "users[0]", "devices"));
   }
 
@@ -104,8 +104,8 @@ public class ConfigurationValidationTest {
             (Device) new MtpDeviceBean(null),
             new FileSystemDeviceBean(null, null, null),
             new IpodDeviceBean(null)))), defaultAmazonBean),
-        Violation.expect(NotNull.class, "users[0]", "devices[0]", "name"),
-        Violation.expect(NotNull.class, "users[0]", "devices[1]", "name"),
+        Violation.expect(NotEmpty.class, "users[0]", "devices[0]", "name"),
+        Violation.expect(NotEmpty.class, "users[0]", "devices[1]", "name"),
         Violation.expect(NotNull.class, "users[0]", "devices[1]", "mountPoint"),
         Violation.expect(NotNull.class, "users[0]", "devices[2]", "mountPoint"));
   }

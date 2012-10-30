@@ -24,13 +24,11 @@
 
 package uk.co.unclealex.music.common.configuration.json;
 
-import org.hibernate.validator.constraints.NotEmpty;
+import uk.co.unclealex.music.common.DataObject;
+import uk.co.unclealex.music.common.configuration.AmazonConfiguration;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import uk.co.unclealex.music.common.DataObject;
-import uk.co.unclealex.music.common.configuration.AmazonConfiguration;
 
 /**
  * An immutable properties based implementation of {@link AmazonConfiguration}.
@@ -42,19 +40,16 @@ public class AmazonConfigurationBean extends DataObject implements AmazonConfigu
   /**
    * The endpoint URI used to talk to Amazon.
    */
-  @NotEmpty
   private final String endpoint;
 
   /**
    * The public key used to authenticate with Amazon.
    */
-  @NotEmpty
   private final String accessKey;
 
   /**
    * The private key used to authenticate with Amazon.
    */
-  @NotEmpty
   private final String secretKey;
 
   /**

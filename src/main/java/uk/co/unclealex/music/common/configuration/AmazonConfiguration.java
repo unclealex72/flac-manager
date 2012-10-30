@@ -24,6 +24,8 @@
 
 package uk.co.unclealex.music.common.configuration;
 
+import org.hibernate.validator.constraints.NotEmpty;
+
 
 /**
  * @author alex
@@ -35,18 +37,21 @@ public interface AmazonConfiguration {
    * Get the endpoint URI used to talk to Amazon.
    * @return the endpoint URI used to talk to Amazon.
    */
+  @NotEmpty
   public String getEndpoint();
 
   /**
    * Get the public access key used to talk to Amazon.
    * @return the public access key used to talk to Amazon.
    */
+  @NotEmpty
   public String getAccessKey();
 
   /**
    * Get the secret key used to talk to Amazon.
    * @return the secret key used to talk to Amazon.
    */
+  @NotEmpty
   public String getSecretKey();
 
 }

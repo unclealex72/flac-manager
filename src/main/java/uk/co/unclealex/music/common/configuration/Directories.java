@@ -26,6 +26,8 @@ package uk.co.unclealex.music.common.configuration;
 
 import java.nio.file.Path;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * A configuration interface that is used to hold where the various directories are.
  * @author alex
@@ -38,27 +40,31 @@ public interface Directories {
    *
    * @return the top level path where FLAC files are stored
    */
-  public abstract Path getFlacPath();
+  @NotNull
+  public Path getFlacPath();
 
   /**
    * Gets the top level path where symbolic links for devices are created.
    *
    * @return the top level path where symbolic links for devices are created
    */
-  public abstract Path getDevicesPath();
+  @NotNull
+  public Path getDevicesPath();
 
   /**
    * Gets the top level path where encoded files are stored.
    *
    * @return the top level path where encoded files are stored
    */
-  public abstract Path getEncodedPath();
+  @NotNull
+  public Path getEncodedPath();
 
   /**
    * Gets the top level path where new and altered FLAC files are staged.
    *
    * @return the top level path where new and altered FLAC files are staged
    */
+  @NotNull
   public abstract Path getStagingPath();
 
 }

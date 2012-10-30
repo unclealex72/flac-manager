@@ -2,13 +2,11 @@ package uk.co.unclealex.music.common.configuration.json;
 
 import java.nio.file.Path;
 
-import javax.validation.constraints.NotNull;
+import uk.co.unclealex.music.common.configuration.DeviceVisitor;
+import uk.co.unclealex.music.common.configuration.FileSystemDevice;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import uk.co.unclealex.music.common.configuration.DeviceVisitor;
-import uk.co.unclealex.music.common.configuration.FileSystemDevice;
 
 /**
  * A bean version of {@link FileSystemDevice}.
@@ -20,7 +18,6 @@ public class FileSystemDeviceBean extends AbstractFileSystemDeviceBean implement
   /**
    * The user friendly name of this device.
    */
-  @NotNull
   private final String name;
 
   /**

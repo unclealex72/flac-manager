@@ -2,11 +2,6 @@ package uk.co.unclealex.music.common.configuration.json;
 
 import java.util.List;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.hibernate.validator.constraints.NotEmpty;
-
 import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.common.configuration.AmazonConfiguration;
 import uk.co.unclealex.music.common.configuration.Configuration;
@@ -28,22 +23,16 @@ public class ConfigurationBean extends DataObject implements Configuration {
   /**
    * A {@link Directories} object containing the directories where files are stored.
    */
-  @NotNull
-  @Valid
   private final PathsBean directories;
 
   /**
    * A list of all the known {@link User}s.
    */
-  @NotEmpty
-  @Valid
   private final List<UserBean> users;
 
   /**
    * The {@link AmazonConfiguration} used to talk to Amazon.
    */
-  @NotNull
-  @Valid
   private final AmazonConfigurationBean amazon;
   
   /**

@@ -2,8 +2,6 @@ package uk.co.unclealex.music.common.configuration.json;
 
 import java.nio.file.Path;
 
-import javax.validation.constraints.NotNull;
-
 import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.common.configuration.Directories;
 
@@ -21,25 +19,21 @@ public class PathsBean extends DataObject implements Directories {
   /**
    * The top level path where FLAC files are stored.
    */
-  @NotNull
   private final Path flacPath;
 
   /**
    * The top level path where symbolic links for devices are created.
    */
-  @NotNull
   private final Path devicesPath;
 
   /**
    * The top level path where encoded files are stored.
    */
-  @NotNull
   private final Path encodedPath;
 
   /**
    * The top level path where new and altered FLAC files are staged.
    */
-  @NotNull
   private final Path stagingPath;
 
   /**

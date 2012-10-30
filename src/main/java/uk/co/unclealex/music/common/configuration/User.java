@@ -26,6 +26,10 @@ package uk.co.unclealex.music.common.configuration;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
+import org.hibernate.validator.constraints.NotEmpty;
+
 /**
  * A configuration item for a user. Users must also have a MusicBrainz login and can own
  * a number of {@link Device}s.
@@ -39,6 +43,7 @@ public interface User {
    *
    * @return the MusicBrainz user name for this user
    */
+  @NotEmpty
   public abstract String getUserName();
 
   /**
@@ -46,6 +51,7 @@ public interface User {
    *
    * @return the MusicBrainz password for this user
    */
+  @NotEmpty
   public abstract String getPassword();
 
   /**
@@ -53,6 +59,8 @@ public interface User {
    *
    * @return the {@link Device}s owned by this user
    */
+  @NotEmpty
+  @Valid
   public abstract List<Device> getDevices();
 
 }

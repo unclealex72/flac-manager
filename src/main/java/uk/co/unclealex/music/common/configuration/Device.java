@@ -24,6 +24,8 @@
 
 package uk.co.unclealex.music.common.configuration;
 
+import org.hibernate.validator.constraints.NotEmpty;
+
 import uk.co.unclealex.music.common.configuration.json.FileSystemDeviceBean;
 import uk.co.unclealex.music.common.configuration.json.IpodDeviceBean;
 import uk.co.unclealex.music.common.configuration.json.MtpDeviceBean;
@@ -50,6 +52,7 @@ public interface Device {
    * Get the name of this device.
    * @return The name of this device.
    */
+  @NotEmpty
   public String getName();
   
   /**

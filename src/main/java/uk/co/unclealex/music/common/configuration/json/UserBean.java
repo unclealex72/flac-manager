@@ -26,11 +26,6 @@ package uk.co.unclealex.music.common.configuration.json;
 
 import java.util.List;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.hibernate.validator.constraints.NotEmpty;
-
 import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.common.configuration.Device;
 import uk.co.unclealex.music.common.configuration.User;
@@ -44,6 +39,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author alex
  */
 public class UserBean extends DataObject implements User {
+
+  /**
+   * The MusicBrainz user name for this user.
+   */
+  private final String userName;
+
+  /**
+   * The MusicBrainz password for this user.
+   */
+  private final String password;
+
+  /**
+   * The {@link Device}s owned by this user.
+   */
+  private final List<Device> devices;
 
   /**
    * 
@@ -61,25 +71,6 @@ public class UserBean extends DataObject implements User {
     this.password = password;
     this.devices = devices;
   }
-
-  /**
-   * The MusicBrainz user name for this user.
-   */
-  @NotNull
-  private final String userName;
-
-  /**
-   * The MusicBrainz password for this user.
-   */
-  @NotNull
-  private final String password;
-
-  /**
-   * The {@link Device}s owned by this user.
-   */
-  @NotEmpty
-  @Valid
-  private final List<Device> devices;
 
   /**
    * {@inheritDoc}
