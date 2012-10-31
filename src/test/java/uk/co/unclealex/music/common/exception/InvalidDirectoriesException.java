@@ -24,10 +24,25 @@
 
 package uk.co.unclealex.music.common.exception;
 
+import java.nio.file.Path;
+
 /**
+ * An execption that is thrown when paths supplied to a command are either not a
+ * directory or not relative to the path that command intrinsicly works on.
+ * 
  * @author alex
- *
+ * 
  */
 public class InvalidDirectoriesException extends Exception {
 
+  private final Iterable<Path> invalidDirectories;
+
+  public InvalidDirectoriesException(String message, Iterable<Path> invalidDirectories) {
+    super(message);
+    this.invalidDirectories = invalidDirectories;
+  }
+
+  public Iterable<Path> getInvalidDirectories() {
+    return invalidDirectories;
+  }
 }

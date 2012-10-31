@@ -24,14 +24,11 @@
 
 package uk.co.unclealex.music.common.files;
 
-import static org.hamcrest.Matchers.contains;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.SortedSet;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -52,7 +49,6 @@ public class FileUtilsImplTest {
 
   @Before
   public void createTestDirectory() throws IOException {
-    removeTestDirectory();
     testDirectory = Files.createTempDirectory("file-utils-impl-test-");
     log.info("Using directory " + testDirectory);
   }
@@ -127,29 +123,6 @@ public class FileUtilsImplTest {
         Files.isDirectory(target.resolve(Paths.get("dir", "moveme.txt"))));
     Assert.assertFalse("File source/dir exists.", Files.exists(fileToMove.getParent()));
     Assert.assertTrue("File source does not exist.", Files.exists(source));
-  }
-
-  @Test
-  public void testFindFlacFiles() throws IOException {
-    for (Path path : new Path[] {
-        Paths.get("dir.flac", "myfile.flac"),
-        Paths.get("dir.flac", "myfile.xml"),
-        Paths.get("my.flac"),
-        Paths.get("my.xml"),
-        Paths.get("dir", "your.flac"),
-        Paths.get("dir", "your.mp3") }) {
-      Path fullPath = testDirectory.resolve(path);
-      Files.createDirectories(fullPath.getParent());
-      Files.createFile(fullPath);
-    }
-    SortedSet<Path> actualFlacFiles = new FileUtilsImpl().findAllFlacFiles(testDirectory);
-    Assert.assertThat(
-        "The wrong flac files were found.",
-        actualFlacFiles,
-        contains(
-            testDirectory.resolve(Paths.get("dir.flac", "myfile.flac")),
-            testDirectory.resolve(Paths.get("dir", "your.flac")),
-            testDirectory.resolve("my.flac")));
   }
 
   @After
