@@ -51,7 +51,7 @@ import com.google.common.collect.Lists;
  */
 public class FlacDirectoryServiceImplTest {
 
-  private static final Logger log = LoggerFactory.getLogger(FileUtilsImplTest.class);
+  private static final Logger log = LoggerFactory.getLogger(FlacDirectoryServiceImplTest.class);
 
   Path testDirectory;
   FlacDirectoryServiceImpl flacDirectoryServiceImpl;
