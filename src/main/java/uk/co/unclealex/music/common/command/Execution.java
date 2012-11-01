@@ -22,7 +22,7 @@
  *
  */
 
-package uk.co.unclealex.music.checkout;
+package uk.co.unclealex.music.common.command;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -30,19 +30,21 @@ import java.nio.file.Path;
 import uk.co.unclealex.music.common.exception.InvalidDirectoriesException;
 
 /**
- * An interface for classes that contain the checkout logic.
+ * The interface for classes that actually contain the execution logic for a
+ * command. Instances of this interface will be created by dependency injection.
  * 
  * @author alex
  * 
  */
-public interface Checkout {
+public interface Execution {
 
   /**
-   * Checkout a list of flac files by moving them into the staging directory and
-   * also removing any related lossy encoded files.
+   * Execute a command.
    * 
-   * @param directories A list of directories whose flac files will be checked out.
+   * @param paths
+   *          The FLAC directories upon which this execution will operate upon.
    * @throws IOException
+   * @throws InvalidDirectoriesException
    */
-  public void checkout(Iterable<Path> directories) throws IOException, InvalidDirectoriesException;
+  public void execute(Iterable<Path> paths) throws IOException, InvalidDirectoriesException;
 }

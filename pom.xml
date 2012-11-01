@@ -8,13 +8,20 @@
   </parent>
   <artifactId>flac-manager</artifactId>
   <version>5.0-SNAPSHOT</version>
+  <packaging>executable</packaging>
   <name>Flac Manager</name>
   <url>http://unclealex.co.uk</url>
   <properties>
-    <executable-version>1.0.5</executable-version>
+    <executable-groupId>uk.co.unclealex.executable</executable-groupId>
+    <executable-version>2.0.1-SNAPSHOT</executable-version>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>${executable-groupId}</groupId>
+      <artifactId>executable-dependency</artifactId>
+      <version>${executable-version}</version>
+    </dependency>
 
     <dependency>
       <groupId>uk.co.unclealex</groupId>
@@ -108,7 +115,17 @@
     </dependency>
   </dependencies>
 
-
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>${executable-groupId}</groupId>
+        <artifactId>maven-executable-plugin</artifactId>
+        <version>${executable-version}</version>
+        <extensions>true</extensions>
+      </plugin>
+    </plugins>
+  </build>
+  
   <dependencyManagement>
     <dependencies>
       <dependency>

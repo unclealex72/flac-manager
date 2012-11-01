@@ -46,7 +46,7 @@ import com.google.common.collect.Sets;
 
 /**
  * @author alex
- *
+ * 
  */
 public class FlacDirectoryServiceImpl implements FlacDirectoryService {
 
@@ -54,21 +54,22 @@ public class FlacDirectoryServiceImpl implements FlacDirectoryService {
    * The file system against which directories are resolved.
    */
   private final FileSystem fileSystem;
-  
+
   @Inject
   public FlacDirectoryServiceImpl(FileSystem fileSystem) {
     super();
     this.fileSystem = fileSystem;
   }
 
-
   /**
    * {@inheritDoc}
-   * @throws IOException 
+   * 
+   * @throws IOException
    */
   @Override
   public SortedSet<Path> listFlacFiles(Path requiredBasePath, Iterable<Path> flacDirectories)
-      throws InvalidDirectoriesException, IOException {
+      throws InvalidDirectoriesException,
+      IOException {
     Function<Path, Path> absoluteFunction = new Function<Path, Path>() {
       public Path apply(Path path) {
         return path.toAbsolutePath();
@@ -83,7 +84,8 @@ public class FlacDirectoryServiceImpl implements FlacDirectoryService {
     };
     Iterable<Path> invalidPaths = Iterables.filter(flacDirectories, Predicates.not(isValidPathPredicate));
     if (!Iterables.isEmpty(invalidPaths)) {
-      throw new InvalidDirectoriesException("The following paths are either not directories or not a subpath of " + absoluteRequiredBasePath, invalidPaths);
+      throw new InvalidDirectoriesException("The following paths are either not directories or not a subpath of "
+          + absoluteRequiredBasePath, invalidPaths);
     }
     SortedSet<Path> allFlacFiles = Sets.newTreeSet();
     for (Path flacDirectory : absoluteFlacDirectories) {
@@ -94,7 +96,9 @@ public class FlacDirectoryServiceImpl implements FlacDirectoryService {
 
   /**
    * Find all FLAC files under a path.
-   * @param basePath The path to search.
+   * 
+   * @param basePath
+   *          The path to search.
    * @retun A sorted set of all the found paths.
    */
   protected SortedSet<Path> findAllFlacFiles(Path basePath) throws IOException {

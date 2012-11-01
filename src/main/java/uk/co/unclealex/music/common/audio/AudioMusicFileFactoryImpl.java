@@ -27,6 +27,7 @@ package uk.co.unclealex.music.common.audio;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import javax.inject.Inject;
 import javax.validation.ConstraintViolationException;
 
 import uk.co.unclealex.music.common.MusicFile;
@@ -50,6 +51,7 @@ public class AudioMusicFileFactoryImpl implements AudioMusicFileFactory {
    *
    * @param validator the validator
    */
+  @Inject
   public AudioMusicFileFactoryImpl(Validator validator) {
     super();
     this.validator = validator;
