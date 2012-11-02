@@ -95,13 +95,13 @@ public class FileUtilsImplTest {
       Files.createDirectories(p.getParent());
       Files.createFile(p);
     }
-    new FileUtilsImpl().move(source, source.relativize(fileToMove), target);
+    new FileUtilsImpl().move(source, source.relativize(fileToMove), target, Paths.get("otherdir", "movedme.txt"));
     Assert.assertTrue(
-        "File target/dir/moveme.txt does not exist.",
-        Files.exists(target.resolve(Paths.get("dir", "moveme.txt"))));
+        "File target/otherdir/movedme.txt does not exist.",
+        Files.exists(target.resolve(Paths.get("otherdir", "movedme.txt"))));
     Assert.assertFalse(
-        "File target/dir/moveme.txt is a directory.",
-        Files.isDirectory(target.resolve(Paths.get("dir", "moveme.txt"))));
+        "File target/otherdir/movedme.txt is a directory.",
+        Files.isDirectory(target.resolve(Paths.get("otherdir", "movedme.txt"))));
     Assert.assertTrue("File source/dir/keepme.txt does not exist.", Files.exists(fileToKeep));
     Assert.assertFalse("File source/dir/moveme.txt exists.", Files.exists(fileToMove));
   }
@@ -114,13 +114,13 @@ public class FileUtilsImplTest {
     Path fileToMove = source.resolve(Paths.get("dir", "moveme.txt"));
     Files.createDirectories(fileToMove.getParent());
     Files.createFile(fileToMove);
-    new FileUtilsImpl().move(source, source.relativize(fileToMove), target);
+    new FileUtilsImpl().move(source, source.relativize(fileToMove), target, Paths.get("otherdir", "movedme.txt"));
     Assert.assertTrue(
-        "File target/dir/moveme.txt does not exist.",
-        Files.exists(target.resolve(Paths.get("dir", "moveme.txt"))));
+        "File target/otherdir/movemed.txt does not exist.",
+        Files.exists(target.resolve(Paths.get("otherdir", "movedme.txt"))));
     Assert.assertFalse(
-        "File target/dir/moveme.txt is a directory.",
-        Files.isDirectory(target.resolve(Paths.get("dir", "moveme.txt"))));
+        "File target/otherdir/movedme.txt is a directory.",
+        Files.isDirectory(target.resolve(Paths.get("otherdir", "movedme.txt"))));
     Assert.assertFalse("File source/dir exists.", Files.exists(fileToMove.getParent()));
     Assert.assertTrue("File source does not exist.", Files.exists(source));
   }

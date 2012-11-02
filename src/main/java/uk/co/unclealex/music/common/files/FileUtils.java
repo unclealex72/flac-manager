@@ -54,24 +54,32 @@ public interface FileUtils {
   public void alterWriteable(Path basePath, Path relativePath, boolean allowWrites) throws IOException;
 
   /**
-   * Move a path from a source directory to a target directory using an atomic file system move, creating any
-   * required directories. Any directories left empty in the source base path
-   * due to the move operation will be removed.
+   * Move a path from a source directory to a target directory using an atomic
+   * file system move, creating any required directories. Any directories left
+   * empty in the source base path due to the move operation will be removed.
    * 
    * @param sourceBasePath
    *          The source path.
-   * @param relativePath
+   * @param sourceRelativePath
    *          The path, relative to the source base path, to move.
    * @param targetBasePath
    *          The path where directories will be created and the file moved to.
+   * 
+   * @param targetRelativePath
+   *          The path, relative to the target base path where the file will be
+   *          moved to.
    * @throws IOException
    */
-  public void move(Path sourceBasePath, Path relativePath, Path targetBasePath) throws IOException;
+  public void move(Path sourceBasePath, Path sourceRelativePath, Path targetBasePath, Path targetRelativePath)
+      throws IOException;
 
   /**
    * Remove directories if they are empty and recurse up the directory tree.
-   * @param basePath The base directory that should not be removed.
-   * @param currentPath The path to remove if it is empty.
+   * 
+   * @param basePath
+   *          The base directory that should not be removed.
+   * @param currentPath
+   *          The path to remove if it is empty.
    * @throws IOException
    */
   public void remove(Path basePath, Path currentPath) throws IOException;

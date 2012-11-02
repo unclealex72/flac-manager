@@ -77,9 +77,10 @@ public class FileUtilsImpl implements FileUtils {
    * {@inheritDoc}
    */
   @Override
-  public void move(Path sourceBasePath, Path relativePath, Path targetBasePath) throws IOException {
-    Path sourcePath = sourceBasePath.resolve(relativePath);
-    Path targetPath = targetBasePath.resolve(relativePath);
+  public void move(Path sourceBasePath, Path sourceRelativePath, Path targetBasePath, Path targetRelativePath)
+      throws IOException {
+    Path sourcePath = sourceBasePath.resolve(sourceRelativePath);
+    Path targetPath = targetBasePath.resolve(targetRelativePath);
     Files.createDirectories(targetPath.getParent());
     Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE);
     Path currentDirectory = sourcePath.getParent();

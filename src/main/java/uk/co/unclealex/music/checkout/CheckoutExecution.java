@@ -89,7 +89,7 @@ public class CheckoutExecution implements Execution {
     for (Path flacFile : flacFiles) {
       Path relativeFlacFile = flacPath.relativize(flacFile);
       fileUtils.alterWriteable(flacPath, relativeFlacFile, true);
-      fileUtils.move(flacPath, relativeFlacFile, stagingPath);
+      fileUtils.move(flacPath, relativeFlacFile, stagingPath, relativeFlacFile);
       fileUtils.alterWriteable(flacPath, relativeFlacFile.getParent(), false);
     }
   }
