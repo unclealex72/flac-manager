@@ -26,6 +26,8 @@ package uk.co.unclealex.music.action;
 
 import java.io.IOException;
 
+import uk.co.unclealex.music.common.files.FileLocation;
+
 /**
  * An Action is an instruction that tells an {@link ActionVisitor} to do
  * something. Each command calculates a list of actions that are then executed.
@@ -37,6 +39,12 @@ import java.io.IOException;
  */
 public interface Action {
 
+  /**
+   * Get the {@link FileLocation} this action is acting upon.
+   * @return The {@link FileLocation} this action is acting upon.
+   */
+  public FileLocation getFileLocation();
+  
   /**
    * Accept a call from an {@link ActionVisitor}.
    * @param actionVisitor The calling {@link ActionVisitor}.

@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.common.files.FileLocation;
 
 /**
@@ -37,12 +36,7 @@ import uk.co.unclealex.music.common.files.FileLocation;
  * @author alex
  * 
  */
-public class FailureAction extends DataObject implements Action {
-
-  /**
-   * The location not correctly tagged.
-   */
-  private final FileLocation location;
+public class FailureAction extends AbstractAction implements Action {
 
   /**
    * The message template used to display to the user.
@@ -58,13 +52,12 @@ public class FailureAction extends DataObject implements Action {
   /**
    * Instantiates a new failure action.
    *
-   * @param location the location
+   * @param fileLocation
    * @param messageTemplate the message template
    * @param parameters the parameters
    */
-  public FailureAction(FileLocation location, String messageTemplate, Object... parameters) {
-    super();
-    this.location = location;
+  public FailureAction(FileLocation fileLocation, String messageTemplate, Object... parameters) {
+    super(fileLocation);
     this.messageTemplate = messageTemplate;
     this.parameters = Arrays.asList(parameters);
   }
@@ -75,15 +68,6 @@ public class FailureAction extends DataObject implements Action {
   @Override
   public void accept(ActionVisitor actionVisitor) throws IOException {
     actionVisitor.visit(this);
-  }
-
-  /**
-   * Gets the location not correctly tagged.
-   *
-   * @return the location not correctly tagged
-   */
-  public FileLocation getLocation() {
-    return location;
   }
 
   /**

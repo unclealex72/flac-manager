@@ -26,7 +26,6 @@ package uk.co.unclealex.music.action;
 
 import java.io.IOException;
 
-import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.common.MusicFile;
 import uk.co.unclealex.music.common.files.FileLocation;
 
@@ -36,12 +35,7 @@ import uk.co.unclealex.music.common.files.FileLocation;
  * @author alex
  * 
  */
-public class AddArtworkAction extends DataObject implements Action {
-
-  /**
-   * The location to add artwork to.
-   */
-  private final FileLocation location;
+public class AddArtworkAction extends AbstractAction implements Action {
 
   /**
    * The {@link MusicFile} associated with the file {@link #location}.
@@ -56,13 +50,12 @@ public class AddArtworkAction extends DataObject implements Action {
   /**
    * Instantiates a new adds the artwork action.
    *
-   * @param location the location
+   * @param fileLocation the location
    * @param musicFile the music file
    * @param coverArtUrl the cover art url
    */
-  public AddArtworkAction(FileLocation location, MusicFile musicFile, String coverArtUrl) {
-    super();
-    this.location = location;
+  public AddArtworkAction(FileLocation fileLocation, MusicFile musicFile, String coverArtUrl) {
+    super(fileLocation);
     this.musicFile = musicFile;
     this.coverArtUrl = coverArtUrl;
   }
@@ -73,15 +66,6 @@ public class AddArtworkAction extends DataObject implements Action {
   @Override
   public void accept(ActionVisitor actionVisitor) throws IOException {
     actionVisitor.visit(this);
-  }
-
-  /**
-   * Gets the location to add artwork to.
-   *
-   * @return the location to add artwork to
-   */
-  public FileLocation getLocation() {
-    return location;
   }
 
   /**

@@ -26,7 +26,6 @@ package uk.co.unclealex.music.action;
 
 import java.io.IOException;
 
-import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.common.MusicFile;
 import uk.co.unclealex.music.common.files.FileLocation;
 
@@ -36,37 +35,33 @@ import uk.co.unclealex.music.common.files.FileLocation;
  * @author alex
  * 
  */
-public class EncodeAction extends DataObject implements Action {
+public class EncodeAction extends AbstractAction implements Action {
 
-  /**
-   * The location of the FLAC file to encode.
-   */
-  private final FileLocation flacFileLocation;
-  
   /**
    * The location of the MP3 file to be encoded.
    */
   private final FileLocation encodedFileLocation;
-  
+
   /**
    * The {@link MusicFile} used to tag the MP3 file.
    */
   private final MusicFile flacMusicFile;
-  
+
   /**
    * Instantiates a new encode action.
-   *
-   * @param flacFileLocation the flac file location
-   * @param encodedFileLocation the encoded file location
-   * @param flacMusicFile the flac music file
+   * 
+   * @param fileLocation
+   *          the flac file location
+   * @param encodedFileLocation
+   *          the encoded file location
+   * @param flacMusicFile
+   *          the flac music file
    */
-  public EncodeAction(FileLocation flacFileLocation, FileLocation encodedFileLocation, MusicFile flacMusicFile) {
-    super();
-    this.flacFileLocation = flacFileLocation;
+  public EncodeAction(FileLocation fileLocation, FileLocation encodedFileLocation, MusicFile flacMusicFile) {
+    super(fileLocation);
     this.encodedFileLocation = encodedFileLocation;
     this.flacMusicFile = flacMusicFile;
   }
-
 
   /**
    * {@inheritDoc}
@@ -76,30 +71,18 @@ public class EncodeAction extends DataObject implements Action {
     actionVisitor.visit(this);
   }
 
-
-  /**
-   * Gets the location of the FLAC file to encode.
-   *
-   * @return the location of the FLAC file to encode
-   */
-  public FileLocation getFlacFileLocation() {
-    return flacFileLocation;
-  }
-
-
   /**
    * Gets the location of the MP3 file to be encoded.
-   *
+   * 
    * @return the location of the MP3 file to be encoded
    */
   public FileLocation getEncodedFileLocation() {
     return encodedFileLocation;
   }
 
-
   /**
    * Gets the {@link MusicFile} used to tag the MP3 file.
-   *
+   * 
    * @return the {@link MusicFile} used to tag the MP3 file
    */
   public MusicFile getFlacMusicFile() {

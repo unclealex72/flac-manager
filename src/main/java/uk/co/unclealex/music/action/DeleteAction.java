@@ -26,7 +26,6 @@ package uk.co.unclealex.music.action;
 
 import java.io.IOException;
 
-import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.common.files.FileLocation;
 
 /**
@@ -35,22 +34,15 @@ import uk.co.unclealex.music.common.files.FileLocation;
  * @author alex
  * 
  */
-public class DeleteAction extends DataObject implements Action {
+public class DeleteAction extends AbstractAction implements Action {
 
-  /**
-   * The location to delete.
-   */
-  private final FileLocation location;
-
-  
   /**
    * Instantiates a new delete action.
    *
    * @param location the location
    */
-  public DeleteAction(FileLocation location) {
-    super();
-    this.location = location;
+  public DeleteAction(FileLocation fileLocation) {
+    super(fileLocation);
   }
 
   /**
@@ -60,14 +52,4 @@ public class DeleteAction extends DataObject implements Action {
   public void accept(ActionVisitor actionVisitor) throws IOException {
     actionVisitor.visit(this);
   }
-
-  /**
-   * Gets the location to delete.
-   *
-   * @return the location to delete
-   */
-  public FileLocation getLocation() {
-    return location;
-  }
-
 }

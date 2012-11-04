@@ -26,7 +26,6 @@ package uk.co.unclealex.music.action;
 
 import java.io.IOException;
 
-import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.common.files.FileLocation;
 
 /**
@@ -35,28 +34,22 @@ import uk.co.unclealex.music.common.files.FileLocation;
  * @author alex
  * 
  */
-public class MoveAction extends DataObject implements Action {
+public class MoveAction extends AbstractAction implements Action {
 
-  /**
-   * The location of the file to move.
-   */
-  private final FileLocation sourceLocation;
-  
   /**
    * The location of where to move the file.
    */
-  private final FileLocation targetLocation;
+  private final FileLocation targetFileLocation;
 
   /**
    * Instantiates a new move action.
    *
-   * @param sourceLocation the source location
-   * @param targetLocation the target location
+   * @param fileLocation the source location
+   * @param targetFileLocation the target location
    */
-  public MoveAction(FileLocation sourceLocation, FileLocation targetLocation) {
-    super();
-    this.sourceLocation = sourceLocation;
-    this.targetLocation = targetLocation;
+  public MoveAction(FileLocation fileLocation, FileLocation targetFileLocation) {
+    super(fileLocation);
+    this.targetFileLocation = targetFileLocation;
   }
   
   /**
@@ -67,20 +60,11 @@ public class MoveAction extends DataObject implements Action {
   }
 
   /**
-   * Gets the location of the file to move.
-   *
-   * @return the location of the file to move
-   */
-  public FileLocation getSourceLocation() {
-    return sourceLocation;
-  }
-
-  /**
    * Gets the location of where to move the file.
    *
    * @return the location of where to move the file
    */
-  public FileLocation getTargetLocation() {
-    return targetLocation;
+  public FileLocation getTargetFileLocation() {
+    return targetFileLocation;
   }
 }

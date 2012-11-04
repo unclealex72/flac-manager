@@ -24,32 +24,35 @@
 
 package uk.co.unclealex.music.action;
 
-import java.io.IOException;
-
+import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.common.files.FileLocation;
 
 /**
- * An action used to write-protect a file.
- * 
+ * A base class for {@link Action}s.
  * @author alex
- * 
+ *
  */
-public class ProtectAction extends AbstractAction implements Action {
+public abstract class AbstractAction extends DataObject implements Action {
 
   /**
-   * Instantiates a new protect action.
-   *
-   * @param location the location
+   * The primary {@link FileLocation} upon which this action acts.
    */
-  public ProtectAction(FileLocation fileLocation) {
-    super(fileLocation);
+  private final FileLocation fileLocation;
+
+  /**
+   * Instantiates a new abstract action.
+   *
+   * @param fileLocation the file location
+   */
+  public AbstractAction(FileLocation fileLocation) {
+    super();
+    this.fileLocation = fileLocation;
   }
 
   /**
    * {@inheritDoc}
    */
-  @Override
-  public void accept(ActionVisitor actionVisitor) throws IOException {
-    actionVisitor.visit(this);
+  public FileLocation getFileLocation() {
+    return fileLocation;
   }
 }

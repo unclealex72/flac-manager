@@ -26,7 +26,6 @@ package uk.co.unclealex.music.action;
 
 import java.io.IOException;
 
-import uk.co.unclealex.music.common.DataObject;
 import uk.co.unclealex.music.common.files.FileLocation;
 
 /**
@@ -35,22 +34,15 @@ import uk.co.unclealex.music.common.files.FileLocation;
  * @author alex
  * 
  */
-public class UnprotectAction extends DataObject implements Action {
+public class UnprotectAction extends AbstractAction implements Action {
 
-  /**
-   * The location to write unprotect.
-   */
-  private final FileLocation location;
-
-  
   /**
    * Instantiates a new unprotect action.
    *
    * @param location the location
    */
-  public UnprotectAction(FileLocation location) {
-    super();
-    this.location = location;
+  public UnprotectAction(FileLocation fileLocation) {
+    super(fileLocation);
   }
 
   /**
@@ -60,14 +52,4 @@ public class UnprotectAction extends DataObject implements Action {
   public void accept(ActionVisitor actionVisitor) throws IOException {
     actionVisitor.visit(this);
   }
-
-  /**
-   * Gets the location to write unprotect.
-   *
-   * @return the location to write unprotect
-   */
-  public FileLocation getLocation() {
-    return location;
-  }
-
 }
