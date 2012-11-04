@@ -36,14 +36,6 @@ import org.junit.Test;
 import uk.co.unclealex.music.configuration.Configuration;
 import uk.co.unclealex.music.configuration.ConfigurationFactory;
 import uk.co.unclealex.music.configuration.Device;
-import uk.co.unclealex.music.configuration.json.AmazonConfigurationBean;
-import uk.co.unclealex.music.configuration.json.ConfigurationBean;
-import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
-import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
-import uk.co.unclealex.music.configuration.json.JsonConfigurationFactory;
-import uk.co.unclealex.music.configuration.json.MtpDeviceBean;
-import uk.co.unclealex.music.configuration.json.PathsBean;
-import uk.co.unclealex.music.configuration.json.UserBean;
 
 import com.google.common.collect.Lists;
 

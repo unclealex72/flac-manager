@@ -31,6 +31,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
@@ -39,7 +40,10 @@ import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.action.ActionsImpl;
 import uk.co.unclealex.music.audio.AudioMusicFileFactory;
 import uk.co.unclealex.music.audio.AudioMusicFileFactoryImpl;
+import uk.co.unclealex.music.configuration.AmazonConfiguration;
 import uk.co.unclealex.music.configuration.Configuration;
+import uk.co.unclealex.music.configuration.Directories;
+import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.configuration.json.JsonConfigurationFactory;
 import uk.co.unclealex.music.files.FileUtils;
 import uk.co.unclealex.music.files.FileUtilsImpl;
@@ -50,6 +54,7 @@ import uk.co.unclealex.music.files.FlacDirectoryServiceImpl;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
+import com.google.inject.TypeLiteral;
 
 /**
  * The Guice {@link Module} for components common to checking in and checking out.
@@ -89,6 +94,9 @@ public abstract class CommonModule extends AbstractModule {
       ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
       factory.getValidator().validate(configuration);
       bind(Configuration.class).toInstance(configuration);
+      bind(AmazonConfiguration.class).toInstance(configuration.getAmazon());
+      bind(Directories.class).toInstance(configuration.getDirectories());
+      bind(new TypeLiteral<List<User>>() {}).toInstance(configuration.getUsers());
     }
     catch (IOException e) {
       addError("Could not read configuration file " + configurationPath);

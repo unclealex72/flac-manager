@@ -10,6 +10,8 @@ import uk.co.unclealex.music.configuration.User;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 /**
  * The main interface for holding configuration information about where files are stored as well as for users and
@@ -28,7 +30,7 @@ public class ConfigurationBean extends DataObject implements Configuration {
   /**
    * A list of all the known {@link User}s.
    */
-  private final List<UserBean> users;
+  private final List<User> users;
 
   /**
    * The {@link AmazonConfiguration} used to talk to Amazon.
@@ -46,7 +48,7 @@ public class ConfigurationBean extends DataObject implements Configuration {
   public ConfigurationBean(@JsonProperty("directories") PathsBean directories, @JsonProperty("users") List<UserBean> users, @JsonProperty("amazon") AmazonConfigurationBean amazonConfigurationBean) {
     super();
     this.directories = directories;
-    this.users = users;
+    this.users = users == null ? null : Lists.newArrayList(Iterables.filter(users, User.class));
     this.amazon = amazonConfigurationBean;
   }
 
@@ -60,7 +62,7 @@ public class ConfigurationBean extends DataObject implements Configuration {
   /**
    * {@inheritDoc}
    */
-  public List<UserBean> getUsers() {
+  public List<User> getUsers() {
     return users;
   }
 

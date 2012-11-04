@@ -30,7 +30,7 @@ public interface Configuration {
    */
   @NotEmpty
   @Valid
-  public List<? extends User> getUsers();
+  public List<User> getUsers();
   
   /**
    * Get the configuration object required to talk to Amazon web services.
