@@ -34,7 +34,7 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.junit.Assert;
 
-import uk.co.unclealex.music.common.DataObject;
+import uk.co.unclealex.music.DataObject;
 import uk.co.unclealex.validator.paths.CanRead;
 import uk.co.unclealex.validator.paths.CanWrite;
 import uk.co.unclealex.validator.paths.IsDirectory;

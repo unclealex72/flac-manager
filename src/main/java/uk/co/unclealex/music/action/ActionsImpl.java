@@ -26,8 +26,8 @@ package uk.co.unclealex.music.action;
 
 import java.util.List;
 
-import uk.co.unclealex.music.common.MusicFile;
-import uk.co.unclealex.music.common.files.FileLocation;
+import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.files.FileLocation;
 
 import com.google.common.collect.Lists;
 

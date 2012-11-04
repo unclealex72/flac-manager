@@ -26,8 +26,8 @@ package uk.co.unclealex.music.action;
 
 import java.io.IOException;
 
-import uk.co.unclealex.music.common.MusicFile;
-import uk.co.unclealex.music.common.files.FileLocation;
+import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.files.FileLocation;
 
 /**
  * An action used to encode a FLAC file into an MP3 file.

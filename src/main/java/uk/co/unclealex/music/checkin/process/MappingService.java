@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.SortedMap;
 
-import uk.co.unclealex.music.common.MusicFile;
+import uk.co.unclealex.music.MusicFile;
 
 /**
  * An interface for classes that map FLAC files to their {@link MusicFile} representation.

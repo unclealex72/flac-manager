@@ -32,9 +32,9 @@ import java.util.List;
 
 import org.junit.Test;
 
-import uk.co.unclealex.music.common.MusicFile;
-import uk.co.unclealex.music.common.MusicFileBean;
-import uk.co.unclealex.music.common.files.FileLocation;
+import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.MusicFileBean;
+import uk.co.unclealex.music.files.FileLocation;
 
 /**
  * @author alex

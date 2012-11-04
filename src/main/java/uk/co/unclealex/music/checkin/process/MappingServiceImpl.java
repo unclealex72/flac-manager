@@ -30,8 +30,8 @@ import java.util.SortedMap;
 
 import javax.inject.Inject;
 
-import uk.co.unclealex.music.common.MusicFile;
-import uk.co.unclealex.music.common.audio.AudioMusicFileFactory;
+import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.audio.AudioMusicFileFactory;
 
 import com.google.common.collect.Maps;
 

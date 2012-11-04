@@ -17,7 +17,7 @@ import javax.annotation.PostConstruct;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import uk.co.unclealex.music.common.configuration.AmazonConfiguration;
+import uk.co.unclealex.music.configuration.AmazonConfiguration;
 
 import com.google.inject.Inject;
 import com.sun.jersey.core.util.Base64;

@@ -28,8 +28,8 @@ import java.util.List;
 
 import com.google.common.base.Supplier;
 
-import uk.co.unclealex.music.common.MusicFile;
-import uk.co.unclealex.music.common.files.FileLocation;
+import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.files.FileLocation;
 
 /**
  * An interface for building lists of {@link Action}s.

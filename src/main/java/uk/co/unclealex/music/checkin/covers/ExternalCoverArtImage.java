@@ -2,7 +2,7 @@ package uk.co.unclealex.music.checkin.covers;
 
 import java.net.URI;
 
-import uk.co.unclealex.music.common.DataObject;
+import uk.co.unclealex.music.DataObject;
 
 /**
  * A cover art image that can be downloaded from Amazon.

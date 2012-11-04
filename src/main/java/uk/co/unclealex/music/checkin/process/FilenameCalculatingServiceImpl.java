@@ -32,9 +32,9 @@ import javax.inject.Inject;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 
-import uk.co.unclealex.music.common.MusicFile;
-import uk.co.unclealex.music.common.files.Extension;
-import uk.co.unclealex.music.common.files.FilenameService;
+import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.files.Extension;
+import uk.co.unclealex.music.files.FilenameService;
 
 /**
  * The default implementation of {@link FilenameCalculatingService}.

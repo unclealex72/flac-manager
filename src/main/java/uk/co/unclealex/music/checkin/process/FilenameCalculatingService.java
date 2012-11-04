@@ -27,7 +27,7 @@ package uk.co.unclealex.music.checkin.process;
 import java.nio.file.Path;
 import java.util.SortedMap;
 
-import uk.co.unclealex.music.common.MusicFile;
+import uk.co.unclealex.music.MusicFile;
 
 /**
  * An interface for classes that calculate what a list {@link MusicFile}s should be called.

@@ -32,7 +32,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 
-import uk.co.unclealex.music.common.MusicFile;
+import uk.co.unclealex.music.MusicFile;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;

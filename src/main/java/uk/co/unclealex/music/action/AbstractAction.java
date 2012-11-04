@@ -24,8 +24,8 @@
 
 package uk.co.unclealex.music.action;
 
-import uk.co.unclealex.music.common.DataObject;
-import uk.co.unclealex.music.common.files.FileLocation;
+import uk.co.unclealex.music.DataObject;
+import uk.co.unclealex.music.files.FileLocation;
 
 /**
  * A base class for {@link Action}s.

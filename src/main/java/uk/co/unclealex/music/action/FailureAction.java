@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.unclealex.music.common.files.FileLocation;
+import uk.co.unclealex.music.files.FileLocation;
 
 /**
  * An action used to donate a FLAC file was not tagged correctly.

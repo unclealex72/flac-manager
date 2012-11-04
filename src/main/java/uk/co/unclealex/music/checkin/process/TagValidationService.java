@@ -30,7 +30,7 @@ import java.util.SortedMap;
 
 import javax.validation.ConstraintViolation;
 
-import uk.co.unclealex.music.common.MusicFile;
+import uk.co.unclealex.music.MusicFile;
 
 /**
  * An interface for classes that can check that a {@link MusicFile} has all the required tags.
