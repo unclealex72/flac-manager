@@ -25,9 +25,11 @@
 package uk.co.unclealex.music.command;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
+import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
+import uk.co.unclealex.music.files.FileLocation;
 
 /**
  * The interface for classes that actually contain the execution logic for a
@@ -39,12 +41,17 @@ import uk.co.unclealex.music.exception.InvalidDirectoriesException;
 public interface Execution {
 
   /**
-   * Execute a command.
+   * Create a list of actions that are needed to execute a command on a FLAC
+   * file.
    * 
-   * @param paths
-   *          The FLAC directories upon which this execution will operate upon.
-   * @throws IOException
-   * @throws InvalidDirectoriesException
+   * @param fileLocation
+   *          The location of the FLAC file that is being operated upon.
+   * @param musicFile
+   *          The tagging information associated with the FLAC file.
+   * @return An {@link Actions} object containing all the actions that need to
+   *         be executed.
    */
-  public void execute(Iterable<Path> paths) throws IOException, InvalidDirectoriesException;
+  public Actions execute(FileLocation fileLocation, MusicFile musicFile)
+      throws IOException,
+      InvalidDirectoriesException;
 }

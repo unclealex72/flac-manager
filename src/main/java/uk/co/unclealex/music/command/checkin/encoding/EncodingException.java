@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.checkin.encoding;
+package uk.co.unclealex.music.command.checkin.encoding;
 
 public class EncodingException extends Exception {
 

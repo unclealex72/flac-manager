@@ -22,16 +22,27 @@
  *
  */
 
-package uk.co.unclealex.music.checkin.encoding;
+package uk.co.unclealex.music.command.checkin.process;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.SortedMap;
+
+import uk.co.unclealex.music.MusicFile;
 
 /**
- * An interface for classes that process an incoming FLAC file.
+ * An interface for classes that map FLAC files to their {@link MusicFile} representation.
+ * This is the first stage of checking in FLAC files.
  * @author alex
- *
+ * 
  */
-public interface IncomingFlacProcessor {
+public interface MappingService {
 
-  public void processFlacFile(Path flacPath);
+  /**
+   * Map each FlAC file to its {@link MusicFile} representation.
+   * @param paths The FLAC paths to read
+   * @return A map of the FLAC paths and their {@link MusicFile} representations.
+   * @throws IOException
+   */
+  public SortedMap<Path, MusicFile> mapPathsToMusicFiles(Iterable<Path> paths) throws IOException;
 }

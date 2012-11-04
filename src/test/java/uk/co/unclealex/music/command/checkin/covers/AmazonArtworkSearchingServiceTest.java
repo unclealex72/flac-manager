@@ -22,7 +22,7 @@
  *
  */
 
-package uk.co.unclealex.music.checkin.covers;
+package uk.co.unclealex.music.command.checkin.covers;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -41,8 +41,8 @@ import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Test;
 
-import uk.co.unclealex.music.checkin.covers.AmazonArtworkSearchingService;
-import uk.co.unclealex.music.checkin.covers.SignedRequestsService;
+import uk.co.unclealex.music.command.checkin.covers.AmazonArtworkSearchingService;
+import uk.co.unclealex.music.command.checkin.covers.SignedRequestsService;
 
 import com.google.common.collect.Maps;
 

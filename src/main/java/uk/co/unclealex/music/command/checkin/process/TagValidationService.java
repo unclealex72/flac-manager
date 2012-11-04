@@ -22,24 +22,27 @@
  *
  */
 
-package uk.co.unclealex.music.checkin.process;
+package uk.co.unclealex.music.command.checkin.process;
 
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.SortedMap;
+
+import javax.validation.ConstraintViolation;
 
 import uk.co.unclealex.music.MusicFile;
 
 /**
- * An interface for classes that calculate what a list {@link MusicFile}s should be called.
+ * An interface for classes that can check that a {@link MusicFile} has all the required tags.
  * @author alex
  *
  */
-public interface FilenameCalculatingService {
+public interface TagValidationService {
 
   /**
-   * Calculate the names of a list of FLAC paths.
-   * @param musicFilesByFlacPath A set of {@link MusicFile}s keyed by the FLAC file they represent.
-   * @return A new map of relative paths that represent the correct filename for each FLAC path key.
+   * Check all {@link MusicFile}s have all the required tags.
+   * @param musicFilesByPath
+   * @return
    */
-  public SortedMap<Path, Path> calculateNewFilenames(SortedMap<Path, MusicFile> musicFilesByFlacPath);
+  public SortedMap<Path, Set<ConstraintViolation<MusicFile>>> checkTags(SortedMap<Path, MusicFile> musicFilesByPath);
 }

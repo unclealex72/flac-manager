@@ -22,25 +22,24 @@
  *
  */
 
-package uk.co.unclealex.music.checkin.process;
+package uk.co.unclealex.music.command.checkin.process;
 
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Map;
 import java.util.SortedMap;
 
+import uk.co.unclealex.music.MusicFile;
+
 /**
- * An interface for classes that can check whether a list of FLAC files will be moved to unique locations
- * during a check-in operation.
+ * An interface for classes that calculate what a list {@link MusicFile}s should be called.
  * @author alex
  *
  */
-public interface UniquenessCheckingService {
+public interface FilenameCalculatingService {
 
   /**
-   * Calculate if any FLAC files will be moved to the same file.
-   * @param relativeFlacFilenamesByOriginalPath A set of new flac file names keyed by the original file name.
-   * @return A map of all the FLAC files that will be moved to a non-unique file name, keyed by that file name.
+   * Calculate the names of a list of FLAC paths.
+   * @param musicFilesByFlacPath A set of {@link MusicFile}s keyed by the FLAC file they represent.
+   * @return A new map of relative paths that represent the correct filename for each FLAC path key.
    */
-  public Map<Path, Collection<Path>> listNonUniquePaths(SortedMap<Path, Path> relativeFlacFilenamesByOriginalPath);
+  public SortedMap<Path, Path> calculateNewFilenames(SortedMap<Path, MusicFile> musicFilesByFlacPath);
 }

@@ -1,4 +1,4 @@
-package uk.co.unclealex.music.checkin.covers;
+package uk.co.unclealex.music.command.checkin.covers;
 
 import java.net.URI;
 

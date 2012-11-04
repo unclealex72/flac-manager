@@ -35,6 +35,8 @@ import java.nio.file.Paths;
 import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
 
+import uk.co.unclealex.music.action.Actions;
+import uk.co.unclealex.music.action.ActionsImpl;
 import uk.co.unclealex.music.audio.AudioMusicFileFactory;
 import uk.co.unclealex.music.audio.AudioMusicFileFactoryImpl;
 import uk.co.unclealex.music.configuration.Configuration;
@@ -63,6 +65,7 @@ public abstract class CommonModule extends AbstractModule {
   protected void configure() {
     bind(FileSystem.class).toInstance(FileSystems.getDefault());
     bind(AudioMusicFileFactory.class).to(AudioMusicFileFactoryImpl.class);
+    bind(Actions.class).to(ActionsImpl.class);
     bindConfiguration();
     bind(FilenameService.class).to(FilenameServiceImpl.class);
     bind(FileUtils.class).to(FileUtilsImpl.class);

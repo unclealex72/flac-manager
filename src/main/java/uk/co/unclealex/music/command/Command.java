@@ -71,7 +71,6 @@ public abstract class Command<C extends CommandLine> {
       }
     };
     Iterable<Path> flacPaths = Iterables.transform(commandLine.getFlacPaths(), pathFunction);
-    getExecution().execute(flacPaths);
   }
 
 

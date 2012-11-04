@@ -22,27 +22,16 @@
  *
  */
 
-package uk.co.unclealex.music.checkin.process;
+package uk.co.unclealex.music.command.checkin.encoding;
 
 import java.nio.file.Path;
-import java.util.Set;
-import java.util.SortedMap;
-
-import javax.validation.ConstraintViolation;
-
-import uk.co.unclealex.music.MusicFile;
 
 /**
- * An interface for classes that can check that a {@link MusicFile} has all the required tags.
+ * An interface for classes that process an incoming FLAC file.
  * @author alex
  *
  */
-public interface TagValidationService {
+public interface IncomingFlacProcessor {
 
-  /**
-   * Check all {@link MusicFile}s have all the required tags.
-   * @param musicFilesByPath
-   * @return
-   */
-  public SortedMap<Path, Set<ConstraintViolation<MusicFile>>> checkTags(SortedMap<Path, MusicFile> musicFilesByPath);
+  public void processFlacFile(Path flacPath);
 }

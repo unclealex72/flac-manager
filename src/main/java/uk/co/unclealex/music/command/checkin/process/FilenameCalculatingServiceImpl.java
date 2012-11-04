@@ -22,7 +22,7 @@
  *
  */
 
-package uk.co.unclealex.music.checkin.process;
+package uk.co.unclealex.music.command.checkin.process;
 
 import java.nio.file.Path;
 import java.util.SortedMap;
