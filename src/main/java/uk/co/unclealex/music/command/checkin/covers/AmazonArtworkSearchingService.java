@@ -22,6 +22,8 @@ import org.jdom2.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.co.unclealex.music.MusicFile;
+
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -31,7 +33,7 @@ import com.google.common.collect.Lists;
  * @author alex
  *
  */
-public class AmazonArtworkSearchingService implements ArtworkSearchingService {
+public class AmazonArtworkSearchingService extends AbstractArtworkSearchingService {
 
   private static final Logger log = LoggerFactory.getLogger(AmazonArtworkSearchingService.class);
 
@@ -49,7 +51,15 @@ public class AmazonArtworkSearchingService implements ArtworkSearchingService {
   /**
    * {@inheritDoc}
    */
-  public URI findArtwork(String asin) throws IOException {
+  @Override
+  protected String locateAlbumIdentifier(MusicFile musicFile) {
+    return musicFile.getAsin();
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  protected URI findArtwork(String asin) throws IOException {
     Map<String, String> parameters = new HashMap<String, String>();
     parameters.put("Service", "AWSECommerceService");
     parameters.put("Operation", "ItemLookup");
@@ -124,6 +134,12 @@ public class AmazonArtworkSearchingService implements ArtworkSearchingService {
     return doc.getDescendants(filter);
   }
 
+  
+  /**
+   * Gets the {@link SignedRequestsService} used to generate signed Amazon URLs.
+   *
+   * @return the {@link SignedRequestsService} used to generate signed Amazon URLs
+   */
   public SignedRequestsService getSignedRequestsService() {
     return signedRequestsService;
   }

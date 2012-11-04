@@ -22,35 +22,34 @@
  *
  */
 
-package uk.co.unclealex.music.command;
+package uk.co.unclealex.music.action;
 
 import java.io.IOException;
 
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.files.FileLocation;
 
 /**
- * The interface for classes that actually contain the execution logic for a
- * command. Instances of this interface will be created by dependency injection.
+ * An action used to indicate cover art needs to be downloaded for a file.
  * 
  * @author alex
  * 
  */
-public interface Execution {
+public class CoverArtAction extends AbstractAction implements Action {
 
   /**
-   * Create a list of actions that are needed to execute a command on a FLAC
-   * file.
-   * 
-   * @param actions The {@link Action}s already queued for execution.
-   * @param flacFileLocation
-   *          The location of the FLAC file that is being operated upon.
-   * @param musicFile
-   *          The tagging information associated with the FLAC file.
-   * @return An {@link Actions} object containing all the actions that need to
-   *         be executed.
+   * Instantiates a new unprotect action.
+   *
+   * @param fileLocation the file location
    */
-  public Actions execute(Actions actions, FileLocation flacFileLocation, MusicFile musicFile)
-      throws IOException;
+  public CoverArtAction(FileLocation fileLocation) {
+    super(fileLocation);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void accept(ActionVisitor actionVisitor) throws IOException {
+    actionVisitor.visit(this);
+  }
 }

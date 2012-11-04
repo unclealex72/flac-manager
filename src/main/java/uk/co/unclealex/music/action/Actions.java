@@ -26,25 +26,36 @@ package uk.co.unclealex.music.action;
 
 import java.util.List;
 
-import com.google.common.base.Supplier;
-
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.files.FileLocation;
 
+import com.google.common.base.Supplier;
+
 /**
  * An interface for building lists of {@link Action}s.
+ * 
  * @author alex
- *
+ * 
  */
 public interface Actions extends Supplier<List<Action>> {
+
+  /**
+   * Add a new {@link CoverArtAction}.
+   * 
+   * @param flacFileLocation
+   *          The location of the FLAC file that needs cover art downloaded.
+   * @return An {@link Actions} object with the new {@link Action} added to its
+   *         actions.
+   */
+  public Actions coverArt(FileLocation flacFileLocation);
 
   /**
    * Add a new {@link DeleteAction}.
    * 
    * @param fileLocation
    *          The location of the file to remove.
-   * @return An {@link Actions} object with the new {@link Action} added to
-   *         its actions.
+   * @return An {@link Actions} object with the new {@link Action} added to its
+   *         actions.
    */
   public Actions delete(FileLocation fileLocation);
 
@@ -57,8 +68,8 @@ public interface Actions extends Supplier<List<Action>> {
    *          The location of newly encoded MP3 file.
    * @param flacMusicFile
    *          The tagging information of the FLAC file.
-   * @return An {@link Actions} object with the new {@link Action} added to
-   *         its actions.
+   * @return An {@link Actions} object with the new {@link Action} added to its
+   *         actions.
    */
   public Actions encode(FileLocation fileLocation, FileLocation encodedFileLocation, MusicFile flacMusicFile);
 
@@ -71,8 +82,8 @@ public interface Actions extends Supplier<List<Action>> {
    *          The template of the message to display to the user.
    * @param parameters
    *          A list of parameters used to construct the message.
-   * @return An {@link Actions} object with the new {@link Action} added to
-   *         its actions.
+   * @return An {@link Actions} object with the new {@link Action} added to its
+   *         actions.
    */
   public Actions fail(FileLocation fileLocation, String messageTemplate, Object... parameters);
 
@@ -83,8 +94,8 @@ public interface Actions extends Supplier<List<Action>> {
    *          The location of the file to move.
    * @param targetFileLocation
    *          The location to where the file will be moved.
-   * @return An {@link Actions} object with the new {@link Action} added to
-   *         its actions.
+   * @return An {@link Actions} object with the new {@link Action} added to its
+   *         actions.
    */
   public Actions move(FileLocation fileLocation, FileLocation targetFileLocation);
 
@@ -93,8 +104,8 @@ public interface Actions extends Supplier<List<Action>> {
    * 
    * @param fileLocation
    *          The location of the file to write protect.
-   * @return An {@link Actions} object with the new {@link Action} added to
-   *         its actions.
+   * @return An {@link Actions} object with the new {@link Action} added to its
+   *         actions.
    */
   public Actions protect(FileLocation fileLocation);
 
@@ -103,9 +114,16 @@ public interface Actions extends Supplier<List<Action>> {
    * 
    * @param fileLocation
    *          The location of the file from which to remove write protection.
-   * @return An {@link Actions} object with the new {@link Action} added to
-   *         its actions.
+   * @return An {@link Actions} object with the new {@link Action} added to its
+   *         actions.
    */
   public Actions unprotect(FileLocation fileLocation);
 
+  /**
+   * Add a new list of {@link Action}s.
+   * @param actions The {@link Actions} object containing all the {@link Action}s.
+   * @return An {@link Actions} object with the new {@link Action}s added to its
+   *         actions.
+   */
+  public Actions then(Actions actions);
 }

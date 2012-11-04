@@ -28,16 +28,19 @@ import java.io.IOException;
 
 /**
  * A visitor that visits {@link Action}s.
+ * 
  * @author alex
- *
+ * 
  */
 public interface ActionVisitor {
 
   public abstract class Default implements ActionVisitor {
-    
+
     /**
      * Throw an {@link IllegalArgumentException}.
-     * @param action The unknown action type being visited.
+     * 
+     * @param action
+     *          The unknown action type being visited.
      */
     public void visit(Action action) {
       throw new IllegalArgumentException(action.getClass() + " is not a valid action type.");
@@ -46,44 +49,69 @@ public interface ActionVisitor {
 
   /**
    * Write protect a file.
-   * @param protectAction The {@link Action} containing the file information.
+   * 
+   * @param protectAction
+   *          The {@link Action} containing the file information.
    */
   public void visit(ProtectAction protectAction) throws IOException;
 
   /**
    * Write unprotect a file.
-   * @param unprotectAction The {@link Action} containing the file information.
+   * 
+   * @param unprotectAction
+   *          The {@link Action} containing the file information.
    */
   public void visit(UnprotectAction unprotectAction);
 
   /**
    * Move a file, making sure that any newly empty directories are removed.
-   * @param moveAction The {@link Action} containing the file information.
+   * 
+   * @param moveAction
+   *          The {@link Action} containing the file information.
    */
   public void visit(MoveAction moveAction);
 
   /**
    * Delete a file, making sure that any newly empty directories are removed.
-   * @param moveAction The {@link Action} containing the file information.
+   * 
+   * @param moveAction
+   *          The {@link Action} containing the file information.
    */
   public void visit(DeleteAction deleteAction);
 
   /**
    * Encode a file.
-   * @param encodeAction The {@link Action} containing all encoding information.
+   * 
+   * @param encodeAction
+   *          The {@link Action} containing all encoding information.
    */
   public void visit(EncodeAction encodeAction);
 
   /**
    * Add artwork to a FLAC file.
-   * @param addArtworkAction The {@link Action} containing all the information needed to add artwork.
+   * 
+   * @param addArtworkAction
+   *          The {@link Action} containing all the information needed to add
+   *          artwork.
    */
   public void visit(AddArtworkAction addArtworkAction);
 
   /**
    * Indicate that a FLAC file could not be checked in or out.
-   * @param failureAction The {@link Action} containing information on why the FLAC file was invalid.
+   * 
+   * @param failureAction
+   *          The {@link Action} containing information on why the FLAC file was
+   *          invalid.
    */
   public void visit(FailureAction failureAction);
+
+  /**
+   * Indicate that cover art needs to be downloaded for a file.
+   * 
+   * @param coverArtAction
+   *          The {@link Action} containing information on which FLAC file needs
+   *          cover art and where it should be downloaded from.
+   */
+  public void visit(CoverArtAction coverArtAction);
 
 }

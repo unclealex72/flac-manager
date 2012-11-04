@@ -51,6 +51,13 @@ public class ActionsImpl implements Actions {
    * {@inheritDoc}
    */
   @Override
+  public Actions coverArt(FileLocation flacFileLocation) {
+    return actions().coverArt(flacFileLocation);
+  }
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Actions delete(FileLocation fileLocation) {
     return actions().delete(fileLocation);
   }
@@ -95,6 +102,11 @@ public class ActionsImpl implements Actions {
     return actions().unprotect(fileLocation);
   }
 
+  @Override
+  public Actions then(Actions actions) {
+    return actions;
+  }
+  
   protected Actions actions() {
     return new ListOfActions();
   }
@@ -109,6 +121,15 @@ public class ActionsImpl implements Actions {
      */
     private final List<Action> actions = Lists.newArrayList();
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Actions coverArt(FileLocation flacFileLocation) {
+      getActions().add(new CoverArtAction(flacFileLocation));
+      return this;
+    }
+    
     /**
      * Add a new {@link DeleteAction}.
      * 
@@ -203,6 +224,15 @@ public class ActionsImpl implements Actions {
       return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Actions then(Actions actions) {
+      getActions().addAll(actions.get());
+      return this;
+    }
+    
     /**
      * {@inheritDoc}
      */
