@@ -55,10 +55,10 @@ public class FileUtilsImplTest {
 
   @Test
   public void testReadOnly() throws IOException {
-    Path newFile = testDirectory.resolve(Paths.get("a", "good", "time.txt"));
-    Files.createDirectories(newFile.getParent());
-    Files.createFile(newFile);
-    new FileUtilsImpl().alterWriteable(testDirectory, newFile, false);
+    FileLocation newFile = new FileLocation(testDirectory, Paths.get("a", "good", "time.txt"));
+    Files.createDirectories(newFile.resolve().getParent());
+    Files.createFile(newFile.resolve());
+    new FileUtilsImpl().alterWriteable(newFile, false);
     for (Path path : new Path[] {
         testDirectory,
         testDirectory.resolve(Paths.get("a")),
@@ -70,11 +70,11 @@ public class FileUtilsImplTest {
 
   @Test
   public void testReadWrite() throws IOException {
-    Path newFile = testDirectory.resolve(Paths.get("a", "good", "time.txt"));
-    Files.createDirectories(newFile.getParent());
-    Files.createFile(newFile);
-    new FileUtilsImpl().alterWriteable(testDirectory, newFile, false);
-    new FileUtilsImpl().alterWriteable(testDirectory, newFile, true);
+    FileLocation newFile = new FileLocation(testDirectory, Paths.get("a", "good", "time.txt"));
+    Files.createDirectories(newFile.resolve().getParent());
+    Files.createFile(newFile.resolve());
+    new FileUtilsImpl().alterWriteable(newFile, false);
+    new FileUtilsImpl().alterWriteable(newFile, true);
     for (Path path : new Path[] {
         testDirectory,
         testDirectory.resolve(Paths.get("a")),
@@ -89,21 +89,21 @@ public class FileUtilsImplTest {
     Path source = testDirectory.resolve("source");
     Path target = testDirectory.resolve("target");
     Files.createDirectories(target);
-    Path fileToMove = source.resolve(Paths.get("dir", "moveme.txt"));
-    Path fileToKeep = source.resolve(Paths.get("dir", "keepme.txt"));
-    for (Path p : new Path[] { fileToMove, fileToKeep }) {
-      Files.createDirectories(p.getParent());
-      Files.createFile(p);
+    FileLocation fileToMove = new FileLocation(source, Paths.get("dir", "moveme.txt"));
+    FileLocation fileToKeep = new FileLocation(source, Paths.get("dir", "keepme.txt"));
+    for (FileLocation fl : new FileLocation[] { fileToMove, fileToKeep }) {
+      Files.createDirectories(fl.resolve().getParent());
+      Files.createFile(fl.resolve());
     }
-    new FileUtilsImpl().move(source, source.relativize(fileToMove), target, Paths.get("otherdir", "movedme.txt"));
+    new FileUtilsImpl().move(fileToMove, new FileLocation(target, Paths.get("otherdir", "movedme.txt")));
     Assert.assertTrue(
         "File target/otherdir/movedme.txt does not exist.",
         Files.exists(target.resolve(Paths.get("otherdir", "movedme.txt"))));
     Assert.assertFalse(
         "File target/otherdir/movedme.txt is a directory.",
         Files.isDirectory(target.resolve(Paths.get("otherdir", "movedme.txt"))));
-    Assert.assertTrue("File source/dir/keepme.txt does not exist.", Files.exists(fileToKeep));
-    Assert.assertFalse("File source/dir/moveme.txt exists.", Files.exists(fileToMove));
+    Assert.assertTrue("File source/dir/keepme.txt does not exist.", Files.exists(fileToKeep.resolve()));
+    Assert.assertFalse("File source/dir/moveme.txt exists.", Files.exists(fileToMove.resolve()));
   }
 
   @Test
@@ -111,17 +111,17 @@ public class FileUtilsImplTest {
     Path source = testDirectory.resolve("source");
     Path target = testDirectory.resolve("target");
     Files.createDirectories(target);
-    Path fileToMove = source.resolve(Paths.get("dir", "moveme.txt"));
-    Files.createDirectories(fileToMove.getParent());
-    Files.createFile(fileToMove);
-    new FileUtilsImpl().move(source, source.relativize(fileToMove), target, Paths.get("otherdir", "movedme.txt"));
+    FileLocation fileToMove = new FileLocation(source, Paths.get("dir", "moveme.txt"));
+    Files.createDirectories(fileToMove.resolve().getParent());
+    Files.createFile(fileToMove.resolve());
+    new FileUtilsImpl().move(fileToMove, new FileLocation(target, Paths.get("otherdir", "movedme.txt")));
     Assert.assertTrue(
         "File target/otherdir/movemed.txt does not exist.",
         Files.exists(target.resolve(Paths.get("otherdir", "movedme.txt"))));
     Assert.assertFalse(
         "File target/otherdir/movedme.txt is a directory.",
         Files.isDirectory(target.resolve(Paths.get("otherdir", "movedme.txt"))));
-    Assert.assertFalse("File source/dir exists.", Files.exists(fileToMove.getParent()));
+    Assert.assertFalse("File source/dir exists.", Files.exists(fileToMove.resolve().getParent()));
     Assert.assertTrue("File source does not exist.", Files.exists(source));
   }
 

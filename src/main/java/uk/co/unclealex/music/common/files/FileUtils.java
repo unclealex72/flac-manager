@@ -25,7 +25,6 @@
 package uk.co.unclealex.music.common.files;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
 /**
  * Utilities for manipulating files and directories in ways not directly
@@ -40,47 +39,34 @@ public interface FileUtils {
    * Alter a file and its parent directories that that they are either writeable
    * or not.
    * 
-   * @param basePath
-   *          The limiting base path such that its parents will not be
-   *          traversed.
-   * @param relativePath
-   *          The path, relative to the base path that will be made writeable or
-   *          not.
+   * @param fileLocation
+   *          The location of the file and its parents to make writeable or not.
    * @param allowWrites
    *          True if files and directories should be made writeable, false if
    *          not.
    * @throws IOException
    */
-  public void alterWriteable(Path basePath, Path relativePath, boolean allowWrites) throws IOException;
+  public void alterWriteable(FileLocation fileLocation, boolean allowWrites) throws IOException;
 
   /**
    * Move a path from a source directory to a target directory using an atomic
    * file system move, creating any required directories. Any directories left
    * empty in the source base path due to the move operation will be removed.
    * 
-   * @param sourceBasePath
-   *          The source path.
-   * @param sourceRelativePath
-   *          The path, relative to the source base path, to move.
-   * @param targetBasePath
-   *          The path where directories will be created and the file moved to.
-   * 
-   * @param targetRelativePath
-   *          The path, relative to the target base path where the file will be
-   *          moved to.
+   * @param sourceFileLocation
+   *          The source file location.
+   * @param targetFileLocation
+   *          The target file location.
    * @throws IOException
    */
-  public void move(Path sourceBasePath, Path sourceRelativePath, Path targetBasePath, Path targetRelativePath)
-      throws IOException;
+  public void move(FileLocation sourceFileLocation, FileLocation targetFileLocation) throws IOException;
 
   /**
    * Remove directories if they are empty and recurse up the directory tree.
    * 
-   * @param basePath
-   *          The base directory that should not be removed.
-   * @param currentPath
-   *          The path to remove if it is empty.
+   * @param fileLocation
+   *          The location of the current file to remove if empty.
    * @throws IOException
    */
-  public void remove(Path basePath, Path currentPath) throws IOException;
+  public void remove(FileLocation fileLocation) throws IOException;
 }

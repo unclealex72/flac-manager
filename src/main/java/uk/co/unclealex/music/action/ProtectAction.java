@@ -22,27 +22,52 @@
  *
  */
 
-package uk.co.unclealex.music.checkout;
+package uk.co.unclealex.music.action;
 
-import uk.co.unclealex.music.common.command.CommonModule;
-import uk.co.unclealex.music.common.command.Execution;
+import java.io.IOException;
 
-import com.google.inject.Module;
+import uk.co.unclealex.music.common.DataObject;
+import uk.co.unclealex.music.common.files.FileLocation;
 
 /**
- * The Guice {@link Module} for the checkout command.
+ * An action used to write-protect a file.
  * 
  * @author alex
  * 
  */
-public class CheckoutModule extends CommonModule {
+public class ProtectAction extends DataObject implements Action {
+
+  /**
+   * The location to write protect.
+   */
+  private final FileLocation location;
+
+  
+  /**
+   * Instantiates a new protect action.
+   *
+   * @param location the location
+   */
+  public ProtectAction(FileLocation location) {
+    super();
+    this.location = location;
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  protected void configureSpecifics() {
-    bind(Execution.class).to(CheckoutExecution.class);
+  public void accept(ActionVisitor actionVisitor) throws IOException {
+    actionVisitor.visit(this);
+  }
+
+  /**
+   * Gets the location to write protect.
+   *
+   * @return the location to write protect
+   */
+  public FileLocation getLocation() {
+    return location;
   }
 
 }

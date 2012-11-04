@@ -50,9 +50,9 @@ public class FileUtilsImpl implements FileUtils {
    * {@inheritDoc}
    */
   @Override
-  public void alterWriteable(Path basePath, Path relativePath, boolean allowWrites) throws IOException {
-    Path currentPath = basePath.resolve(relativePath);
-    Path terminatingPath = basePath.getParent();
+  public void alterWriteable(FileLocation fileLocation, boolean allowWrites) throws IOException {
+    Path currentPath = fileLocation.resolve();
+    Path terminatingPath = fileLocation.getBasePath().getParent();
     while (currentPath != null && !currentPath.equals(terminatingPath)) {
       if (Files.exists(currentPath)) {
         Set<PosixFilePermission> posixFilePermissions = Files.getPosixFilePermissions(currentPath);
@@ -77,18 +77,25 @@ public class FileUtilsImpl implements FileUtils {
    * {@inheritDoc}
    */
   @Override
-  public void move(Path sourceBasePath, Path sourceRelativePath, Path targetBasePath, Path targetRelativePath)
+  public void move(FileLocation sourceFileLocation, FileLocation targetFileLocation)
       throws IOException {
-    Path sourcePath = sourceBasePath.resolve(sourceRelativePath);
-    Path targetPath = targetBasePath.resolve(targetRelativePath);
+    Path sourcePath = sourceFileLocation.resolve();
+    Path targetPath = targetFileLocation.resolve();
     Files.createDirectories(targetPath.getParent());
     Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE);
     Path currentDirectory = sourcePath.getParent();
-    remove(sourceBasePath, currentDirectory);
+    remove(sourceFileLocation.getBasePath(), currentDirectory);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void remove(Path basePath, Path currentPath) throws IOException {
+  public void remove(FileLocation fileLocation) throws IOException {
+    remove(fileLocation.getBasePath(), fileLocation.resolve());
+  }
+  
+  protected void remove(Path basePath, Path currentPath) throws IOException {
     if (Files.isSameFile(basePath, currentPath)) {
       return;
     }
@@ -102,7 +109,7 @@ public class FileUtilsImpl implements FileUtils {
       }
     }
     else {
-      Files.delete(currentPath);
+      Files.deleteIfExists(currentPath);
       remove(basePath, currentPath.getParent());
     }
   }
