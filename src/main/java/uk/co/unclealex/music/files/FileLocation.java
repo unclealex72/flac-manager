@@ -37,13 +37,13 @@ import uk.co.unclealex.music.DataObject;
  * @author alex
  * 
  */
-public class FileLocation extends DataObject {
+public class FileLocation extends DataObject implements Comparable<FileLocation> {
 
   /**
    * The base path of the repository.
    */
   private final Path basePath;
-  
+
   /**
    * The location of the file relative to the base path.
    */
@@ -51,9 +51,11 @@ public class FileLocation extends DataObject {
 
   /**
    * Instantiates a new file location.
-   *
-   * @param basePath the base path
-   * @param relativePath the relative path
+   * 
+   * @param basePath
+   *          the base path
+   * @param relativePath
+   *          the relative path
    */
   public FileLocation(Path basePath, Path relativePath) {
     super();
@@ -62,16 +64,28 @@ public class FileLocation extends DataObject {
   }
 
   /**
+   * Compare this {@link FileLocation} to another by comparing the results of their
+   * {@link #resolve()} method.
+   * @param o The {@link FileLocation} to compare against.
+   * @return See {@link Comparable#compareTo(Object)}.
+   */
+  @Override
+  public int compareTo(FileLocation o) {
+    return resolve().compareTo(o.resolve());
+  }
+
+  /**
    * Resolve this file location to its absolute path.
+   * 
    * @return The absolute path of the file identified by this class.
    */
   public Path resolve() {
     return getBasePath().resolve(getRelativePath());
   }
-  
+
   /**
    * Gets the base path of the repository.
-   *
+   * 
    * @return the base path of the repository
    */
   public Path getBasePath() {
@@ -80,7 +94,7 @@ public class FileLocation extends DataObject {
 
   /**
    * Gets the location of the file relative to the base path.
-   *
+   * 
    * @return the location of the file relative to the base path
    */
   public Path getRelativePath() {

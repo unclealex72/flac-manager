@@ -24,7 +24,7 @@
 
 package uk.co.unclealex.music.files;
 
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,6 +65,8 @@ public class FlacDirectoryServiceImplTest {
     for (Path path : new Path[] {
         Paths.get("dir.flac", "myfile.flac"),
         Paths.get("dir.flac", "myfile.xml"),
+        Paths.get("dir.flac", "inner", "myfile.flac"),
+        Paths.get("dir.flac", "inner", "myfile.xml"),
         Paths.get("my.flac"),
         Paths.get("my.xml"),
         Paths.get("dir", "your.flac"),
@@ -77,18 +79,23 @@ public class FlacDirectoryServiceImplTest {
 
   @Test
   public void testListFlacFilesSuccess() throws InvalidDirectoriesException, IOException {
-    SortedSet<Path> actualFlacFiles =
+    SortedSet<FileLocation> actualFlacFiles =
         flacDirectoryServiceImpl.listFlacFiles(
             testDirectory,
             Lists.newArrayList(testDirectory.resolve("dir.flac"), testDirectory.resolve("dir")));
     Assert.assertThat(
         "The wrong flac files were found.",
         actualFlacFiles,
-        contains(
-            testDirectory.resolve(Paths.get("dir.flac", "myfile.flac")),
-            testDirectory.resolve(Paths.get("dir", "your.flac"))));
+        containsInAnyOrder(
+            fileLocation("dir.flac", "myfile.flac"),
+            fileLocation("dir.flac", "inner", "myfile.flac"),
+            fileLocation("dir", "your.flac")));
   }
 
+  protected FileLocation fileLocation(String first, String... more) {
+    return new FileLocation(testDirectory, Paths.get(first, more));
+  }
+  
   @Test
   public void testListFlacFilesFail() throws IOException {
     try {
@@ -104,7 +111,7 @@ public class FlacDirectoryServiceImplTest {
       Assert.assertThat(
           "The wrong files were marked as invalid.",
           e.getInvalidDirectories(),
-          contains(
+          containsInAnyOrder(
               testDirectory.getParent(),
               testDirectory.resolve("my.xml")));
     }
@@ -116,8 +123,9 @@ public class FlacDirectoryServiceImplTest {
     Assert.assertThat(
         "The wrong flac files were found.",
         actualFlacFiles,
-        contains(
+        containsInAnyOrder(
             testDirectory.resolve(Paths.get("dir.flac", "myfile.flac")),
+            testDirectory.resolve(Paths.get("dir.flac", "inner", "myfile.flac")),
             testDirectory.resolve(Paths.get("dir", "your.flac")),
             testDirectory.resolve("my.flac")));
   }

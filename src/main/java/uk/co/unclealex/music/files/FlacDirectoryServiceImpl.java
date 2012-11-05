@@ -67,7 +67,7 @@ public class FlacDirectoryServiceImpl implements FlacDirectoryService {
    * @throws IOException
    */
   @Override
-  public SortedSet<Path> listFlacFiles(Path requiredBasePath, Iterable<Path> flacDirectories)
+  public SortedSet<FileLocation> listFlacFiles(Path requiredBasePath, Iterable<Path> flacDirectories)
       throws InvalidDirectoriesException,
       IOException {
     Function<Path, Path> absoluteFunction = new Function<Path, Path>() {
@@ -87,11 +87,15 @@ public class FlacDirectoryServiceImpl implements FlacDirectoryService {
       throw new InvalidDirectoriesException("The following paths are either not directories or not a subpath of "
           + absoluteRequiredBasePath, invalidPaths);
     }
-    SortedSet<Path> allFlacFiles = Sets.newTreeSet();
+    SortedSet<FileLocation> allFlacFileLocations = Sets.newTreeSet();
     for (Path flacDirectory : absoluteFlacDirectories) {
-      allFlacFiles.addAll(findAllFlacFiles(flacDirectory));
+      SortedSet<Path> flacFiles = findAllFlacFiles(flacDirectory);
+      for (Path flacFile : flacFiles) {
+        allFlacFileLocations.add(new FileLocation(absoluteRequiredBasePath, absoluteRequiredBasePath
+            .relativize(flacFile)));
+      }
     }
-    return allFlacFiles;
+    return allFlacFileLocations;
   }
 
   /**

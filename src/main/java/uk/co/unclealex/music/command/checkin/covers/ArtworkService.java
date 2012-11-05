@@ -22,32 +22,27 @@
  *
  */
 
-package uk.co.unclealex.music.command.checkin.process;
+package uk.co.unclealex.music.command.checkin.covers;
 
 import java.io.IOException;
-import java.util.SortedMap;
+import java.net.URI;
 
+import uk.co.unclealex.music.CoverArt;
 import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.files.FileLocation;
 
 /**
- * An interface for classes that map FLAC files to their {@link MusicFile}
- * representation. This is the first stage of checking in FLAC files.
- * 
+ * An interface for classes that can add {@link CoverArt} to a {@link MusicFile}.
  * @author alex
- * 
+ *
  */
-public interface MappingService {
+public interface ArtworkService {
 
   /**
-   * Map each FlAC {@link FileLocation} to its {@link MusicFile} representation.
-   * 
-   * @param fileLocations
-   *          The FLAC file locations to read
-   * @return A map of the FLAC file locations and their {@link MusicFile}
-   *         representations.
-   * @throws IOException
+   * Add artwork to a {@link MusicFile}.
+   * @param musicFile The tagging information to which cover art is to be added.
+   * @param coverArtUri The URI of the cover art to use.
+   * @throws IOException 
    */
-  public SortedMap<FileLocation, MusicFile> mapPathsToMusicFiles(Iterable<FileLocation> fileLocations)
-      throws IOException;
+  public void addArwork(MusicFile musicFile, URI coverArtUri) throws IOException;
+
 }

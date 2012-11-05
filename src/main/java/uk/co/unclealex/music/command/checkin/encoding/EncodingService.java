@@ -22,32 +22,32 @@
  *
  */
 
-package uk.co.unclealex.music.command.checkin.process;
+package uk.co.unclealex.music.command.checkin.encoding;
 
 import java.io.IOException;
-import java.util.SortedMap;
 
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.files.FileLocation;
 
 /**
- * An interface for classes that map FLAC files to their {@link MusicFile}
- * representation. This is the first stage of checking in FLAC files.
+ * The default implementation of {@link EncodingService}.
  * 
  * @author alex
  * 
  */
-public interface MappingService {
+public interface EncodingService {
 
   /**
-   * Map each FlAC {@link FileLocation} to its {@link MusicFile} representation.
+   * Encode a FLAC file into an MP3 file.
    * 
-   * @param fileLocations
-   *          The FLAC file locations to read
-   * @return A map of the FLAC file locations and their {@link MusicFile}
-   *         representations.
-   * @throws IOException
+   * @param flacFileLocation
+   *          The location of the FLAC file to encode.
+   * @param flacMusicFile
+   *          The tagging information of the FLAC file.
+   * @param encodedFileLocation
+   *          The location of the MP3 file to be encoded.
    */
-  public SortedMap<FileLocation, MusicFile> mapPathsToMusicFiles(Iterable<FileLocation> fileLocations)
+  public void encode(FileLocation flacFileLocation, MusicFile flacMusicFile, FileLocation encodedFileLocation)
       throws IOException;
+
 }

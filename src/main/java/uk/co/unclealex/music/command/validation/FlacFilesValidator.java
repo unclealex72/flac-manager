@@ -22,32 +22,33 @@
  *
  */
 
-package uk.co.unclealex.music.command.checkin.process;
+package uk.co.unclealex.music.command.validation;
 
-import java.io.IOException;
-import java.util.SortedMap;
+import java.util.Map;
 
 import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.action.Action;
+import uk.co.unclealex.music.action.Actions;
+import uk.co.unclealex.music.action.FailureAction;
 import uk.co.unclealex.music.files.FileLocation;
 
 /**
- * An interface for classes that map FLAC files to their {@link MusicFile}
- * representation. This is the first stage of checking in FLAC files.
+ * An interface for classes that check that a list of {@link Action}s will not
+ * leave repositories in an invalid state.
  * 
  * @author alex
  * 
  */
-public interface MappingService {
+public interface FlacFilesValidator {
 
   /**
-   * Map each FlAC {@link FileLocation} to its {@link MusicFile} representation.
+   * Validate a list of {@link Action}s and add {@link FailureAction}s for any
+   * failure found.
    * 
-   * @param fileLocations
-   *          The FLAC file locations to read
-   * @return A map of the FLAC file locations and their {@link MusicFile}
-   *         representations.
-   * @throws IOException
+   * @param actions
+   *          The {@link Actions} containing the {@link Action}s to check.
+   * @return An {@link Actions} object that contains all the original
+   *         {@link Actions} and also any generated {@link FailureAction}s.
    */
-  public SortedMap<FileLocation, MusicFile> mapPathsToMusicFiles(Iterable<FileLocation> fileLocations)
-      throws IOException;
+  public Actions validate(Map<FileLocation, MusicFile> musicFilesByFlacPath, Actions actions);
 }

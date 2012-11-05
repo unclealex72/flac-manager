@@ -22,32 +22,23 @@
  *
  */
 
-package uk.co.unclealex.music.command.checkin.process;
-
-import java.io.IOException;
-import java.util.SortedMap;
-
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.files.FileLocation;
+package uk.co.unclealex.music.message;
 
 /**
- * An interface for classes that map FLAC files to their {@link MusicFile}
- * representation. This is the first stage of checking in FLAC files.
+ * An interface for classes that can print internationalised messages to users.
  * 
  * @author alex
  * 
  */
-public interface MappingService {
+public interface MessageService {
 
   /**
-   * Map each FlAC {@link FileLocation} to its {@link MusicFile} representation.
+   * Print an internationalised message.
    * 
-   * @param fileLocations
-   *          The FLAC file locations to read
-   * @return A map of the FLAC file locations and their {@link MusicFile}
-   *         representations.
-   * @throws IOException
+   * @param template
+   *          The template key used to select the message.
+   * @param parameters
+   *          A list of parameters required by the message template.
    */
-  public SortedMap<FileLocation, MusicFile> mapPathsToMusicFiles(Iterable<FileLocation> fileLocations)
-      throws IOException;
+  public void printMessage(String template, Object... parameters);
 }

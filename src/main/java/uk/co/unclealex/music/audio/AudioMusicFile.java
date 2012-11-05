@@ -447,7 +447,13 @@ public class AudioMusicFile implements MusicFile {
    * @return the {@link Tag} information for the {@link AudioFile}.
    */
   public Tag getTag() {
-    return getAudioFile().getTag();
+    AudioFile audioFile = getAudioFile();
+    Tag tag = audioFile.getTag();
+    if (tag == null) {
+      tag = audioFile.createDefaultTag();
+      audioFile.setTag(tag);
+    }
+    return tag;
   }
 
   /**

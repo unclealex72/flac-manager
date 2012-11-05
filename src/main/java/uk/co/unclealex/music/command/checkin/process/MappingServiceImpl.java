@@ -25,13 +25,13 @@
 package uk.co.unclealex.music.command.checkin.process;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.SortedMap;
 
 import javax.inject.Inject;
 
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.audio.AudioMusicFileFactory;
+import uk.co.unclealex.music.files.FileLocation;
 
 import com.google.common.collect.Maps;
 
@@ -62,12 +62,12 @@ public class MappingServiceImpl implements MappingService {
    * {@inheritDoc}
    */
   @Override
-  public SortedMap<Path, MusicFile> mapPathsToMusicFiles(Iterable<Path> paths) throws IOException {
-    SortedMap<Path, MusicFile> map = Maps.newTreeMap();
+  public SortedMap<FileLocation, MusicFile> mapPathsToMusicFiles(Iterable<FileLocation> fileLocations) throws IOException {
+    SortedMap<FileLocation, MusicFile> map = Maps.newTreeMap();
     AudioMusicFileFactory audioMusicFileFactory = getAudioMusicFileFactory();
-    for (Path path : paths) {
-      MusicFile musicFile = audioMusicFileFactory.load(path);
-      map.put(path, musicFile);
+    for (FileLocation fileLocation : fileLocations) {
+      MusicFile musicFile = audioMusicFileFactory.load(fileLocation.resolve());
+      map.put(fileLocation, musicFile);
     }
     return map;
   }
