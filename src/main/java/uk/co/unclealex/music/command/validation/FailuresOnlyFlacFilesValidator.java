@@ -41,10 +41,12 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 
 /**
- * A {@link FlacFilesValidator} that returns only the {@link FailureAction}s if at least one exists. Otherwise, the original
- * {@link Actions} are returned.
+ * A {@link FlacFilesValidator} that returns only the {@link FailureAction}s if
+ * at least one exists. Otherwise, the original {@link Actions} are returned.
+ * This should be the last validator in any list of validators.
+ * 
  * @author alex
- *
+ * 
  */
 public class FailuresOnlyFlacFilesValidator implements FlacFilesValidator {
 
@@ -52,13 +54,12 @@ public class FailuresOnlyFlacFilesValidator implements FlacFilesValidator {
    * The {@link Actions} object to use if failures are found.
    */
   private final Actions actions;
-  
+
   @Inject
   public FailuresOnlyFlacFilesValidator(Actions actions) {
     super();
     this.actions = actions;
   }
-
 
   /**
    * {@inheritDoc}
@@ -84,7 +85,6 @@ public class FailuresOnlyFlacFilesValidator implements FlacFilesValidator {
       return newActions;
     }
   }
-
 
   public Actions getActions() {
     return actions;
