@@ -55,6 +55,8 @@ import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.datatype.Artwork;
+import org.jaudiotagger.tag.id3.FixedID3v23Tag;
+import org.jaudiotagger.tag.id3.ID3v23Tag;
 
 import uk.co.unclealex.music.CoverArt;
 import uk.co.unclealex.music.MusicFile;
@@ -63,6 +65,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 
+// TODO: Auto-generated Javadoc
 /**
  * An implementation of {@link MusicFile} that gets and sets information from
  * and to an {@link AudioFile}.
@@ -88,6 +91,11 @@ public class AudioMusicFile implements MusicFile {
   private final Path audioPath;
   
   /**
+   * The {@link Tag} information for the {@link AudioFile}.
+   */
+  private final Tag tag;
+  
+  /**
    * Instantiates a new audio music file.
    *
    * @param audioFile the audio file
@@ -98,6 +106,16 @@ public class AudioMusicFile implements MusicFile {
     try {
       this.audioPath = audioFile;
       this.audioFile = AudioFileIO.read(audioFile.toFile());
+      Tag tag = this.audioFile.getTag();
+      if (tag == null) {
+        tag = this.audioFile.createDefaultTag();
+        this.audioFile.setTag(tag);
+      }
+      if (tag instanceof ID3v23Tag) {
+        tag = new FixedID3v23Tag((ID3v23Tag) tag);
+        this.audioFile.setTag(tag);
+      }
+      this.tag = tag;
     }
     catch (IOException | CannotReadException | TagException | ReadOnlyFileException | InvalidAudioFrameException e) {
       throw new IOException("Cannot read audio file " + audioFile, e);
@@ -442,21 +460,6 @@ public class AudioMusicFile implements MusicFile {
   }
 
   /**
-   * Get the {@link Tag} information for the {@link AudioFile}.
-   * 
-   * @return the {@link Tag} information for the {@link AudioFile}.
-   */
-  public Tag getTag() {
-    AudioFile audioFile = getAudioFile();
-    Tag tag = audioFile.getTag();
-    if (tag == null) {
-      tag = audioFile.createDefaultTag();
-      audioFile.setTag(tag);
-    }
-    return tag;
-  }
-
-  /**
    * Gets the {@link AudioFile} that provides the tags for this music file.
    *
    * @return the {@link AudioFile} that provides the tags for this music file
@@ -472,6 +475,15 @@ public class AudioMusicFile implements MusicFile {
    */
   public Path getAudioPath() {
     return audioPath;
+  }
+  
+  /**
+   * Gets the {@link Tag} information for the {@link AudioFile}.
+   *
+   * @return the {@link Tag} information for the {@link AudioFile}
+   */
+  public Tag getTag() {
+    return tag;
   }
 
 }

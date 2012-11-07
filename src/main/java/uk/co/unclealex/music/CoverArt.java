@@ -26,6 +26,9 @@ package uk.co.unclealex.music;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * An immutable class that contains information about a cover art picture, namely the image data and its mime type.
  * @author alex
@@ -50,7 +53,8 @@ public class CoverArt extends DataObject {
    * @param imageData the image data
    * @param mimeType the mime type
    */
-  public CoverArt(byte[] imageData, String mimeType) {
+  @JsonCreator
+  public CoverArt(@JsonProperty("imageData") byte[] imageData, @JsonProperty("mimeType") String mimeType) {
     super();
     this.imageData = imageData;
     this.mimeType = mimeType;
