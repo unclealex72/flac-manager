@@ -37,7 +37,7 @@ import com.google.common.base.Supplier;
  * @author alex
  * 
  */
-public interface Actions extends Supplier<List<Action>> {
+public interface Actions extends Supplier<List<Action>>, Iterable<Action> {
 
   /**
    * Add a new {@link CoverArtAction}.
@@ -119,6 +119,14 @@ public interface Actions extends Supplier<List<Action>> {
    */
   public Actions unprotect(FileLocation fileLocation);
 
+  /**
+   * Add a new {@link Action}.
+   * @param action The {@link Action} to add.
+   * @return An {@link Actions} object with the new {@link Action} added to its
+   *         actions.
+   */
+  public Actions then(Action action);
+  
   /**
    * Add a new list of {@link Action}s.
    * @param actions The {@link Actions} object containing all the {@link Action}s.

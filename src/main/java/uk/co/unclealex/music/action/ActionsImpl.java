@@ -24,11 +24,13 @@
 
 package uk.co.unclealex.music.action;
 
+import java.util.Iterator;
 import java.util.List;
 
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.files.FileLocation;
 
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 
 /**
@@ -37,7 +39,6 @@ import com.google.common.collect.Lists;
  * @author alex
  */
 public class ActionsImpl implements Actions {
-
 
   /**
    * {@inheritDoc}
@@ -102,13 +103,29 @@ public class ActionsImpl implements Actions {
     return actions().unprotect(fileLocation);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Actions then(Action action) {
+    return new ListOfActions().then(action);
+  }
+  
   @Override
   public Actions then(Actions actions) {
-    return actions;
+    return new ListOfActions().then(actions);
   }
   
   protected Actions actions() {
     return new ListOfActions();
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Iterator<Action> iterator() {
+    return Iterators.emptyIterator();
   }
   
   /**
@@ -228,9 +245,25 @@ public class ActionsImpl implements Actions {
      * {@inheritDoc}
      */
     @Override
+    public Actions then(Action action) {
+      getActions().add(action);
+      return this;
+    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Actions then(Actions actions) {
       getActions().addAll(actions.get());
       return this;
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Iterator<Action> iterator() {
+      return getActions().iterator();
     }
     
     /**

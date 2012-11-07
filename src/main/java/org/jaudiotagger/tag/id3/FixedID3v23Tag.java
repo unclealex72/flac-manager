@@ -15,29 +15,50 @@
  */
 package org.jaudiotagger.tag.id3;
 
-import org.jaudiotagger.FileConstants;
-import org.jaudiotagger.audio.mp3.MP3File;
-import org.jaudiotagger.logging.ErrorMessage;
-import org.jaudiotagger.tag.*;
-import org.jaudiotagger.tag.datatype.Artwork;
-import org.jaudiotagger.tag.datatype.DataTypes;
-import org.jaudiotagger.tag.datatype.Pair;
-import org.jaudiotagger.tag.datatype.PairedTextEncodedStringNullTerminated;
-import org.jaudiotagger.tag.id3.AbstractID3v2Tag.FrameAndSubId;
-import org.jaudiotagger.tag.id3.framebody.*;
-import org.jaudiotagger.tag.reference.PictureTypes;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.logging.Level;
+
+import org.jaudiotagger.FileConstants;
+import org.jaudiotagger.audio.mp3.MP3File;
+import org.jaudiotagger.logging.ErrorMessage;
+import org.jaudiotagger.tag.EmptyFrameException;
+import org.jaudiotagger.tag.FieldDataInvalidException;
+import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.InvalidDataTypeException;
+import org.jaudiotagger.tag.InvalidFrameException;
+import org.jaudiotagger.tag.InvalidFrameIdentifierException;
+import org.jaudiotagger.tag.KeyNotFoundException;
+import org.jaudiotagger.tag.PaddingException;
+import org.jaudiotagger.tag.TagException;
+import org.jaudiotagger.tag.TagField;
+import org.jaudiotagger.tag.TagNotFoundException;
+import org.jaudiotagger.tag.TagOptionSingleton;
+import org.jaudiotagger.tag.datatype.Artwork;
+import org.jaudiotagger.tag.datatype.DataTypes;
+import org.jaudiotagger.tag.datatype.Pair;
+import org.jaudiotagger.tag.datatype.PairedTextEncodedStringNullTerminated;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyAPIC;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyCOMM;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyIPLS;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyTDAT;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyTDRC;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyTIME;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyTIPL;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyTPOS;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyTRCK;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyTXXX;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyTYER;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyUFID;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyWXXX;
+import org.jaudiotagger.tag.reference.PictureTypes;
 
 /**
  * Represents an ID3v2.3 tag.
@@ -47,6 +68,7 @@ import java.util.logging.Level;
  * @author : Alex Jones (UFID fix)
  * @version $Id: ID3v23Tag.java 919 2010-10-04 13:46:39Z paultaylor $
  */
+@SuppressWarnings({"rawtypes", "unused", "unchecked" })
 public class FixedID3v23Tag extends AbstractID3v2Tag
 {
 
