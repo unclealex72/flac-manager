@@ -60,10 +60,10 @@ public class MusicFileServiceImplTest {
     try (InputStream in = getClass().getClassLoader().getResourceAsStream("untagged.mp3")) {
       Files.copy(in, mp3File, StandardCopyOption.REPLACE_EXISTING);
     }
-    MusicFile expected =
-        new ObjectMapper()
-            .reader(MusicFileBean.class)
-            .readValue(getClass().getClassLoader().getResource("tagged.json"));
+    MusicFile expected;
+    try (InputStream in = getClass().getClassLoader().getResourceAsStream("tagged.json")) {
+      expected = new ObjectMapper().reader(MusicFileBean.class).readValue(in);
+    }
     MusicFile mp3File = new AudioMusicFile(this.mp3File);
     MusicFileService musicFileService = new MusicFileServiceImpl();
     MusicFileBean actual = new MusicFileBean();
