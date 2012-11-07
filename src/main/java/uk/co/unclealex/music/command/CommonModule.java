@@ -36,6 +36,8 @@ import java.util.List;
 import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
 
+import uk.co.unclealex.music.Validator;
+import uk.co.unclealex.music.ValidatorImpl;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.action.ActionsImpl;
 import uk.co.unclealex.music.audio.AudioMusicFileFactory;
@@ -68,6 +70,7 @@ public abstract class CommonModule extends AbstractModule {
    */
   @Override
   protected void configure() {
+    bind(Validator.class).to(ValidatorImpl.class);
     bind(FileSystem.class).toInstance(FileSystems.getDefault());
     bind(AudioMusicFileFactory.class).to(AudioMusicFileFactoryImpl.class);
     bind(Actions.class).to(ActionsImpl.class);

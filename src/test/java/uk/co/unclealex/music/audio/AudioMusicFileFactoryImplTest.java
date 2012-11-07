@@ -44,8 +44,7 @@ import org.junit.Test;
 
 import uk.co.unclealex.music.CoverArt;
 import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.Validator;
-import uk.co.unclealex.music.audio.AudioMusicFileFactoryImpl;
+import uk.co.unclealex.music.ValidatorImpl;
 import uk.co.unclealex.music.violations.Violation;
 
 import com.google.common.io.ByteStreams;
@@ -148,6 +147,6 @@ public class AudioMusicFileFactoryImplTest {
     try (InputStream in = resource.openStream()) {
       Files.copy(in, tempMusicFile, StandardCopyOption.REPLACE_EXISTING);
     }
-    return new AudioMusicFileFactoryImpl(new Validator()).load(tempMusicFile);
+    return new AudioMusicFileFactoryImpl(new ValidatorImpl()).load(tempMusicFile);
   }
 }

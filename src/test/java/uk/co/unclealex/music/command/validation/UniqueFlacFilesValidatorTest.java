@@ -24,28 +24,24 @@
 
 package uk.co.unclealex.music.command.validation;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertThat;
-
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
 import org.junit.Test;
 
 import uk.co.unclealex.music.MusicFileBean;
-import uk.co.unclealex.music.action.Action;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.action.ActionsImpl;
 import uk.co.unclealex.music.files.FileLocation;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
 /**
  * @author alex
  * 
  */
-public class UniqueFlacFilesValidatorTest {
+public class UniqueFlacFilesValidatorTest extends FlacFileValidatorTest {
 
   FileLocation fl1 = new FileLocation(Paths.get("/"), Paths.get("1"));
   FileLocation fl2 = new FileLocation(Paths.get("/"), Paths.get("2"));
@@ -53,13 +49,13 @@ public class UniqueFlacFilesValidatorTest {
   FileLocation fl4 = new FileLocation(Paths.get("/"), Paths.get("4"));
 
   @Test
-  public void testAllUnqiue() {
+  public void testAllUnqiue() throws IOException {
     Actions actions = new ActionsImpl().encode(fl1, fl2, new MusicFileBean()).move(fl1, fl3).delete(fl4);
     runTest(actions, actions);
   }
 
   @Test
-  public void testNonUnqiue() {
+  public void testNonUnqiue() throws IOException {
     Actions actions =
         new ActionsImpl().encode(fl1, fl3, new MusicFileBean()).move(fl2, fl3).move(fl1, fl4).move(fl2, fl4);
     Actions expectedActions =
@@ -73,12 +69,11 @@ public class UniqueFlacFilesValidatorTest {
     runTest(expectedActions, actions);
   }
 
-  public void runTest(Actions expectedActions, Actions actions) {
-    FlacFilesValidator validator = new UniqueFlacFilesValidator();
-    Actions actualActions = validator.validate(null, actions);
-    assertThat(
-        "The wrong actions were returned.",
-        actualActions.get(),
-        contains(Iterables.toArray(expectedActions, Action.class)));
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected FlacFilesValidator createFlacFilesValidator() {
+    return new UniqueFlacFilesValidator();
   }
 }

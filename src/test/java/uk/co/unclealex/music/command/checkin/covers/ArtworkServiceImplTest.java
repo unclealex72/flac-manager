@@ -40,7 +40,9 @@ import org.junit.Test;
 
 import uk.co.unclealex.music.CoverArt;
 import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.Validator;
 import uk.co.unclealex.music.audio.AudioMusicFile;
+import uk.co.unclealex.music.audio.AudioMusicFileFactoryImpl;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.io.InputSupplier;
@@ -62,14 +64,20 @@ public class ArtworkServiceImplTest {
   }
   
   public void runTest(String resourceName) throws IOException, URISyntaxException {
+    Validator validator = new Validator() {
+      @Override
+      public <T> T validate(T object, String message) {
+        return object;
+      }
+    };
     Path musicFile = Files.createTempFile("artwork-serive-impl-test-", "-" + resourceName);
     try {
       InputStream in = getClass().getClassLoader().getResourceAsStream(resourceName);
       Files.copy(in, musicFile, StandardCopyOption.REPLACE_EXISTING);
       in.close();
-      MusicFile audioMusicFile = new AudioMusicFile(musicFile);
       final URI coverArtUri = getClass().getClassLoader().getResource("cover.jpg").toURI();
-      new ArtworkServiceImpl().addArwork(audioMusicFile, coverArtUri);
+      new ArtworkServiceImpl(new AudioMusicFileFactoryImpl(validator)).addArwork(musicFile, coverArtUri);
+      MusicFile audioMusicFile = new AudioMusicFile(musicFile);
       CoverArt actualCoverArt = audioMusicFile.getCoverArt();
       assertEquals("The wrong mime type was returned.", "image/jpeg", actualCoverArt.getMimeType());
       ByteArrayOutputStream out = new ByteArrayOutputStream();

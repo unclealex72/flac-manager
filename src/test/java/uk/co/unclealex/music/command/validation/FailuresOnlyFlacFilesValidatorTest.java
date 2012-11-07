@@ -24,31 +24,26 @@
 
 package uk.co.unclealex.music.command.validation;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertThat;
-
+import java.io.IOException;
 import java.nio.file.Paths;
 
 import org.junit.Test;
 
 import uk.co.unclealex.music.MusicFileBean;
-import uk.co.unclealex.music.action.Action;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.action.ActionsImpl;
 import uk.co.unclealex.music.files.FileLocation;
-
-import com.google.common.collect.Iterables;
 
 /**
  * @author alex
  * 
  */
-public class FailuresOnlyFlacFilesValidatorTest {
+public class FailuresOnlyFlacFilesValidatorTest extends FlacFileValidatorTest {
 
   FileLocation fl = new FileLocation(Paths.get("/"), Paths.get("dummy"));
 
   @Test
-  public void testIncludingFailure() {
+  public void testIncludingFailure() throws IOException {
     Actions actions =
         new ActionsImpl()
             .coverArt(fl)
@@ -65,7 +60,7 @@ public class FailuresOnlyFlacFilesValidatorTest {
   }
 
   @Test
-  public void testNoFailure() {
+  public void testNoFailure() throws IOException {
     Actions actions =
         new ActionsImpl()
             .coverArt(fl)
@@ -76,13 +71,12 @@ public class FailuresOnlyFlacFilesValidatorTest {
             .unprotect(fl);
     runTest(actions, actions);
   }
-
-  public void runTest(Actions expectedActions, Actions actions) {
-    FlacFilesValidator validator = new FailuresOnlyFlacFilesValidator(new ActionsImpl());
-    Actions actualActions = validator.validate(null, actions);
-    assertThat(
-        "The wrong actions were returned.",
-        actualActions.get(),
-        contains(Iterables.toArray(expectedActions, Action.class)));
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected FlacFilesValidator createFlacFilesValidator() {
+    return new FailuresOnlyFlacFilesValidator(actionsSupplier.get());
   }
 }

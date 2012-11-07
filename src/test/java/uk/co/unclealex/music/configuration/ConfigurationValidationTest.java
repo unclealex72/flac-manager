@@ -13,8 +13,7 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.junit.Test;
 
-import uk.co.unclealex.music.Validator;
-import uk.co.unclealex.music.configuration.Device;
+import uk.co.unclealex.music.ValidatorImpl;
 import uk.co.unclealex.music.configuration.json.AmazonConfigurationBean;
 import uk.co.unclealex.music.configuration.json.ConfigurationBean;
 import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
@@ -139,7 +138,7 @@ public class ConfigurationValidationTest {
   }
 
   public void testValidate(ConfigurationBean configurationBean, Violation... expectedViolations) {
-    Validator validator = new Validator();
+    ValidatorImpl validator = new ValidatorImpl();
     Set<Violation> actualViolations = Violation.typedViolations(validator.generateViolations(configurationBean));
     assertThat("The wrong violations were found.", actualViolations, containsInAnyOrder(expectedViolations));
   }

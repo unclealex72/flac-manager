@@ -32,8 +32,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import javax.inject.Inject;
+
 import uk.co.unclealex.music.CoverArt;
 import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.audio.AudioMusicFileFactory;
+import uk.co.unclealex.music.files.FileLocation;
 
 /**
  * The default implementation of {@link ArtworkService}.
@@ -43,10 +47,21 @@ import uk.co.unclealex.music.MusicFile;
 public class ArtworkServiceImpl implements ArtworkService {
 
   /**
+   * The {@link AudioMusicFileFactory} used to create a {@link MusicFile} from a {@link FileLocation}.
+   */
+  private final AudioMusicFileFactory audioMusicFileFactory;
+  
+  @Inject
+  public ArtworkServiceImpl(AudioMusicFileFactory audioMusicFileFactory) {
+    super();
+    this.audioMusicFileFactory = audioMusicFileFactory;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
-  public void addArwork(MusicFile musicFile, URI coverArtUri) throws IOException {
+  public void addArwork(Path path, URI coverArtUri) throws IOException {
     Path coverArtFile = Files.createTempFile("cover-art-", ".art");
     try {
       try (InputStream in = coverArtUri.toURL().openStream()) {
@@ -56,11 +71,16 @@ public class ArtworkServiceImpl implements ArtworkService {
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       Files.copy(coverArtFile, out);
       CoverArt coverArt = new CoverArt(out.toByteArray(), contentType);
+      MusicFile musicFile = getAudioMusicFileFactory().load(path);
       musicFile.setCoverArt(coverArt);
       musicFile.commit();
     }
     finally {
       Files.delete(coverArtFile);
     }
+  }
+
+  public AudioMusicFileFactory getAudioMusicFileFactory() {
+    return audioMusicFileFactory;
   }
 }

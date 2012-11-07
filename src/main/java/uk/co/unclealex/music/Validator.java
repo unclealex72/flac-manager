@@ -24,41 +24,26 @@
 
 package uk.co.unclealex.music;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import javax.validation.Validation;
-import javax.validation.ValidatorFactory;
 
 /**
- * A class that uses a JSR-303 {@link Validator} to make sure that objects are valid.
+ * An interface for validitating an object and throwing a JSR-303
+ * {@link ConstraintViolationException} if it is not.
+ * 
+ * @author alex
+ * 
  */
-public class Validator {
+public interface Validator {
 
   /**
    * Validate an object.
-   * @param object The object to validate.
+   * 
+   * @param object
+   *          The object to validate.
    * @return The object that was validated.
-   * @throws ConstraintViolationException Thrown if any constraints are violated.
+   * @throws ConstraintViolationException
+   *           Thrown if any constraints are violated.
    */
-  public <T> T validate(T object, String message) {
-    Set<ConstraintViolation<T>> constraintViolations = generateViolations(object);
-    if (!constraintViolations.isEmpty()) {
-      throw new ConstraintViolationException(message, new HashSet<ConstraintViolation<?>>(constraintViolations));
-    }
-    return object;
-  }
+  public <T> T validate(T object, String message);
 
-  /**
-   * Validate an object.
-   * @param object The object to validate.
-   * @return A set of {@link ConstraintViolation}s.
-   */
-  public <T> Set<ConstraintViolation<T>> generateViolations(T object) {
-    ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-    javax.validation.Validator validator = factory.getValidator();
-    return validator.validate(object);
-  }
 }

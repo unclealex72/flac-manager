@@ -26,6 +26,7 @@ package uk.co.unclealex.music.command.checkin.covers;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
 
 import uk.co.unclealex.music.CoverArt;
 import uk.co.unclealex.music.MusicFile;
@@ -38,11 +39,11 @@ import uk.co.unclealex.music.MusicFile;
 public interface ArtworkService {
 
   /**
-   * Add artwork to a {@link MusicFile}.
-   * @param musicFile The tagging information to which cover art is to be added.
+   * Add artwork to a {@link MusicFile} at a {@link Path}.
+   * @param path The location of the file where the album art will be added.
    * @param coverArtUri The URI of the cover art to use.
    * @throws IOException 
    */
-  public void addArwork(MusicFile musicFile, URI coverArtUri) throws IOException;
+  public void addArwork(Path path, URI coverArtUri) throws IOException;
 
 }

@@ -24,33 +24,46 @@
 
 package uk.co.unclealex.music.command.validation;
 
+import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertThat;
+
 import java.io.IOException;
 import java.util.Map;
 
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.action.Action;
 import uk.co.unclealex.music.action.Actions;
-import uk.co.unclealex.music.action.FailureAction;
+import uk.co.unclealex.music.action.ActionsImpl;
 import uk.co.unclealex.music.files.FileLocation;
 
-/**
- * An interface for classes that check that a list of {@link Action}s will not
- * leave repositories in an invalid state.
- * 
- * @author alex
- * 
- */
-public interface FlacFilesValidator {
+import com.google.common.base.Supplier;
+import com.google.common.collect.Iterables;
 
-  /**
-   * Validate a list of {@link Action}s and add {@link FailureAction}s for any
-   * failure found.
-   * 
-   * @param actions
-   *          The {@link Actions} containing the {@link Action}s to check.
-   * @return An {@link Actions} object that contains all the original
-   *         {@link Actions} and also any generated {@link FailureAction}s.
-   * @throws IOException 
-   */
-  public Actions validate(Map<FileLocation, MusicFile> musicFilesByFlacPath, Actions actions) throws IOException;
+/**
+ * A base clase for testing {@link FlacFilesValidator}s.
+ * @author alex
+ *
+ */
+public abstract class FlacFileValidatorTest {
+
+  Map<FileLocation, MusicFile> musicFilesByFlacPath;
+  Supplier<Actions> actionsSupplier = new Supplier<Actions>() {
+    @Override
+    public Actions get() {
+      return new ActionsImpl();
+    }
+  };
+  
+  public void runTest(Actions expectedActions, Actions actions) throws IOException {
+    expectedActions = actionsSupplier.get().then(expectedActions);
+    FlacFilesValidator validator = createFlacFilesValidator();
+    Actions actualActions = validator.validate(musicFilesByFlacPath, actions);
+    assertThat(
+        "The wrong actions were returned.",
+        actualActions.get(),
+        contains(Iterables.toArray(expectedActions, Action.class)));
+  }
+
+  protected abstract FlacFilesValidator createFlacFilesValidator();
+
 }

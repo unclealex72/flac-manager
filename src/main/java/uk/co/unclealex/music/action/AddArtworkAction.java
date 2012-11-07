@@ -27,7 +27,6 @@ package uk.co.unclealex.music.action;
 import java.io.IOException;
 import java.net.URI;
 
-import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.files.FileLocation;
 
 /**
@@ -39,11 +38,6 @@ import uk.co.unclealex.music.files.FileLocation;
 public class AddArtworkAction extends AbstractAction implements Action {
 
   /**
-   * The {@link MusicFile} associated with the file {@link #location}.
-   */
-  private final MusicFile musicFile;
-
-  /**
    * The URL where cover art information is available.
    */
   private final URI coverArtUri;
@@ -52,12 +46,10 @@ public class AddArtworkAction extends AbstractAction implements Action {
    * Instantiates a new adds the artwork action.
    *
    * @param fileLocation the location
-   * @param musicFile the music file
    * @param coverArtUri the cover art url
    */
-  public AddArtworkAction(FileLocation fileLocation, MusicFile musicFile, URI coverArtUri) {
+  public AddArtworkAction(FileLocation fileLocation, URI coverArtUri) {
     super(fileLocation);
-    this.musicFile = musicFile;
     this.coverArtUri = coverArtUri;
   }
 
@@ -67,15 +59,6 @@ public class AddArtworkAction extends AbstractAction implements Action {
   @Override
   public void accept(ActionVisitor actionVisitor) throws IOException {
     actionVisitor.visit(this);
-  }
-
-  /**
-   * Gets the {@link MusicFile} associated with the file {@link #location}.
-   *
-   * @return the {@link MusicFile} associated with the file {@link #location}
-   */
-  public MusicFile getMusicFile() {
-    return musicFile;
   }
 
   /**

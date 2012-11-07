@@ -150,7 +150,7 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
   public void visit(AddArtworkAction addArtworkAction) throws IOException {
     URI coverArtUrl = addArtworkAction.getCoverArtUri();
     getMessageService().printMessage("artwork", addArtworkAction.getFileLocation(), coverArtUrl);
-    getArtworkService().addArwork(addArtworkAction.getMusicFile(), coverArtUrl);
+    getArtworkService().addArwork(addArtworkAction.getFileLocation().resolve(), coverArtUrl);
   }
 
   /**

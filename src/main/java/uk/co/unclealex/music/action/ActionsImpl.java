@@ -24,6 +24,7 @@
 
 package uk.co.unclealex.music.action;
 
+import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 
@@ -48,6 +49,14 @@ public class ActionsImpl implements Actions {
     return Lists.newArrayList();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Actions addArtwork(FileLocation fileLocation, URI coverArtUri) {
+    return actions().addArtwork(fileLocation, coverArtUri);
+  }
+  
   /**
    * {@inheritDoc}
    */
@@ -138,6 +147,15 @@ public class ActionsImpl implements Actions {
      */
     private final List<Action> actions = Lists.newArrayList();
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Actions addArtwork(FileLocation fileLocation, URI coverArtUri) {
+      getActions().add(new AddArtworkAction(fileLocation, coverArtUri));
+      return this;
+    }
+    
     /**
      * {@inheritDoc}
      */

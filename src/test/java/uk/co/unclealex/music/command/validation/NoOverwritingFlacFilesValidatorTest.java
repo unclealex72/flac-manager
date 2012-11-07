@@ -24,9 +24,6 @@
 
 package uk.co.unclealex.music.command.validation;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertThat;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -35,18 +32,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.co.unclealex.music.action.Action;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.action.ActionsImpl;
 import uk.co.unclealex.music.files.FileLocation;
-
-import com.google.common.collect.Iterables;
 
 /**
  * @author alex
  * 
  */
-public class NoOverwritingFlacFilesValidatorTest {
+public class NoOverwritingFlacFilesValidatorTest extends FlacFileValidatorTest {
 
   FileLocation existingFileLocation;
   FileLocation nonExistingFileLocation;
@@ -63,14 +57,14 @@ public class NoOverwritingFlacFilesValidatorTest {
   }
 
   @Test
-  public void testNonExisting() {
+  public void testNonExisting() throws IOException {
     Actions actions =
         new ActionsImpl().move(existingFileLocation, nonExistingFileLocation);
     runTest(actions, actions);
   }
 
   @Test
-  public void testExisting() {
+  public void testExisting() throws IOException {
     Actions actions =
         new ActionsImpl().move(nonExistingFileLocation, existingFileLocation);
     Actions expectedActions =
@@ -86,13 +80,12 @@ public class NoOverwritingFlacFilesValidatorTest {
       Files.deleteIfExists(fileLocation.resolve());
     }
   }
-
-  public void runTest(Actions expectedActions, Actions actions) {
-    FlacFilesValidator validator = new NoOverwritingFlacFilesValidator();
-    Actions actualActions = validator.validate(null, actions);
-    assertThat(
-        "The wrong actions were returned.",
-        actualActions.get(),
-        contains(Iterables.toArray(expectedActions, Action.class)));
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected FlacFilesValidator createFlacFilesValidator() {
+    return new NoOverwritingFlacFilesValidator();
   }
 }

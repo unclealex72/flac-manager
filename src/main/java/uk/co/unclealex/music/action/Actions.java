@@ -24,6 +24,7 @@
 
 package uk.co.unclealex.music.action;
 
+import java.net.URI;
 import java.util.List;
 
 import uk.co.unclealex.music.MusicFile;
@@ -38,6 +39,18 @@ import com.google.common.base.Supplier;
  * 
  */
 public interface Actions extends Supplier<List<Action>>, Iterable<Action> {
+
+  /**
+   * Add a new {@link AddArtworkAction}.
+   * 
+   * @param fileLocation
+   *          The {@link FileLocation} that requires cover art to be downloaded.
+   * @param coverArtUri
+   *          The location where cover art can be downloaded from.
+   * @return An {@link Actions} object with the new {@link Action} added to its
+   *         actions.
+   */
+  public Actions addArtwork(FileLocation fileLocation, URI coverArtUri);
 
   /**
    * Add a new {@link CoverArtAction}.
@@ -121,17 +134,22 @@ public interface Actions extends Supplier<List<Action>>, Iterable<Action> {
 
   /**
    * Add a new {@link Action}.
-   * @param action The {@link Action} to add.
+   * 
+   * @param action
+   *          The {@link Action} to add.
    * @return An {@link Actions} object with the new {@link Action} added to its
    *         actions.
    */
   public Actions then(Action action);
-  
+
   /**
    * Add a new list of {@link Action}s.
-   * @param actions The {@link Actions} object containing all the {@link Action}s.
+   * 
+   * @param actions
+   *          The {@link Actions} object containing all the {@link Action}s.
    * @return An {@link Actions} object with the new {@link Action}s added to its
    *         actions.
    */
   public Actions then(Actions actions);
+
 }
