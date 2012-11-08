@@ -26,17 +26,42 @@ package uk.co.unclealex.music.command.checkin.covers;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 
+import uk.co.unclealex.music.DataObject;
 import uk.co.unclealex.music.MusicFile;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 /**
  * A base class for {@link ArtworkSearchingService}s that allow for null-safe
- * checking of a property of a {@link MusicFile}.
+ * checking of a property of a {@link MusicFile}. This class also caches any
+ * results.
  * 
  * @author alex
  * 
  */
-public abstract class AbstractArtworkSearchingService implements ArtworkSearchingService {
+public abstract class AbstractArtworkSearchingService implements
+    ArtworkSearchingService {
+
+  /**
+   * The cache to use for caching previous queries to the artwork service.
+   */
+  private final LoadingCache<String, UriHolder> cache;
+
+  /**
+   * Instantiates a new abstract artwork searching service.
+   */
+  public AbstractArtworkSearchingService() {
+    CacheLoader<String, UriHolder> cacheLoader = new CacheLoader<String, UriHolder>() {
+      public UriHolder load(String albumIdentifier) throws Exception {
+        return new UriHolder(loadArtwork(albumIdentifier));        
+      }
+    };
+    this.cache = CacheBuilder.newBuilder().maximumSize(200).build(cacheLoader);
+  }
 
   /**
    * {@inheritDoc}
@@ -44,18 +69,31 @@ public abstract class AbstractArtworkSearchingService implements ArtworkSearchin
   @Override
   public URI findArtwork(MusicFile musicFile) throws IOException {
     String albumIdentifier = locateAlbumIdentifier(musicFile);
-    return albumIdentifier == null ? null : findArtwork(albumIdentifier);
+    if (albumIdentifier == null) {
+      return null;
+    }
+    try {
+      return getCache().get(albumIdentifier).getUri();
+    }
+    catch (ExecutionException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof IOException) {
+        throw (IOException) cause;
+      }
+      else {
+        throw new IOException(e);
+      }
+    }
   }
 
   /**
    * Find an album's artwork given an album identifier.
-   * 
-   * @param albumIdentifier
-   *          The unique string used to find the album. This will not be null.
+   *
+   * @param albumIdentifier The unique string used to find the album. This will not be null.
    * @return The URI for the album artwork or null if none could be found.
-   * @throws IOException
+   * @throws IOException Signals that an I/O exception has occurred.
    */
-  protected abstract URI findArtwork(String albumIdentifier) throws IOException;
+  protected abstract URI loadArtwork(String albumIdentifier) throws IOException;
 
   /**
    * Locate an album identifier from a {@link MusicFile}.
@@ -66,4 +104,44 @@ public abstract class AbstractArtworkSearchingService implements ArtworkSearchin
    *         thus no artwork should be searched for.
    */
   protected abstract String locateAlbumIdentifier(MusicFile musicFile);
+
+  /**
+   * A convenience class to allow null values to be returned and held in the cache.
+   * @author alex
+   *
+   */
+  class UriHolder extends DataObject {
+    
+    /**
+     * The URI held within this object.
+     */
+    private final URI uri;
+
+    /**
+     * Instantiates a new uri holder.
+     *
+     * @param uri the uri
+     */
+    public UriHolder(URI uri) {
+      super();
+      this.uri = uri;
+    }
+    
+    /**
+     * Gets the URI held within this object.
+     *
+     * @return the URI held within this object
+     */
+    public URI getUri() {
+      return uri;
+    }
+  }
+  /**
+   * Gets the cache to use for caching previous queries to the artwork service.
+   *
+   * @return the cache to use for caching previous queries to the artwork service
+   */
+  public LoadingCache<String, UriHolder> getCache() {
+    return cache;
+  }
 }

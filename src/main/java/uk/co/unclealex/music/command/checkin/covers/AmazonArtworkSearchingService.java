@@ -59,7 +59,7 @@ public class AmazonArtworkSearchingService extends AbstractArtworkSearchingServi
   /**
    * {@inheritDoc}
    */
-  protected URI findArtwork(String asin) throws IOException {
+  protected URI loadArtwork(String asin) throws IOException {
     Map<String, String> parameters = new HashMap<String, String>();
     parameters.put("Service", "AWSECommerceService");
     parameters.put("Operation", "ItemLookup");

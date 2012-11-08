@@ -86,7 +86,7 @@ public class AmazonArtworkSearchingServiceTest {
     parameters.put("AssociateTag", "dummy");
     when(signedRequestsService.signedUrl(parameters)).thenReturn(artworkPath.toUri().toString());
     AmazonArtworkSearchingService amazonArtworkSearchingService = new AmazonArtworkSearchingService(signedRequestsService);
-    URI actualUrl = amazonArtworkSearchingService.findArtwork(asin);
+    URI actualUrl = amazonArtworkSearchingService.loadArtwork(asin);
     Assert.assertEquals("The wrong URI was returned for ASIN " + asin, expectedUri, actualUrl);
   }
 }
