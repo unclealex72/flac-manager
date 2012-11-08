@@ -43,11 +43,6 @@ import uk.co.unclealex.music.files.FilenameService;
 public class CheckoutExecution implements Execution {
 
   /**
-   * The initial {@link Actions} class.
-   */
-  private final Actions actions;
-
-  /**
    * The {@link FileLocationFactory} used to create {@link FileLocation}s.
    */
   private final FileLocationFactory fileLocationFactory;
@@ -59,9 +54,8 @@ public class CheckoutExecution implements Execution {
   private final FilenameService filenameService;
 
   @Inject
-  public CheckoutExecution(Actions actions, FileLocationFactory fileLocationFactory, FilenameService filenameService) {
+  public CheckoutExecution(FileLocationFactory fileLocationFactory, FilenameService filenameService) {
     super();
-    this.actions = actions;
     this.fileLocationFactory = fileLocationFactory;
     this.filenameService = filenameService;
   }
@@ -77,17 +71,13 @@ public class CheckoutExecution implements Execution {
         fileLocationFactory.createEncodedFileLocation(filenameService.toPath(musicFile, Extension.MP3));
     FileLocation targetFileLocation =
         fileLocationFactory.createStagingFileLocation(filenameService.toPath(musicFile, Extension.FLAC));
-    return getActions()
+    return actions
         .unprotect(flacFileLocation)
         .move(flacFileLocation, targetFileLocation)
         .protect(flacFileLocation)
         .unprotect(encodedFileLocation)
         .delete(encodedFileLocation)
         .protect(encodedFileLocation);
-  }
-
-  public Actions getActions() {
-    return actions;
   }
 
   public FileLocationFactory getFileLocationFactory() {

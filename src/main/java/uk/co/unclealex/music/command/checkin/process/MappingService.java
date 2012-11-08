@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.util.SortedMap;
 
 import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.action.Actions;
+import uk.co.unclealex.music.action.FailureAction;
 import uk.co.unclealex.music.files.FileLocation;
 
 /**
@@ -42,12 +44,19 @@ public interface MappingService {
   /**
    * Map each FlAC {@link FileLocation} to its {@link MusicFile} representation.
    * 
+   * @param actions
+   *          An initial {@link Actions} object.
    * @param fileLocations
    *          The FLAC file locations to read
-   * @return A map of the FLAC file locations and their {@link MusicFile}
-   *         representations.
+   * @param musicFilesByFileLocation
+   *          The map of FLAC file locations and their {@link MusicFile}
+   *          representations to populate.
+   * @return An {@link Actions} object containing {@link FailureAction}s for any
+   *         invalid files.
    * @throws IOException
    */
-  public SortedMap<FileLocation, MusicFile> mapPathsToMusicFiles(Iterable<FileLocation> fileLocations)
-      throws IOException;
+  public Actions mapPathsToMusicFiles(
+      Actions actions,
+      Iterable<FileLocation> fileLocations,
+      SortedMap<FileLocation, MusicFile> musicFilesByFileLocation) throws IOException;
 }

@@ -40,11 +40,12 @@ import uk.co.unclealex.music.command.checkin.process.MappingService;
 import uk.co.unclealex.music.command.validation.FlacFilesValidator;
 import uk.co.unclealex.music.configuration.Directories;
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
-import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.DirectoryService;
+import uk.co.unclealex.music.files.FileLocation;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 
 /**
  * The base class for running actual commands.
@@ -78,7 +79,7 @@ public abstract class Command<C extends CommandLine> {
   /**
    * The {@link DirectoryService} used to garner FLAC files.
    */
-  private final DirectoryService flacDirectoryService;
+  private final DirectoryService directoryService;
 
   /**
    * The {@link Directories} object containing all directory configuration.
@@ -100,7 +101,7 @@ public abstract class Command<C extends CommandLine> {
       Execution execution,
       Actions actions,
       List<FlacFilesValidator> flacFilesValidators,
-      DirectoryService flacDirectoryService,
+      DirectoryService directoryService,
       Directories directories,
       MappingService mappingService,
       ActionExecutor actionExecutor) {
@@ -108,7 +109,7 @@ public abstract class Command<C extends CommandLine> {
     this.execution = execution;
     this.actions = actions;
     this.flacFilesValidators = flacFilesValidators;
-    this.flacDirectoryService = flacDirectoryService;
+    this.directoryService = directoryService;
     this.directories = directories;
     this.mappingService = mappingService;
     this.actionExecutor = actionExecutor;
@@ -131,19 +132,21 @@ public abstract class Command<C extends CommandLine> {
       }
     };
     SortedSet<FileLocation> flacFiles =
-        getFlacDirectoryService().listFiles(
+        getDirectoryService().listFiles(
             getRequiredBasePath(),
             Iterables.transform(commandLine.getFlacPaths(), pathFunction));
-    SortedMap<FileLocation, MusicFile> musicFilesByFlacPath = getMappingService().mapPathsToMusicFiles(flacFiles);
-    Actions actions = getActions();
-    Execution execution = getExecution();
-    // Generate a list of actions that need to be executed.
-    for (Entry<FileLocation, MusicFile> entry : musicFilesByFlacPath.entrySet()) {
-      actions = execution.execute(actions, entry.getKey(), entry.getValue());
-    }
-    // Validate all the actions and add any failures.
-    for (FlacFilesValidator flacFilesValidator : getFlacFilesValidators()) {
-      actions = flacFilesValidator.validate(musicFilesByFlacPath, actions);
+    SortedMap<FileLocation, MusicFile> musicFilesByFileLocation = Maps.newTreeMap();
+    Actions actions = getMappingService().mapPathsToMusicFiles(getActions(), flacFiles, musicFilesByFileLocation);
+    if (!actions.get().isEmpty()) {
+      Execution execution = getExecution();
+      // Generate a list of actions that need to be executed.
+      for (Entry<FileLocation, MusicFile> entry : musicFilesByFileLocation.entrySet()) {
+        actions = execution.execute(actions, entry.getKey(), entry.getValue());
+      }
+      // Validate all the actions and add any failures.
+      for (FlacFilesValidator flacFilesValidator : getFlacFilesValidators()) {
+        actions = flacFilesValidator.validate(musicFilesByFileLocation, actions);
+      }
     }
     // Execute all the actions.
     ActionExecutor actionExecutor = getActionExecutor();
@@ -185,8 +188,8 @@ public abstract class Command<C extends CommandLine> {
    * 
    * @return the {@link DirectoryService} used to garner FLAC files
    */
-  public DirectoryService getFlacDirectoryService() {
-    return flacDirectoryService;
+  public DirectoryService getDirectoryService() {
+    return directoryService;
   }
 
   public Directories getDirectories() {

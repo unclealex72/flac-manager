@@ -25,13 +25,17 @@
 package uk.co.unclealex.music.command.checkin.process;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.SortedMap;
 
 import javax.inject.Inject;
 
 import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.Validator;
+import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.audio.AudioMusicFileFactory;
 import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.files.FlacFileChecker;
 
 import com.google.common.collect.Maps;
 
@@ -48,28 +52,42 @@ public class MappingServiceImpl implements MappingService {
   private final AudioMusicFileFactory audioMusicFileFactory;
   
   /**
+   * The {@link Validator} used to validate that FLAC files are fully tagged.
+   */
+  private final Validator validator;
+
+  private final FlacFileChecker flacFileChecker;
+  
+  /**
    * Instantiates a new mapping service impl.
    *
    * @param audioMusicFileFactory the audio music file factory
+   * @param validator the validator
    */
   @Inject
-  public MappingServiceImpl(AudioMusicFileFactory audioMusicFileFactory) {
+  public MappingServiceImpl(AudioMusicFileFactory audioMusicFileFactory, Validator validator) {
     super();
     this.audioMusicFileFactory = audioMusicFileFactory;
+    this.validator = validator;
   }
-
+  
   /**
    * {@inheritDoc}
    */
   @Override
-  public SortedMap<FileLocation, MusicFile> mapPathsToMusicFiles(Iterable<FileLocation> fileLocations) throws IOException {
-    SortedMap<FileLocation, MusicFile> map = Maps.newTreeMap();
+  public Actions mapPathsToMusicFiles(
+      Actions actions,
+      Iterable<FileLocation> fileLocations,
+      SortedMap<FileLocation, MusicFile> musicFilesByFileLocation) throws IOException {
     AudioMusicFileFactory audioMusicFileFactory = getAudioMusicFileFactory();
+    Validator validator = getValidator();
     for (FileLocation fileLocation : fileLocations) {
-      MusicFile musicFile = audioMusicFileFactory.load(fileLocation.resolve());
-      map.put(fileLocation, musicFile);
+      Path path = fileLocation.resolve();
+      
+      MusicFile musicFile = audioMusicFileFactory.load(path);
+      musicFilesByFileLocation.put(fileLocation, musicFile);
     }
-    return map;
+    return actions;
   }
 
   /**
@@ -79,6 +97,15 @@ public class MappingServiceImpl implements MappingService {
    */
   public AudioMusicFileFactory getAudioMusicFileFactory() {
     return audioMusicFileFactory;
+  }
+
+  /**
+   * Gets the {@link Validator} used to validate that FLAC files are fully tagged.
+   *
+   * @return the {@link Validator} used to validate that FLAC files are fully tagged
+   */
+  public Validator getValidator() {
+    return validator;
   }
 
 }
