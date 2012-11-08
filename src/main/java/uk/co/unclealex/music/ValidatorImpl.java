@@ -49,11 +49,7 @@ public class ValidatorImpl implements Validator {
     return object;
   }
 
-  /**
-   * Validate an object.
-   * @param object The object to validate.
-   * @return A set of {@link ConstraintViolation}s.
-   */
+  @Override
   public <T> Set<ConstraintViolation<T>> generateViolations(T object) {
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     javax.validation.Validator validator = factory.getValidator();

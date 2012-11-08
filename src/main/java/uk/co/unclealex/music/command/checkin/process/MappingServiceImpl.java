@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.util.SortedMap;
 
 import javax.inject.Inject;
+import javax.validation.ConstraintViolation;
 
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.Validator;
@@ -36,8 +37,6 @@ import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.audio.AudioMusicFileFactory;
 import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FlacFileChecker;
-
-import com.google.common.collect.Maps;
 
 /**
  * The default implementation of {@link MappingService}.
@@ -56,6 +55,9 @@ public class MappingServiceImpl implements MappingService {
    */
   private final Validator validator;
 
+  /**
+   * The {@link FlacFileChecker} used to see if a file is a FLAC file or not.
+   */
   private final FlacFileChecker flacFileChecker;
   
   /**
@@ -65,10 +67,11 @@ public class MappingServiceImpl implements MappingService {
    * @param validator the validator
    */
   @Inject
-  public MappingServiceImpl(AudioMusicFileFactory audioMusicFileFactory, Validator validator) {
+  public MappingServiceImpl(AudioMusicFileFactory audioMusicFileFactory, Validator validator, FlacFileChecker flacFileChecker) {
     super();
     this.audioMusicFileFactory = audioMusicFileFactory;
     this.validator = validator;
+    this.flacFileChecker = flacFileChecker;
   }
   
   /**
@@ -80,12 +83,20 @@ public class MappingServiceImpl implements MappingService {
       Iterable<FileLocation> fileLocations,
       SortedMap<FileLocation, MusicFile> musicFilesByFileLocation) throws IOException {
     AudioMusicFileFactory audioMusicFileFactory = getAudioMusicFileFactory();
+    FlacFileChecker flacFileChecker = getFlacFileChecker();
     Validator validator = getValidator();
     for (FileLocation fileLocation : fileLocations) {
       Path path = fileLocation.resolve();
-      
-      MusicFile musicFile = audioMusicFileFactory.load(path);
-      musicFilesByFileLocation.put(fileLocation, musicFile);
+      if (flacFileChecker.isFlacFile(path)) {
+        MusicFile musicFile = audioMusicFileFactory.load(path);
+        for (ConstraintViolation<MusicFile> constraintViolation : validator.generateViolations(musicFile)) {
+          actions = actions.fail(fileLocation, constraintViolation.getMessage());
+        }
+        musicFilesByFileLocation.put(fileLocation, musicFile);        
+      }
+      else {
+        actions = actions.fail(fileLocation, "notflac");
+      }
     }
     return actions;
   }
@@ -106,6 +117,10 @@ public class MappingServiceImpl implements MappingService {
    */
   public Validator getValidator() {
     return validator;
+  }
+
+  public FlacFileChecker getFlacFileChecker() {
+    return flacFileChecker;
   }
 
 }

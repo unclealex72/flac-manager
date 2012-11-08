@@ -24,6 +24,9 @@
 
 package uk.co.unclealex.music;
 
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
 /**
@@ -45,5 +48,14 @@ public interface Validator {
    *           Thrown if any constraints are violated.
    */
   public <T> T validate(T object, String message);
+
+  /**
+   * Validate an object.
+   * 
+   * @param object
+   *          The object to validate.
+   * @return A set of {@link ConstraintViolation}s.
+   */
+  public <T> Set<ConstraintViolation<T>> generateViolations(T object);
 
 }

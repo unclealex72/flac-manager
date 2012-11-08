@@ -35,6 +35,10 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
 
 import org.junit.Test;
 
@@ -68,6 +72,10 @@ public class ArtworkServiceImplTest {
       @Override
       public <T> T validate(T object, String message) {
         return object;
+      }
+      @Override
+      public <T> Set<ConstraintViolation<T>> generateViolations(T object) {
+        return Collections.emptySet();
       }
     };
     Path musicFile = Files.createTempFile("artwork-serive-impl-test-", "-" + resourceName);
