@@ -27,12 +27,18 @@ package uk.co.unclealex.music.command.checkin.covers;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.concurrent.ExecutionException;
 
 import javax.inject.Inject;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 import uk.co.unclealex.music.CoverArt;
 import uk.co.unclealex.music.MusicFile;
@@ -44,43 +50,81 @@ import uk.co.unclealex.music.files.FileLocation;
  * @author alex
  *
  */
-public class ArtworkServiceImpl implements ArtworkService {
+public class ArtworkServiceImpl extends CacheLoader<URI, CoverArt> implements ArtworkService {
 
   /**
    * The {@link AudioMusicFileFactory} used to create a {@link MusicFile} from a {@link FileLocation}.
    */
   private final AudioMusicFileFactory audioMusicFileFactory;
   
+  /**
+   * The cache used to store previously downloaded cover art.
+   */
+  private final LoadingCache<URI, CoverArt> cache;
+  
   @Inject
   public ArtworkServiceImpl(AudioMusicFileFactory audioMusicFileFactory) {
     super();
     this.audioMusicFileFactory = audioMusicFileFactory;
+    cache = CacheBuilder.newBuilder().maximumSize(100).build(this);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
+  public CoverArt load(URI coverArtUri) throws Exception {
+    return downloadCoverArt(coverArtUri);
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void addArwork(Path path, URI coverArtUri) throws IOException {
+    CoverArt coverArt;
+    try {
+      coverArt = getCache().get(coverArtUri);
+    }
+    catch (ExecutionException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof IOException) {
+        throw (IOException) cause;
+      }
+      else {
+        throw new IOException(e);
+      }
+    }
+    MusicFile musicFile = getAudioMusicFileFactory().load(path);
+    musicFile.setCoverArt(coverArt);
+    musicFile.commit();
+  }
+
+  protected CoverArt downloadCoverArt(URI coverArtUri) throws IOException, MalformedURLException {
+    CoverArt coverArt;
+    String contentType;
+    ByteArrayOutputStream out;
     Path coverArtFile = Files.createTempFile("cover-art-", ".art");
     try {
       try (InputStream in = coverArtUri.toURL().openStream()) {
         Files.copy(in, coverArtFile, StandardCopyOption.REPLACE_EXISTING);
       }
-      String contentType = Files.probeContentType(coverArtFile);
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      contentType = Files.probeContentType(coverArtFile);
+      out = new ByteArrayOutputStream();
       Files.copy(coverArtFile, out);
-      CoverArt coverArt = new CoverArt(out.toByteArray(), contentType);
-      MusicFile musicFile = getAudioMusicFileFactory().load(path);
-      musicFile.setCoverArt(coverArt);
-      musicFile.commit();
     }
     finally {
       Files.delete(coverArtFile);
     }
+    coverArt = new CoverArt(out.toByteArray(), contentType);
+    return coverArt;
   }
 
   public AudioMusicFileFactory getAudioMusicFileFactory() {
     return audioMusicFileFactory;
+  }
+
+  public LoadingCache<URI, CoverArt> getCache() {
+    return cache;
   }
 }
