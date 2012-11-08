@@ -42,7 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
-import uk.co.unclealex.music.files.FlacDirectoryServiceImpl;
+import uk.co.unclealex.music.files.DirectoryServiceImpl;
 
 import com.google.common.collect.Lists;
 
@@ -50,17 +50,17 @@ import com.google.common.collect.Lists;
  * @author alex
  * 
  */
-public class FlacDirectoryServiceImplTest {
+public class DirectoryServiceImplTest {
 
-  private static final Logger log = LoggerFactory.getLogger(FlacDirectoryServiceImplTest.class);
+  private static final Logger log = LoggerFactory.getLogger(DirectoryServiceImplTest.class);
 
   Path testDirectory;
-  FlacDirectoryServiceImpl flacDirectoryServiceImpl;
+  DirectoryServiceImpl flacDirectoryServiceImpl;
 
   @Before
   public void createRepository() throws IOException {
-    testDirectory = Files.createTempDirectory("flac-directory-service-impl-test-");
-    flacDirectoryServiceImpl = new FlacDirectoryServiceImpl(FileSystems.getDefault());
+    testDirectory = Files.createTempDirectory("directory-service-impl-test-");
+    flacDirectoryServiceImpl = new DirectoryServiceImpl(FileSystems.getDefault());
     log.info("Using directory " + testDirectory);
     for (Path path : new Path[] {
         Paths.get("dir.flac", "myfile.flac"),
@@ -78,18 +78,22 @@ public class FlacDirectoryServiceImplTest {
   }
 
   @Test
-  public void testListFlacFilesSuccess() throws InvalidDirectoriesException, IOException {
-    SortedSet<FileLocation> actualFlacFiles =
-        flacDirectoryServiceImpl.listFlacFiles(
+  public void testListFilesSuccess() throws InvalidDirectoriesException, IOException {
+    SortedSet<FileLocation> actualFiles =
+        flacDirectoryServiceImpl.listFiles(
             testDirectory,
             Lists.newArrayList(testDirectory.resolve("dir.flac"), testDirectory.resolve("dir")));
     Assert.assertThat(
-        "The wrong flac files were found.",
-        actualFlacFiles,
+        "The wrong files were found.",
+        actualFiles,
         containsInAnyOrder(
             fileLocation("dir.flac", "myfile.flac"),
             fileLocation("dir.flac", "inner", "myfile.flac"),
-            fileLocation("dir", "your.flac")));
+            fileLocation("dir", "your.flac"),
+            fileLocation("dir.flac", "myfile.xml"),
+            fileLocation("dir.flac", "inner", "myfile.xml"),
+            fileLocation("dir", "your.mp3")
+            ));
   }
 
   protected FileLocation fileLocation(String first, String... more) {
@@ -97,9 +101,9 @@ public class FlacDirectoryServiceImplTest {
   }
   
   @Test
-  public void testListFlacFilesFail() throws IOException {
+  public void testListFilesFail() throws IOException {
     try {
-      flacDirectoryServiceImpl.listFlacFiles(
+      flacDirectoryServiceImpl.listFiles(
           testDirectory,
           Lists.newArrayList(
               testDirectory.resolve("dir.flac"),
@@ -115,19 +119,6 @@ public class FlacDirectoryServiceImplTest {
               testDirectory.getParent(),
               testDirectory.resolve("my.xml")));
     }
-  }
-
-  @Test
-  public void testFindFlacFiles() throws IOException {
-    SortedSet<Path> actualFlacFiles = flacDirectoryServiceImpl.findAllFlacFiles(testDirectory);
-    Assert.assertThat(
-        "The wrong flac files were found.",
-        actualFlacFiles,
-        containsInAnyOrder(
-            testDirectory.resolve(Paths.get("dir.flac", "myfile.flac")),
-            testDirectory.resolve(Paths.get("dir.flac", "inner", "myfile.flac")),
-            testDirectory.resolve(Paths.get("dir", "your.flac")),
-            testDirectory.resolve("my.flac")));
   }
 
   @After

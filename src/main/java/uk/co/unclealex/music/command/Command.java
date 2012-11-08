@@ -41,7 +41,7 @@ import uk.co.unclealex.music.command.validation.FlacFilesValidator;
 import uk.co.unclealex.music.configuration.Directories;
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
 import uk.co.unclealex.music.files.FileLocation;
-import uk.co.unclealex.music.files.FlacDirectoryService;
+import uk.co.unclealex.music.files.DirectoryService;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
@@ -76,9 +76,9 @@ public abstract class Command<C extends CommandLine> {
   private final List<FlacFilesValidator> flacFilesValidators;
   
   /**
-   * The {@link FlacDirectoryService} used to garner FLAC files.
+   * The {@link DirectoryService} used to garner FLAC files.
    */
-  private final FlacDirectoryService flacDirectoryService;
+  private final DirectoryService flacDirectoryService;
 
   /**
    * The {@link Directories} object containing all directory configuration.
@@ -100,7 +100,7 @@ public abstract class Command<C extends CommandLine> {
       Execution execution,
       Actions actions,
       List<FlacFilesValidator> flacFilesValidators,
-      FlacDirectoryService flacDirectoryService,
+      DirectoryService flacDirectoryService,
       Directories directories,
       MappingService mappingService,
       ActionExecutor actionExecutor) {
@@ -131,7 +131,7 @@ public abstract class Command<C extends CommandLine> {
       }
     };
     SortedSet<FileLocation> flacFiles =
-        getFlacDirectoryService().listFlacFiles(
+        getFlacDirectoryService().listFiles(
             getRequiredBasePath(),
             Iterables.transform(commandLine.getFlacPaths(), pathFunction));
     SortedMap<FileLocation, MusicFile> musicFilesByFlacPath = getMappingService().mapPathsToMusicFiles(flacFiles);
@@ -181,11 +181,11 @@ public abstract class Command<C extends CommandLine> {
   }
 
   /**
-   * Gets the {@link FlacDirectoryService} used to garner FLAC files.
+   * Gets the {@link DirectoryService} used to garner FLAC files.
    * 
-   * @return the {@link FlacDirectoryService} used to garner FLAC files
+   * @return the {@link DirectoryService} used to garner FLAC files
    */
-  public FlacDirectoryService getFlacDirectoryService() {
+  public DirectoryService getFlacDirectoryService() {
     return flacDirectoryService;
   }
 

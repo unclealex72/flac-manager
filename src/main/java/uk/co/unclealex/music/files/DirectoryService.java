@@ -38,7 +38,7 @@ import uk.co.unclealex.music.exception.InvalidDirectoriesException;
  * @author alex
  * 
  */
-public interface FlacDirectoryService {
+public interface DirectoryService {
 
   /**
    * List all FLAC files under a list of directories.
@@ -54,6 +54,6 @@ public interface FlacDirectoryService {
    * @return All FLAC files found under the given directories.
    * @throws IOException 
    */
-  public SortedSet<FileLocation> listFlacFiles(Path requiredBasePath, Iterable<Path> flacDirectories)
+  public SortedSet<FileLocation> listFiles(Path requiredBasePath, Iterable<Path> flacDirectories)
       throws InvalidDirectoriesException, IOException;
 }

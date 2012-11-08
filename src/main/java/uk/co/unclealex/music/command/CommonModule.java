@@ -51,8 +51,8 @@ import uk.co.unclealex.music.files.FileUtils;
 import uk.co.unclealex.music.files.FileUtilsImpl;
 import uk.co.unclealex.music.files.FilenameService;
 import uk.co.unclealex.music.files.FilenameServiceImpl;
-import uk.co.unclealex.music.files.FlacDirectoryService;
-import uk.co.unclealex.music.files.FlacDirectoryServiceImpl;
+import uk.co.unclealex.music.files.DirectoryService;
+import uk.co.unclealex.music.files.DirectoryServiceImpl;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
@@ -77,7 +77,7 @@ public abstract class CommonModule extends AbstractModule {
     bindConfiguration();
     bind(FilenameService.class).to(FilenameServiceImpl.class);
     bind(FileUtils.class).to(FileUtilsImpl.class);
-    bind(FlacDirectoryService.class).to(FlacDirectoryServiceImpl.class);
+    bind(DirectoryService.class).to(DirectoryServiceImpl.class);
     configureSpecifics();
   }
 

@@ -48,7 +48,7 @@ import com.google.common.collect.Sets;
  * @author alex
  * 
  */
-public class FlacDirectoryServiceImpl implements FlacDirectoryService {
+public class DirectoryServiceImpl implements DirectoryService {
 
   /**
    * The file system against which directories are resolved.
@@ -56,7 +56,7 @@ public class FlacDirectoryServiceImpl implements FlacDirectoryService {
   private final FileSystem fileSystem;
 
   @Inject
-  public FlacDirectoryServiceImpl(FileSystem fileSystem) {
+  public DirectoryServiceImpl(FileSystem fileSystem) {
     super();
     this.fileSystem = fileSystem;
   }
@@ -67,7 +67,7 @@ public class FlacDirectoryServiceImpl implements FlacDirectoryService {
    * @throws IOException
    */
   @Override
-  public SortedSet<FileLocation> listFlacFiles(Path requiredBasePath, Iterable<Path> flacDirectories)
+  public SortedSet<FileLocation> listFiles(Path requiredBasePath, Iterable<Path> flacDirectories)
       throws InvalidDirectoriesException,
       IOException {
     Function<Path, Path> absoluteFunction = new Function<Path, Path>() {
@@ -89,7 +89,7 @@ public class FlacDirectoryServiceImpl implements FlacDirectoryService {
     }
     SortedSet<FileLocation> allFlacFileLocations = Sets.newTreeSet();
     for (Path flacDirectory : absoluteFlacDirectories) {
-      SortedSet<Path> flacFiles = findAllFlacFiles(flacDirectory);
+      SortedSet<Path> flacFiles = findAllFiles(flacDirectory);
       for (Path flacFile : flacFiles) {
         allFlacFileLocations.add(new FileLocation(absoluteRequiredBasePath, absoluteRequiredBasePath
             .relativize(flacFile)));
@@ -99,21 +99,18 @@ public class FlacDirectoryServiceImpl implements FlacDirectoryService {
   }
 
   /**
-   * Find all FLAC files under a path.
+   * Find all files under a path.
    * 
    * @param basePath
    *          The path to search.
    * @retun A sorted set of all the found paths.
    */
-  protected SortedSet<Path> findAllFlacFiles(Path basePath) throws IOException {
+  protected SortedSet<Path> findAllFiles(Path basePath) throws IOException {
     final SortedSet<Path> flacFiles = Sets.newTreeSet();
-    final String suffix = Extension.FLAC.asSuffix();
     FileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        if (file.getFileName().toString().endsWith(suffix)) {
-          flacFiles.add(file);
-        }
+        flacFiles.add(file);
         return super.visitFile(file, attrs);
       }
     };

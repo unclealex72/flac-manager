@@ -32,7 +32,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import uk.co.unclealex.music.command.checkin.covers.ArtworkService;
-import uk.co.unclealex.music.command.checkin.encoding.EncodingService;
+import uk.co.unclealex.music.command.checkout.EncodingService;
 import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FileUtils;
 import uk.co.unclealex.music.message.MessageService;
