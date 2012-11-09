@@ -75,7 +75,7 @@ public abstract class Command<C extends CommandLine> {
    * A list of {@link FlacFilesValidator}s used to validate FLAC files.
    */
   private final List<FlacFilesValidator> flacFilesValidators;
-  
+
   /**
    * The {@link DirectoryService} used to garner FLAC files.
    */
@@ -87,16 +87,16 @@ public abstract class Command<C extends CommandLine> {
   private final Directories directories;
 
   /**
-   * The {@link MappingService} used to map {@link MusicFile}s to {@link FileLocation}s.
+   * The {@link MappingService} used to map {@link MusicFile}s to
+   * {@link FileLocation}s.
    */
   private final MappingService mappingService;
-  
+
   /**
-   * The {@link ActionExecutor} used to execute any generated {@link Action}s. 
+   * The {@link ActionExecutor} used to execute any generated {@link Action}s.
    */
   private ActionExecutor actionExecutor;
-  
-  
+
   public Command(
       Execution execution,
       Actions actions,
@@ -133,7 +133,7 @@ public abstract class Command<C extends CommandLine> {
     };
     SortedSet<FileLocation> flacFiles =
         getDirectoryService().listFiles(
-            getRequiredBasePath(),
+            getRequiredBasePath(getDirectories()),
             Iterables.transform(commandLine.getFlacPaths(), pathFunction));
     SortedMap<FileLocation, MusicFile> musicFilesByFileLocation = Maps.newTreeMap();
     Actions actions = getMappingService().mapPathsToMusicFiles(getActions(), flacFiles, musicFilesByFileLocation);
@@ -158,10 +158,12 @@ public abstract class Command<C extends CommandLine> {
   /**
    * Get the base path that all arguments to this command must be relative to.
    * 
+   * @param directories
+   *          The {@link Directories} taken from configuration.
    * @return The base path that all arguments to this command must be relative
    *         to
    */
-  protected abstract Path getRequiredBasePath();
+  protected abstract Path getRequiredBasePath(Directories directories);
 
   /**
    * Gets the {@link Execution} that shall be run by this command.

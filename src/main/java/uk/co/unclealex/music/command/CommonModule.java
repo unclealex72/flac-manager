@@ -60,6 +60,8 @@ import uk.co.unclealex.music.command.validation.FlacFilesValidator;
 import uk.co.unclealex.music.command.validation.FlacFilesValidatorList;
 import uk.co.unclealex.music.command.validation.NoOverwriting;
 import uk.co.unclealex.music.command.validation.NoOverwritingFlacFilesValidator;
+import uk.co.unclealex.music.command.validation.NoOwner;
+import uk.co.unclealex.music.command.validation.NoOwnerFlacFilesValidator;
 import uk.co.unclealex.music.command.validation.Unique;
 import uk.co.unclealex.music.command.validation.UniqueFlacFilesValidator;
 import uk.co.unclealex.music.configuration.AmazonConfiguration;
@@ -117,6 +119,7 @@ public abstract class CommonModule extends AbstractModule {
     bind(FlacFilesValidator.class).annotatedWith(FailuresOnly.class).to(FailuresOnlyFlacFilesValidator.class);
     bind(FlacFilesValidator.class).annotatedWith(NoOverwriting.class).to(NoOverwritingFlacFilesValidator.class);
     bind(FlacFilesValidator.class).annotatedWith(Unique.class).to(UniqueFlacFilesValidator.class);
+    bind(FlacFilesValidator.class).annotatedWith(NoOwner.class).to(NoOwnerFlacFilesValidator.class);
     bind(new TypeLiteral<List<FlacFilesValidator>>() {}).to(FlacFilesValidatorList.class);
     bind(MusicBrainzWebResourceFactory.class).to(MusicBrainzWebResourceFactoryImpl.class);
     bind(MusicBrainzRetryFilter.class).to(MusicBrainzRetryFilter.class);
