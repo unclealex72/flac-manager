@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.message.MessageService;
 
 import com.google.common.collect.Multimap;
 
@@ -53,7 +54,7 @@ public class NoOverwritingFlacFilesValidator extends AbstractGeneratedFilesFlacF
       FileLocation sourceFileLocation = entry.getKey();
       FileLocation targetFileLocation = entry.getValue();
       if (Files.exists(targetFileLocation.resolve())) {
-        actions = actions.fail(sourceFileLocation, "overwrite", targetFileLocation);
+        actions = actions.fail(sourceFileLocation, MessageService.OVERWRITE, targetFileLocation);
       }
     }
     return actions;

@@ -40,6 +40,7 @@ import uk.co.unclealex.music.action.AddArtworkAction;
 import uk.co.unclealex.music.action.CoverArtAction;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkSearchingService;
 import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.message.MessageService;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
@@ -104,7 +105,7 @@ public class FindMissingCoverArtFlacFilesValidator implements FlacFilesValidator
     for (FileLocation fileLocation : fileLocationsRequiringCoverArt) {
       URI coverArtUri = artworkSearchingService.findArtwork(musicFilesByFlacPath.get(fileLocation));
       if (coverArtUri == null) {
-        actions = actions.fail(fileLocation, "missingArtwork");
+        actions = actions.fail(fileLocation, MessageService.MISSING_ARTWORK);
       }
       else {
         actions = getActionSupplier().get().addArtwork(fileLocation, coverArtUri).then(actions);

@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.message.MessageService;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -56,7 +57,7 @@ public class UniqueFlacFilesValidator extends AbstractGeneratedFilesFlacFilesVal
       FileLocation targetFileLocation = entry.getKey();
       Collection<FileLocation> sourceFileLocations = entry.getValue();
       if (sourceFileLocations.size() > 1) {
-        actions = actions.fail(targetFileLocation, "nonunique", sourceFileLocations);
+        actions = actions.fail(targetFileLocation, MessageService.NON_UNIQUE , sourceFileLocations);
       }
     }
     return actions;

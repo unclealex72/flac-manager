@@ -37,6 +37,7 @@ import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.audio.AudioMusicFileFactory;
 import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FlacFileChecker;
+import uk.co.unclealex.music.message.MessageService;
 
 /**
  * The default implementation of {@link MappingService}.
@@ -90,12 +91,12 @@ public class MappingServiceImpl implements MappingService {
       if (flacFileChecker.isFlacFile(path)) {
         MusicFile musicFile = audioMusicFileFactory.load(path);
         for (ConstraintViolation<MusicFile> constraintViolation : validator.generateViolations(musicFile)) {
-          actions = actions.fail(fileLocation, constraintViolation.getMessage());
+          actions = actions.fail(fileLocation, String.format("%s: %s", fileLocation.resolve(), constraintViolation.getMessage()));
         }
         musicFilesByFileLocation.put(fileLocation, musicFile);        
       }
       else {
-        actions = actions.fail(fileLocation, "notflac");
+        actions = actions.fail(fileLocation, MessageService.NOT_FLAC);
       }
     }
     return actions;

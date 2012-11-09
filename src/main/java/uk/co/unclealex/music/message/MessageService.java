@@ -33,6 +33,56 @@ package uk.co.unclealex.music.message;
 public interface MessageService {
 
   /**
+   * The key for producing an artwork adding message.
+   */
+  public String ARTWORK = "artwork";
+
+  /**
+   * The key for producing an encoding message.
+   */
+  public String ENCODE = "encode";
+
+  /**
+   * The key for producing a delete message.
+   */
+  public String DELETE = "delete";
+
+  /**
+   * The key for producing a move message.
+   */
+  public String MOVE = "move";
+
+  /**
+   * The key for producing an uprotect message.
+   */
+  public String UNPROTECT = "unprotect";
+
+  /**
+   * The key for producing a protect message.
+   */
+  public String PROTECT = "protect";
+
+  /**
+   * The key for producing a not flac file message.
+   */
+  public String NOT_FLAC = "notFlac";
+
+  /**
+   * The key for producing a missing artwork message.
+   */
+  public String MISSING_ARTWORK = "missingArtwork";
+
+  /**
+   * The key for producing an overwrite message.
+   */
+  public String OVERWRITE = "overwrite";
+
+  /**
+   * The key for producing non unique messages.
+   */
+  public String NON_UNIQUE = "nonUnique";
+
+  /**
    * Print an internationalised message.
    * 
    * @param template

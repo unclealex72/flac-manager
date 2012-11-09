@@ -34,6 +34,7 @@ import uk.co.unclealex.music.MusicFileBean;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.action.ActionsImpl;
 import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.message.MessageService;
 
 import com.google.common.collect.Sets;
 
@@ -64,8 +65,8 @@ public class UniqueFlacFilesValidatorTest extends FlacFileValidatorTest {
             .move(fl2, fl3)
             .move(fl1, fl4)
             .move(fl2, fl4)
-            .fail(fl3, "nonunique", Sets.newTreeSet(Arrays.asList(fl1, fl2)))
-            .fail(fl4, "nonunique", Sets.newTreeSet(Arrays.asList(fl1, fl2)));
+            .fail(fl3, MessageService.NON_UNIQUE, Sets.newTreeSet(Arrays.asList(fl1, fl2)))
+            .fail(fl4, MessageService.NON_UNIQUE, Sets.newTreeSet(Arrays.asList(fl1, fl2)));
     runTest(expectedActions, actions);
   }
 

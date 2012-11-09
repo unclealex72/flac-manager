@@ -95,7 +95,7 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
   @Override
   public void visit(ProtectAction protectAction) throws IOException {
     FileLocation fileLocation = protectAction.getFileLocation();
-    getMessageService().printMessage("protect", fileLocation.resolve());
+    getMessageService().printMessage(MessageService.PROTECT, fileLocation.resolve());
     getFileUtils().alterWriteable(fileLocation, true);
   }
 
@@ -107,7 +107,7 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
   @Override
   public void visit(UnprotectAction unprotectAction) throws IOException {
     FileLocation fileLocation = unprotectAction.getFileLocation();
-    getMessageService().printMessage("unprotect", fileLocation.resolve());
+    getMessageService().printMessage(MessageService.UNPROTECT, fileLocation.resolve());
     getFileUtils().alterWriteable(fileLocation, true);
   }
 
@@ -118,7 +118,7 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
   public void visit(MoveAction moveAction) throws IOException {
     FileLocation sourceFileLocation = moveAction.getFileLocation();
     FileLocation targetFileLocation = moveAction.getTargetFileLocation();
-    getMessageService().printMessage("move", sourceFileLocation.resolve(), targetFileLocation.resolve());
+    getMessageService().printMessage(MessageService.MOVE, sourceFileLocation.resolve(), targetFileLocation.resolve());
     getFileUtils().move(sourceFileLocation, targetFileLocation);
   }
 
@@ -128,7 +128,7 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
   @Override
   public void visit(DeleteAction deleteAction) throws IOException {
     FileLocation fileLocation = deleteAction.getFileLocation();
-    getMessageService().printMessage("delete", fileLocation.resolve());
+    getMessageService().printMessage(MessageService.DELETE, fileLocation.resolve());
     getFileUtils().remove(fileLocation);
   }
 
@@ -139,7 +139,7 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
   public void visit(EncodeAction encodeAction) throws IOException {
     FileLocation flacFileLocation = encodeAction.getFileLocation();
     FileLocation encodedFileLocation = encodeAction.getEncodedFileLocation();
-    getMessageService().printMessage("encode", flacFileLocation.resolve(), encodedFileLocation.resolve());
+    getMessageService().printMessage(MessageService.ENCODE, flacFileLocation.resolve(), encodedFileLocation.resolve());
     getEncodingService().encode(flacFileLocation, encodeAction.getFlacMusicFile(), encodedFileLocation);
   }
 
@@ -149,7 +149,7 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
   @Override
   public void visit(AddArtworkAction addArtworkAction) throws IOException {
     URI coverArtUrl = addArtworkAction.getCoverArtUri();
-    getMessageService().printMessage("artwork", addArtworkAction.getFileLocation(), coverArtUrl);
+    getMessageService().printMessage(MessageService.ARTWORK, addArtworkAction.getFileLocation(), coverArtUrl);
     getArtworkService().addArwork(addArtworkAction.getFileLocation().resolve(), coverArtUrl);
   }
 

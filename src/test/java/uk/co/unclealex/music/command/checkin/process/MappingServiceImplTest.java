@@ -57,6 +57,7 @@ import uk.co.unclealex.music.action.FailureAction;
 import uk.co.unclealex.music.audio.AudioMusicFileFactory;
 import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FlacFileChecker;
+import uk.co.unclealex.music.message.MessageService;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
@@ -115,7 +116,7 @@ public class MappingServiceImplTest {
   @Test
   public void testNonFlacFile() throws IOException {
     when(flacFileChecker.isFlacFile(fileLocation.resolve())).thenReturn(false);
-    testActions(new FailureAction(fileLocation, "notflac"));
+    testActions(new FailureAction(fileLocation, MessageService.NOT_FLAC));
   }
 
   @SuppressWarnings("unchecked")
@@ -128,7 +129,7 @@ public class MappingServiceImplTest {
     when(audioMusicFileFactory.load(fileLocation.resolve())).thenReturn(musicFile);
     when(validator.generateViolations(musicFile)).thenReturn(
         Sets.newHashSet(firstConstraintViolation, secondConstraintViolation));
-    testActions(new FailureAction(fileLocation, "first"), new FailureAction(fileLocation, "second"));
+    testActions(new FailureAction(fileLocation, "/flac.flac: first"), new FailureAction(fileLocation, "/flac.flac: second"));
   }
 
   public void testActions(Action... expectedActions) throws IOException {

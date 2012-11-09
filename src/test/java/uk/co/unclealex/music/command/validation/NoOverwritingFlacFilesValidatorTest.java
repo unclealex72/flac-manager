@@ -35,6 +35,7 @@ import org.junit.Test;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.action.ActionsImpl;
 import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.message.MessageService;
 
 /**
  * @author alex
@@ -70,7 +71,7 @@ public class NoOverwritingFlacFilesValidatorTest extends FlacFileValidatorTest {
     Actions expectedActions =
         new ActionsImpl()
             .move(nonExistingFileLocation, existingFileLocation)
-            .fail(nonExistingFileLocation, "overwrite", existingFileLocation);
+            .fail(nonExistingFileLocation, MessageService.OVERWRITE, existingFileLocation);
     runTest(expectedActions, actions);
   }
 
