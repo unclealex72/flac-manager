@@ -83,6 +83,16 @@ public interface MessageService {
   public String NON_UNIQUE = "nonUnique";
 
   /**
+   * The key for producing not owned messages.
+   */
+  public String NOT_OWNED = "notOwned";
+
+  /**
+   * The key for producing not owned messages.
+   */
+  public String NO_OWNER_INFORMATION = "noOwner";
+
+  /**
    * Print an internationalised message.
    * 
    * @param template

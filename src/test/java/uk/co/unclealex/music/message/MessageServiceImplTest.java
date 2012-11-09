@@ -103,6 +103,16 @@ public class MessageServiceImplTest {
   }
 
   @Test
+  public void testNotOwned() {
+    runTest("/mnt/flac/yetanotherflacfile.flac has no owners", MessageService.NOT_OWNED, fl3);
+  }
+
+  @Test
+  public void testNoOwner() {
+    runTest("Cannot find the owned releases for Brian May", MessageService.NO_OWNER_INFORMATION, "Brian May");
+  }
+
+  @Test
   public void testFree() {
     runTest("My own message", "My own message");
   }

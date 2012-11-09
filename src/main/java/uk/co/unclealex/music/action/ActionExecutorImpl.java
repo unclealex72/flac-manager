@@ -158,7 +158,11 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
    */
   @Override
   public void visit(FailureAction failureAction) {
-    List<Object> allParameters = Lists.newArrayList((Object) failureAction.getFileLocation().resolve());
+    List<Object> allParameters = Lists.newArrayList();
+    FileLocation fileLocation = failureAction.getFileLocation();
+    if (fileLocation != null) {
+      allParameters.add(fileLocation.resolve());
+    }
     allParameters.addAll(Arrays.asList(failureAction.getParameters()));
     getMessageService()
         .printMessage(failureAction.getMessageTemplate(), Iterables.toArray(allParameters, Object.class));

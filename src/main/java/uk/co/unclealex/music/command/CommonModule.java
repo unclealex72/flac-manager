@@ -78,10 +78,13 @@ import uk.co.unclealex.music.message.MessageServiceImpl;
 import uk.co.unclealex.music.musicbrainz.MusicBrainzRetryFilter;
 import uk.co.unclealex.music.musicbrainz.MusicBrainzWebResourceFactory;
 import uk.co.unclealex.music.musicbrainz.MusicBrainzWebResourceFactoryImpl;
+import uk.co.unclealex.music.musicbrainz.OwnerService;
+import uk.co.unclealex.music.musicbrainz.OwnerServiceImpl;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
+import com.mycila.inject.jsr250.Jsr250;
 
 /**
  * The Guice {@link Module} for components common to checking in and checking out.
@@ -95,6 +98,7 @@ public abstract class CommonModule extends AbstractModule {
    */
   @Override
   protected void configure() {
+    install(Jsr250.newJsr250Module());
     bind(Validator.class).to(ValidatorImpl.class);
     bind(FileSystem.class).toInstance(FileSystems.getDefault());
     bind(AudioMusicFileFactory.class).to(AudioMusicFileFactoryImpl.class);
@@ -116,6 +120,7 @@ public abstract class CommonModule extends AbstractModule {
     bind(new TypeLiteral<List<FlacFilesValidator>>() {}).to(FlacFilesValidatorList.class);
     bind(MusicBrainzWebResourceFactory.class).to(MusicBrainzWebResourceFactoryImpl.class);
     bind(MusicBrainzRetryFilter.class).to(MusicBrainzRetryFilter.class);
+    bind(OwnerService.class).to(OwnerServiceImpl.class);
     configureSpecifics();
   }
 
