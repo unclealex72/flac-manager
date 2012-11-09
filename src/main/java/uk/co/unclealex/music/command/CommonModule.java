@@ -75,6 +75,9 @@ import uk.co.unclealex.music.files.FilenameService;
 import uk.co.unclealex.music.files.FilenameServiceImpl;
 import uk.co.unclealex.music.message.MessageService;
 import uk.co.unclealex.music.message.MessageServiceImpl;
+import uk.co.unclealex.music.musicbrainz.MusicBrainzRetryFilter;
+import uk.co.unclealex.music.musicbrainz.MusicBrainzWebResourceFactory;
+import uk.co.unclealex.music.musicbrainz.MusicBrainzWebResourceFactoryImpl;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
@@ -111,6 +114,8 @@ public abstract class CommonModule extends AbstractModule {
     bind(FlacFilesValidator.class).annotatedWith(NoOverwriting.class).to(NoOverwritingFlacFilesValidator.class);
     bind(FlacFilesValidator.class).annotatedWith(Unique.class).to(UniqueFlacFilesValidator.class);
     bind(new TypeLiteral<List<FlacFilesValidator>>() {}).to(FlacFilesValidatorList.class);
+    bind(MusicBrainzWebResourceFactory.class).to(MusicBrainzWebResourceFactoryImpl.class);
+    bind(MusicBrainzRetryFilter.class).to(MusicBrainzRetryFilter.class);
     configureSpecifics();
   }
 
