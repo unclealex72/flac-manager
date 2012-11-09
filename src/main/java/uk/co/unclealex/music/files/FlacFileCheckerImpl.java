@@ -25,21 +25,28 @@
 package uk.co.unclealex.music.files;
 
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.RandomAccessFile;
 import java.nio.file.Path;
+
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.flac.FlacFileReader;
 
 /**
  * The default implementation of {@link FlacFileChecker}.
  * @author alex
  *
  */
-public class FlacFileCheckerImpl implements FlacFileChecker {
+public class FlacFileCheckerImpl extends FlacFileReader implements FlacFileChecker {
 
-  private static final String FLAC_MIME_TYPE = "audio/flac";
-  
   @Override
   public boolean isFlacFile(Path path) throws IOException {
-    return FLAC_MIME_TYPE.equals(Files.probeContentType(path));
+    try (RandomAccessFile raf = new RandomAccessFile(path.toFile(), "r")) {
+      getEncodingInfo(raf);
+      return true;
+    }
+    catch (CannotReadException e) {
+      return false;
+    }
   }
 
 }
