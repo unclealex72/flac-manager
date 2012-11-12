@@ -62,7 +62,7 @@ public class NoOwnerFlacFilesValidator implements FlacFilesValidator {
   public Actions validate(Map<FileLocation, MusicFile> musicFilesByFlacPath, Actions actions) throws IOException {
     OwnerService ownerService = getOwnerService();
     for (User user : ownerService.getAllInvalidOwners()) {
-      actions = actions.fail(null, MessageService.NO_OWNER_INFORMATION, user.getUserName());
+      actions = actions.fail(null, MessageService.NO_OWNER_INFORMATION, user.getMusicBrainzUserName());
     }
     for (Entry<FileLocation, MusicFile> entry : musicFilesByFlacPath.entrySet()) {
       FileLocation fileLocation = entry.getKey();

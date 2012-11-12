@@ -110,8 +110,8 @@ public class ConfigurationValidationTest {
   public void testUserRequiresUserNamePasswordAndDevices() throws Exception {
     testValidate(
         new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean(null, null, null)), defaultAmazonBean),
-        Violation.expect(NotEmpty.class, "users[0]", "userName"),
-        Violation.expect(NotEmpty.class, "users[0]", "password"),
+        Violation.expect(NotEmpty.class, "users[0]", "musicBrainzUserName"),
+        Violation.expect(NotEmpty.class, "users[0]", "musicBrainzPassword"),
         Violation.expect(NotEmpty.class, "users[0]", "devices"));
   }
 

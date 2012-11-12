@@ -78,8 +78,8 @@ public class NoOwnerFlacFilesValidatorTest {
     musicFilesByFlacPath.put(fl3, mf3);
     Actions actualActions = flacFilesValidator.validate(musicFilesByFlacPath, new ActionsImpl());
     assertThat("The wrong actions were returned", actualActions, containsInAnyOrder(new Action[] {
-        new FailureAction(null, MessageService.NO_OWNER_INFORMATION, brianMay.getUserName()),
-        new FailureAction(null, MessageService.NO_OWNER_INFORMATION, freddieMercury.getUserName()),
+        new FailureAction(null, MessageService.NO_OWNER_INFORMATION, brianMay.getMusicBrainzUserName()),
+        new FailureAction(null, MessageService.NO_OWNER_INFORMATION, freddieMercury.getMusicBrainzUserName()),
         new FailureAction(fl1, MessageService.NOT_OWNED),
         new FailureAction(fl3, MessageService.NOT_OWNED) }));
   }

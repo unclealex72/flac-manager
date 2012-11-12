@@ -108,7 +108,7 @@ public class MusicBrainzWebResourceFactoryImpl implements MusicBrainzWebResource
     Client client = Client.create(cc);
     client.addFilter(getMusicBrainzRetryFilter());
     if (user != null) {
-      client.addFilter(new HTTPBasicAuthFilter(user.getUserName(), user.getPassword()));
+      client.addFilter(new HTTPBasicAuthFilter(user.getMusicBrainzUserName(), user.getMusicBrainzPassword()));
     }
     ClientFilter userAgentClientFilter = new ClientFilter() {
       @Override

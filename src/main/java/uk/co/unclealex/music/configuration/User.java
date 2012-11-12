@@ -44,7 +44,7 @@ public interface User {
    * @return the MusicBrainz user name for this user
    */
   @NotEmpty
-  public abstract String getUserName();
+  public abstract String getMusicBrainzUserName();
 
   /**
    * Gets the MusicBrainz password for this user.
@@ -52,7 +52,7 @@ public interface User {
    * @return the MusicBrainz password for this user
    */
   @NotEmpty
-  public abstract String getPassword();
+  public abstract String getMusicBrainzPassword();
 
   /**
    * Gets the {@link Device}s owned by this user.

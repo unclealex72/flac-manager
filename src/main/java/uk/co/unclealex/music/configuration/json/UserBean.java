@@ -43,12 +43,12 @@ public class UserBean extends DataObject implements User {
   /**
    * The MusicBrainz user name for this user.
    */
-  private final String userName;
+  private final String musicBrainzUserName;
 
   /**
    * The MusicBrainz password for this user.
    */
-  private final String password;
+  private final String musicBrainzPassword;
 
   /**
    * The {@link Device}s owned by this user.
@@ -56,36 +56,21 @@ public class UserBean extends DataObject implements User {
   private final List<Device> devices;
 
   /**
-   * 
-   * @param userName
-   * @param password
-   * @param devices
+   * Instantiates a new user bean.
+   *
+   * @param musicBrainzUserName the music brainz user name
+   * @param musicBrainzPassword the music brainz password
+   * @param devices the devices
    */
   @JsonCreator
   public UserBean(
-      @JsonProperty("userName") String userName,
-      @JsonProperty("password") String password,
+      @JsonProperty("musicBrainzUserName") String musicBrainzUserName,
+      @JsonProperty("musicBrainzPassword") String musicBrainzPassword,
       @JsonProperty("devices") List<Device> devices) {
     super();
-    this.userName = userName;
-    this.password = password;
+    this.musicBrainzUserName = musicBrainzUserName;
+    this.musicBrainzPassword = musicBrainzPassword;
     this.devices = devices;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getUserName() {
-    return userName;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getPassword() {
-    return password;
   }
 
   /**
@@ -94,5 +79,21 @@ public class UserBean extends DataObject implements User {
   @Override
   public List<Device> getDevices() {
     return devices;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getMusicBrainzUserName() {
+    return musicBrainzUserName;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getMusicBrainzPassword() {
+    return musicBrainzPassword;
   }
 }

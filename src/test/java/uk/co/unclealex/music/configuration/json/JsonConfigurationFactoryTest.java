@@ -56,7 +56,7 @@ public class JsonConfigurationFactoryTest {
     Device ipod = new IpodDeviceBean(Paths.get("/media/IPOD"));
     Device mtp = new MtpDeviceBean("mtp device");
     Device hd = new FileSystemDeviceBean("hd device", Paths.get("mountPoint"), Paths.get("music"));
-    UserBean alex = new UserBean("alex", "pwd", Lists.newArrayList(ipod, mtp, hd));
+    UserBean alex = new UserBean("MeMeMe", "pwd", Lists.newArrayList(ipod, mtp, hd));
     List<UserBean> expectedUsers = Lists.newArrayList(alex);
     AmazonConfigurationBean expectedAmazon = new AmazonConfigurationBean("endpoint", "accessKey", "secretKey");
     ConfigurationBean expectedConfigurationBean = new ConfigurationBean(expectedDirectories, expectedUsers, expectedAmazon);

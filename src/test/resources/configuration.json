@@ -6,8 +6,8 @@
     "stagingPath" : "stagingPath"
   },
   "users" : [ {
-    "userName" : "alex",
-    "password" : "pwd",
+    "musicBrainzUserName" : "MeMeMe",
+    "musicBrainzPassword" : "pwd",
     "devices" : [ {
       "type" : "ipod",
       "mountPoint" : "/media/IPOD"
