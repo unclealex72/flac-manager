@@ -75,7 +75,7 @@ public interface ActionVisitor {
    * 
    * @param unprotectAction
    *          The {@link Action} containing the file information.
-   * @throws IOException 
+   * @throws IOException
    */
   public void visit(UnprotectAction unprotectAction) throws IOException;
 
@@ -111,6 +111,24 @@ public interface ActionVisitor {
    *          artwork.
    */
   public void visit(AddArtworkAction addArtworkAction) throws IOException;
+
+  /**
+   * Link a device file to an encoded file.
+   * 
+   * @param linkAction
+   *          The {@link Action} containing all the information needed to create
+   *          the link.
+   */
+  public void visit(LinkAction linkAction) throws IOException;
+
+  /**
+   * Unlink a device file from an encoded file.
+   * 
+   * @param unlinkAction
+   *          The {@link Action} containing all the information needed to remove
+   *          the link.
+   */
+  public void visit(UnlinkAction unlinkAction) throws IOException;
 
   /**
    * Indicate that a FLAC file could not be checked in or out.

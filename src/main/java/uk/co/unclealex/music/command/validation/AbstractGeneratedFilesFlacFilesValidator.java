@@ -34,7 +34,9 @@ import uk.co.unclealex.music.action.ActionFunction;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.action.EncodeAction;
 import uk.co.unclealex.music.action.FailureAction;
+import uk.co.unclealex.music.action.LinkAction;
 import uk.co.unclealex.music.action.MoveAction;
+import uk.co.unclealex.music.action.UnlinkAction;
 import uk.co.unclealex.music.files.FileLocation;
 
 import com.google.common.base.Function;
@@ -67,7 +69,15 @@ public abstract class AbstractGeneratedFilesFlacFilesValidator implements FlacFi
       protected FileLocation visitAndReturn(MoveAction moveAction) {
         return moveAction.getTargetFileLocation();
       }
-    };
+      
+      protected FileLocation visitAndReturn(LinkAction linkAction) {
+        return linkAction.getLinkLocation();
+      }
+
+      protected FileLocation visitAndReturn(UnlinkAction unlinkAction) {
+        return unlinkAction.getLinkLocation();
+      }
+};
     for (Action action : actions) {
       FileLocation targetFileLocation = targetFunction.apply(action);
       if (targetFileLocation != null) {

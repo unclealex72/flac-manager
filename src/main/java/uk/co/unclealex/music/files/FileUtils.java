@@ -69,4 +69,16 @@ public interface FileUtils {
    * @throws IOException
    */
   public void remove(FileLocation fileLocation) throws IOException;
+
+  /**
+   * Create a symbolic link from one file to another, creating any required
+   * parent directories for the new link.
+   * 
+   * @param fileLocation
+   *          The location of the file to link to.
+   * @param linkLocation
+   *          The location of the new symbolic link.
+   * @throws IOException
+   */
+  public void link(FileLocation fileLocation, FileLocation linkLocation) throws IOException;
 }

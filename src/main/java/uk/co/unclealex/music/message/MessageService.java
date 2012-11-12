@@ -93,6 +93,16 @@ public interface MessageService {
   public String NO_OWNER_INFORMATION = "noOwner";
 
   /**
+   * The key for producing link messages.
+   */
+  public String LINK = "link";
+
+  /**
+   * The key for producing link messages.
+   */
+  public String UNLINK = "unlink";
+
+  /**
    * Print an internationalised message.
    * 
    * @param template

@@ -109,6 +109,18 @@ public class FileUtilsImplTest {
     Assert.assertFalse("File source/dir/moveme.txt exists.", Files.exists(fileToMove.resolve()));
   }
 
+  public void testLink() throws IOException {
+    FileLocation targetLocation = new FileLocation(testDirectory, "here.txt");
+    Files.createFile(targetLocation.resolve());
+    FileLocation linkLocation = new FileLocation(testDirectory, "link.d", "link.txt");
+    new FileUtilsImpl().link(targetLocation, linkLocation);
+    Assert.assertTrue("The newly created link was not a symbolic link.", Files.isSymbolicLink(linkLocation.resolve()));
+    Assert.assertEquals(
+        "The newly created link does not point to the correct file.",
+        targetLocation.resolve(),
+        Files.readSymbolicLink(linkLocation.resolve()));
+  }
+
   @Test
   public void testMoveWithoutSiblings() throws IOException {
     Path source = testDirectory.resolve("source");

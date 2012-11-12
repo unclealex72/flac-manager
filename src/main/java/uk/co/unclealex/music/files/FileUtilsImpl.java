@@ -113,4 +113,15 @@ public class FileUtilsImpl implements FileUtils {
       remove(basePath, currentPath.getParent());
     }
   }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void link(FileLocation fileLocation, FileLocation linkLocation) throws IOException {
+    Path target = fileLocation.resolve();
+    Path link = linkLocation.resolve();
+    Files.createDirectories(link.getParent());
+    Files.createSymbolicLink(link, target);
+  }
 }

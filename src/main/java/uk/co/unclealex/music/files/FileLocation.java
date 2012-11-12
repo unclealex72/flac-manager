@@ -25,6 +25,7 @@
 package uk.co.unclealex.music.files;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import uk.co.unclealex.music.DataObject;
 
@@ -63,6 +64,9 @@ public class FileLocation extends DataObject implements Comparable<FileLocation>
     this.relativePath = relativePath;
   }
 
+  public FileLocation(Path basePath, String first, String... more) {
+    this(basePath, Paths.get(first, more));
+  }
   /**
    * Compare this {@link FileLocation} to another by comparing the results of their
    * {@link #resolve()} method.

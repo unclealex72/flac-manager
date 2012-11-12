@@ -112,6 +112,17 @@ public class MessageServiceImplTest {
     runTest("Cannot find the owned releases for Brian May", MessageService.NO_OWNER_INFORMATION, "Brian May");
   }
 
+
+  @Test
+  public void testLink() {
+    runTest("Linking /mnt/flac/yetanotherflacfile.flac to /mnt/flac/myflacfile.flac", MessageService.LINK, fl1, fl3);
+  }
+
+  @Test
+  public void testUnlink() {
+    runTest("Removing link /mnt/flac/yetanotherflacfile.flac", MessageService.UNLINK, fl1, fl3);
+  }
+
   @Test
   public void testFree() {
     runTest("My own message", "My own message");

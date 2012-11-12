@@ -157,6 +157,24 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
    * {@inheritDoc}
    */
   @Override
+  public void visit(LinkAction linkAction) throws IOException {
+    getMessageService().printMessage(MessageService.LINK, linkAction.getFileLocation(), linkAction.getLinkLocation());
+    getFileUtils().link(linkAction.getFileLocation(), linkAction.getLinkLocation());
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void visit(UnlinkAction unlinkAction) throws IOException {
+    getMessageService().printMessage(MessageService.UNLINK, unlinkAction.getFileLocation(), unlinkAction.getLinkLocation());
+    getFileUtils().remove(unlinkAction.getLinkLocation());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void visit(FailureAction failureAction) {
     List<Object> allParameters = Lists.newArrayList();
     FileLocation fileLocation = failureAction.getFileLocation();
