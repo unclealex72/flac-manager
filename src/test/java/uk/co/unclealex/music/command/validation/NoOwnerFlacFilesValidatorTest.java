@@ -59,8 +59,8 @@ public class NoOwnerFlacFilesValidatorTest {
   @Test
   public void testOwnerValidation() throws IOException {
     OwnerService ownerService = mock(OwnerService.class);
-    User brianMay = new UserBean("Brian", null, null);
-    User freddieMercury = new UserBean("Freddie", null, null);
+    User brianMay = new UserBean("brian", "Brian", null, null);
+    User freddieMercury = new UserBean("freddie", "Freddie", null, null);
     when(ownerService.getAllInvalidOwners()).thenReturn(Sets.newHashSet(brianMay, freddieMercury));
     MusicFile mf1 = musicFile("1");
     MusicFile mf2 = musicFile("2");

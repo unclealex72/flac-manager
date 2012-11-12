@@ -31,36 +31,47 @@ import javax.validation.Valid;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
- * A configuration item for a user. Users must also have a MusicBrainz login and can own
- * a number of {@link Device}s.
+ * A configuration item for a user. Users must also have a MusicBrainz login and
+ * can own a number of {@link Device}s.
+ * 
  * @author alex
- *
+ * 
  */
 public interface User {
 
   /**
+   * Gets the user's name that is to be displayed with their devices and to be
+   * used when changing ownership.
+   * 
+   * @return the user's name that is to be displayed with their devices and to
+   *         be used when changing ownership.
+   */
+  @NotEmpty
+  public String getName();
+
+  /**
    * Gets the MusicBrainz user name for this user.
-   *
+   * 
    * @return the MusicBrainz user name for this user
    */
   @NotEmpty
-  public abstract String getMusicBrainzUserName();
+  public String getMusicBrainzUserName();
 
   /**
    * Gets the MusicBrainz password for this user.
-   *
+   * 
    * @return the MusicBrainz password for this user
    */
   @NotEmpty
-  public abstract String getMusicBrainzPassword();
+  public String getMusicBrainzPassword();
 
   /**
    * Gets the {@link Device}s owned by this user.
-   *
+   * 
    * @return the {@link Device}s owned by this user
    */
   @NotEmpty
   @Valid
-  public abstract List<Device> getDevices();
+  public List<Device> getDevices();
 
 }

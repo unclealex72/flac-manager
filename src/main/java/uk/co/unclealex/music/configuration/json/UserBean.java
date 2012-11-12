@@ -41,6 +41,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class UserBean extends DataObject implements User {
 
   /**
+   * The name for this user.
+   */
+  private final String name;
+  
+  /**
    * The MusicBrainz user name for this user.
    */
   private final String musicBrainzUserName;
@@ -64,10 +69,12 @@ public class UserBean extends DataObject implements User {
    */
   @JsonCreator
   public UserBean(
+      @JsonProperty("name") String name,
       @JsonProperty("musicBrainzUserName") String musicBrainzUserName,
       @JsonProperty("musicBrainzPassword") String musicBrainzPassword,
       @JsonProperty("devices") List<Device> devices) {
     super();
+    this.name = name;
     this.musicBrainzUserName = musicBrainzUserName;
     this.musicBrainzPassword = musicBrainzPassword;
     this.devices = devices;
@@ -95,5 +102,12 @@ public class UserBean extends DataObject implements User {
    */
   public String getMusicBrainzPassword() {
     return musicBrainzPassword;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getName() {
+    return name;
   }
 }

@@ -53,9 +53,9 @@ public class OwnerServiceImplTest {
   @Mock
   MusicBrainzClient musicBrainzClient;
   OwnerServiceImpl ownerService;
-  User brianMay = new UserBean("Brian", null, null);
-  User freddieMercury = new UserBean("Freddie", null, null);
-  User rogerTaylor = new UserBean("Roger", null, null);
+  User brianMay = new UserBean("brian", "Brian", null, null);
+  User freddieMercury = new UserBean("brian", "Freddie", null, null);
+  User rogerTaylor = new UserBean("roger", "Roger", null, null);
   List<User> users = Lists.newArrayList(brianMay, freddieMercury, rogerTaylor);
 
   @Before

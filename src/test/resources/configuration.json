@@ -6,6 +6,7 @@
     "stagingPath" : "stagingPath"
   },
   "users" : [ {
+    "name" : "alex",
     "musicBrainzUserName" : "MeMeMe",
     "musicBrainzPassword" : "pwd",
     "devices" : [ {

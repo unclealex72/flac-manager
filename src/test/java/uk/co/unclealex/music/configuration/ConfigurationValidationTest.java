@@ -61,7 +61,7 @@ public class ConfigurationValidationTest {
   Path homeDir = Paths.get(System.getProperty("user.home"));
   PathsBean defaultPathBean = new PathsBean(homeDir, homeDir, homeDir, homeDir);
   AmazonConfigurationBean defaultAmazonBean = new AmazonConfigurationBean("endpoint", "accessKey", "secretKey");
-  List<UserBean> defaultUsers = Lists.newArrayList(new UserBean("alex", "pwd", Lists
+  List<UserBean> defaultUsers = Lists.newArrayList(new UserBean("alex", "MeMeMe", "pwd", Lists
       .newArrayList((Device) new MtpDeviceBean("mtp"))));
 
   @Test
@@ -109,7 +109,8 @@ public class ConfigurationValidationTest {
   @Test
   public void testUserRequiresUserNamePasswordAndDevices() throws Exception {
     testValidate(
-        new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean(null, null, null)), defaultAmazonBean),
+        new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean(null, null, null, null)), defaultAmazonBean),
+        Violation.expect(NotEmpty.class, "users[0]", "name"),
         Violation.expect(NotEmpty.class, "users[0]", "musicBrainzUserName"),
         Violation.expect(NotEmpty.class, "users[0]", "musicBrainzPassword"),
         Violation.expect(NotEmpty.class, "users[0]", "devices"));
@@ -127,7 +128,7 @@ public class ConfigurationValidationTest {
   @Test
   public void testDevices() throws Exception {
     testValidate(
-        new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean("aj", "aj", Lists.newArrayList(
+        new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean("aj", "aj", "aj", Lists.newArrayList(
             (Device) new MtpDeviceBean(null),
             new FileSystemDeviceBean(null, null, null),
             new IpodDeviceBean(null)))), defaultAmazonBean),

@@ -100,7 +100,7 @@ public abstract class MusicBrainzTester {
 
   MusicBrainzWebResourceFactory musicBrainzWebResourceFactory;
 
-  User user = new UserBean("brian", "may", new ArrayList<Device>());
+  User user = new UserBean("brian", "Brian", "may", new ArrayList<Device>());
   
   @Before
   public void setup() throws Exception {
@@ -163,7 +163,7 @@ public abstract class MusicBrainzTester {
       }
     };
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-    context.setSecurityHandler(basicAuth("brian", "may", "MyRealm"));
+    context.setSecurityHandler(basicAuth("Brian", "may", "MyRealm"));
     context.setContextPath("/");
     server.setHandler(context);
     ServletHolder servletHolder = new ServletHolder(servlet);
