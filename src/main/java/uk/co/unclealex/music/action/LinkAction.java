@@ -25,6 +25,8 @@
 package uk.co.unclealex.music.action;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.files.FileLocation;
@@ -38,26 +40,31 @@ import uk.co.unclealex.music.files.FileLocation;
 public class LinkAction extends AbstractAction implements Action {
 
   /**
-   * The location of the MP3 file to be encoded.
+   * The new owners of the file.
    */
-  private final FileLocation linkLocation;
-
-  /**
-   * The new owner of the file.
-   */
-  private final User owner;
+  private final List<User> owners;
   
   /**
    * Instantiates a new link action.
    *
    * @param fileLocation the file location
-   * @param owner the owner
+   * @param owners the owners
    * @param linkLocation the link location
    */
-  public LinkAction(FileLocation fileLocation, User owner, FileLocation linkLocation) {
+  public LinkAction(FileLocation fileLocation, List<User> owners) {
     super(fileLocation);
-    this.linkLocation = linkLocation;
-    this.owner = owner;
+    this.owners = owners;
+  }
+
+  /**
+   * Instantiates a new link action.
+   *
+   * @param fileLocation the file location
+   * @param owners the owners
+   * @param linkLocation the link location
+   */
+  public LinkAction(FileLocation fileLocation, User... owners) {
+    this(fileLocation, Arrays.asList(owners));
   }
 
   /**
@@ -69,20 +76,11 @@ public class LinkAction extends AbstractAction implements Action {
   }
 
   /**
-   * Gets the location of the MP3 file to be encoded.
+   * Gets the new owners of the file.
    *
-   * @return the location of the MP3 file to be encoded
+   * @return the new owners of the file
    */
-  public FileLocation getLinkLocation() {
-    return linkLocation;
-  }
-
-  /**
-   * Gets the new owner of the file.
-   *
-   * @return the new owner of the file
-   */
-  public User getOwner() {
-    return owner;
+  public List<User> getOwners() {
+    return owners;
   }
 }

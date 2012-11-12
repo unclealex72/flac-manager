@@ -33,6 +33,8 @@ import javax.inject.Inject;
 
 import uk.co.unclealex.music.command.checkin.covers.ArtworkService;
 import uk.co.unclealex.music.command.checkout.EncodingService;
+import uk.co.unclealex.music.configuration.User;
+import uk.co.unclealex.music.devices.DeviceService;
 import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FileUtils;
 import uk.co.unclealex.music.message.MessageService;
@@ -68,17 +70,25 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
    */
   private final EncodingService encodingService;
   
+  /**
+   * The {@link DeviceService} that knows about devices.
+   */
+  private final DeviceService deviceService;
+  
+  
   @Inject
   public ActionExecutorImpl(
       MessageService messageService,
       FileUtils fileUtils,
       ArtworkService artworkService,
-      EncodingService encodingService) {
+      EncodingService encodingService, 
+      DeviceService deviceService) {
     super();
     this.messageService = messageService;
     this.fileUtils = fileUtils;
     this.artworkService = artworkService;
     this.encodingService = encodingService;
+    this.deviceService = deviceService;
   }
 
   /**
@@ -158,8 +168,15 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
    */
   @Override
   public void visit(LinkAction linkAction) throws IOException {
-    getMessageService().printMessage(MessageService.LINK, linkAction.getFileLocation(), linkAction.getLinkLocation());
-    getFileUtils().link(linkAction.getFileLocation(), linkAction.getLinkLocation());
+    FileLocation targetLocation = linkAction.getFileLocation();
+    FileUtils fileUtils = getFileUtils();
+    MessageService messageService = getMessageService();
+    DeviceService deviceService = getDeviceService();
+    for (User owner : linkAction.getOwners()) {
+      FileLocation linkLocation = deviceService.getLinkLocation(owner, targetLocation);
+      messageService.printMessage(MessageService.LINK, targetLocation, linkLocation);
+      fileUtils.link(targetLocation, linkLocation);
+    }
   }
   
   /**
@@ -167,8 +184,15 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
    */
   @Override
   public void visit(UnlinkAction unlinkAction) throws IOException {
-    getMessageService().printMessage(MessageService.UNLINK, unlinkAction.getFileLocation(), unlinkAction.getLinkLocation());
-    getFileUtils().remove(unlinkAction.getLinkLocation());
+    FileLocation targetLocation = unlinkAction.getFileLocation();
+    FileUtils fileUtils = getFileUtils();
+    MessageService messageService = getMessageService();
+    DeviceService deviceService = getDeviceService();
+    for (User owner : unlinkAction.getOwners()) {
+      FileLocation linkLocation = deviceService.getLinkLocation(owner, targetLocation);
+      messageService.printMessage(MessageService.UNLINK, targetLocation, linkLocation);
+      fileUtils.remove(linkLocation);
+    }
   }
 
   /**
@@ -194,20 +218,49 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
     // Default is to do nothing.
   }
 
+  /**
+   * Gets the {@link FileUtils} used to move and write protect files.
+   *
+   * @return the {@link FileUtils} used to move and write protect files
+   */
   public FileUtils getFileUtils() {
     return fileUtils;
   }
 
+  /**
+   * Gets the {@link MessageService} used to display messages to the user.
+   *
+   * @return the {@link MessageService} used to display messages to the user
+   */
   public MessageService getMessageService() {
     return messageService;
   }
 
+  /**
+   * Gets the {@link ArtworkService} used to add cover art to a file.
+   *
+   * @return the {@link ArtworkService} used to add cover art to a file
+   */
   public ArtworkService getArtworkService() {
     return artworkService;
   }
 
+  /**
+   * Gets the {@link EncodingService} used to encode FLAC files to MP3 files.
+   *
+   * @return the {@link EncodingService} used to encode FLAC files to MP3 files
+   */
   public EncodingService getEncodingService() {
     return encodingService;
+  }
+
+  /**
+   * Gets the {@link DeviceService} that knows about devices.
+   *
+   * @return the {@link DeviceService} that knows about devices
+   */
+  public DeviceService getDeviceService() {
+    return deviceService;
   }
 
 }

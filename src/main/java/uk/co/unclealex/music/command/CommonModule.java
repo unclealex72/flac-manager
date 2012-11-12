@@ -69,6 +69,8 @@ import uk.co.unclealex.music.configuration.Configuration;
 import uk.co.unclealex.music.configuration.Directories;
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.configuration.json.JsonConfigurationFactory;
+import uk.co.unclealex.music.devices.DeviceService;
+import uk.co.unclealex.music.devices.DeviceServiceImpl;
 import uk.co.unclealex.music.files.DirectoryService;
 import uk.co.unclealex.music.files.DirectoryServiceImpl;
 import uk.co.unclealex.music.files.FileUtils;
@@ -106,6 +108,7 @@ public abstract class CommonModule extends AbstractModule {
     bind(AudioMusicFileFactory.class).to(AudioMusicFileFactoryImpl.class);
     bind(Actions.class).to(ActionsImpl.class);
     bindConfiguration();
+    bind(DeviceService.class).to(DeviceServiceImpl.class);
     bind(FilenameService.class).to(FilenameServiceImpl.class);
     bind(FileUtils.class).to(FileUtilsImpl.class);
     bind(DirectoryService.class).to(DirectoryServiceImpl.class);

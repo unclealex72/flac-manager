@@ -25,12 +25,15 @@
 package uk.co.unclealex.music.action;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.files.FileLocation;
 
 /**
- * An action used to delete a symbolic link from a device repository to the encoded repository.
+ * An action used to delete a symbolic link from a device repository to the
+ * encoded repository.
  * 
  * @author alex
  * 
@@ -38,26 +41,33 @@ import uk.co.unclealex.music.files.FileLocation;
 public class UnlinkAction extends AbstractAction implements Action {
 
   /**
-   * The location of the MP3 file to be encoded.
+   * The old owners of the file.
    */
-  private final FileLocation linkLocation;
+  private final List<User> owners;
 
   /**
-   * The old owner of the file.
+   * Instantiates a new unlink action.
+   * 
+   * @param fileLocation
+   *          the file location
+   * @param owners
+   *          the owners
    */
-  private final User owner;
-  
-  /**
-   * Instantiates a new link action.
-   *
-   * @param fileLocation the file location
-   * @param owner the owner
-   * @param linkLocation the link location
-   */
-  public UnlinkAction(FileLocation fileLocation, User owner, FileLocation linkLocation) {
+  public UnlinkAction(FileLocation fileLocation, List<User> owners) {
     super(fileLocation);
-    this.linkLocation = linkLocation;
-    this.owner = owner;
+    this.owners = owners;
+  }
+
+  /**
+   * Instantiates a new unlink action.
+   * 
+   * @param fileLocation
+   *          the file location
+   * @param owners
+   *          the owners
+   */
+  public UnlinkAction(FileLocation fileLocation, User... owners) {
+    this(fileLocation, Arrays.asList(owners));
   }
 
   /**
@@ -69,20 +79,11 @@ public class UnlinkAction extends AbstractAction implements Action {
   }
 
   /**
-   * Gets the location of the MP3 file to be encoded.
-   *
-   * @return the location of the MP3 file to be encoded
+   * Gets the old owners of the file.
+   * 
+   * @return the old owners of the file
    */
-  public FileLocation getLinkLocation() {
-    return linkLocation;
-  }
-
-  /**
-   * Gets the old owner of the file.
-   *
-   * @return the old owner of the file
-   */
-  public User getOwner() {
-    return owner;
+  public List<User> getOwners() {
+    return owners;
   }
 }
