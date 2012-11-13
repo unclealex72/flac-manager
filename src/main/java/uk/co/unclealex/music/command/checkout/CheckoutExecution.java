@@ -25,17 +25,20 @@
 package uk.co.unclealex.music.command.checkout;
 
 import java.io.IOException;
+import java.util.Set;
 
 import javax.inject.Inject;
 
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.command.Execution;
+import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.devices.DeviceService;
 import uk.co.unclealex.music.files.Extension;
 import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FileLocationFactory;
 import uk.co.unclealex.music.files.FilenameService;
+import uk.co.unclealex.music.musicbrainz.OwnerService;
 
 /**
  * @author alex
@@ -58,13 +61,23 @@ public class CheckoutExecution implements Execution {
    * The {@link DeviceService} used to create device file paths.
    */
   private final DeviceService deviceService;
-  
+
+  /**
+   * The {@link OwnerService} used to keep track of file ownership.
+   */
+  private final OwnerService ownerService;
+
   @Inject
-  public CheckoutExecution(FileLocationFactory fileLocationFactory, FilenameService filenameService, DeviceService deviceService) {
+  public CheckoutExecution(
+      FileLocationFactory fileLocationFactory,
+      FilenameService filenameService,
+      DeviceService deviceService,
+      OwnerService ownerService) {
     super();
     this.fileLocationFactory = fileLocationFactory;
     this.filenameService = filenameService;
     this.deviceService = deviceService;
+    this.ownerService = ownerService;
   }
 
   /**
@@ -78,9 +91,11 @@ public class CheckoutExecution implements Execution {
         fileLocationFactory.createEncodedFileLocation(filenameService.toPath(musicFile, Extension.MP3));
     FileLocation targetFileLocation =
         fileLocationFactory.createStagingFileLocation(filenameService.toPath(musicFile, Extension.FLAC));
+    Set<User> owners = getOwnerService().getOwnersForMusicFile(musicFile);
     return actions
         .move(flacFileLocation, targetFileLocation)
-        .delete(encodedFileLocation);
+        .delete(encodedFileLocation)
+        .unlink(encodedFileLocation, owners);
   }
 
   public FileLocationFactory getFileLocationFactory() {
@@ -93,6 +108,10 @@ public class CheckoutExecution implements Execution {
 
   public DeviceService getDeviceService() {
     return deviceService;
+  }
+
+  public OwnerService getOwnerService() {
+    return ownerService;
   }
 
 }

@@ -26,7 +26,6 @@ package uk.co.unclealex.music.action;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.files.FileLocation;
@@ -43,7 +42,7 @@ public class UnlinkAction extends AbstractAction implements Action {
   /**
    * The old owners of the file.
    */
-  private final List<User> owners;
+  private final Iterable<User> owners;
 
   /**
    * Instantiates a new unlink action.
@@ -53,7 +52,7 @@ public class UnlinkAction extends AbstractAction implements Action {
    * @param owners
    *          the owners
    */
-  public UnlinkAction(FileLocation fileLocation, List<User> owners) {
+  public UnlinkAction(FileLocation fileLocation, Iterable<User> owners) {
     super(fileLocation);
     this.owners = owners;
   }
@@ -83,7 +82,7 @@ public class UnlinkAction extends AbstractAction implements Action {
    * 
    * @return the old owners of the file
    */
-  public List<User> getOwners() {
+  public Iterable<User> getOwners() {
     return owners;
   }
 }

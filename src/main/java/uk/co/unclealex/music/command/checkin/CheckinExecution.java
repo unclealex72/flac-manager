@@ -25,26 +25,31 @@
 package uk.co.unclealex.music.command.checkin;
 
 import java.io.IOException;
+import java.util.Set;
 
 import javax.inject.Inject;
 
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.command.Execution;
+import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.files.Extension;
 import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FileLocationFactory;
 import uk.co.unclealex.music.files.FilenameService;
+import uk.co.unclealex.music.musicbrainz.OwnerService;
 
 /**
  * Generate {@link Actions} for checking in a FLAC file.
+ * 
  * @author alex
  * 
  */
 public class CheckinExecution implements Execution {
 
   /**
-   * The {@link FilenameService} used to calculate file names from {@link MusicFile}s.
+   * The {@link FilenameService} used to calculate file names from
+   * {@link MusicFile}s.
    */
   private final FilenameService filenameService;
 
@@ -54,20 +59,29 @@ public class CheckinExecution implements Execution {
   private final FileLocationFactory fileLocationFactory;
 
   /**
+   * The {@link OwnerService} that is used to find out who owns which files.
+   */
+  private final OwnerService ownerService;
+
+  /**
    * Instantiates a new checkin execution.
-   *
-   * @param actions the actions
-   * @param filenameService the filename service
-   * @param fileLocationFactory the file location factory
-   * @param artworkSearchingService the artwork searching service
+   * 
+   * @param filenameService
+   *          the filename service
+   * @param fileLocationFactory
+   *          the file location factory
+   * @param ownerService
+   *          the owner service
    */
   @Inject
   public CheckinExecution(
       FilenameService filenameService,
-      FileLocationFactory fileLocationFactory) {
+      FileLocationFactory fileLocationFactory,
+      OwnerService ownerService) {
     super();
     this.filenameService = filenameService;
     this.fileLocationFactory = fileLocationFactory;
+    this.ownerService = ownerService;
   }
 
   /**
@@ -84,26 +98,43 @@ public class CheckinExecution implements Execution {
         fileLocationFactory.createEncodedFileLocation(filenameService.toPath(musicFile, Extension.MP3));
     FileLocation newFlacFileLocation =
         fileLocationFactory.createFlacFileLocation(filenameService.toPath(musicFile, Extension.FLAC));
+    Set<User> owners = getOwnerService().getOwnersForMusicFile(musicFile);
     return actions
         .encode(flacFileLocation, encodedFileLocation, musicFile)
+        .link(encodedFileLocation, owners)
         .move(flacFileLocation, newFlacFileLocation);
   }
 
   /**
-   * Gets the {@link FilenameService} used to calculate file names from {@link MusicFile}s.
-   *
-   * @return the {@link FilenameService} used to calculate file names from {@link MusicFile}s
+   * Gets the {@link FilenameService} used to calculate file names from
+   * {@link MusicFile}s.
+   * 
+   * @return the {@link FilenameService} used to calculate file names from
+   *         {@link MusicFile}s
    */
   public FilenameService getFilenameService() {
     return filenameService;
   }
 
   /**
-   * Gets the {@link FileLocationFactory} used to generate {@link FileLocation}s.
-   *
-   * @return the {@link FileLocationFactory} used to generate {@link FileLocation}s
+   * Gets the {@link FileLocationFactory} used to generate {@link FileLocation}
+   * s.
+   * 
+   * @return the {@link FileLocationFactory} used to generate
+   *         {@link FileLocation}s
    */
   public FileLocationFactory getFileLocationFactory() {
     return fileLocationFactory;
+  }
+
+  /**
+   * Gets the {@link OwnerService} that is used to find out who owns which
+   * files.
+   * 
+   * @return the {@link OwnerService} that is used to find out who owns which
+   *         files
+   */
+  public OwnerService getOwnerService() {
+    return ownerService;
   }
 }

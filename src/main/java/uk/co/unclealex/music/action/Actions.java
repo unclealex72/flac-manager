@@ -28,6 +28,7 @@ import java.net.URI;
 import java.util.List;
 
 import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.files.FileLocation;
 
 import com.google.common.base.Supplier;
@@ -111,6 +112,30 @@ public interface Actions extends Supplier<List<Action>>, Iterable<Action> {
    *         actions.
    */
   public Actions move(FileLocation fileLocation, FileLocation targetFileLocation);
+
+  /**
+   * Add a new {@link LinkAction}.
+   * 
+   * @param encodedFileLocation
+   *          The location of the file location to link to.
+   * @param users
+   *          The users who own the file.
+   * @return An {@link Actions} object with the new {@link Action} added to its
+   *         actions.
+   */
+  public Actions link(FileLocation encodedFileLocation, Iterable<User> users);
+
+  /**
+   * Add a new {@link LinkAction}.
+   * 
+   * @param encodedFileLocation
+   *          The location of the file location to unlink from.
+   * @param users
+   *          The users who own the file.
+   * @return An {@link Actions} object with the new {@link Action} added to its
+   *         actions.
+   */
+  public Actions unlink(FileLocation encodedFileLocation, Iterable<User> users);
 
   /**
    * Add a new {@link Action}.

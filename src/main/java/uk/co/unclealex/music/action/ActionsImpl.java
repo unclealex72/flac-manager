@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import uk.co.unclealex.music.MusicFile;
+import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.files.FileLocation;
 
 import com.google.common.collect.Iterators;
@@ -96,6 +97,22 @@ public class ActionsImpl implements Actions {
     return actions().move(fileLocation, targetFileLocation);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Actions link(FileLocation encodedFileLocation, Iterable<User> users) {
+    return actions().link(encodedFileLocation, users);
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Actions unlink(FileLocation encodedFileLocation, Iterable<User> users) {
+    return actions().unlink(encodedFileLocation, users);
+  }
+  
   /**
    * {@inheritDoc}
    */
@@ -212,6 +229,24 @@ public class ActionsImpl implements Actions {
     @Override
     public Actions move(FileLocation fileLocation, FileLocation targetFileLocation) {
       getActions().add(new MoveAction(fileLocation, targetFileLocation));
+      return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Actions link(FileLocation encodedFileLocation, Iterable<User> owners) {
+      getActions().add(new LinkAction(encodedFileLocation, owners));
+      return this;
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Actions unlink(FileLocation encodedFileLocation, Iterable<User> owners) {
+      getActions().add(new UnlinkAction(encodedFileLocation, owners));
       return this;
     }
 

@@ -25,11 +25,11 @@
 package uk.co.unclealex.music.action;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.files.FileLocation;
+
+import com.google.common.collect.Sets;
 
 /**
  * An action used to create a symbolic link from a device repository to the encoded repository.
@@ -42,7 +42,7 @@ public class LinkAction extends AbstractAction implements Action {
   /**
    * The new owners of the file.
    */
-  private final List<User> owners;
+  private final Iterable<User> owners;
   
   /**
    * Instantiates a new link action.
@@ -51,7 +51,7 @@ public class LinkAction extends AbstractAction implements Action {
    * @param owners the owners
    * @param linkLocation the link location
    */
-  public LinkAction(FileLocation fileLocation, List<User> owners) {
+  public LinkAction(FileLocation fileLocation, Iterable<User> owners) {
     super(fileLocation);
     this.owners = owners;
   }
@@ -64,7 +64,7 @@ public class LinkAction extends AbstractAction implements Action {
    * @param linkLocation the link location
    */
   public LinkAction(FileLocation fileLocation, User... owners) {
-    this(fileLocation, Arrays.asList(owners));
+    this(fileLocation, Sets.newHashSet(owners));
   }
 
   /**
@@ -80,7 +80,7 @@ public class LinkAction extends AbstractAction implements Action {
    *
    * @return the new owners of the file
    */
-  public List<User> getOwners() {
+  public Iterable<User> getOwners() {
     return owners;
   }
 }
