@@ -42,7 +42,7 @@ import uk.co.unclealex.music.files.FileLocation;
 public interface MappingService {
 
   /**
-   * Map each FlAC {@link FileLocation} to its {@link MusicFile} representation.
+   * Map each FLAC {@link FileLocation} to its {@link MusicFile} representation.
    * 
    * @param actions
    *          An initial {@link Actions} object.
