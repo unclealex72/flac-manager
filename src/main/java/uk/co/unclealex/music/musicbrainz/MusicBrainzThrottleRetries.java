@@ -27,12 +27,15 @@ package uk.co.unclealex.music.musicbrainz;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+import com.google.inject.BindingAnnotation;
+
 /**
  * The annotation used for injecting the MusicBrainz throttle retry count.
  * @author alex
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
+@BindingAnnotation
 public @interface MusicBrainzThrottleRetries {
   
 }

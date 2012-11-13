@@ -28,7 +28,6 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
-import uk.co.unclealex.music.files.DirectoryServiceImpl;
 
 import com.google.common.collect.Lists;
 
@@ -60,7 +58,7 @@ public class DirectoryServiceImplTest {
   @Before
   public void createRepository() throws IOException {
     testDirectory = Files.createTempDirectory("directory-service-impl-test-");
-    flacDirectoryServiceImpl = new DirectoryServiceImpl(FileSystems.getDefault());
+    flacDirectoryServiceImpl = new DirectoryServiceImpl();
     log.info("Using directory " + testDirectory);
     for (Path path : new Path[] {
         Paths.get("dir.flac", "myfile.flac"),

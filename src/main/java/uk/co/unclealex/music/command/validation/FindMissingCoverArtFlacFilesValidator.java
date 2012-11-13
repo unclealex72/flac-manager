@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.SortedSet;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 import uk.co.unclealex.music.CoverArt;
 import uk.co.unclealex.music.MusicFile;
@@ -44,7 +45,6 @@ import uk.co.unclealex.music.message.MessageService;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
-import com.google.common.base.Supplier;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -61,10 +61,10 @@ import com.google.common.collect.Sets;
 public class FindMissingCoverArtFlacFilesValidator implements FlacFilesValidator {
 
   /**
-   * A {@link Supplier} for {@link Actions} that then allows {@link Action}s to
+   * A {@link Provider} for {@link Actions} that then allows {@link Action}s to
    * be prepended.
    */
-  private final Supplier<Actions> actionSupplier;
+  private final Provider<Actions> actionProvider;
 
   /**
    * The {@link ArtworkSearchingService} used to look for missing artwork.
@@ -74,17 +74,17 @@ public class FindMissingCoverArtFlacFilesValidator implements FlacFilesValidator
   /**
    * Instantiates a new find missing cover art flac file validator.
    * 
-   * @param actionSupplier
+   * @param actionProvider
    *          the action supplier
    * @param artworkSearchingService
    *          the artwork searching service
    */
   @Inject
   public FindMissingCoverArtFlacFilesValidator(
-      Supplier<Actions> actionSupplier,
+      Provider<Actions> actionProvider,
       ArtworkSearchingService artworkSearchingService) {
     super();
-    this.actionSupplier = actionSupplier;
+    this.actionProvider = actionProvider;
     this.artworkSearchingService = artworkSearchingService;
   }
 
@@ -108,20 +108,20 @@ public class FindMissingCoverArtFlacFilesValidator implements FlacFilesValidator
         actions = actions.fail(fileLocation, MessageService.MISSING_ARTWORK);
       }
       else {
-        actions = getActionSupplier().get().addArtwork(fileLocation, coverArtUri).then(actions);
+        actions = getActionProvider().get().addArtwork(fileLocation, coverArtUri).then(actions);
       }
     }
     return actions;
   }
 
   /**
-   * Gets the a {@link Supplier} for {@link Actions} that then allows.
+   * Gets the a {@link Provider} for {@link Actions} that then allows.
    * 
-   * @return the a {@link Supplier} for {@link Actions} that then allows
+   * @return the a {@link Provider} for {@link Actions} that then allows
    *         {@link Action}s to be prepended. {@link Action}s to be prepended
    */
-  public Supplier<Actions> getActionSupplier() {
-    return actionSupplier;
+  public Provider<Actions> getActionProvider() {
+    return actionProvider;
   }
 
   /**

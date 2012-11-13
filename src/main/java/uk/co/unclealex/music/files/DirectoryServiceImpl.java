@@ -25,7 +25,6 @@
 package uk.co.unclealex.music.files;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -33,8 +32,6 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.SortedSet;
-
-import javax.inject.Inject;
 
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
 
@@ -49,17 +46,6 @@ import com.google.common.collect.Sets;
  * 
  */
 public class DirectoryServiceImpl implements DirectoryService {
-
-  /**
-   * The file system against which directories are resolved.
-   */
-  private final FileSystem fileSystem;
-
-  @Inject
-  public DirectoryServiceImpl(FileSystem fileSystem) {
-    super();
-    this.fileSystem = fileSystem;
-  }
 
   /**
    * {@inheritDoc}
@@ -117,9 +103,4 @@ public class DirectoryServiceImpl implements DirectoryService {
     Files.walkFileTree(basePath, visitor);
     return flacFiles;
   }
-
-  public FileSystem getFileSystem() {
-    return fileSystem;
-  }
-
 }

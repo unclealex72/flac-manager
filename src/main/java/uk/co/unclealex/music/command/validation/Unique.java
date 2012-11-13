@@ -27,12 +27,15 @@ package uk.co.unclealex.music.command.validation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+import com.google.inject.BindingAnnotation;
+
 /**
  * The annotation used to inject {@link UniqueFlacFilesValidator}s.
  * @author alex
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
+@BindingAnnotation
 public @interface Unique {
 
 }

@@ -30,13 +30,14 @@ import static org.junit.Assert.assertThat;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.inject.Provider;
+
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.action.Action;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.action.ActionsImpl;
 import uk.co.unclealex.music.files.FileLocation;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.Iterables;
 
 /**
@@ -47,7 +48,7 @@ import com.google.common.collect.Iterables;
 public abstract class FlacFileValidatorTest {
 
   Map<FileLocation, MusicFile> musicFilesByFlacPath;
-  Supplier<Actions> actionsSupplier = new Supplier<Actions>() {
+  Provider<Actions> actionsSupplier = new Provider<Actions>() {
     @Override
     public Actions get() {
       return new ActionsImpl();

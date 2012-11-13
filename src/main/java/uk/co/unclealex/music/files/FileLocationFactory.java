@@ -47,17 +47,6 @@ public interface FileLocationFactory {
   public FileLocation createFlacFileLocation(Path relativeFlacFile);
 
   /**
-   * Create a {@link FileLocation} in the main devices repository.
-   * 
-   * @param deviceSubDirectory
-   *          The subdirectory of the device in question.
-   * @param relativeEncodedFile
-   *          The relative file location.
-   * @return A {@link FileLocation} in the main devices repository.
-   */
-  public FileLocation createDeviceFileLocation(String deviceSubDirectory, Path relativeEncodedFile);
-
-  /**
    * Create a {@link FileLocation} in the main MP3 repository.
    * 
    * @param relativeEncodedFile

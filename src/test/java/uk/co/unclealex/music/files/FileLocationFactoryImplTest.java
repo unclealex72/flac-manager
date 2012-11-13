@@ -24,11 +24,12 @@
 
 package uk.co.unclealex.music.files;
 
+import static org.junit.Assert.assertEquals;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 import uk.co.unclealex.music.configuration.Directories;
 import uk.co.unclealex.music.configuration.json.PathsBean;
@@ -53,14 +54,6 @@ public class FileLocationFactoryImplTest {
         Paths.get("/flacPath"),
         Paths.get("my", "flac", "file.flac"),
         fileLocationFactory.createFlacFileLocation(Paths.get("my", "flac", "file.flac")));
-  }
-
-  @Test
-  public void testDevices() {
-    test(
-        Paths.get("/devicesPath"),
-        Paths.get("device", "my", "device", "file.flac"),
-        fileLocationFactory.createDeviceFileLocation("device", Paths.get("my", "device", "file.flac")));
   }
 
   @Test

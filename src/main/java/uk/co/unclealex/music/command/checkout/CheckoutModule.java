@@ -22,20 +22,26 @@
  *
  */
 
-package uk.co.unclealex.music.command.validation;
+package uk.co.unclealex.music.command.checkout;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import uk.co.unclealex.music.command.Execution;
+import uk.co.unclealex.music.command.inject.CommonModule;
 
-import com.google.inject.BindingAnnotation;
+import com.google.inject.AbstractModule;
 
 /**
- * The annotation used to inject {@link NoOverwritingFlacFilesValidator}s.
  * @author alex
  *
  */
-@Retention(RetentionPolicy.RUNTIME)
-@BindingAnnotation
-public @interface NoOverwriting {
+public class CheckoutModule extends AbstractModule {
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void configure() {
+    install(new CommonModule());
+    bind(Execution.class).to(CheckoutExecution.class);
+  }
 
 }

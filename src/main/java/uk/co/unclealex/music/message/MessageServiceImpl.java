@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.ResourceBundle;
 
+import javax.inject.Inject;
+
 import uk.co.unclealex.executable.streams.Stdout;
 import uk.co.unclealex.music.files.FileLocation;
 
@@ -62,6 +64,7 @@ public class MessageServiceImpl implements MessageService {
    * @param stdout
    *          the stdout
    */
+  @Inject
   public MessageServiceImpl(@Stdout PrintWriter stdout) {
     super();
     this.stdout = stdout;

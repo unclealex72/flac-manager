@@ -25,7 +25,6 @@
 package uk.co.unclealex.music.files;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import javax.inject.Inject;
 
@@ -55,14 +54,6 @@ public class FileLocationFactoryImpl implements FileLocationFactory {
   @Override
   public FileLocation createFlacFileLocation(Path relativeFlacFile) {
     return resolve(getDirectories().getFlacPath(), relativeFlacFile);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public FileLocation createDeviceFileLocation(String deviceSubDirectory, Path relativeEncodedFile) {
-    return resolve(getDirectories().getDevicesPath(), Paths.get(deviceSubDirectory), relativeEncodedFile);
   }
 
   /**

@@ -27,12 +27,15 @@ package uk.co.unclealex.music.musicbrainz;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+import com.google.inject.BindingAnnotation;
+
 /**
  * The annotation used for injecting the base resource of the MusicBrainz Web Service.
  * @author alex
  *
  */
 @Retention(RetentionPolicy.RUNTIME)
+@BindingAnnotation
 public @interface MusicBrainzBaseResource {
 
 }
