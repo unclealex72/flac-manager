@@ -25,7 +25,7 @@
 package uk.co.unclealex.music.command.checkin.process;
 
 import java.io.IOException;
-import java.util.SortedMap;
+import java.util.Map;
 
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.action.Actions;
@@ -57,6 +57,6 @@ public interface MappingService {
    */
   public Actions mapPathsToMusicFiles(
       Actions actions,
-      Iterable<FileLocation> fileLocations,
-      SortedMap<FileLocation, MusicFile> musicFilesByFileLocation) throws IOException;
+      Iterable<? extends FileLocation> fileLocations,
+      Map<FileLocation, MusicFile> musicFilesByFileLocation) throws IOException;
 }

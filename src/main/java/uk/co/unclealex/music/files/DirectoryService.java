@@ -54,6 +54,6 @@ public interface DirectoryService {
    * @return All FLAC files found under the given directories.
    * @throws IOException 
    */
-  public SortedSet<FileLocation> listFiles(Path requiredBasePath, Iterable<Path> flacDirectories)
+  public SortedSet<FileLocation> listFiles(Path requiredBasePath, Iterable<? extends Path> flacDirectories)
       throws InvalidDirectoriesException, IOException;
 }

@@ -26,7 +26,7 @@ package uk.co.unclealex.music.command.checkin.process;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.SortedMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
@@ -81,8 +81,8 @@ public class MappingServiceImpl implements MappingService {
   @Override
   public Actions mapPathsToMusicFiles(
       Actions actions,
-      Iterable<FileLocation> fileLocations,
-      SortedMap<FileLocation, MusicFile> musicFilesByFileLocation) throws IOException {
+      Iterable<? extends FileLocation> fileLocations,
+      Map<FileLocation, MusicFile> musicFilesByFileLocation) throws IOException {
     AudioMusicFileFactory audioMusicFileFactory = getAudioMusicFileFactory();
     FlacFileChecker flacFileChecker = getFlacFileChecker();
     Validator validator = getValidator();

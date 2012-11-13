@@ -24,6 +24,11 @@
 
 package uk.co.unclealex.music.command.inject;
 
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Provider;
+
 import uk.co.unclealex.music.MusicFileService;
 import uk.co.unclealex.music.MusicFileServiceImpl;
 import uk.co.unclealex.music.Validator;
@@ -35,8 +40,7 @@ import uk.co.unclealex.music.audio.AudioMusicFileFactoryImpl;
 import uk.co.unclealex.music.command.Execution;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkService;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkServiceImpl;
-import uk.co.unclealex.music.command.checkin.process.MappingService;
-import uk.co.unclealex.music.command.checkin.process.MappingServiceImpl;
+import uk.co.unclealex.music.command.inject.CommonModule.ConfigurationAwareProvider.DirectoriesProvider;
 import uk.co.unclealex.music.command.validation.FailuresOnly;
 import uk.co.unclealex.music.command.validation.FailuresOnlyFlacFilesValidator;
 import uk.co.unclealex.music.command.validation.FindMissingCoverArt;
@@ -48,10 +52,12 @@ import uk.co.unclealex.music.command.validation.NoOwner;
 import uk.co.unclealex.music.command.validation.NoOwnerFlacFilesValidator;
 import uk.co.unclealex.music.command.validation.Unique;
 import uk.co.unclealex.music.command.validation.UniqueFlacFilesValidator;
+import uk.co.unclealex.music.configuration.AmazonConfiguration;
+import uk.co.unclealex.music.configuration.Configuration;
+import uk.co.unclealex.music.configuration.Directories;
+import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.devices.DeviceService;
 import uk.co.unclealex.music.devices.DeviceServiceImpl;
-import uk.co.unclealex.music.files.DirectoryService;
-import uk.co.unclealex.music.files.DirectoryServiceImpl;
 import uk.co.unclealex.music.files.FileLocationFactory;
 import uk.co.unclealex.music.files.FileLocationFactoryImpl;
 import uk.co.unclealex.music.files.FileUtils;
@@ -66,6 +72,7 @@ import uk.co.unclealex.process.inject.ProcessRequestBuilderModule;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
+import com.google.inject.TypeLiteral;
 import com.mycila.inject.jsr250.Jsr250;
 
 /**
@@ -104,8 +111,6 @@ public abstract class CommonModule<E extends Execution> extends AbstractModule {
     bind(DeviceService.class).to(DeviceServiceImpl.class);
     bind(FilenameService.class).to(FilenameServiceImpl.class);
     bind(FileUtils.class).to(FileUtilsImpl.class);
-    bind(DirectoryService.class).to(DirectoryServiceImpl.class);
-    bind(MappingService.class).to(MappingServiceImpl.class);
     bind(MessageService.class).to(MessageServiceImpl.class);
     bind(ArtworkService.class).to(ArtworkServiceImpl.class);
     bind(FlacFilesValidator.class).annotatedWith(FindMissingCoverArt.class).to(
@@ -119,6 +124,137 @@ public abstract class CommonModule<E extends Execution> extends AbstractModule {
     bind(FlacFileChecker.class).to(FlacFileCheckerImpl.class);
     bind(Execution.class).to(getExecutionClass());
     install(new ProcessRequestBuilderModule());
+    bind(AmazonConfiguration.class).toProvider(AmazonConfigurationProvider.class);
+    bind(Directories.class).toProvider(DirectoriesProvider.class);
+    bind(new TypeLiteral<List<User>>() {}).toProvider(UsersProvider.class);
+  }
+
+  /**
+   * A base class for {@link Provider}s based upon the already provided
+   * {@link Configuration} object.
+   * 
+   * @param <C>
+   *          the generic type
+   * @author alex
+   */
+  static abstract class ConfigurationAwareProvider<C> implements Provider<C> {
+
+    /**
+     * The {@link Configuration} object that has already been created.
+     */
+    private final Configuration configuration;
+
+    /**
+     * Instantiates a new configuration aware provider.
+     * 
+     * @param configuration
+     *          the configuration
+     */
+    public ConfigurationAwareProvider(Configuration configuration) {
+      super();
+      this.configuration = configuration;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public C get() {
+      return get(getConfiguration());
+    }
+
+    /**
+     * Create the object to be provided.
+     * 
+     * @param configuration
+     *          The {@link Configuration} that has already been created.
+     * @return The object to be provided.
+     */
+    protected abstract C get(Configuration configuration);
+
+    /**
+     * Gets the {@link Configuration} object that has already been created.
+     * 
+     * @return the {@link Configuration} object that has already been created
+     */
+    public Configuration getConfiguration() {
+      return configuration;
+    }
+
+    /**
+     * The {@link Provider} for {@link Directories}.
+     */
+    static class DirectoriesProvider extends ConfigurationAwareProvider<Directories> {
+
+      /**
+       * Instantiates a new directories provider.
+       * 
+       * @param configuration
+       *          the configuration
+       */
+      @Inject
+      public DirectoriesProvider(Configuration configuration) {
+        super(configuration);
+      }
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      protected Directories get(Configuration configuration) {
+        return configuration.getDirectories();
+      }
+    }
+  }
+
+  /**
+   * The {@link Provider} for {@link AmazonConfiguration}.
+   */
+  static class AmazonConfigurationProvider extends ConfigurationAwareProvider<AmazonConfiguration> {
+
+    /**
+     * Instantiates a new amazon configuration provider.
+     * 
+     * @param configuration
+     *          the configuration
+     */
+    @Inject
+    public AmazonConfigurationProvider(Configuration configuration) {
+      super(configuration);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected AmazonConfiguration get(Configuration configuration) {
+      return configuration.getAmazon();
+    }
+  }
+
+  /**
+   * The {@link Provider} for {@link List<User>}.
+   */
+  static class UsersProvider extends ConfigurationAwareProvider<List<User>> {
+
+    /**
+     * Instantiates a new users provider.
+     * 
+     * @param configuration
+     *          the configuration
+     */
+    @Inject
+    public UsersProvider(Configuration configuration) {
+      super(configuration);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected List<User> get(Configuration configuration) {
+      return configuration.getUsers();
+    }
   }
 
   /**

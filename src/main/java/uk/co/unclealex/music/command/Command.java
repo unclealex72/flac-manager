@@ -45,6 +45,7 @@ import uk.co.unclealex.music.files.FileLocation;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -126,18 +127,32 @@ public abstract class Command<C extends CommandLine> {
    *           the invalid directories exception
    */
   public void execute(C commandLine) throws IOException, InvalidDirectoriesException {
+    List<String> flacPaths = commandLine.getFlacPaths();
+    execute(flacPaths);
+  }
+
+  /**
+   * Execute an {@link Execution} command.
+   * 
+   * @param flacPaths
+   *          The flac paths obtained from the command line.
+   * @throws IOException
+   *           Signals that an I/O exception has occurred.
+   * @throws InvalidDirectoriesException
+   *           the invalid directories exception
+   */
+  public void execute(List<String> flacPaths) throws InvalidDirectoriesException, IOException {
     Function<String, Path> pathFunction = new Function<String, Path>() {
       public Path apply(String path) {
         return Paths.get(path);
       }
     };
-    SortedSet<FileLocation> flacFiles =
-        getDirectoryService().listFiles(
-            getRequiredBasePath(getDirectories()),
-            Iterables.transform(commandLine.getFlacPaths(), pathFunction));
+    Path requiredBasePath = getRequiredBasePath(getDirectories());
+    List<Path> flacDirectories = Lists.newArrayList(Iterables.transform(flacPaths, pathFunction));
+    SortedSet<FileLocation> flacFiles = getDirectoryService().listFiles(requiredBasePath, flacDirectories);
     SortedMap<FileLocation, MusicFile> musicFilesByFileLocation = Maps.newTreeMap();
     Actions actions = getMappingService().mapPathsToMusicFiles(getActions(), flacFiles, musicFilesByFileLocation);
-    if (!actions.get().isEmpty()) {
+    if (actions.get().isEmpty()) {
       Execution execution = getExecution();
       // Generate a list of actions that need to be executed.
       for (Entry<FileLocation, MusicFile> entry : musicFilesByFileLocation.entrySet()) {

@@ -31,6 +31,7 @@ import javax.inject.Inject;
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.command.Execution;
+import uk.co.unclealex.music.devices.DeviceService;
 import uk.co.unclealex.music.files.Extension;
 import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FileLocationFactory;
@@ -53,11 +54,17 @@ public class CheckoutExecution implements Execution {
    */
   private final FilenameService filenameService;
 
+  /**
+   * The {@link DeviceService} used to create device file paths.
+   */
+  private final DeviceService deviceService;
+  
   @Inject
-  public CheckoutExecution(FileLocationFactory fileLocationFactory, FilenameService filenameService) {
+  public CheckoutExecution(FileLocationFactory fileLocationFactory, FilenameService filenameService, DeviceService deviceService) {
     super();
     this.fileLocationFactory = fileLocationFactory;
     this.filenameService = filenameService;
+    this.deviceService = deviceService;
   }
 
   /**
@@ -86,6 +93,10 @@ public class CheckoutExecution implements Execution {
 
   public FilenameService getFilenameService() {
     return filenameService;
+  }
+
+  public DeviceService getDeviceService() {
+    return deviceService;
   }
 
 }

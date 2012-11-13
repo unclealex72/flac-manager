@@ -65,7 +65,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 
-// TODO: Auto-generated Javadoc
 /**
  * An implementation of {@link MusicFile} that gets and sets information from
  * and to an {@link AudioFile}.

@@ -80,7 +80,7 @@ public class CheckoutCommand extends Command<CheckoutCommandLine> {
    */
   @Override
   protected Path getRequiredBasePath(Directories directories) {
-    return directories.getStagingPath();
+    return directories.getFlacPath();
   }
 
 }
