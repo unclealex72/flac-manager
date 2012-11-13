@@ -51,7 +51,7 @@ public class FilenameServiceImpl implements FilenameService {
     StringBuilder album = new StringBuilder(musicFile.getAlbum());
     int totalDiscs = musicFile.getTotalDiscs().intValue();
     if (totalDiscs != 1) {
-      album.append(String.format(" %02d", totalDiscs));
+      album.append(String.format(" %02d", musicFile.getDiscNumber()));
     }
     String title = String.format("%02d %s", musicFile.getTrackNumber(), musicFile.getTitle());
     return Paths.get(normalise(firstLetter), normalise(albumArtistSort), normalise(album), normalise(title) + "." + extension.getFileExtension());

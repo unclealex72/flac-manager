@@ -51,8 +51,8 @@ public class FilenameServiceImplTest {
 
   @Test
   public void testMultipleDiscs() {
-    runTest("Mötörhead", "Good - Stuff", 2, 2, 2, "The Ace of Spades", FLAC,
-        Paths.get("M", "Motorhead", "Good Stuff 02", "02 The Ace of Spades.flac"));
+    runTest("Mötörhead", "Good - Stuff", 1, 2, 2, "The Ace of Spades", FLAC,
+        Paths.get("M", "Motorhead", "Good Stuff 01", "02 The Ace of Spades.flac"));
   }
   
   protected void runTest(String albumArtistSort, String album, int discNumber, int totalDiscs, int trackNumber, String title, Extension extension, Path expectedPath) {
