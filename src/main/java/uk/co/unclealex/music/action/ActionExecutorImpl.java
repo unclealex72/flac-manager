@@ -103,28 +103,6 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
    * {@inheritDoc}
    */
   @Override
-  public void visit(ProtectAction protectAction) throws IOException {
-    FileLocation fileLocation = protectAction.getFileLocation();
-    getMessageService().printMessage(MessageService.PROTECT, fileLocation.resolve());
-    getFileUtils().alterWriteable(fileLocation, true);
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @throws IOException
-   */
-  @Override
-  public void visit(UnprotectAction unprotectAction) throws IOException {
-    FileLocation fileLocation = unprotectAction.getFileLocation();
-    getMessageService().printMessage(MessageService.UNPROTECT, fileLocation.resolve());
-    getFileUtils().alterWriteable(fileLocation, true);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void visit(MoveAction moveAction) throws IOException {
     FileLocation sourceFileLocation = moveAction.getFileLocation();
     FileLocation targetFileLocation = moveAction.getTargetFileLocation();

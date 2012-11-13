@@ -38,10 +38,10 @@ import uk.co.unclealex.music.action.ActionExecutor;
 import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.command.checkin.process.MappingService;
 import uk.co.unclealex.music.command.validation.FlacFilesValidator;
-import uk.co.unclealex.music.configuration.Directories;
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
 import uk.co.unclealex.music.files.DirectoryService;
 import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.files.FileLocationFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
@@ -50,14 +50,10 @@ import com.google.common.collect.Maps;
 
 /**
  * The base class for running actual commands.
- *
- * @param <C> the generic type
- * @author alex
- */
-/**
- * @author alex
  * 
  * @param <C>
+ *          the generic type
+ * @author alex
  */
 public abstract class Command<C extends CommandLine> {
 
@@ -83,37 +79,55 @@ public abstract class Command<C extends CommandLine> {
   private final DirectoryService directoryService;
 
   /**
-   * The {@link Directories} object containing all directory configuration.
-   */
-  private final Directories directories;
-
-  /**
-   * The {@link MappingService} used to map {@link MusicFile}s to
+   * The {@link MappingService} used to map {@link MusicFile}s to.
    * {@link FileLocation}s.
    */
   private final MappingService mappingService;
+
+  /**
+   * The {@link FileLocationFactory} used to create {@link FileLocation}s.
+   */
+  private final FileLocationFactory fileLocationFactory;
 
   /**
    * The {@link ActionExecutor} used to execute any generated {@link Action}s.
    */
   private ActionExecutor actionExecutor;
 
+  /**
+   * Instantiates a new command.
+   * 
+   * @param execution
+   *          the execution
+   * @param actions
+   *          the actions
+   * @param flacFilesValidators
+   *          the flac files validators
+   * @param directoryService
+   *          the directory service
+   * @param mappingService
+   *          the mapping service
+   * @param actionExecutor
+   *          the action executor
+   * @param fileLocationFactory
+   *          the file location factory
+   */
   public Command(
       Execution execution,
       Actions actions,
       List<FlacFilesValidator> flacFilesValidators,
       DirectoryService directoryService,
-      Directories directories,
       MappingService mappingService,
-      ActionExecutor actionExecutor) {
+      ActionExecutor actionExecutor,
+      FileLocationFactory fileLocationFactory) {
     super();
     this.execution = execution;
     this.actions = actions;
     this.flacFilesValidators = flacFilesValidators;
     this.directoryService = directoryService;
-    this.directories = directories;
     this.mappingService = mappingService;
     this.actionExecutor = actionExecutor;
+    this.fileLocationFactory = fileLocationFactory;
   }
 
   /**
@@ -136,10 +150,10 @@ public abstract class Command<C extends CommandLine> {
    * 
    * @param flacPaths
    *          The flac paths obtained from the command line.
-   * @throws IOException
-   *           Signals that an I/O exception has occurred.
    * @throws InvalidDirectoriesException
    *           the invalid directories exception
+   * @throws IOException
+   *           Signals that an I/O exception has occurred.
    */
   public void execute(List<String> flacPaths) throws InvalidDirectoriesException, IOException {
     Function<String, Path> pathFunction = new Function<String, Path>() {
@@ -147,7 +161,7 @@ public abstract class Command<C extends CommandLine> {
         return Paths.get(path);
       }
     };
-    Path requiredBasePath = getRequiredBasePath(getDirectories());
+    FileLocation requiredBasePath = getRequiredBasePath(getFileLocationFactory());
     List<Path> flacDirectories = Lists.newArrayList(Iterables.transform(flacPaths, pathFunction));
     SortedSet<FileLocation> flacFiles = getDirectoryService().listFiles(requiredBasePath, flacDirectories);
     SortedMap<FileLocation, MusicFile> musicFilesByFileLocation = Maps.newTreeMap();
@@ -173,12 +187,13 @@ public abstract class Command<C extends CommandLine> {
   /**
    * Get the base path that all arguments to this command must be relative to.
    * 
-   * @param directories
-   *          The {@link Directories} taken from configuration.
+   * @param fileLocationFactory
+   *          The {@link FileLocationFactory} used to create
+   *          {@link FileLocation}s.
    * @return The base path that all arguments to this command must be relative
    *         to
    */
-  protected abstract Path getRequiredBasePath(Directories directories);
+  protected abstract FileLocation getRequiredBasePath(FileLocationFactory fileLocationFactory);
 
   /**
    * Gets the {@link Execution} that shall be run by this command.
@@ -209,24 +224,56 @@ public abstract class Command<C extends CommandLine> {
     return directoryService;
   }
 
-  public Directories getDirectories() {
-    return directories;
-  }
-
+  /**
+   * Gets the {@link MappingService} used to map {@link MusicFile}s to.
+   * 
+   * @return the {@link MappingService} used to map {@link MusicFile}s to
+   */
   public MappingService getMappingService() {
     return mappingService;
   }
 
+  /**
+   * Gets the a list of {@link FlacFilesValidator}s used to validate FLAC files.
+   * 
+   * @return the a list of {@link FlacFilesValidator}s used to validate FLAC
+   *         files
+   */
   public List<FlacFilesValidator> getFlacFilesValidators() {
     return flacFilesValidators;
   }
 
+  /**
+   * Gets the {@link ActionExecutor} used to execute any generated
+   * {@link Action}s.
+   * 
+   * @return the {@link ActionExecutor} used to execute any generated
+   *         {@link Action}s
+   */
   public ActionExecutor getActionExecutor() {
     return actionExecutor;
   }
 
+  /**
+   * Sets the {@link ActionExecutor} used to execute any generated
+   * {@link Action}s.
+   * 
+   * @param actionExecutor
+   *          the new {@link ActionExecutor} used to execute any generated
+   *          {@link Action}s
+   */
   public void setActionExecutor(ActionExecutor actionExecutor) {
     this.actionExecutor = actionExecutor;
+  }
+
+  /**
+   * Gets the {@link FileLocationFactory} used to create {@link FileLocation}s.
+   * 
+   * @return the {@link FileLocationFactory} used to create {@link FileLocation}
+   *         s
+   */
+  public FileLocationFactory getFileLocationFactory() {
+    return fileLocationFactory;
   }
 
 }

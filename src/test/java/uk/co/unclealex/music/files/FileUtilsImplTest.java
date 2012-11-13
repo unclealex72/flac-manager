@@ -24,21 +24,16 @@
 
 package uk.co.unclealex.music.files;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import uk.co.unclealex.music.files.FileLocation;
-import uk.co.unclealex.music.files.FileUtilsImpl;
 
 /**
  * @author alex
@@ -57,48 +52,17 @@ public class FileUtilsImplTest {
   }
 
   @Test
-  public void testReadOnly() throws IOException {
-    FileLocation newFile = new FileLocation(testDirectory, Paths.get("a", "good", "time.txt"));
-    Files.createDirectories(newFile.resolve().getParent());
-    Files.createFile(newFile.resolve());
-    new FileUtilsImpl().alterWriteable(newFile, false);
-    for (Path path : new Path[] {
-        testDirectory,
-        testDirectory.resolve(Paths.get("a")),
-        testDirectory.resolve(Paths.get("a", "good")),
-        testDirectory.resolve(Paths.get("a", "good", "time.txt")) }) {
-      Assert.assertFalse("Path " + path + " is not writeable", path.toFile().canWrite());
-    }
-  }
-
-  @Test
-  public void testReadWrite() throws IOException {
-    FileLocation newFile = new FileLocation(testDirectory, Paths.get("a", "good", "time.txt"));
-    Files.createDirectories(newFile.resolve().getParent());
-    Files.createFile(newFile.resolve());
-    new FileUtilsImpl().alterWriteable(newFile, false);
-    new FileUtilsImpl().alterWriteable(newFile, true);
-    for (Path path : new Path[] {
-        testDirectory,
-        testDirectory.resolve(Paths.get("a")),
-        testDirectory.resolve(Paths.get("a", "good")),
-        testDirectory.resolve(Paths.get("a", "good", "time.txt")) }) {
-      Assert.assertTrue("Path " + path + " is writeable", path.toFile().canWrite());
-    }
-  }
-
-  @Test
   public void testMoveWithSiblings() throws IOException {
     Path source = testDirectory.resolve("source");
     Path target = testDirectory.resolve("target");
     Files.createDirectories(target);
-    FileLocation fileToMove = new FileLocation(source, Paths.get("dir", "moveme.txt"));
-    FileLocation fileToKeep = new FileLocation(source, Paths.get("dir", "keepme.txt"));
+    FileLocation fileToMove = new FileLocation(source, Paths.get("dir", "moveme.txt"), false);
+    FileLocation fileToKeep = new FileLocation(source, Paths.get("dir", "keepme.txt"), false);
     for (FileLocation fl : new FileLocation[] { fileToMove, fileToKeep }) {
       Files.createDirectories(fl.resolve().getParent());
       Files.createFile(fl.resolve());
     }
-    new FileUtilsImpl().move(fileToMove, new FileLocation(target, Paths.get("otherdir", "movedme.txt")));
+    new FileUtilsImpl().move(fileToMove, new FileLocation(target, Paths.get("otherdir", "movedme.txt"), false));
     Assert.assertTrue(
         "File target/otherdir/movedme.txt does not exist.",
         Files.exists(target.resolve(Paths.get("otherdir", "movedme.txt"))));
@@ -110,9 +74,9 @@ public class FileUtilsImplTest {
   }
 
   public void testLink() throws IOException {
-    FileLocation targetLocation = new FileLocation(testDirectory, "here.txt");
+    FileLocation targetLocation = new FileLocation(false, testDirectory, "here.txt");
     Files.createFile(targetLocation.resolve());
-    FileLocation linkLocation = new FileLocation(testDirectory, "link.d", "link.txt");
+    FileLocation linkLocation = new FileLocation(false, testDirectory, "link.d", "link.txt");
     new FileUtilsImpl().link(targetLocation, linkLocation);
     Assert.assertTrue("The newly created link was not a symbolic link.", Files.isSymbolicLink(linkLocation.resolve()));
     Assert.assertEquals(
@@ -126,10 +90,10 @@ public class FileUtilsImplTest {
     Path source = testDirectory.resolve("source");
     Path target = testDirectory.resolve("target");
     Files.createDirectories(target);
-    FileLocation fileToMove = new FileLocation(source, Paths.get("dir", "moveme.txt"));
+    FileLocation fileToMove = new FileLocation(source, Paths.get("dir", "moveme.txt"), false);
     Files.createDirectories(fileToMove.resolve().getParent());
     Files.createFile(fileToMove.resolve());
-    new FileUtilsImpl().move(fileToMove, new FileLocation(target, Paths.get("otherdir", "movedme.txt")));
+    new FileUtilsImpl().move(fileToMove, new FileLocation(target, Paths.get("otherdir", "movedme.txt"), false));
     Assert.assertTrue(
         "File target/otherdir/movemed.txt does not exist.",
         Files.exists(target.resolve(Paths.get("otherdir", "movedme.txt"))));
@@ -138,22 +102,5 @@ public class FileUtilsImplTest {
         Files.isDirectory(target.resolve(Paths.get("otherdir", "movedme.txt"))));
     Assert.assertFalse("File source/dir exists.", Files.exists(fileToMove.resolve().getParent()));
     Assert.assertTrue("File source does not exist.", Files.exists(source));
-  }
-
-  @After
-  public void removeTestDirectory() throws IOException {
-    if (testDirectory != null) {
-      removeRecurisvely(testDirectory.toFile());
-    }
-  }
-
-  protected void removeRecurisvely(File f) throws IOException {
-    f.setWritable(true);
-    if (f.isDirectory()) {
-      for (File child : f.listFiles()) {
-        removeRecurisvely(child);
-      }
-    }
-    f.delete();
   }
 }

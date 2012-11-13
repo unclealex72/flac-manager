@@ -100,22 +100,6 @@ public class ActionsImpl implements Actions {
    * {@inheritDoc}
    */
   @Override
-  public Actions protect(FileLocation fileLocation) {
-    return actions().protect(fileLocation);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Actions unprotect(FileLocation fileLocation) {
-    return actions().unprotect(fileLocation);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public Actions then(Action action) {
     return new ListOfActions().then(action);
   }
@@ -228,34 +212,6 @@ public class ActionsImpl implements Actions {
     @Override
     public Actions move(FileLocation fileLocation, FileLocation targetFileLocation) {
       getActions().add(new MoveAction(fileLocation, targetFileLocation));
-      return this;
-    }
-
-    /**
-     * Add a new {@link ProtectAction}.
-     * 
-     * @param fileLocation
-     *          The location of the file to write protect.
-     * @return An {@link Actions} object with the new {@link Action} added to
-     *         its actions.
-     */
-    @Override
-    public Actions protect(FileLocation fileLocation) {
-      getActions().add(new ProtectAction(fileLocation));
-      return this;
-    }
-
-    /**
-     * Add a new {@link UnprotectAction}.
-     * 
-     * @param fileLocation
-     *          The location of the file from which to remove write protection.
-     * @return An {@link Actions} object with the new {@link Action} added to
-     *         its actions.
-     */
-    @Override
-    public Actions unprotect(FileLocation fileLocation) {
-      getActions().add(new UnprotectAction(fileLocation));
       return this;
     }
 

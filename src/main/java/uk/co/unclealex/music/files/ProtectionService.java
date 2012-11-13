@@ -22,34 +22,28 @@
  *
  */
 
-package uk.co.unclealex.music.action;
+package uk.co.unclealex.music.files;
 
 import java.io.IOException;
 
-import uk.co.unclealex.music.files.FileLocation;
-
 /**
- * An action used to write-unprotect a file.
- * 
+ * The interface for classes that can protect and unprotect {@link FileLocation}s.
  * @author alex
- * 
+ *
  */
-public class UnprotectAction extends AbstractAction implements Action {
+public interface ProtectionService {
 
   /**
-   * Instantiates a new unprotect action.
-   *
-   * @param location the location
+   * Protect a {@link FileLocation} by making all paths from its base to path read-only.
+   * @param fileLocation The {@link FileLocation} to protect.
+   * @throws IOException 
    */
-  public UnprotectAction(FileLocation fileLocation) {
-    super(fileLocation);
-  }
+  public void protect(FileLocation fileLocation) throws IOException;
 
   /**
-   * {@inheritDoc}
+   * Unprotect a {@link FileLocation} by making all paths from its base to path writable.
+   * @param fileLocation The {@link FileLocation} to unprotect.
    */
-  @Override
-  public void accept(ActionVisitor actionVisitor) throws IOException {
-    actionVisitor.visit(this);
-  }
+  public void unprotect(FileLocation fileLocation) throws IOException;
+
 }

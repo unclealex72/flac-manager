@@ -85,12 +85,8 @@ public class CheckinExecution implements Execution {
     FileLocation newFlacFileLocation =
         fileLocationFactory.createFlacFileLocation(filenameService.toPath(musicFile, Extension.FLAC));
     return actions
-        .unprotect(encodedFileLocation)
         .encode(flacFileLocation, encodedFileLocation, musicFile)
-        .protect(encodedFileLocation)
-        .unprotect(newFlacFileLocation)
-        .move(flacFileLocation, newFlacFileLocation)
-        .protect(newFlacFileLocation);
+        .move(flacFileLocation, newFlacFileLocation);
   }
 
   /**

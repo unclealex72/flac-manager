@@ -79,30 +79,30 @@ public class DirectoryServiceImplTest {
   public void testListFilesSuccess() throws InvalidDirectoriesException, IOException {
     SortedSet<FileLocation> actualFiles =
         flacDirectoryServiceImpl.listFiles(
-            testDirectory,
+            new FileLocation(testDirectory, Paths.get(""), true),
             Lists.newArrayList(testDirectory.resolve("dir.flac"), testDirectory.resolve("dir")));
     Assert.assertThat(
         "The wrong files were found.",
         actualFiles,
         containsInAnyOrder(
-            fileLocation("dir.flac", "myfile.flac"),
-            fileLocation("dir.flac", "inner", "myfile.flac"),
-            fileLocation("dir", "your.flac"),
-            fileLocation("dir.flac", "myfile.xml"),
-            fileLocation("dir.flac", "inner", "myfile.xml"),
-            fileLocation("dir", "your.mp3")
+            fileLocation(true, "dir.flac", "myfile.flac"),
+            fileLocation(true, "dir.flac", "inner", "myfile.flac"),
+            fileLocation(true, "dir", "your.flac"),
+            fileLocation(true, "dir.flac", "myfile.xml"),
+            fileLocation(true, "dir.flac", "inner", "myfile.xml"),
+            fileLocation(true, "dir", "your.mp3")
             ));
   }
 
-  protected FileLocation fileLocation(String first, String... more) {
-    return new FileLocation(testDirectory, Paths.get(first, more));
+  protected FileLocation fileLocation(boolean readOnly, String first, String... more) {
+    return new FileLocation(testDirectory, Paths.get(first, more), readOnly);
   }
   
   @Test
   public void testListFilesFail() throws IOException {
     try {
       flacDirectoryServiceImpl.listFiles(
-          testDirectory,
+          new FileLocation(testDirectory, Paths.get(""), true),
           Lists.newArrayList(
               testDirectory.resolve("dir.flac"),
               testDirectory.getParent(),

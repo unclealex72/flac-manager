@@ -79,12 +79,8 @@ public class CheckoutExecution implements Execution {
     FileLocation targetFileLocation =
         fileLocationFactory.createStagingFileLocation(filenameService.toPath(musicFile, Extension.FLAC));
     return actions
-        .unprotect(flacFileLocation)
         .move(flacFileLocation, targetFileLocation)
-        .protect(flacFileLocation)
-        .unprotect(encodedFileLocation)
-        .delete(encodedFileLocation)
-        .protect(encodedFileLocation);
+        .delete(encodedFileLocation);
   }
 
   public FileLocationFactory getFileLocationFactory() {

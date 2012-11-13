@@ -51,27 +51,50 @@ public class FileLocation extends DataObject implements Comparable<FileLocation>
   private final Path relativePath;
 
   /**
+   * True if this file location should be read-only, false otherwise.
+   */
+  private final boolean readOnly;
+
+  /**
    * Instantiates a new file location.
    * 
    * @param basePath
    *          the base path
    * @param relativePath
    *          the relative path
+   * @param readOnly
+   *          the read only
    */
-  public FileLocation(Path basePath, Path relativePath) {
+  public FileLocation(Path basePath, Path relativePath, boolean readOnly) {
     super();
     this.basePath = basePath;
     this.relativePath = relativePath;
+    this.readOnly = readOnly;
   }
 
-  public FileLocation(Path basePath, String first, String... more) {
-    this(basePath, Paths.get(first, more));
-  }
   /**
-   * Compare this {@link FileLocation} to another by comparing the results of their
-   * {@link #resolve()} method.
-   * @param o The {@link FileLocation} to compare against.
-   * @return See {@link Comparable#compareTo(Object)}.
+   * Instantiates a new file location.
+   * @param readOnly
+   *          the read only
+   * @param basePath
+   *          the base path
+   * @param first
+   *          the first
+   * @param more
+   *          the more
+   */
+  public FileLocation(boolean readOnly, Path basePath, String first, String... more) {
+    this(basePath, Paths.get(first, more), readOnly);
+  }
+
+  /**
+   * Compare this {@link FileLocation} to another by comparing the results of
+   * their.
+   * 
+   * @param o
+   *          The {@link FileLocation} to compare against.
+   * @return See {@link Comparable#compareTo(Object)}. {@link #resolve()}
+   *         method.
    */
   @Override
   public int compareTo(FileLocation o) {
@@ -85,6 +108,17 @@ public class FileLocation extends DataObject implements Comparable<FileLocation>
    */
   public Path resolve() {
     return getBasePath().resolve(getRelativePath());
+  }
+
+  /**
+   * Resolve A relative path against this file location.
+   * 
+   * @param path
+   *          The relative path to resolve.
+   * @return A new {@link FileLocation} pointing to the new path.
+   */
+  public FileLocation resolve(Path path) {
+    return new FileLocation(getBasePath(), getRelativePath().resolve(path), isReadOnly());
   }
 
   /**
@@ -103,5 +137,15 @@ public class FileLocation extends DataObject implements Comparable<FileLocation>
    */
   public Path getRelativePath() {
     return relativePath;
+  }
+
+  /**
+   * Checks if is true if this file location should be read-only, false
+   * otherwise.
+   * 
+   * @return the true if this file location should be read-only, false otherwise
+   */
+  public boolean isReadOnly() {
+    return readOnly;
   }
 }

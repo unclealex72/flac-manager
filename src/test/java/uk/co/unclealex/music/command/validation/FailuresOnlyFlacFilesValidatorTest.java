@@ -40,7 +40,7 @@ import uk.co.unclealex.music.files.FileLocation;
  */
 public class FailuresOnlyFlacFilesValidatorTest extends FlacFileValidatorTest {
 
-  FileLocation fl = new FileLocation(Paths.get("/"), Paths.get("dummy"));
+  FileLocation fl = new FileLocation(Paths.get("/"), Paths.get("dummy"), true);
 
   @Test
   public void testIncludingFailure() throws IOException {
@@ -51,8 +51,6 @@ public class FailuresOnlyFlacFilesValidatorTest extends FlacFileValidatorTest {
             .encode(fl, fl, new MusicFileBean())
             .fail(fl, "messageTemplate", 1, 2)
             .move(fl, fl)
-            .protect(fl)
-            .unprotect(fl)
             .fail(fl, "otherMessageTemplate", 3, 4);
     Actions expectedActions =
         new ActionsImpl().fail(fl, "messageTemplate", 1, 2).fail(fl, "otherMessageTemplate", 3, 4);
@@ -66,9 +64,7 @@ public class FailuresOnlyFlacFilesValidatorTest extends FlacFileValidatorTest {
             .coverArt(fl)
             .delete(fl)
             .encode(fl, fl, new MusicFileBean())
-            .move(fl, fl)
-            .protect(fl)
-            .unprotect(fl);
+            .move(fl, fl);
     runTest(actions, actions);
   }
   

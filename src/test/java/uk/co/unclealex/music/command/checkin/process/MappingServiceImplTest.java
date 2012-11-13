@@ -83,7 +83,7 @@ public class MappingServiceImplTest {
       return new ActionsImpl();
     }
   };
-  FileLocation fileLocation = new FileLocation(Paths.get("/"), Paths.get("flac.flac"));
+  FileLocation fileLocation = new FileLocation(Paths.get("/"), Paths.get("flac.flac"), true);
 
   @Mock
   ConstraintViolation<MusicFile> firstConstraintViolation;

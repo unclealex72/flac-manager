@@ -29,12 +29,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.Arrays;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The default implementation of {@link FileUtils}.
@@ -43,35 +37,6 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class FileUtilsImpl implements FileUtils {
-
-  private static final Logger log = LoggerFactory.getLogger(FileUtilsImpl.class);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void alterWriteable(FileLocation fileLocation, boolean allowWrites) throws IOException {
-    Path currentPath = fileLocation.resolve();
-    Path terminatingPath = fileLocation.getBasePath().getParent();
-    while (currentPath != null && !currentPath.equals(terminatingPath)) {
-      if (Files.exists(currentPath)) {
-        Set<PosixFilePermission> posixFilePermissions = Files.getPosixFilePermissions(currentPath);
-        if (allowWrites) {
-          log.debug("Setting " + currentPath + " to read and write.");
-          posixFilePermissions.add(PosixFilePermission.OWNER_WRITE);
-        }
-        else {
-          log.debug("Setting " + currentPath + " to read only.");
-          posixFilePermissions.removeAll(Arrays.asList(
-              PosixFilePermission.OWNER_WRITE,
-              PosixFilePermission.GROUP_WRITE,
-              PosixFilePermission.OTHERS_WRITE));
-        }
-        Files.setPosixFilePermissions(currentPath, posixFilePermissions);
-      }
-      currentPath = currentPath.getParent();
-    }
-  }
 
   /**
    * {@inheritDoc}

@@ -66,6 +66,8 @@ import uk.co.unclealex.music.files.FilenameService;
 import uk.co.unclealex.music.files.FilenameServiceImpl;
 import uk.co.unclealex.music.files.FlacFileChecker;
 import uk.co.unclealex.music.files.FlacFileCheckerImpl;
+import uk.co.unclealex.music.files.ProtectionAwareFileUtils;
+import uk.co.unclealex.music.files.ProtectionServiceImpl;
 import uk.co.unclealex.music.message.MessageService;
 import uk.co.unclealex.music.message.MessageServiceImpl;
 import uk.co.unclealex.process.inject.ProcessRequestBuilderModule;
@@ -110,7 +112,7 @@ public abstract class CommonModule<E extends Execution> extends AbstractModule {
     bind(Actions.class).to(ActionsImpl.class);
     bind(DeviceService.class).to(DeviceServiceImpl.class);
     bind(FilenameService.class).to(FilenameServiceImpl.class);
-    bind(FileUtils.class).to(FileUtilsImpl.class);
+    bind(FileUtils.class).toInstance(new ProtectionAwareFileUtils(new FileUtilsImpl(), new ProtectionServiceImpl()));
     bind(MessageService.class).to(MessageServiceImpl.class);
     bind(ArtworkService.class).to(ArtworkServiceImpl.class);
     bind(FlacFilesValidator.class).annotatedWith(FindMissingCoverArt.class).to(

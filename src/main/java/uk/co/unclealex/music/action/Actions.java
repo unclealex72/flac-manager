@@ -113,26 +113,6 @@ public interface Actions extends Supplier<List<Action>>, Iterable<Action> {
   public Actions move(FileLocation fileLocation, FileLocation targetFileLocation);
 
   /**
-   * Add a new {@link ProtectAction}.
-   * 
-   * @param fileLocation
-   *          The location of the file to write protect.
-   * @return An {@link Actions} object with the new {@link Action} added to its
-   *         actions.
-   */
-  public Actions protect(FileLocation fileLocation);
-
-  /**
-   * Add a new {@link UnprotectAction}.
-   * 
-   * @param fileLocation
-   *          The location of the file from which to remove write protection.
-   * @return An {@link Actions} object with the new {@link Action} added to its
-   *         actions.
-   */
-  public Actions unprotect(FileLocation fileLocation);
-
-  /**
    * Add a new {@link Action}.
    * 
    * @param action

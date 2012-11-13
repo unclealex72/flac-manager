@@ -44,10 +44,10 @@ import com.google.common.collect.Sets;
  */
 public class UniqueFlacFilesValidatorTest extends FlacFileValidatorTest {
 
-  FileLocation fl1 = new FileLocation(Paths.get("/"), Paths.get("1"));
-  FileLocation fl2 = new FileLocation(Paths.get("/"), Paths.get("2"));
-  FileLocation fl3 = new FileLocation(Paths.get("/"), Paths.get("3"));
-  FileLocation fl4 = new FileLocation(Paths.get("/"), Paths.get("4"));
+  FileLocation fl1 = new FileLocation(Paths.get("/"), Paths.get("1"), true);
+  FileLocation fl2 = new FileLocation(Paths.get("/"), Paths.get("2"), true);
+  FileLocation fl3 = new FileLocation(Paths.get("/"), Paths.get("3"), true);
+  FileLocation fl4 = new FileLocation(Paths.get("/"), Paths.get("4"), true);
 
   @Test
   public void testAllUnqiue() throws IOException {

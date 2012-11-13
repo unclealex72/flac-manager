@@ -53,7 +53,7 @@ public class FileLocationFactoryImpl implements FileLocationFactory {
    */
   @Override
   public FileLocation createFlacFileLocation(Path relativeFlacFile) {
-    return resolve(getDirectories().getFlacPath(), relativeFlacFile);
+    return resolve(true, getDirectories().getFlacPath(), relativeFlacFile);
   }
 
   /**
@@ -61,7 +61,7 @@ public class FileLocationFactoryImpl implements FileLocationFactory {
    */
   @Override
   public FileLocation createEncodedFileLocation(Path relativeEncodedFile) {
-    return resolve(getDirectories().getEncodedPath(), relativeEncodedFile);
+    return resolve(true, getDirectories().getEncodedPath(), relativeEncodedFile);
   }
 
   /**
@@ -69,13 +69,16 @@ public class FileLocationFactoryImpl implements FileLocationFactory {
    */
   @Override
   public FileLocation createStagingFileLocation(Path relativeFlacFile) {
-    return resolve(getDirectories().getStagingPath(), relativeFlacFile);
+    return resolve(false, getDirectories().getStagingPath(), relativeFlacFile);
   }
 
   /**
    * Create a {@link FileLocation} from a base path and a list of relative
    * paths.
    * 
+   * @param readOnly
+   *          True if the {@link FileLocation} is expected to be read only,
+   *          false otherwise.
    * @param basePath
    *          The base path for the {@link FileLocation}.
    * @param relativePath
@@ -85,11 +88,11 @@ public class FileLocationFactoryImpl implements FileLocationFactory {
    * @return A {@link FileLocation} with the given base path and calculated
    *         relative path.
    */
-  protected FileLocation resolve(Path basePath, Path relativePath, Path... relativePaths) {
+  protected FileLocation resolve(boolean readyOnly, Path basePath, Path relativePath, Path... relativePaths) {
     for (Path extraRelativePath : relativePaths) {
       relativePath = relativePath.resolve(extraRelativePath);
     }
-    return new FileLocation(basePath, relativePath);
+    return new FileLocation(basePath, relativePath, readyOnly);
   }
 
   public Directories getDirectories() {

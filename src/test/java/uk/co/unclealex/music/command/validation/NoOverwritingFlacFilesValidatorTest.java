@@ -50,10 +50,10 @@ public class NoOverwritingFlacFilesValidatorTest extends FlacFileValidatorTest {
   public void setup() throws IOException {
     existingFileLocation =
         new FileLocation(Paths.get("/"), Paths.get("/").relativize(
-            Files.createTempFile("no-overwriting-flac-files-validator-", ".flac")));
+            Files.createTempFile("no-overwriting-flac-files-validator-", ".flac")), true);
     nonExistingFileLocation =
         new FileLocation(Paths.get("/"), Paths.get("/").relativize(
-            Files.createTempFile("no-overwriting-flac-files-validator-", ".flac")));
+            Files.createTempFile("no-overwriting-flac-files-validator-", ".flac")), true);
     Files.delete(nonExistingFileLocation.resolve());
   }
 

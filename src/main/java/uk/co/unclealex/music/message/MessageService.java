@@ -53,16 +53,6 @@ public interface MessageService {
   public String MOVE = "move";
 
   /**
-   * The key for producing an uprotect message.
-   */
-  public String UNPROTECT = "unprotect";
-
-  /**
-   * The key for producing a protect message.
-   */
-  public String PROTECT = "protect";
-
-  /**
    * The key for producing a not flac file message.
    */
   public String NOT_FLAC = "notFlac";

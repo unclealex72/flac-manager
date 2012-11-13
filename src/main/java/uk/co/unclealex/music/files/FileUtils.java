@@ -36,19 +36,6 @@ import java.io.IOException;
 public interface FileUtils {
 
   /**
-   * Alter a file and its parent directories that that they are either writeable
-   * or not.
-   * 
-   * @param fileLocation
-   *          The location of the file and its parents to make writeable or not.
-   * @param allowWrites
-   *          True if files and directories should be made writeable, false if
-   *          not.
-   * @throws IOException
-   */
-  public void alterWriteable(FileLocation fileLocation, boolean allowWrites) throws IOException;
-
-  /**
    * Move a path from a source directory to a target directory using an atomic
    * file system move, creating any required directories. Any directories left
    * empty in the source base path due to the move operation will be removed.

@@ -91,6 +91,6 @@ public class NoOwnerFlacFilesValidatorTest {
   }
 
   protected FileLocation fileLocation(String path) {
-    return new FileLocation(Paths.get("/"), Paths.get("flac", path));
+    return new FileLocation(Paths.get("/"), Paths.get("flac", path), true);
   }
 }

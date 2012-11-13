@@ -63,23 +63,6 @@ public interface ActionVisitor {
   public void visit(Action action);
 
   /**
-   * Write protect a file.
-   * 
-   * @param protectAction
-   *          The {@link Action} containing the file information.
-   */
-  public void visit(ProtectAction protectAction) throws IOException;
-
-  /**
-   * Write unprotect a file.
-   * 
-   * @param unprotectAction
-   *          The {@link Action} containing the file information.
-   * @throws IOException
-   */
-  public void visit(UnprotectAction unprotectAction) throws IOException;
-
-  /**
    * Move a file, making sure that any newly empty directories are removed.
    * 
    * @param moveAction

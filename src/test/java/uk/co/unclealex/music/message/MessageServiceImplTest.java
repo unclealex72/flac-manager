@@ -43,10 +43,10 @@ import uk.co.unclealex.music.files.FileLocation;
  */
 public class MessageServiceImplTest {
 
-  FileLocation fl1 = new FileLocation(Paths.get("/mnt", "flac"), Paths.get("myflacfile.flac"));
-  FileLocation fl2 = new FileLocation(Paths.get("/mnt", "flac"), Paths.get("myotherflacfile.flac"));
-  FileLocation fl3 = new FileLocation(Paths.get("/mnt", "flac"), Paths.get("yetanotherflacfile.flac"));
-  FileLocation fl4 = new FileLocation(Paths.get("/mnt", "mp3"), Paths.get("myflacfile.mp3"));
+  FileLocation fl1 = new FileLocation(Paths.get("/mnt", "flac"), Paths.get("myflacfile.flac"), true);
+  FileLocation fl2 = new FileLocation(Paths.get("/mnt", "flac"), Paths.get("myotherflacfile.flac"), true);
+  FileLocation fl3 = new FileLocation(Paths.get("/mnt", "flac"), Paths.get("yetanotherflacfile.flac"), true);
+  FileLocation fl4 = new FileLocation(Paths.get("/mnt", "mp3"), Paths.get("myflacfile.mp3"), true);
 
   @Test
   public void testArtwork() throws URISyntaxException {
@@ -70,16 +70,6 @@ public class MessageServiceImplTest {
   @Test
   public void testMove() {
     runTest("Moving /mnt/flac/myflacfile.flac to /mnt/flac/myotherflacfile.flac", MessageService.MOVE, fl1, fl2);
-  }
-
-  @Test
-  public void testUnprotect() {
-    runTest("Unprotecting /mnt/flac/myflacfile.flac", MessageService.UNPROTECT, fl1);
-  }
-
-  @Test
-  public void testProtect() {
-    runTest("Protecting /mnt/flac/myflacfile.flac", MessageService.PROTECT, fl1);
   }
 
   @Test

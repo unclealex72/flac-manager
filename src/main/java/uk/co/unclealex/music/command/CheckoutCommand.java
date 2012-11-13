@@ -25,7 +25,7 @@
 package uk.co.unclealex.music.command;
 
 import java.io.IOException;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 import javax.inject.Inject;
@@ -40,9 +40,10 @@ import uk.co.unclealex.music.command.validation.FailuresOnly;
 import uk.co.unclealex.music.command.validation.FlacFilesValidator;
 import uk.co.unclealex.music.command.validation.NoOverwriting;
 import uk.co.unclealex.music.command.validation.Unique;
-import uk.co.unclealex.music.configuration.Directories;
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
 import uk.co.unclealex.music.files.DirectoryService;
+import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.files.FileLocationFactory;
 import uk.co.unclealex.process.inject.PackageCheckingModule;
 
 import com.lexicalscope.jewel.cli.CommandLineInterface;
@@ -61,13 +62,13 @@ public class CheckoutCommand extends Command<CheckoutCommandLine> {
       @NoOverwriting FlacFilesValidator noOverwritingFlacFilesValidator,
       @FailuresOnly FlacFilesValidator failuresOnlyFlacFilesValidator,
       DirectoryService directoryService,
-      Directories directories,
+      FileLocationFactory fileLocationFactory,
       MappingService mappingService,
       ActionExecutor actionExecutor) {
     super(execution, actions, Arrays.asList(
         uniqueFlacFilesValidator,
         noOverwritingFlacFilesValidator,
-        failuresOnlyFlacFilesValidator), directoryService, directories, mappingService, actionExecutor);
+        failuresOnlyFlacFilesValidator), directoryService, mappingService, actionExecutor, fileLocationFactory);
   }
 
   @Override
@@ -75,12 +76,13 @@ public class CheckoutCommand extends Command<CheckoutCommandLine> {
   public void execute(CheckoutCommandLine commandLine) throws IOException, InvalidDirectoriesException {
     super.execute(commandLine);
   }
+  
   /**
    * {@inheritDoc}
    */
   @Override
-  protected Path getRequiredBasePath(Directories directories) {
-    return directories.getFlacPath();
+  protected FileLocation getRequiredBasePath(FileLocationFactory fileLocationFactory) {
+    return fileLocationFactory.createFlacFileLocation(Paths.get(""));
   }
 
 }

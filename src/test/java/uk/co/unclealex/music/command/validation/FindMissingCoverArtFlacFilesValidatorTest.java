@@ -54,7 +54,7 @@ public class FindMissingCoverArtFlacFilesValidatorTest extends FlacFileValidator
 
   @Before
   public void setup() throws URISyntaxException {
-    fileLocation = new FileLocation(Paths.get("/"), Paths.get("queen", "greatest hits", "01 bohemian rhapsody.flac"));
+    fileLocation = new FileLocation(Paths.get("/"), Paths.get("queen", "greatest hits", "01 bohemian rhapsody.flac"), true);
     uri = new URI("http://somewhere.com/greatesthits.jpg");
     musicFile = new MusicFileBean();
     musicFile.setAlbumId("12345");
@@ -63,7 +63,7 @@ public class FindMissingCoverArtFlacFilesValidatorTest extends FlacFileValidator
   
   @Test
   public void testNoArtworkRequired() throws IOException {
-    Actions actions = actionsSupplier.get().protect(fileLocation);
+    Actions actions = actionsSupplier.get().delete(fileLocation);
     runTest(actions, actions);
   }
 

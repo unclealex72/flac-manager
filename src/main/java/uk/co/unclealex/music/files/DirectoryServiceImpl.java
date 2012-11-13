@@ -53,7 +53,7 @@ public class DirectoryServiceImpl implements DirectoryService {
    * @throws IOException
    */
   @Override
-  public SortedSet<FileLocation> listFiles(Path requiredBasePath, Iterable<? extends Path> flacDirectories)
+  public SortedSet<FileLocation> listFiles(FileLocation requiredBasePath, Iterable<? extends Path> flacDirectories)
       throws InvalidDirectoriesException,
       IOException {
     Function<Path, Path> absoluteFunction = new Function<Path, Path>() {
@@ -61,7 +61,7 @@ public class DirectoryServiceImpl implements DirectoryService {
         return path.toAbsolutePath();
       }
     };
-    final Path absoluteRequiredBasePath = absoluteFunction.apply(requiredBasePath);
+    final Path absoluteRequiredBasePath = absoluteFunction.apply(requiredBasePath.resolve());
     Iterable<Path> absoluteFlacDirectories = Iterables.transform(flacDirectories, absoluteFunction);
     Predicate<Path> isValidPathPredicate = new Predicate<Path>() {
       public boolean apply(Path path) {
@@ -77,7 +77,7 @@ public class DirectoryServiceImpl implements DirectoryService {
     for (Path flacDirectory : absoluteFlacDirectories) {
       SortedSet<Path> flacFiles = findAllFiles(flacDirectory);
       for (Path flacFile : flacFiles) {
-        allFlacFileLocations.add(new FileLocation(absoluteRequiredBasePath, absoluteRequiredBasePath
+        allFlacFileLocations.add(requiredBasePath.resolve(absoluteRequiredBasePath
             .relativize(flacFile)));
       }
     }

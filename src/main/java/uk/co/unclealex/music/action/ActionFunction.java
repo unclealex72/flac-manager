@@ -76,40 +76,6 @@ public class ActionFunction<V> extends ActionVisitor.Default implements Function
    * {@inheritDoc}
    */
   @Override
-  public final void visit(ProtectAction protectAction) throws IOException {
-    setValue(visitAndReturn(protectAction));
-  }
-
-  /**
-   * Return a value for a {@link ProtectAction}.
-   * @param protectAction The {@link ProtectAction} that was visited.
-   * @return The default Value.
-   */
-  protected V visitAndReturn(ProtectAction protectAction) {
-    return getDefaultValue();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void visit(UnprotectAction unprotectAction) throws IOException {
-    setValue(visitAndReturn(unprotectAction));
-  }
-
-  /**
-   * Return a value for a {@link UnprotectAction}.
-   * @param unprotectAction The {@link UnprotectAction} that was visited.
-   * @return The default Value.
-   */
-  protected V visitAndReturn(UnprotectAction unprotectAction) {
-    return getDefaultValue();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public final void visit(MoveAction moveAction) throws IOException {
     setValue(visitAndReturn(moveAction));
   }

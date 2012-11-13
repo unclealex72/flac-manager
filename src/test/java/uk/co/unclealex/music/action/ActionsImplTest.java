@@ -53,19 +53,15 @@ public class ActionsImplTest {
             .encode(fileLocation("flacEncode"), fileLocation("mp3encode"), flacMusicFile)
             .fail(fileLocation("fail"), "D'Oh!", 1, 2)
             .move(fileLocation("from"), fileLocation("to"))
-            .protect(fileLocation("protect"))
-            .unprotect(fileLocation("unprotect"))
             .get();
     assertThat("The wrong actions were generated", actualActions, contains(new Action[] {
         new DeleteAction(fileLocation("delete")),
         new EncodeAction(fileLocation("flacEncode"), fileLocation("mp3encode"), flacMusicFile),
         new FailureAction(fileLocation("fail"), "D'Oh!", 1, 2),
-        new MoveAction(fileLocation("from"), fileLocation("to")),
-        new ProtectAction(fileLocation("protect")),
-        new UnprotectAction(fileLocation("unprotect")) }));
+        new MoveAction(fileLocation("from"), fileLocation("to")) }));
   }
 
   protected FileLocation fileLocation(String path) {
-    return new FileLocation(Paths.get("/dummy"), Paths.get(path));
+    return new FileLocation(Paths.get("/dummy"), Paths.get(path), false);
   }
 }

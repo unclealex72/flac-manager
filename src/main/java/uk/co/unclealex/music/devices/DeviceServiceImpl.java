@@ -74,7 +74,7 @@ public class DeviceServiceImpl implements DeviceService {
    */
   @Override
   public FileLocation getLinkLocation(User owner, FileLocation encodedLocation) {
-    return new FileLocation(getBasePathForUser(owner), encodedLocation.getRelativePath());
+    return new FileLocation(getBasePathForUser(owner), encodedLocation.getRelativePath(), true);
   }
 
   /**

@@ -51,6 +51,7 @@ public class FileLocationFactoryImplTest {
   @Test
   public void testFlac() {
     test(
+        true,
         Paths.get("/flacPath"),
         Paths.get("my", "flac", "file.flac"),
         fileLocationFactory.createFlacFileLocation(Paths.get("my", "flac", "file.flac")));
@@ -59,6 +60,7 @@ public class FileLocationFactoryImplTest {
   @Test
   public void testEncoded() {
     test(
+        true,
         Paths.get("/encodedPath"),
         Paths.get("my", "encoded", "file.mp3"),
         fileLocationFactory.createEncodedFileLocation(Paths.get("my", "encoded", "file.mp3")));
@@ -67,15 +69,16 @@ public class FileLocationFactoryImplTest {
   @Test
   public void testStaging() {
     test(
+        false,
         Paths.get("/stagingPath"),
         Paths.get("my", "flac", "file.flac"),
         fileLocationFactory.createStagingFileLocation(Paths.get("my", "flac", "file.flac")));
   }
 
-  protected void test(Path expectedBasePath, Path expectedRelativePath, FileLocation actualFileLocation) {
+  protected void test(boolean expectedReadOnly, Path expectedBasePath, Path expectedRelativePath, FileLocation actualFileLocation) {
     assertEquals(
         "The wrong file location was created.",
-        new FileLocation(expectedBasePath, expectedRelativePath),
+        new FileLocation(expectedBasePath, expectedRelativePath, expectedReadOnly),
         actualFileLocation);
   }
 }
