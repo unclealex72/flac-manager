@@ -32,6 +32,7 @@ import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.action.ActionsImpl;
 import uk.co.unclealex.music.audio.AudioMusicFileFactory;
 import uk.co.unclealex.music.audio.AudioMusicFileFactoryImpl;
+import uk.co.unclealex.music.command.Execution;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkService;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkServiceImpl;
 import uk.co.unclealex.music.command.checkin.process.MappingService;
@@ -68,11 +69,28 @@ import com.google.inject.Module;
 import com.mycila.inject.jsr250.Jsr250;
 
 /**
- * The Guice {@link Module} for components common to all commands.
- * @author alex
+ * The Guice {@link Module} for components common to all commands. That is,
+ * everything but their {@link Execution}.
  *
+ * @param <E> the element type
+ * @author alex
  */
-public class CommonModule extends AbstractModule {
+public abstract class CommonModule<E extends Execution> extends AbstractModule {
+
+  /**
+   * The class of the {@link Execution} to use in the command.
+   */
+  private final Class<E> executionClass;
+  
+  /**
+   * Instantiates a new common module.
+   *
+   * @param executionClass the execution class
+   */
+  public CommonModule(Class<E> executionClass) {
+    super();
+    this.executionClass = executionClass;
+  }
 
   /**
    * {@inheritDoc}
@@ -90,7 +108,8 @@ public class CommonModule extends AbstractModule {
     bind(MappingService.class).to(MappingServiceImpl.class);
     bind(MessageService.class).to(MessageServiceImpl.class);
     bind(ArtworkService.class).to(ArtworkServiceImpl.class);
-    bind(FlacFilesValidator.class).annotatedWith(FindMissingCoverArt.class).to(FindMissingCoverArtFlacFilesValidator.class);
+    bind(FlacFilesValidator.class).annotatedWith(FindMissingCoverArt.class).to(
+        FindMissingCoverArtFlacFilesValidator.class);
     bind(FlacFilesValidator.class).annotatedWith(FailuresOnly.class).to(FailuresOnlyFlacFilesValidator.class);
     bind(FlacFilesValidator.class).annotatedWith(NoOverwriting.class).to(NoOverwritingFlacFilesValidator.class);
     bind(FlacFilesValidator.class).annotatedWith(Unique.class).to(UniqueFlacFilesValidator.class);
@@ -98,6 +117,18 @@ public class CommonModule extends AbstractModule {
     bind(MusicFileService.class).to(MusicFileServiceImpl.class);
     bind(FileLocationFactory.class).to(FileLocationFactoryImpl.class);
     bind(FlacFileChecker.class).to(FlacFileCheckerImpl.class);
+    bind(Execution.class).to(getExecutionClass());
     install(new ProcessRequestBuilderModule());
   }
+
+  /**
+   * Gets the class of the {@link Execution} to use in the command.
+   *
+   * @return the class of the {@link Execution} to use in the command
+   */
+  public Class<E> getExecutionClass() {
+    return executionClass;
+  }
+
+  
 }

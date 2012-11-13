@@ -24,24 +24,19 @@
 
 package uk.co.unclealex.music.command.checkout;
 
-import uk.co.unclealex.music.command.Execution;
 import uk.co.unclealex.music.command.inject.CommonModule;
 
-import com.google.inject.AbstractModule;
-
 /**
+ * The module for the checkout command.
  * @author alex
  *
  */
-public class CheckoutModule extends AbstractModule {
-
+public class CheckoutModule extends CommonModule<CheckoutExecution> {
+  
   /**
-   * {@inheritDoc}
+   * Instantiates a new checkout module.
    */
-  @Override
-  protected void configure() {
-    install(new CommonModule());
-    bind(Execution.class).to(CheckoutExecution.class);
+  public CheckoutModule() {
+    super(CheckoutExecution.class);
   }
-
 }

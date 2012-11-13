@@ -24,24 +24,19 @@
 
 package uk.co.unclealex.music.command.checkin;
 
-import uk.co.unclealex.music.command.Execution;
 import uk.co.unclealex.music.command.inject.CommonModule;
 
-import com.google.inject.AbstractModule;
-
 /**
+ * The module for the checkin command.
  * @author alex
  *
  */
-public class CheckinModule extends AbstractModule {
-
+public class CheckinModule extends CommonModule<CheckinExecution> {
+  
   /**
-   * {@inheritDoc}
+   * Instantiates a new checkin module.
    */
-  @Override
-  protected void configure() {
-    install(new CommonModule());
-    bind(Execution.class).to(CheckinExecution.class);
+  public CheckinModule() {
+    super(CheckinExecution.class);
   }
-
 }
