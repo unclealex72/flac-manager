@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
@@ -53,6 +54,7 @@ import uk.co.unclealex.music.action.MoveAction;
 import uk.co.unclealex.music.action.UnlinkAction;
 import uk.co.unclealex.music.command.AbstractCommandTest;
 import uk.co.unclealex.music.command.CheckoutCommand;
+import uk.co.unclealex.music.command.CheckoutCommandLine;
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
 import uk.co.unclealex.music.files.FileLocation;
@@ -81,7 +83,7 @@ public class CheckoutCommandTest extends AbstractCommandTest<CheckoutCommand> {
   public void testCheckout() throws IOException, InvalidDirectoriesException {
     final FileLocationFactory fileLocationFactory = injector.getInstance(FileLocationFactory.class);
     final FileLocation flacDir = fileLocationFactory.createFlacFileLocation(Paths.get(""));
-    Path queenDir = flacDir.resolve(Paths.get("q", "queen")).resolve();
+    final Path queenDir = flacDir.resolve(Paths.get("q", "queen")).resolve();
     final Function<Path, FileLocation> queenFactory = new Function<Path, FileLocation>() {
       public FileLocation apply(Path path) {
         return fileLocationFactory.createFlacFileLocation(Paths.get("q", "queen").resolve(path));
@@ -118,7 +120,17 @@ public class CheckoutCommandTest extends AbstractCommandTest<CheckoutCommand> {
             any(Actions.class),
             argThat(contains(Iterables.toArray(queenFileLocations, FileLocation.class))),
             anyMapOf(FileLocation.class, MusicFile.class))).thenAnswer(mappingAnswer);
-    command.execute(Collections.singletonList(queenDir.toString()));
+    CheckoutCommandLine checkoutCommandLine = new CheckoutCommandLine() {
+      @Override
+      public boolean getHelp() {
+        return false;
+      }
+      @Override
+      public List<String> getFlacPaths() {
+        return Collections.singletonList(queenDir.toString());
+      }
+    };
+    command.execute(checkoutCommandLine);
     FileLocation originalDeathOnTwoLegsFlacLocation =
         fileLocationFactory.createFlacFileLocation(Paths.get(
             "q",

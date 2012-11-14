@@ -24,19 +24,24 @@
 
 package uk.co.unclealex.music.command.checkout;
 
+import uk.co.unclealex.music.command.CheckoutCommandLine;
+import uk.co.unclealex.music.command.Execution;
 import uk.co.unclealex.music.command.inject.CommonModule;
+
+import com.google.inject.TypeLiteral;
 
 /**
  * The module for the checkout command.
  * @author alex
  *
  */
-public class CheckoutModule extends CommonModule<CheckoutExecution> {
+public class CheckoutModule extends CommonModule<CheckoutCommandLine, CheckoutExecution> {
   
   /**
    * Instantiates a new checkout module.
    */
   public CheckoutModule() {
-    super(CheckoutExecution.class);
+    super(CheckoutExecution.class, new TypeLiteral<Execution<CheckoutCommandLine>>() {
+    });
   }
 }

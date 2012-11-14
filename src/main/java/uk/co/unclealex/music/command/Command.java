@@ -60,7 +60,7 @@ public abstract class Command<C extends CommandLine> {
   /**
    * The {@link Execution} that shall be run by this command.
    */
-  private final Execution execution;
+  private final Execution<C> execution;
 
   /**
    * The {@link Actions} object used to hold all actions that need to be
@@ -113,7 +113,7 @@ public abstract class Command<C extends CommandLine> {
    *          the file location factory
    */
   public Command(
-      Execution execution,
+      Execution<C> execution,
       Actions actions,
       List<FlacFilesValidator> flacFilesValidators,
       DirectoryService directoryService,
@@ -142,20 +142,6 @@ public abstract class Command<C extends CommandLine> {
    */
   public void execute(C commandLine) throws IOException, InvalidDirectoriesException {
     List<String> flacPaths = commandLine.getFlacPaths();
-    execute(flacPaths);
-  }
-
-  /**
-   * Execute an {@link Execution} command.
-   * 
-   * @param flacPaths
-   *          The flac paths obtained from the command line.
-   * @throws InvalidDirectoriesException
-   *           the invalid directories exception
-   * @throws IOException
-   *           Signals that an I/O exception has occurred.
-   */
-  public void execute(List<String> flacPaths) throws InvalidDirectoriesException, IOException {
     Function<String, Path> pathFunction = new Function<String, Path>() {
       public Path apply(String path) {
         return Paths.get(path);
@@ -167,10 +153,10 @@ public abstract class Command<C extends CommandLine> {
     SortedMap<FileLocation, MusicFile> musicFilesByFileLocation = Maps.newTreeMap();
     Actions actions = getMappingService().mapPathsToMusicFiles(getActions(), flacFiles, musicFilesByFileLocation);
     if (actions.get().isEmpty()) {
-      Execution execution = getExecution();
+      Execution<C> execution = getExecution();
       // Generate a list of actions that need to be executed.
       for (Entry<FileLocation, MusicFile> entry : musicFilesByFileLocation.entrySet()) {
-        actions = execution.execute(actions, entry.getKey(), entry.getValue());
+        actions = execution.execute(commandLine, actions, entry.getKey(), entry.getValue());
       }
       // Validate all the actions and add any failures.
       for (FlacFilesValidator flacFilesValidator : getFlacFilesValidators()) {
@@ -200,7 +186,7 @@ public abstract class Command<C extends CommandLine> {
    * 
    * @return the {@link Execution} that shall be run by this command
    */
-  public Execution getExecution() {
+  public Execution<C> getExecution() {
     return execution;
   }
 

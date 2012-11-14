@@ -32,6 +32,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import uk.co.unclealex.executable.streams.Stdout;
+import uk.co.unclealex.music.command.CheckinCommandLine;
+import uk.co.unclealex.music.command.CheckoutCommandLine;
+import uk.co.unclealex.music.command.CommandLine;
 import uk.co.unclealex.music.command.Execution;
 import uk.co.unclealex.music.command.checkin.CheckinExecution;
 import uk.co.unclealex.music.command.checkin.CheckinModule;
@@ -46,7 +49,9 @@ import uk.co.unclealex.music.configuration.json.UserBean;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.Module;
+import com.google.inject.TypeLiteral;
 
 /**
  * @author alex
@@ -56,16 +61,20 @@ public class GuiceModulesTest {
 
   @Test
   public void testCheckin() {
-    runTest(new CheckinModule(), CheckinExecution.class);
+    runTest(new CheckinModule(), CheckinExecution.class, new TypeLiteral<Execution<CheckinCommandLine>>() {
+    });
   }
 
   @Test
   public void testCheckout() {
-    runTest(new CheckoutModule(), CheckoutExecution.class);
+    runTest(new CheckoutModule(), CheckoutExecution.class, new TypeLiteral<Execution<CheckoutCommandLine>>() {
+    });
   }
 
-
-  public void runTest(Module guiceModule, Class<? extends Execution> expectedExecutionClass) {
+  public <C extends CommandLine, E extends Execution<C>> void runTest(
+      Module guiceModule,
+      Class<? extends Execution<?>> expectedExecutionClass,
+      TypeLiteral<E> typeLiteral) {
     Module stdoutModule = new AbstractModule() {
 
       @Override
@@ -85,7 +94,7 @@ public class GuiceModulesTest {
       }
     };
     Injector injector = Guice.createInjector(guiceModule, stdoutModule, externalModule);
-    Execution execution = injector.getInstance(Execution.class);
+    E execution = injector.getInstance(Key.get(typeLiteral));
     Assert.assertEquals("The returned execution had the wrong class.", expectedExecutionClass, execution.getClass());
   }
 }

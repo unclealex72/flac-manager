@@ -37,6 +37,7 @@ import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.action.ActionsImpl;
 import uk.co.unclealex.music.audio.AudioMusicFileFactory;
 import uk.co.unclealex.music.audio.AudioMusicFileFactoryImpl;
+import uk.co.unclealex.music.command.CommandLine;
 import uk.co.unclealex.music.command.Execution;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkService;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkServiceImpl;
@@ -73,6 +74,7 @@ import uk.co.unclealex.music.message.MessageServiceImpl;
 import uk.co.unclealex.process.inject.ProcessRequestBuilderModule;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
 import com.mycila.inject.jsr250.Jsr250;
@@ -81,10 +83,11 @@ import com.mycila.inject.jsr250.Jsr250;
  * The Guice {@link Module} for components common to all commands. That is,
  * everything but their {@link Execution}.
  *
+ * @param <C> the generic type
  * @param <E> the element type
  * @author alex
  */
-public abstract class CommonModule<E extends Execution> extends AbstractModule {
+public abstract class CommonModule<C extends CommandLine, E extends Execution<C>> extends AbstractModule {
 
   /**
    * The class of the {@link Execution} to use in the command.
@@ -92,13 +95,20 @@ public abstract class CommonModule<E extends Execution> extends AbstractModule {
   private final Class<E> executionClass;
   
   /**
+   * The {@link TypeLiteral} to which the execution class should be bound.
+   */
+  private final Key<Execution<C>> executionKey;
+  
+  /**
    * Instantiates a new common module.
    *
    * @param executionClass the execution class
+   * @param executionKey the execution key
    */
-  public CommonModule(Class<E> executionClass) {
+  public CommonModule(Class<E> executionClass, TypeLiteral<Execution<C>> executionKey) {
     super();
     this.executionClass = executionClass;
+    this.executionKey = Key.get(executionKey);
   }
 
   /**
@@ -124,7 +134,7 @@ public abstract class CommonModule<E extends Execution> extends AbstractModule {
     bind(MusicFileService.class).to(MusicFileServiceImpl.class);
     bind(FileLocationFactory.class).to(FileLocationFactoryImpl.class);
     bind(FlacFileChecker.class).to(FlacFileCheckerImpl.class);
-    bind(Execution.class).to(getExecutionClass());
+    bind(getExecutionKey()).to(getExecutionClass());
     install(new ProcessRequestBuilderModule());
     bind(AmazonConfiguration.class).toProvider(AmazonConfigurationProvider.class);
     bind(Directories.class).toProvider(DirectoriesProvider.class);
@@ -132,11 +142,10 @@ public abstract class CommonModule<E extends Execution> extends AbstractModule {
   }
 
   /**
-   * A base class for {@link Provider}s based upon the already provided
+   * A base class for {@link Provider}s based upon the already provided.
+   *
+   * @param <C> the generic type
    * {@link Configuration} object.
-   * 
-   * @param <C>
-   *          the generic type
    * @author alex
    */
   static abstract class ConfigurationAwareProvider<C> implements Provider<C> {
@@ -266,6 +275,15 @@ public abstract class CommonModule<E extends Execution> extends AbstractModule {
    */
   public Class<E> getExecutionClass() {
     return executionClass;
+  }
+
+  /**
+   * Gets the {@link Key} to which the execution class should be bound.
+   *
+   * @return the {@link Key} to which the execution class should be bound
+   */
+  public Key<Execution<C>> getExecutionKey() {
+    return executionKey;
   }
 
   

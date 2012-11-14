@@ -48,9 +48,9 @@ import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FileLocationFactory;
 import uk.co.unclealex.process.inject.PackageCheckingModule;
 
-import com.lexicalscope.jewel.cli.CommandLineInterface;
 
 /**
+ * The main command for checking in files into the FLAC repository.
  * @author alex
  * 
  */
@@ -58,7 +58,7 @@ public class CheckinCommand extends Command<CheckinCommandLine> {
 
   @Inject
   public CheckinCommand(
-      Execution execution,
+      Execution<CheckinCommandLine> execution,
       Actions actions,
       @NoOwner FlacFilesValidator noOwnerFlacFilesValidator,
       @FindMissingCoverArt FlacFilesValidator findMissingCoverArtFlacFilesValidator,
@@ -90,9 +90,4 @@ public class CheckinCommand extends Command<CheckinCommandLine> {
     return fileLocationFactory.createStagingFileLocation(Paths.get(""));
   }
 
-}
-
-@CommandLineInterface(application = "flacman-checkin")
-interface CheckinCommandLine extends CommandLine {
-  // Marker interface.
 }

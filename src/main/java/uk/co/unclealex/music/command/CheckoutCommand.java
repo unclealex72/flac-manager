@@ -46,7 +46,6 @@ import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FileLocationFactory;
 import uk.co.unclealex.process.inject.PackageCheckingModule;
 
-import com.lexicalscope.jewel.cli.CommandLineInterface;
 
 /**
  * @author alex
@@ -56,7 +55,7 @@ public class CheckoutCommand extends Command<CheckoutCommandLine> {
 
   @Inject
   public CheckoutCommand(
-      Execution execution,
+      Execution<CheckoutCommandLine> execution,
       Actions actions,
       @Unique FlacFilesValidator uniqueFlacFilesValidator,
       @NoOverwriting FlacFilesValidator noOverwritingFlacFilesValidator,
@@ -85,9 +84,4 @@ public class CheckoutCommand extends Command<CheckoutCommandLine> {
     return fileLocationFactory.createFlacFileLocation(Paths.get(""));
   }
 
-}
-
-@CommandLineInterface(application = "flacman-checkout")
-interface CheckoutCommandLine extends CommandLine {
-  // Marker interface.
 }

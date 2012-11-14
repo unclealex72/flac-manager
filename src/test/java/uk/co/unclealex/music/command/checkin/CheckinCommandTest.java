@@ -40,6 +40,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
@@ -60,6 +61,7 @@ import uk.co.unclealex.music.action.LinkAction;
 import uk.co.unclealex.music.action.MoveAction;
 import uk.co.unclealex.music.command.AbstractCommandTest;
 import uk.co.unclealex.music.command.CheckinCommand;
+import uk.co.unclealex.music.command.CheckinCommandLine;
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
 import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FileLocationFactory;
@@ -127,7 +129,7 @@ public class CheckinCommandTest extends AbstractCommandTest<CheckinCommand> {
             any(Actions.class),
             argThat(contains(Iterables.toArray(queenFileLocations, FileLocation.class))),
             anyMapOf(FileLocation.class, MusicFile.class))).thenAnswer(mappingAnswer);
-    command.execute(Collections.singletonList(stagingDir.resolve().toString()));
+    command.execute(commandLine(Collections.singletonList(stagingDir.resolve().toString())));
     FileLocation originalDeathOnTwoLegsFlacLocation =
         fileLocationFactory.createStagingFileLocation(Paths.get(
             "queen - a night at the opera",
@@ -189,6 +191,25 @@ public class CheckinCommandTest extends AbstractCommandTest<CheckinCommand> {
         new MoveAction(originalFatBottomedGirlsFlacLocation, newFatBottomedGirlsFlacLocation) }));
   }
   
+  /**
+   * @param flacPaths
+   * @return
+   */
+  protected CheckinCommandLine commandLine(final List<String> flacPaths) {
+    return new CheckinCommandLine() {
+      
+      @Override
+      public boolean getHelp() {
+        return false;
+      }
+      
+      @Override
+      public List<String> getFlacPaths() {
+        return flacPaths;
+      }
+    };
+  }
+
   @Test
   public void testCheckinFailures() throws InvalidDirectoriesException, IOException, URISyntaxException {
     final FileLocationFactory fileLocationFactory = injector.getInstance(FileLocationFactory.class);
@@ -228,7 +249,7 @@ public class CheckinCommandTest extends AbstractCommandTest<CheckinCommand> {
             any(Actions.class),
             argThat(contains(Iterables.toArray(queenFileLocations, FileLocation.class))),
             anyMapOf(FileLocation.class, MusicFile.class))).thenAnswer(mappingAnswer);
-    command.execute(Collections.singletonList(stagingDir.resolve().toString()));
+    command.execute(commandLine(Collections.singletonList(stagingDir.resolve().toString())));
     FileLocation originalDeathOnTwoLegsFlacLocation =
         fileLocationFactory.createStagingFileLocation(Paths.get(
             "queen - a night at the opera",

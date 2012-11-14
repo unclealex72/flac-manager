@@ -37,7 +37,7 @@ import uk.co.unclealex.music.files.FileLocation;
  * @author alex
  * 
  */
-public interface Execution {
+public interface Execution<C extends CommandLine> {
 
   /**
    * Create a list of actions that are needed to execute a command on a FLAC
@@ -51,6 +51,6 @@ public interface Execution {
    * @return An {@link Actions} object containing all the actions that need to
    *         be executed.
    */
-  public Actions execute(Actions actions, FileLocation flacFileLocation, MusicFile musicFile)
+  public Actions execute(C commandLine, Actions actions, FileLocation flacFileLocation, MusicFile musicFile)
       throws IOException;
 }

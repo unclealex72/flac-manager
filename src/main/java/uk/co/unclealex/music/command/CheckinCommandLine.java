@@ -22,27 +22,16 @@
  *
  */
 
-package uk.co.unclealex.music.command.checkin;
+package uk.co.unclealex.music.command;
 
-import uk.co.unclealex.music.command.CheckinCommandLine;
-import uk.co.unclealex.music.command.Execution;
-import uk.co.unclealex.music.command.inject.CommonModule;
-
-import com.google.inject.TypeLiteral;
+import com.lexicalscope.jewel.cli.CommandLineInterface;
 
 /**
- * The module for the checkin command.
- * 
+ * The command line for the {@link CheckinCommand}.
  * @author alex
- * 
+ *
  */
-public class CheckinModule extends CommonModule<CheckinCommandLine, CheckinExecution> {
-
-  /**
-   * Instantiates a new checkin module.
-   */
-  public CheckinModule() {
-    super(CheckinExecution.class, new TypeLiteral<Execution<CheckinCommandLine>>() {
-    });
-  }
+@CommandLineInterface(application = "flacman-checkin")
+public interface CheckinCommandLine extends CommandLine {
+  // Marker interface.
 }

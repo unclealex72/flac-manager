@@ -31,6 +31,7 @@ import javax.inject.Inject;
 
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.action.Actions;
+import uk.co.unclealex.music.command.CheckinCommandLine;
 import uk.co.unclealex.music.command.Execution;
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.files.Extension;
@@ -45,7 +46,7 @@ import uk.co.unclealex.music.musicbrainz.OwnerService;
  * @author alex
  * 
  */
-public class CheckinExecution implements Execution {
+public class CheckinExecution implements Execution<CheckinCommandLine> {
 
   /**
    * The {@link FilenameService} used to calculate file names from
@@ -88,7 +89,11 @@ public class CheckinExecution implements Execution {
    * {@inheritDoc}
    */
   @Override
-  public Actions execute(Actions actions, FileLocation flacFileLocation, MusicFile musicFile) throws IOException {
+  public Actions execute(
+      CheckinCommandLine checkinCommandLine,
+      Actions actions,
+      FileLocation flacFileLocation,
+      MusicFile musicFile) throws IOException {
     FilenameService filenameService = getFilenameService();
     FileLocationFactory fileLocationFactory = getFileLocationFactory();
     if (musicFile.getCoverArt() == null) {

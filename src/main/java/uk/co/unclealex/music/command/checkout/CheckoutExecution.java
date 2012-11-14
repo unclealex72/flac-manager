@@ -31,6 +31,7 @@ import javax.inject.Inject;
 
 import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.action.Actions;
+import uk.co.unclealex.music.command.CheckoutCommandLine;
 import uk.co.unclealex.music.command.Execution;
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.devices.DeviceService;
@@ -44,7 +45,7 @@ import uk.co.unclealex.music.musicbrainz.OwnerService;
  * @author alex
  * 
  */
-public class CheckoutExecution implements Execution {
+public class CheckoutExecution implements Execution<CheckoutCommandLine> {
 
   /**
    * The {@link FileLocationFactory} used to create {@link FileLocation}s.
@@ -84,7 +85,11 @@ public class CheckoutExecution implements Execution {
    * {@inheritDoc}
    */
   @Override
-  public Actions execute(Actions actions, FileLocation flacFileLocation, MusicFile musicFile) throws IOException {
+  public Actions execute(
+      CheckoutCommandLine checkoutCommandLine,
+      Actions actions,
+      FileLocation flacFileLocation,
+      MusicFile musicFile) throws IOException {
     FilenameService filenameService = getFilenameService();
     FileLocationFactory fileLocationFactory = getFileLocationFactory();
     FileLocation encodedFileLocation =
