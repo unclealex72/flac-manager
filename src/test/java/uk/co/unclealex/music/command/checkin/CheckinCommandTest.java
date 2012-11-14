@@ -25,6 +25,7 @@
 package uk.co.unclealex.music.command.checkin;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyMapOf;
@@ -37,6 +38,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -53,6 +55,7 @@ import uk.co.unclealex.music.action.Actions;
 import uk.co.unclealex.music.action.AddArtworkAction;
 import uk.co.unclealex.music.action.CoverArtAction;
 import uk.co.unclealex.music.action.EncodeAction;
+import uk.co.unclealex.music.action.FailureAction;
 import uk.co.unclealex.music.action.LinkAction;
 import uk.co.unclealex.music.action.MoveAction;
 import uk.co.unclealex.music.command.AbstractCommandTest;
@@ -60,6 +63,7 @@ import uk.co.unclealex.music.command.CheckinCommand;
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
 import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FileLocationFactory;
+import uk.co.unclealex.music.message.MessageService;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
@@ -183,5 +187,79 @@ public class CheckinCommandTest extends AbstractCommandTest<CheckinCommand> {
             musicFileFor("fat_bottomed_girls_uncovered.json")),
         new LinkAction(originalFatBottomedGirlsEncodedLocation, brianMay, freddieMercury),
         new MoveAction(originalFatBottomedGirlsFlacLocation, newFatBottomedGirlsFlacLocation) }));
+  }
+  
+  @Test
+  public void testCheckinFailures() throws InvalidDirectoriesException, IOException, URISyntaxException {
+    final FileLocationFactory fileLocationFactory = injector.getInstance(FileLocationFactory.class);
+    final FileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
+    final Function<Path, FileLocation> queenFactory = new Function<Path, FileLocation>() {
+      public FileLocation apply(Path path) {
+        return fileLocationFactory.createStagingFileLocation(path);
+      }
+    };
+    final Map<Path, String> musicFilesByPath = Maps.newHashMap();
+    musicFilesByPath.put(
+        Paths.get("queen - a night at the opera", "01 death on two legs dedicated to.flac"),
+        "lazing_on_a_sunday_afternoon.json");
+    musicFilesByPath.put(
+        Paths.get("queen - a night at the opera", "02 lazing on a sunday afternoon.flac"),
+        "lazing_on_a_sunday_afternoon.json");
+    musicFilesByPath.put(Paths.get("queen - jazz", "02 fat bottomed girls.flac"), "fat_bottomed_girls_uncovered.json");
+    SortedSet<FileLocation> queenFileLocations =
+        Sets.newTreeSet(Iterables.transform(musicFilesByPath.keySet(), queenFactory));
+    when(directoryService.listFiles(eq(stagingDir), argThat(contains(stagingDir.resolve())))).thenReturn(
+        queenFileLocations);
+    own(musicFileFor("lazing_on_a_sunday_afternoon.json"), brianMay);
+    Answer<Actions> mappingAnswer = new Answer<Actions>() {
+      @Override
+      public Actions answer(InvocationOnMock invocation) throws IOException {
+        @SuppressWarnings("unchecked")
+        SortedMap<FileLocation, MusicFile> musicFilesByFileLocation =
+            (SortedMap<FileLocation, MusicFile>) invocation.getArguments()[2];
+        for (Entry<Path, String> entry : musicFilesByPath.entrySet()) {
+          musicFilesByFileLocation.put(queenFactory.apply(entry.getKey()), musicFileFor(entry.getValue()));
+        }
+        return (Actions) invocation.getArguments()[0];
+      }
+    };
+    when(
+        mappingService.mapPathsToMusicFiles(
+            any(Actions.class),
+            argThat(contains(Iterables.toArray(queenFileLocations, FileLocation.class))),
+            anyMapOf(FileLocation.class, MusicFile.class))).thenAnswer(mappingAnswer);
+    command.execute(Collections.singletonList(stagingDir.resolve().toString()));
+    FileLocation originalDeathOnTwoLegsFlacLocation =
+        fileLocationFactory.createStagingFileLocation(Paths.get(
+            "queen - a night at the opera",
+            "01 death on two legs dedicated to.flac"));
+    FileLocation originalLazingOnASundayAfternoonFlacLocation =
+        fileLocationFactory.createStagingFileLocation(Paths.get(
+            "queen - a night at the opera",
+            "02 lazing on a sunday afternoon.flac"));
+    FileLocation originalLazingOnASundayAfternoonEncodedLocation =
+        fileLocationFactory.createEncodedFileLocation(Paths.get(
+            "Q",
+            "Queen",
+            "A Night at the Opera 01",
+            "02 Lazing on a Sunday Afternoon.mp3"));
+    FileLocation newLazingOnASundayAfternoonFlacLocation =
+        fileLocationFactory.createFlacFileLocation(Paths.get(
+            "Q",
+            "Queen",
+            "A Night at the Opera 01",
+            "02 Lazing on a Sunday Afternoon.flac"));
+    FileLocation originalFatBottomedGirlsFlacLocation =
+        fileLocationFactory.createStagingFileLocation(Paths.get("queen - jazz", "02 fat bottomed girls.flac"));
+    assertThat("The wrong actions were recorded.", recordingActionExecutor.getExecutedActions(), containsInAnyOrder(new Action[] {
+        new FailureAction(originalFatBottomedGirlsFlacLocation, MessageService.NOT_OWNED),
+        new FailureAction(originalFatBottomedGirlsFlacLocation, MessageService.MISSING_ARTWORK),
+        new FailureAction(originalLazingOnASundayAfternoonEncodedLocation, MessageService.NON_UNIQUE, tracks(originalDeathOnTwoLegsFlacLocation, originalLazingOnASundayAfternoonFlacLocation)),
+        new FailureAction(newLazingOnASundayAfternoonFlacLocation, MessageService.NON_UNIQUE, tracks(originalDeathOnTwoLegsFlacLocation, originalLazingOnASundayAfternoonFlacLocation))
+    }));
+  }
+  
+  protected SortedSet<FileLocation> tracks(FileLocation... fileLocations) {
+    return Sets.newTreeSet(Arrays.asList(fileLocations));
   }
 }
