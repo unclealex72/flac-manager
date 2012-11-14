@@ -85,8 +85,15 @@ public class CheckoutExecution implements Execution<CheckoutCommandLine> {
    * {@inheritDoc}
    */
   @Override
+  public Actions initialise(Actions actions, CheckoutCommandLine commandLine) {
+    return actions;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Actions execute(
-      CheckoutCommandLine checkoutCommandLine,
       Actions actions,
       FileLocation flacFileLocation,
       MusicFile musicFile) throws IOException {

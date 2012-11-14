@@ -89,8 +89,15 @@ public class CheckinExecution implements Execution<CheckinCommandLine> {
    * {@inheritDoc}
    */
   @Override
+  public Actions initialise(Actions actions, CheckinCommandLine commandLine) {
+    return actions;
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Actions execute(
-      CheckinCommandLine checkinCommandLine,
       Actions actions,
       FileLocation flacFileLocation,
       MusicFile musicFile) throws IOException {

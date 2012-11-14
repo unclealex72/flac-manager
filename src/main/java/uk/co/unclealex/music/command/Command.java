@@ -155,8 +155,9 @@ public abstract class Command<C extends CommandLine> {
     if (actions.get().isEmpty()) {
       Execution<C> execution = getExecution();
       // Generate a list of actions that need to be executed.
+      actions = execution.initialise(actions, commandLine);
       for (Entry<FileLocation, MusicFile> entry : musicFilesByFileLocation.entrySet()) {
-        actions = execution.execute(commandLine, actions, entry.getKey(), entry.getValue());
+        actions = execution.execute(actions, entry.getKey(), entry.getValue());
       }
       // Validate all the actions and add any failures.
       for (FlacFilesValidator flacFilesValidator : getFlacFilesValidators()) {

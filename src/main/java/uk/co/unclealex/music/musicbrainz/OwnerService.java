@@ -30,7 +30,8 @@ import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.configuration.User;
 
 /**
- * An interface for classes that can determine who owns a release.
+ * An interface for classes that can determine who owns a release. Owning a release is synonymous with a release
+ * being in a MusicBrainz user's collection.
  * 
  * @author alex
  * 

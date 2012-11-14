@@ -40,6 +40,13 @@ import uk.co.unclealex.music.files.FileLocation;
 public interface Execution<C extends CommandLine> {
 
   /**
+   * Initialise this class.
+   * @param commandLine The command line that was supplied by the user.
+   * @return An {@link Actions} object that containing any errors found during initialisation.
+   */
+  public Actions initialise(Actions actions, C commandLine);
+  
+  /**
    * Create a list of actions that are needed to execute a command on a FLAC
    * file.
    * 
@@ -51,6 +58,6 @@ public interface Execution<C extends CommandLine> {
    * @return An {@link Actions} object containing all the actions that need to
    *         be executed.
    */
-  public Actions execute(C commandLine, Actions actions, FileLocation flacFileLocation, MusicFile musicFile)
+  public Actions execute(Actions actions, FileLocation flacFileLocation, MusicFile musicFile)
       throws IOException;
 }
