@@ -208,6 +208,39 @@ public class ActionFunction<V> extends ActionVisitor.Default implements Function
     return getDefaultValue();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void visit(ChangeOwnerAction changeOwnerAction) throws IOException {
+    setValue(visitAndReturn(changeOwnerAction));
+  }
+
+  /**
+   * Return a value for a {@link ChangeOwnerAction}.
+   * @param changeOwnerAction The {@link ChangeOwnerAction} that was visited.
+   * @return The default Value.
+   */
+  protected V visitAndReturn(ChangeOwnerAction changeOwnerAction) {
+    return getDefaultValue();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void visit(UpdateOwnershipAction updateOwnershipAction) throws IOException {
+    setValue(visitAndReturn(updateOwnershipAction));
+  }
+
+  /**
+   * Return a value for a {@link UpdateOwnershipAction}.
+   * @param updateOwnershipAction The {@link UpdateOwnershipAction} that was visited.
+   * @return The default Value.
+   */
+  protected V visitAndReturn(UpdateOwnershipAction updateOwnershipAction) {
+    return getDefaultValue();
+  }
 
   /**
    * Gets the value to return.

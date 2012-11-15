@@ -131,4 +131,24 @@ public interface ActionVisitor {
    */
   public void visit(CoverArtAction coverArtAction) throws IOException;
 
+  /**
+   * Add a change of ownership to the list of ownership changes.
+   * 
+   * @param changeOwnerAction
+   *          The {@link Action} containing information on which FLAC files need
+   *          their ownerships changed.
+   * @throws IOException
+   */
+  public void visit(ChangeOwnerAction changeOwnerAction) throws IOException;
+
+  /**
+   * Update the ownership of changed files in MusicBrainz.
+   * 
+   * @param updateOwnershipAction
+   *          The {@link Action} indicating changes are to be committed to
+   *          MusicBrainz.
+   * @throws IOException
+   */
+  public void visit(UpdateOwnershipAction updateOwnershipAction) throws IOException;
+
 }

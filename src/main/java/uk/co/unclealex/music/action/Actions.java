@@ -138,6 +138,31 @@ public interface Actions extends Supplier<List<Action>>, Iterable<Action> {
   public Actions unlink(FileLocation encodedFileLocation, Iterable<User> users);
 
   /**
+   * Add a new {@link ChangeOwnerAction}.
+   * 
+   * @param flacFileLocation
+   *          The location of the FLAC file whose ownership is to be changed.
+   * @param musicFile
+   *          The music file whose ownership is to be changed.
+   * @param addOwners
+   *          True if owners are to be added, false otherwise.
+   * @param ownersToChange
+   *          The owners who are being added or removed.
+   * @return An {@link Actions} object with the new {@link Action} added to its
+   *         actions.
+   */
+  public Actions changeOwnership(
+      FileLocation flacFileLocation,
+      MusicFile musicFile,
+      boolean addOwners,
+      List<User> ownersToChange);
+
+  /**
+   * Add a new {@link UpdateOwnershipAction}.
+   */
+  public Actions updateOwnership();
+
+  /**
    * Add a new {@link Action}.
    * 
    * @param action

@@ -117,6 +117,22 @@ public class ActionsImpl implements Actions {
    * {@inheritDoc}
    */
   @Override
+  public Actions changeOwnership(FileLocation flacFileLocation, MusicFile musicFile, boolean addOwners, List<User> ownersToChange) {
+    return actions().changeOwnership(flacFileLocation, musicFile, addOwners, ownersToChange);
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Actions updateOwnership() {
+    return actions().updateOwnership();
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Actions then(Action action) {
     return new ListOfActions().then(action);
   }
@@ -250,6 +266,24 @@ public class ActionsImpl implements Actions {
       return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Actions changeOwnership(FileLocation flacFileLocation, MusicFile musicFile, boolean addOwners, List<User> ownersToChange) {
+      getActions().add(new ChangeOwnerAction(flacFileLocation, musicFile, addOwners, ownersToChange));
+      return this;
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Actions updateOwnership() {
+      getActions().add(new UpdateOwnershipAction());
+      return this;
+    }
+    
     /**
      * {@inheritDoc}
      */

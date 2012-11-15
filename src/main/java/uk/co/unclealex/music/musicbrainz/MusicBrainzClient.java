@@ -62,7 +62,7 @@ public interface MusicBrainzClient {
    * @param newReleaseIds The new releases to add to the user's collection.
    * @throws thrown if a unique collection cannot be found.
    */
-  public void addReleases(User user, Iterable<String> newReleaseIds) throws NoCollectionException;
+  public void addReleases(User user, Iterable<? extends String> newReleaseIds) throws NoCollectionException;
 
   /**
    * Remove releases from an owner's collection.
@@ -70,5 +70,5 @@ public interface MusicBrainzClient {
    * @param oldReleaseIds The old releases to remove from the user's collection.
    * @throws thrown if a unique collection cannot be found.
    */
-  public void removeReleases(User user, Iterable<String> oldReleaseIds) throws NoCollectionException;
+  public void removeReleases(User user, Iterable<? extends String> oldReleaseIds) throws NoCollectionException;
 }

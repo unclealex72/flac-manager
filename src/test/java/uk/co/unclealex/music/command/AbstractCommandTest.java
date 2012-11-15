@@ -56,6 +56,7 @@ import uk.co.unclealex.music.configuration.json.ConfigurationBean;
 import uk.co.unclealex.music.configuration.json.PathsBean;
 import uk.co.unclealex.music.configuration.json.UserBean;
 import uk.co.unclealex.music.files.DirectoryService;
+import uk.co.unclealex.music.musicbrainz.MusicBrainzClient;
 import uk.co.unclealex.music.musicbrainz.OwnerService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -99,6 +100,8 @@ public abstract class AbstractCommandTest<C extends Command<?>> {
   public MappingService mappingService;
   @Mock
   public DirectoryService directoryService;
+  @Mock public MusicBrainzClient musicBrainzClient;
+  
   public RecordingActionExecutor recordingActionExecutor;
   public StringWriter stdout;
 
@@ -129,6 +132,7 @@ public abstract class AbstractCommandTest<C extends Command<?>> {
         bind(getCommandClass());
         bind(MappingService.class).toInstance(mappingService);
         bind(DirectoryService.class).toInstance(directoryService);
+        bind(MusicBrainzClient.class).toInstance(musicBrainzClient);
         bind(PrintWriter.class).annotatedWith(Stdout.class).toInstance(new PrintWriter(stdout));
       }
     };

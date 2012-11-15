@@ -42,6 +42,8 @@ import uk.co.unclealex.music.command.Execution;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkService;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkServiceImpl;
 import uk.co.unclealex.music.command.inject.CommonModule.ConfigurationAwareProvider.DirectoriesProvider;
+import uk.co.unclealex.music.command.validation.CommitOwnership;
+import uk.co.unclealex.music.command.validation.CommitOwnershipFlacFilesValidator;
 import uk.co.unclealex.music.command.validation.FailuresOnly;
 import uk.co.unclealex.music.command.validation.FailuresOnlyFlacFilesValidator;
 import uk.co.unclealex.music.command.validation.FindMissingCoverArt;
@@ -71,6 +73,8 @@ import uk.co.unclealex.music.files.ProtectionAwareFileUtils;
 import uk.co.unclealex.music.files.ProtectionServiceImpl;
 import uk.co.unclealex.music.message.MessageService;
 import uk.co.unclealex.music.message.MessageServiceImpl;
+import uk.co.unclealex.music.musicbrainz.ChangeOwnershipService;
+import uk.co.unclealex.music.musicbrainz.ChangeOwnershipServiceImpl;
 import uk.co.unclealex.process.inject.ProcessRequestBuilderModule;
 
 import com.google.inject.AbstractModule;
@@ -125,12 +129,14 @@ public abstract class CommonModule<C extends CommandLine, E extends Execution<C>
     bind(FileUtils.class).toInstance(new ProtectionAwareFileUtils(new FileUtilsImpl(), new ProtectionServiceImpl()));
     bind(MessageService.class).to(MessageServiceImpl.class);
     bind(ArtworkService.class).to(ArtworkServiceImpl.class);
+    bind(ChangeOwnershipService.class).to(ChangeOwnershipServiceImpl.class);
     bind(FlacFilesValidator.class).annotatedWith(FindMissingCoverArt.class).to(
         FindMissingCoverArtFlacFilesValidator.class);
     bind(FlacFilesValidator.class).annotatedWith(FailuresOnly.class).to(FailuresOnlyFlacFilesValidator.class);
     bind(FlacFilesValidator.class).annotatedWith(NoOverwriting.class).to(NoOverwritingFlacFilesValidator.class);
     bind(FlacFilesValidator.class).annotatedWith(Unique.class).to(UniqueFlacFilesValidator.class);
     bind(FlacFilesValidator.class).annotatedWith(NoOwner.class).to(NoOwnerFlacFilesValidator.class);
+    bind(FlacFilesValidator.class).annotatedWith(CommitOwnership.class).to(CommitOwnershipFlacFilesValidator.class);
     bind(MusicFileService.class).to(MusicFileServiceImpl.class);
     bind(FileLocationFactory.class).to(FileLocationFactoryImpl.class);
     bind(FlacFileChecker.class).to(FlacFileCheckerImpl.class);

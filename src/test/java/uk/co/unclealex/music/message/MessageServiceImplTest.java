@@ -31,11 +31,17 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.junit.Test;
 
+import uk.co.unclealex.music.configuration.Device;
+import uk.co.unclealex.music.configuration.User;
+import uk.co.unclealex.music.configuration.json.UserBean;
 import uk.co.unclealex.music.files.FileLocation;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author alex
@@ -48,6 +54,9 @@ public class MessageServiceImplTest {
   FileLocation fl3 = new FileLocation(Paths.get("/mnt", "flac"), Paths.get("yetanotherflacfile.flac"), true);
   FileLocation fl4 = new FileLocation(Paths.get("/mnt", "mp3"), Paths.get("myflacfile.mp3"), true);
 
+  User brianMay = new UserBean("brian", "Brian May", "pwd", new ArrayList<Device>());
+  User freddieMercury = new UserBean("freddie", "Freddie Mercury", "pwd", new ArrayList<Device>());
+  
   @Test
   public void testArtwork() throws URISyntaxException {
     runTest(
@@ -113,6 +122,26 @@ public class MessageServiceImplTest {
     runTest("Removing link /mnt/flac/yetanotherflacfile.flac", MessageService.UNLINK, fl1, fl3);
   }
 
+  @Test
+  public void testUnknownUser() {
+    runTest("brian is not a valid user name", MessageService.UNKNOWN_USER, "brian");
+  }
+
+  @Test
+  public void testAddOwner() {
+    runTest("Adding owners brian and freddie to /mnt/flac/myflacfile.flac", MessageService.ADD_OWNER, fl1, Lists.newArrayList(brianMay, freddieMercury));
+  }
+  
+  @Test
+  public void testRemoveOwner() {
+    runTest("Removing owners brian and freddie from /mnt/flac/myflacfile.flac", MessageService.REMOVE_OWNER, fl1, Lists.newArrayList(brianMay, freddieMercury));
+  }
+  
+  @Test
+  public void testCommitOwnership() {
+    runTest("Committing ownership changes to MusicBrainz", MessageService.COMMIT_OWNERSHIP);
+  }
+  
   @Test
   public void testFree() {
     runTest("My own message", "My own message");

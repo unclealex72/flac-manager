@@ -34,6 +34,7 @@ import java.util.ResourceBundle;
 import javax.inject.Inject;
 
 import uk.co.unclealex.executable.streams.Stdout;
+import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.files.FileLocation;
 
 import com.google.common.base.Function;
@@ -124,6 +125,9 @@ public class MessageServiceImpl implements MessageService {
       }
       else if (input instanceof FileLocation) {
         return ((FileLocation) input).resolve().toString();
+      }
+      else if (input instanceof User) {
+        return ((User) input).getName();
       }
       else {
         return input;

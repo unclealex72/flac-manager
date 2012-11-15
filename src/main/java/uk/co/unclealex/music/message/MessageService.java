@@ -93,6 +93,26 @@ public interface MessageService {
   public String UNLINK = "unlink";
 
   /**
+   * The key for producing unknown user messages.
+   */
+  public String UNKNOWN_USER = "unknownUser";
+
+  /**
+   * The key for producing add owner messages.
+   */
+  public String ADD_OWNER = "addOwner";
+
+  /**
+   * The key for producing remove owner messages.
+   */
+  public String REMOVE_OWNER = "removeOwner";
+
+  /**
+   * The key for producing commit ownership changes messages.
+   */
+  public String COMMIT_OWNERSHIP = "commitOwnership";
+
+  /**
    * Print an internationalised message.
    * 
    * @param template

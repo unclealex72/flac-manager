@@ -126,7 +126,7 @@ public class MusicBrainzClientImpl implements MusicBrainzClient {
    * {@inheritDoc}
    */
   @Override
-  public void addReleases(User user, Iterable<String> newReleaseIds) throws NoCollectionException {
+  public void addReleases(User user, Iterable<? extends String> newReleaseIds) throws NoCollectionException {
     WebResourceAction put = new WebResourceAction() {
       @Override
       public void act(WebResource webResource) {
@@ -140,7 +140,7 @@ public class MusicBrainzClientImpl implements MusicBrainzClient {
    * {@inheritDoc}
    */
   @Override
-  public void removeReleases(User user, Iterable<String> oldReleaseIds) throws NoCollectionException {
+  public void removeReleases(User user, Iterable<? extends String> oldReleaseIds) throws NoCollectionException {
     WebResourceAction delete = new WebResourceAction() {
       @Override
       public void act(WebResource webResource) {
@@ -157,9 +157,9 @@ public class MusicBrainzClientImpl implements MusicBrainzClient {
    * @param action The web method to execute.
    * @throws NoCollectionException 
    */
-  private void alterReleases(User user, Iterable<String> releaseIds, WebResourceAction action) throws NoCollectionException {
+  private void alterReleases(User user, Iterable<? extends String> releaseIds, WebResourceAction action) throws NoCollectionException {
     String collectionId = findUsersCollection(user).getLeft();
-    for (Iterable<String> partition : Iterables.partition(releaseIds, RELEASE_PATH_LIMIT)) {
+    for (Iterable<? extends String> partition : Iterables.partition(releaseIds, RELEASE_PATH_LIMIT)) {
       String releasesPath = Joiner.on(';').join(partition);
       action.act(releases(user, collectionId).path(releasesPath));
     }

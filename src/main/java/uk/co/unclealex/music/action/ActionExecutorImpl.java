@@ -38,6 +38,7 @@ import uk.co.unclealex.music.devices.DeviceService;
 import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.files.FileUtils;
 import uk.co.unclealex.music.message.MessageService;
+import uk.co.unclealex.music.musicbrainz.ChangeOwnershipService;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -64,31 +65,54 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
    * The {@link ArtworkService} used to add cover art to a file.
    */
   private final ArtworkService artworkService;
-  
+
   /**
    * The {@link EncodingService} used to encode FLAC files to MP3 files.
    */
   private final EncodingService encodingService;
-  
+
   /**
    * The {@link DeviceService} that knows about devices.
    */
   private final DeviceService deviceService;
-  
-  
+
+  /**
+   * The {@link ChangeOwnershipService} used to track and commit changes to file
+   * ownership.
+   */
+  private final ChangeOwnershipService changeOwnershipService;
+
+  /**
+   * Instantiates a new action executor impl.
+   * 
+   * @param messageService
+   *          the message service
+   * @param fileUtils
+   *          the file utils
+   * @param artworkService
+   *          the artwork service
+   * @param encodingService
+   *          the encoding service
+   * @param deviceService
+   *          the device service
+   * @param changeOwnershipService
+   *          the change ownership service
+   */
   @Inject
   public ActionExecutorImpl(
       MessageService messageService,
       FileUtils fileUtils,
       ArtworkService artworkService,
-      EncodingService encodingService, 
-      DeviceService deviceService) {
+      EncodingService encodingService,
+      DeviceService deviceService,
+      ChangeOwnershipService changeOwnershipService) {
     super();
     this.messageService = messageService;
     this.fileUtils = fileUtils;
     this.artworkService = artworkService;
     this.encodingService = encodingService;
     this.deviceService = deviceService;
+    this.changeOwnershipService = changeOwnershipService;
   }
 
   /**
@@ -156,7 +180,7 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
       fileUtils.link(targetLocation, linkLocation);
     }
   }
-  
+
   /**
    * {@inheritDoc}
    */
@@ -171,6 +195,31 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
       messageService.printMessage(MessageService.UNLINK, targetLocation, linkLocation);
       fileUtils.remove(linkLocation);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void visit(ChangeOwnerAction changeOwnerAction) throws IOException {
+    boolean addOwner = changeOwnerAction.isAddOwner();
+    String template = addOwner ? MessageService.ADD_OWNER : MessageService.REMOVE_OWNER;
+    FileLocation fileLocation = changeOwnerAction.getFileLocation();
+    List<User> newOwners = changeOwnerAction.getNewOwners();
+    getMessageService().printMessage(template, fileLocation, newOwners);
+    getChangeOwnershipService().changeOwnership(
+        changeOwnerAction.getMusicFile(),
+        addOwner,
+        newOwners);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void visit(UpdateOwnershipAction updateOwnershipAction) throws IOException {
+    getMessageService().printMessage(MessageService.COMMIT_OWNERSHIP);
+    getChangeOwnershipService().commitChanges();
   }
 
   /**
@@ -198,7 +247,7 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
 
   /**
    * Gets the {@link FileUtils} used to move and write protect files.
-   *
+   * 
    * @return the {@link FileUtils} used to move and write protect files
    */
   public FileUtils getFileUtils() {
@@ -207,7 +256,7 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
 
   /**
    * Gets the {@link MessageService} used to display messages to the user.
-   *
+   * 
    * @return the {@link MessageService} used to display messages to the user
    */
   public MessageService getMessageService() {
@@ -216,7 +265,7 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
 
   /**
    * Gets the {@link ArtworkService} used to add cover art to a file.
-   *
+   * 
    * @return the {@link ArtworkService} used to add cover art to a file
    */
   public ArtworkService getArtworkService() {
@@ -225,7 +274,7 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
 
   /**
    * Gets the {@link EncodingService} used to encode FLAC files to MP3 files.
-   *
+   * 
    * @return the {@link EncodingService} used to encode FLAC files to MP3 files
    */
   public EncodingService getEncodingService() {
@@ -234,11 +283,22 @@ public class ActionExecutorImpl extends ActionVisitor.Default implements ActionE
 
   /**
    * Gets the {@link DeviceService} that knows about devices.
-   *
+   * 
    * @return the {@link DeviceService} that knows about devices
    */
   public DeviceService getDeviceService() {
     return deviceService;
+  }
+
+  /**
+   * Gets the {@link ChangeOwnershipService} used to track and commit changes to
+   * file ownership.
+   * 
+   * @return the {@link ChangeOwnershipService} used to track and commit changes
+   *         to file ownership
+   */
+  public ChangeOwnershipService getChangeOwnershipService() {
+    return changeOwnershipService;
   }
 
 }
