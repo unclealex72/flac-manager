@@ -32,6 +32,11 @@ import java.nio.file.Paths;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.Validator;
 import uk.co.unclealex.music.action.ActionExecutor;
@@ -105,6 +110,8 @@ public class ExternalModule extends AbstractModule {
    */
   static class ConfigurationProvider implements Provider<Configuration> {
 
+    private static final Logger log = LoggerFactory.getLogger(ConfigurationProvider.class);
+    
     /**
      * The {@link Validator} used to validate the JSON configuration.
      */
@@ -131,6 +138,12 @@ public class ExternalModule extends AbstractModule {
       try (InputStream in = Files.newInputStream(configurationPath)) {
         Configuration configuration = new JsonConfigurationFactory().load(in);
         return getValidator().validate(configuration, "The configuration is invalid");
+      }
+      catch (ConstraintViolationException e) {
+        for (ConstraintViolation<?> cv : e.getConstraintViolations()) {
+          log.error(cv.getPropertyPath() + ": " + cv.getMessage());
+        }
+        return null;
       }
       catch (IOException e) {
         throw new IllegalStateException("Could not read configuration file ", e);
