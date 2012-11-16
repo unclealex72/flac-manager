@@ -95,25 +95,26 @@ public class ConfigurationValidationTest {
         IsDirectory.class,
         "directories",
         "encodedPath"), Violation.expect(CanRead.class, "directories", "encodedPath"), Violation.expect(
-        CanWrite.class,
+        IsDirectory.class,
         "directories",
-        "encodedPath"), Violation.expect(IsDirectory.class, "directories", "flacPath"), Violation.expect(
-        CanRead.class,
+        "flacPath"), Violation.expect(CanRead.class, "directories", "flacPath"), Violation.expect(
+        IsDirectory.class,
         "directories",
-        "flacPath"), Violation.expect(IsDirectory.class, "directories", "devicesPath"), Violation.expect(
-        CanRead.class,
-        "directories",
-        "devicesPath"), Violation.expect(CanWrite.class, "directories", "devicesPath"));
+        "devicesPath"), Violation.expect(CanRead.class, "directories", "devicesPath"));
   }
 
   @Test
   public void testUserRequiresUserNamePasswordAndDevices() throws Exception {
-    testValidate(
-        new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean(null, null, null, null)), defaultAmazonBean),
-        Violation.expect(NotEmpty.class, "users[0]", "name"),
-        Violation.expect(NotEmpty.class, "users[0]", "musicBrainzUserName"),
-        Violation.expect(NotEmpty.class, "users[0]", "musicBrainzPassword"),
-        Violation.expect(NotEmpty.class, "users[0]", "devices"));
+    testValidate(new ConfigurationBean(
+        defaultPathBean,
+        Lists.newArrayList(new UserBean(null, null, null, null)),
+        defaultAmazonBean), Violation.expect(NotEmpty.class, "users[0]", "name"), Violation.expect(
+        NotEmpty.class,
+        "users[0]",
+        "musicBrainzUserName"), Violation.expect(NotEmpty.class, "users[0]", "musicBrainzPassword"), Violation.expect(
+        NotEmpty.class,
+        "users[0]",
+        "devices"));
   }
 
   @Test

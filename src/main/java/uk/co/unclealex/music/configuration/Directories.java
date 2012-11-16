@@ -56,7 +56,6 @@ public interface Directories {
    */
   @IsDirectory
   @CanRead
-  @CanWrite
   @NotNull
   public Path getDevicesPath();
 
@@ -67,7 +66,6 @@ public interface Directories {
    */
   @IsDirectory
   @CanRead
-  @CanWrite
   @NotNull
   public Path getEncodedPath();
 
