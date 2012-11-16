@@ -26,6 +26,8 @@ package uk.co.unclealex.music.command;
 
 import java.util.List;
 
+import com.lexicalscope.jewel.cli.Unparsed;
+
 import uk.co.unclealex.executable.StandardHelpCommandLine;
 
 /**
@@ -39,5 +41,6 @@ public interface CommandLine extends StandardHelpCommandLine {
    * Get a list of FLAC directories that the command is to operated upon.
    * @return A list of FLAC directories that the command is to operated upon.
    */
+  @Unparsed
   public List<String> getFlacPaths();
 }
