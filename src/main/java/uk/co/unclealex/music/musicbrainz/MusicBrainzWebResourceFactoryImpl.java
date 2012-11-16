@@ -24,13 +24,14 @@
 
 package uk.co.unclealex.music.musicbrainz;
 
+import static com.sun.jersey.client.apache.config.ApacheHttpClientConfig.PROPERTY_PREEMPTIVE_AUTHENTICATION;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -49,10 +50,10 @@ import com.sun.jersey.api.client.ClientRequest;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.ClientFilter;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import com.sun.jersey.client.apache.ApacheHttpClient;
+import com.sun.jersey.client.apache.config.ApacheHttpClientConfig;
+import com.sun.jersey.client.apache.config.DefaultApacheHttpClientConfig;
 
 /**
  * The default implementation of {@link MusicBrainzClient}. This class takes
@@ -64,7 +65,6 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
  * @author alex
  * 
  */
-@Consumes(MediaType.APPLICATION_XML)
 public class MusicBrainzWebResourceFactoryImpl implements MusicBrainzWebResourceFactory, MessageBodyReader<Document> {
 
   /** The user agent to send to MusicBrainz. */
@@ -103,13 +103,14 @@ public class MusicBrainzWebResourceFactoryImpl implements MusicBrainzWebResource
    */
   @Override
   public WebResource webResource(User user) {
-    ClientConfig cc = new DefaultClientConfig();
+    ApacheHttpClientConfig cc = new DefaultApacheHttpClientConfig();
     cc.getSingletons().add(this);
-    Client client = Client.create(cc);
-    client.addFilter(getMusicBrainzRetryFilter());
+    cc.getProperties().put(PROPERTY_PREEMPTIVE_AUTHENTICATION, true);
     if (user != null) {
-      client.addFilter(new HTTPBasicAuthFilter(user.getMusicBrainzUserName(), user.getMusicBrainzPassword()));
+      cc.getState().setCredentials("musicbrainz.org", null, -1, user.getMusicBrainzUserName(), user.getMusicBrainzPassword());
     }
+    Client client = ApacheHttpClient.create(cc);
+    client.addFilter(getMusicBrainzRetryFilter());
     ClientFilter userAgentClientFilter = new ClientFilter() {
       @Override
       public ClientResponse handle(ClientRequest cr) throws ClientHandlerException {

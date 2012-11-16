@@ -52,6 +52,7 @@ import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.SecurityHandler;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
+import org.eclipse.jetty.security.authentication.DigestAuthenticator;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -163,7 +164,7 @@ public abstract class MusicBrainzTester {
       }
     };
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-    context.setSecurityHandler(basicAuth("Brian", "may", "MyRealm"));
+    context.setSecurityHandler(digestAuth("Brian", "may", "musicbrainz.org"));
     context.setContextPath("/");
     server.setHandler(context);
     ServletHolder servletHolder = new ServletHolder(servlet);
@@ -175,14 +176,14 @@ public abstract class MusicBrainzTester {
         new MusicBrainzWebResourceFactoryImpl("http://localhost:" + port + "/", countingMusicBrainzRetryFilter);
   }
 
-  protected final SecurityHandler basicAuth(String username, String password, String realm) {
+  protected final SecurityHandler digestAuth(String username, String password, String realm) {
 
     HashLoginService l = new HashLoginService();
     l.putUser(username, Credential.getCredential(password), new String[] { "user" });
     l.setName(realm);
 
     Constraint constraint = new Constraint();
-    constraint.setName(Constraint.__BASIC_AUTH);
+    constraint.setName(Constraint.__DIGEST_AUTH);
     constraint.setRoles(new String[] { "user" });
     constraint.setAuthenticate(true);
 
@@ -191,7 +192,7 @@ public abstract class MusicBrainzTester {
     cm.setPathSpec("/*");
 
     ConstraintSecurityHandler csh = new ConstraintSecurityHandler();
-    csh.setAuthenticator(new BasicAuthenticator());
+    csh.setAuthenticator(new DigestAuthenticator());
     csh.setRealmName(realm);
     csh.addConstraintMapping(cm);
     csh.setLoginService(l);

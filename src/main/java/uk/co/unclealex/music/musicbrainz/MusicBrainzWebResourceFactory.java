@@ -38,7 +38,7 @@ public interface MusicBrainzWebResourceFactory {
   /**
    * Create a new {@link WebResource} that can be used with MusicBrainz. The created resource will point
    * to the base resource, have a valid user agent, be aware of throttling and also be able to 
-   * negotiate BASIC authentication.
+   * negotiate DIGEST authentication.
    *
    * @param user the user who is making the request or null if no authentication is needed.
    * @return A ready to use {@link WebResource}.
