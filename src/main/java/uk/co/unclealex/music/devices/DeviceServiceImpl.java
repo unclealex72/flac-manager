@@ -24,7 +24,7 @@
 
 package uk.co.unclealex.music.devices;
 
-import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.inject.Inject;
 
@@ -48,8 +48,9 @@ public class DeviceServiceImpl implements DeviceService {
 
   /**
    * Instantiates a new device service impl.
-   *
-   * @param directories the directories
+   * 
+   * @param directories
+   *          the directories
    */
   @Inject
   public DeviceServiceImpl(Directories directories) {
@@ -58,29 +59,20 @@ public class DeviceServiceImpl implements DeviceService {
   }
 
   /**
-   * Get the base path of a device. This is a directory with the name of its
-   * owner underneath the main devices directory.
-   * 
-   * @param owner
-   *          The device's owner.
-   * @return The base path of a device.
-   */
-  protected Path getBasePathForUser(User owner) {
-    return getDirectories().getDevicesPath().resolve(owner.getName());
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
   public FileLocation getLinkLocation(User owner, FileLocation encodedLocation) {
-    return new FileLocation(getBasePathForUser(owner), encodedLocation.getRelativePath(), true);
+    return new FileLocation(getDirectories().getDevicesPath(), Paths.get(owner.getName()).resolve(
+        encodedLocation.getRelativePath()), true);
   }
 
   /**
-   * Gets the {@link Directories} object used to find where the base device directory is.
-   *
-   * @return the {@link Directories} object used to find where the base device directory is
+   * Gets the {@link Directories} object used to find where the base device
+   * directory is.
+   * 
+   * @return the {@link Directories} object used to find where the base device
+   *         directory is
    */
   public Directories getDirectories() {
     return directories;
