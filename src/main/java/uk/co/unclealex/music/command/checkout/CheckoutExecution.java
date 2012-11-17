@@ -93,10 +93,7 @@ public class CheckoutExecution implements Execution<CheckoutCommandLine> {
    * {@inheritDoc}
    */
   @Override
-  public Actions execute(
-      Actions actions,
-      FileLocation flacFileLocation,
-      MusicFile musicFile) throws IOException {
+  public Actions execute(Actions actions, FileLocation flacFileLocation, MusicFile musicFile) throws IOException {
     FilenameService filenameService = getFilenameService();
     FileLocationFactory fileLocationFactory = getFileLocationFactory();
     FileLocation encodedFileLocation =
@@ -106,8 +103,8 @@ public class CheckoutExecution implements Execution<CheckoutCommandLine> {
     Set<User> owners = getOwnerService().getOwnersForMusicFile(musicFile);
     return actions
         .move(flacFileLocation, targetFileLocation)
-        .delete(encodedFileLocation)
-        .unlink(encodedFileLocation, owners);
+        .unlink(encodedFileLocation, owners)
+        .delete(encodedFileLocation);
   }
 
   public FileLocationFactory getFileLocationFactory() {
