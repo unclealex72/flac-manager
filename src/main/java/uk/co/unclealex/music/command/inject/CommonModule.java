@@ -29,6 +29,8 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
+import org.slf4j.bridge.SLF4JBridgeHandler;
+
 import uk.co.unclealex.music.MusicFileService;
 import uk.co.unclealex.music.MusicFileServiceImpl;
 import uk.co.unclealex.music.Validator;
@@ -86,9 +88,11 @@ import com.mycila.inject.jsr250.Jsr250;
 /**
  * The Guice {@link Module} for components common to all commands. That is,
  * everything but their {@link Execution}.
- *
- * @param <C> the generic type
- * @param <E> the element type
+ * 
+ * @param <C>
+ *          the generic type
+ * @param <E>
+ *          the element type
  * @author alex
  */
 public abstract class CommonModule<C extends CommandLine, E extends Execution<C>> extends AbstractModule {
@@ -97,17 +101,19 @@ public abstract class CommonModule<C extends CommandLine, E extends Execution<C>
    * The class of the {@link Execution} to use in the command.
    */
   private final Class<E> executionClass;
-  
+
   /**
    * The {@link TypeLiteral} to which the execution class should be bound.
    */
   private final Key<Execution<C>> executionKey;
-  
+
   /**
    * Instantiates a new common module.
-   *
-   * @param executionClass the execution class
-   * @param executionKey the execution key
+   * 
+   * @param executionClass
+   *          the execution class
+   * @param executionKey
+   *          the execution key
    */
   public CommonModule(Class<E> executionClass, TypeLiteral<Execution<C>> executionKey) {
     super();
@@ -120,6 +126,12 @@ public abstract class CommonModule<C extends CommandLine, E extends Execution<C>
    */
   @Override
   protected void configure() {
+    // Make sure java.util.logging is directed to SLF4J. This module is
+    // guaranteed to be called so here's as good a place
+    // as any.
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
+
     install(Jsr250.newJsr250Module());
     bind(Validator.class).to(ValidatorImpl.class);
     bind(AudioMusicFileFactory.class).to(AudioMusicFileFactoryImpl.class);
@@ -144,14 +156,15 @@ public abstract class CommonModule<C extends CommandLine, E extends Execution<C>
     install(new ProcessRequestBuilderModule());
     bind(AmazonConfiguration.class).toProvider(AmazonConfigurationProvider.class);
     bind(Directories.class).toProvider(DirectoriesProvider.class);
-    bind(new TypeLiteral<List<User>>() {}).toProvider(UsersProvider.class);
+    bind(new TypeLiteral<List<User>>() {
+    }).toProvider(UsersProvider.class);
   }
 
   /**
    * A base class for {@link Provider}s based upon the already provided.
-   *
-   * @param <C> the generic type
-   * {@link Configuration} object.
+   * 
+   * @param <C>
+   *          the generic type {@link Configuration} object.
    * @author alex
    */
   static abstract class ConfigurationAwareProvider<C> implements Provider<C> {
@@ -276,7 +289,7 @@ public abstract class CommonModule<C extends CommandLine, E extends Execution<C>
 
   /**
    * Gets the class of the {@link Execution} to use in the command.
-   *
+   * 
    * @return the class of the {@link Execution} to use in the command
    */
   public Class<E> getExecutionClass() {
@@ -285,12 +298,11 @@ public abstract class CommonModule<C extends CommandLine, E extends Execution<C>
 
   /**
    * Gets the {@link Key} to which the execution class should be bound.
-   *
+   * 
    * @return the {@link Key} to which the execution class should be bound
    */
   public Key<Execution<C>> getExecutionKey() {
     return executionKey;
   }
 
-  
 }
