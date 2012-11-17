@@ -147,6 +147,6 @@ public class AudioMusicFileFactoryImplTest {
     try (InputStream in = resource.openStream()) {
       Files.copy(in, tempMusicFile, StandardCopyOption.REPLACE_EXISTING);
     }
-    return new AudioMusicFileFactoryImpl(new ValidatorImpl()).load(tempMusicFile);
+    return new AudioMusicFileFactoryImpl(new ValidatorImpl()).loadAndValidate(tempMusicFile);
   }
 }

@@ -99,7 +99,7 @@ public class MappingServiceImplTest {
   public void testValidFile() throws ConstraintViolationException, IOException {
     MusicFile musicFile = new MusicFileBean();
     Path musicPath = fileLocation.resolve();
-    when(audioMusicFileFactory.load(musicPath)).thenReturn(musicFile);
+    when(audioMusicFileFactory.loadAndValidate(musicPath)).thenReturn(musicFile);
     when(validator.generateViolations(musicFile)).thenReturn(new HashSet<ConstraintViolation<MusicFile>>());
     when(flacFileChecker.isFlacFile(musicPath)).thenReturn(true);
     SortedMap<FileLocation, MusicFile> musicFilesByFileLocation = Maps.newTreeMap();
@@ -126,7 +126,7 @@ public class MappingServiceImplTest {
     when(firstConstraintViolation.getMessage()).thenReturn("first");
     when(secondConstraintViolation.getMessage()).thenReturn("second");
     MusicFile musicFile = new MusicFileBean();
-    when(audioMusicFileFactory.load(fileLocation.resolve())).thenReturn(musicFile);
+    when(audioMusicFileFactory.loadAndValidate(fileLocation.resolve())).thenReturn(musicFile);
     when(validator.generateViolations(musicFile)).thenReturn(
         Sets.newHashSet(firstConstraintViolation, secondConstraintViolation));
     testActions(new FailureAction(fileLocation, "/flac.flac: first"), new FailureAction(fileLocation, "/flac.flac: second"));

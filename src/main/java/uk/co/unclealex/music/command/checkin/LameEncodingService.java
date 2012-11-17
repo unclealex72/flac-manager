@@ -22,20 +22,17 @@
  *
  */
 
-package uk.co.unclealex.music.command.checkout;
+package uk.co.unclealex.music.command.checkin;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.UUID;
 
 import javax.inject.Inject;
 
-import uk.co.unclealex.music.MusicFile;
 import uk.co.unclealex.music.MusicFileService;
 import uk.co.unclealex.music.audio.AudioMusicFileFactory;
-import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.files.FileLocationFactory;
+import uk.co.unclealex.music.files.FileUtils;
 import uk.co.unclealex.process.BuildableProcessRequest;
 import uk.co.unclealex.process.builder.ProcessRequestBuilder;
 import uk.co.unclealex.process.packages.PackagesRequired;
@@ -46,7 +43,7 @@ import uk.co.unclealex.process.packages.PackagesRequired;
  * @author alex
  */
 @PackagesRequired("lame")
-public class LameEncodingService implements EncodingService {
+public class LameEncodingService extends AbstractEncodingService implements EncodingService {
 
   /**
    * The {@link ProcessRequestBuilder} used to build the lame process.
@@ -54,48 +51,40 @@ public class LameEncodingService implements EncodingService {
   private final ProcessRequestBuilder processRequestBuilder;
 
   /**
-   * The {@link MusicFileService} used for copying tagging information.
+   * Instantiates a new lame encoding service.
+   * 
+   * @param processRequestBuilder
+   *          the process request builder
+   * @param musicFileService
+   *          the music file service
+   * @param audioMusicFileFactory
+   *          the audio music file factory
+   * @param fileUtils
+   *          the file utils
+   * @param fileLocationFactory
+   *          the file location factory
    */
-  private final MusicFileService musicFileService;
-
-  /**
-   * The {@link AudioMusicFileFactory} used to create {@link MusicFile}s from paths.
-   */
-  private final AudioMusicFileFactory audioMusicFileFactory;
-  
   @Inject
   public LameEncodingService(
       ProcessRequestBuilder processRequestBuilder,
       MusicFileService musicFileService,
-      AudioMusicFileFactory audioMusicFileFactory) {
-    super();
+      AudioMusicFileFactory audioMusicFileFactory,
+      FileUtils fileUtils,
+      FileLocationFactory fileLocationFactory) {
+    super(musicFileService, audioMusicFileFactory, fileUtils, fileLocationFactory);
     this.processRequestBuilder = processRequestBuilder;
-    this.musicFileService = musicFileService;
-    this.audioMusicFileFactory = audioMusicFileFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void encode(FileLocation flacFileLocation, MusicFile flacMusicFile, FileLocation encodedFileLocation)
-      throws IOException {
-    Path flacFile = flacFileLocation.resolve();
-    Path encodedFile = encodedFileLocation.resolve();
-    Path temporaryFile = encodedFile.resolveSibling(UUID.randomUUID().toString() + ".mp3.part");
-    try {
-      BuildableProcessRequest processRequest =
-          getProcessRequestBuilder().forResource("flac2mp3").withArguments(
-              flacFile.toAbsolutePath().toString(),
-              temporaryFile.toAbsolutePath().toString());
-      processRequest.execute();
-      MusicFile mp3MusicFile = getAudioMusicFileFactory().load(temporaryFile);
-      getMusicFileService().transfer(flacMusicFile, mp3MusicFile);
-      Files.move(temporaryFile, encodedFile, StandardCopyOption.ATOMIC_MOVE);
-    }
-    finally {
-      Files.deleteIfExists(temporaryFile);
-    }
+  protected void encode(Path flacFile, Path encodedFile) throws IOException {
+    BuildableProcessRequest processRequest =
+        getProcessRequestBuilder().forResource("flac2mp3").withArguments(
+            flacFile.toAbsolutePath().toString(),
+            encodedFile.toAbsolutePath().toString());
+    processRequest.execute();
   }
 
   /**
@@ -105,19 +94,6 @@ public class LameEncodingService implements EncodingService {
    */
   public ProcessRequestBuilder getProcessRequestBuilder() {
     return processRequestBuilder;
-  }
-
-  /**
-   * Gets the {@link MusicFileService} used for copying tagging information.
-   * 
-   * @return the {@link MusicFileService} used for copying tagging information
-   */
-  public MusicFileService getMusicFileService() {
-    return musicFileService;
-  }
-
-  public AudioMusicFileFactory getAudioMusicFileFactory() {
-    return audioMusicFileFactory;
   }
 
 }

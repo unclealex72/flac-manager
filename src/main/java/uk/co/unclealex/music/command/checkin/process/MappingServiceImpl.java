@@ -89,7 +89,7 @@ public class MappingServiceImpl implements MappingService {
     for (FileLocation fileLocation : fileLocations) {
       Path path = fileLocation.resolve();
       if (flacFileChecker.isFlacFile(path)) {
-        MusicFile musicFile = audioMusicFileFactory.load(path);
+        MusicFile musicFile = audioMusicFileFactory.loadAndValidate(path);
         for (ConstraintViolation<MusicFile> constraintViolation : validator.generateViolations(musicFile)) {
           actions = actions.fail(fileLocation, String.format("%s: %s", fileLocation.resolve(), constraintViolation.getMessage()));
         }

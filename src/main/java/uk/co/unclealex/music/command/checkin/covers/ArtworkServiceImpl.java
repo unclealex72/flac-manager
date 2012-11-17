@@ -95,7 +95,7 @@ public class ArtworkServiceImpl extends CacheLoader<URI, CoverArt> implements Ar
         throw new IOException(e);
       }
     }
-    MusicFile musicFile = getAudioMusicFileFactory().load(path);
+    MusicFile musicFile = getAudioMusicFileFactory().loadAndValidate(path);
     musicFile.setCoverArt(coverArt);
     musicFile.commit();
   }

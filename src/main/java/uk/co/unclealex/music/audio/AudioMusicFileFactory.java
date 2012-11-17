@@ -48,8 +48,19 @@ public interface AudioMusicFileFactory {
    * @return A {@link MusicFile} loaded from a path.
    * @throws IOException
    *           Thrown if the file cannot be read.
+   */
+  public MusicFile load(Path musicFilePath) throws IOException;
+
+  /**
+   * Load a {@link MusicFile} and check that it has all the required tags.
+   * 
+   * @param musicFilePath
+   *          The location of the file.
+   * @return A {@link MusicFile} loaded from a path.
+   * @throws IOException
+   *           Thrown if the file cannot be read.
    * @throws ConstraintViolationException
    *           Thrown if the music file does not have all the required tags.
    */
-  public MusicFile load(Path musicFilePath) throws IOException, ConstraintViolationException;
+  public MusicFile loadAndValidate(Path musicFilePath) throws IOException, ConstraintViolationException;
 }

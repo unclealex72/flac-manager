@@ -61,9 +61,17 @@ public class AudioMusicFileFactoryImpl implements AudioMusicFileFactory {
    * {@inheritDoc}
    */
   @Override
-  public MusicFile load(Path musicFilePath) throws IOException, ConstraintViolationException {
-    MusicFile musicFile = new AudioMusicFile(musicFilePath);
+  public MusicFile loadAndValidate(Path musicFilePath) throws IOException, ConstraintViolationException {
+    MusicFile musicFile = load(musicFilePath);
     return getValidator().validate(musicFile, "File " + musicFilePath + " is invalid");
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public AudioMusicFile load(Path musicFilePath) throws IOException {
+    return new AudioMusicFile(musicFilePath);
   }
 
   /**

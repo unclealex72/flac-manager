@@ -22,7 +22,7 @@
  *
  */
 
-package uk.co.unclealex.music.command.checkout;
+package uk.co.unclealex.music.command.checkin;
 
 import java.io.IOException;
 

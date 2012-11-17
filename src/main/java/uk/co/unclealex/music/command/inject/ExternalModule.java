@@ -32,6 +32,7 @@ import java.nio.file.Paths;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
@@ -41,14 +42,14 @@ import org.slf4j.LoggerFactory;
 import uk.co.unclealex.music.Validator;
 import uk.co.unclealex.music.action.ActionExecutor;
 import uk.co.unclealex.music.action.ActionExecutorImpl;
+import uk.co.unclealex.music.command.checkin.EncodingService;
+import uk.co.unclealex.music.command.checkin.LameEncodingService;
 import uk.co.unclealex.music.command.checkin.covers.AmazonArtworkSearchingService;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkSearchingService;
 import uk.co.unclealex.music.command.checkin.covers.SignedRequestsService;
 import uk.co.unclealex.music.command.checkin.covers.SignedRequestsServiceImpl;
 import uk.co.unclealex.music.command.checkin.process.MappingService;
 import uk.co.unclealex.music.command.checkin.process.MappingServiceImpl;
-import uk.co.unclealex.music.command.checkout.EncodingService;
-import uk.co.unclealex.music.command.checkout.LameEncodingService;
 import uk.co.unclealex.music.configuration.Configuration;
 import uk.co.unclealex.music.configuration.json.JsonConfigurationFactory;
 import uk.co.unclealex.music.files.DirectoryService;
@@ -166,7 +167,7 @@ public class ExternalModule extends AbstractModule {
    * for testing.
    */
   protected void bindConfiguration() {
-    bind(Configuration.class).toProvider(ConfigurationProvider.class);
+    bind(Configuration.class).toProvider(ConfigurationProvider.class).in(Singleton.class);
   }
 
 }

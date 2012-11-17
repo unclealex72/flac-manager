@@ -31,8 +31,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import uk.co.unclealex.music.command.checkin.EncodingService;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkService;
-import uk.co.unclealex.music.command.checkout.EncodingService;
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.devices.DeviceService;
 import uk.co.unclealex.music.files.FileLocation;
