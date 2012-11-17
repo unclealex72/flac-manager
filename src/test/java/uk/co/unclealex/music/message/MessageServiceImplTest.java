@@ -129,7 +129,7 @@ public class MessageServiceImplTest {
 
   @Test
   public void testAddOwner() {
-    runTest("Adding owners brian and freddie to /mnt/flac/myflacfile.flac", MessageService.ADD_OWNER, fl1, Lists.newArrayList(brianMay, freddieMercury));
+    runTest("Adding owners brian to /mnt/flac/myflacfile.flac", MessageService.ADD_OWNER, fl1, Lists.newArrayList(brianMay));
   }
   
   @Test

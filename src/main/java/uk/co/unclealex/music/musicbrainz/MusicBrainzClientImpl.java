@@ -33,6 +33,8 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
 import org.jdom2.filter.ElementFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.co.unclealex.music.configuration.User;
 
@@ -49,6 +51,8 @@ import com.sun.jersey.api.client.WebResource;
  */
 public class MusicBrainzClientImpl implements MusicBrainzClient {
 
+  private static final Logger log = LoggerFactory.getLogger(MusicBrainzClientImpl.class);
+  
   /**
    * The maximum number of release IDs allowed in a PUT or DELETE request.
    */
@@ -161,7 +165,9 @@ public class MusicBrainzClientImpl implements MusicBrainzClient {
     String collectionId = findUsersCollection(user).getLeft();
     for (Iterable<? extends String> partition : Iterables.partition(releaseIds, RELEASE_PATH_LIMIT)) {
       String releasesPath = Joiner.on(';').join(partition);
-      action.act(releases(user, collectionId).path(releasesPath));
+      WebResource webResource = releases(user, collectionId).path(releasesPath).queryParam("client", "flacman-5.0");
+      log.debug(webResource.toString());
+      action.act(webResource);
     }
   }
 

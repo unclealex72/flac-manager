@@ -25,6 +25,7 @@
 package uk.co.unclealex.music.message;
 
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
@@ -87,7 +88,9 @@ public class MessageServiceImpl implements MessageService {
     else {
       message = template;
     }
-    getStdout().println(message);
+    PrintWriter stdout = getStdout();
+    stdout.println(message);
+    stdout.flush();
   }
 
   /**
@@ -105,19 +108,21 @@ public class MessageServiceImpl implements MessageService {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public Object apply(Object input) {
-      if (input instanceof Iterable) {
+      if (input instanceof Iterable && !(input instanceof Path)) {
         List<?> items = Lists.newArrayList((Iterable) input);
         int finalIndex = items.size() - 1;
         StringBuilder builder = new StringBuilder();
         ResourceBundle resourceBundle = getResourceBundle();
-        for (ListIterator<?> iter = items.listIterator(); iter.hasNext(); ) {
+        for (ListIterator<?> iter = items.listIterator(); iter.hasNext();) {
           int index = iter.nextIndex();
           Object item = iter.next();
-          if (index == finalIndex) {
-            builder.append(resourceBundle.getString("finalJoiner"));
-          }
-          else if (index != 0) {
-            builder.append(resourceBundle.getString("joiner"));
+          if (finalIndex != 0) {
+            if (index == finalIndex) {
+              builder.append(resourceBundle.getString("finalJoiner"));
+            }
+            else if (index != 0) {
+              builder.append(resourceBundle.getString("joiner"));
+            }
           }
           builder.append(apply(item));
         }

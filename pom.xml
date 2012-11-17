@@ -14,15 +14,12 @@
   <properties>
     <executable-groupId>uk.co.unclealex.executable</executable-groupId>
     <executable-version>2.0.1-SNAPSHOT</executable-version>
+    <slf4j-version>1.7.2</slf4j-version>
+    <jersey-version>1.5</jersey-version>
   </properties>
 
   <dependencies>
 
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.2.2</version>
-    </dependency>
     <dependency>
       <groupId>${executable-groupId}</groupId>
       <artifactId>executable-dependency</artifactId>
@@ -56,13 +53,13 @@
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-client</artifactId>
-      <version>1.15</version>
+      <version>${jersey-version}</version>
     </dependency>
 
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-apache-client</artifactId>
-      <version>1.15</version>
+      <version>${jersey-version}</version>
     </dependency>
 
     <dependency>
@@ -103,9 +100,15 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>0.9.26</version>
+      <version>1.0.3</version>
     </dependency>
 
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jul-to-slf4j</artifactId>
+        <version>${slf4j-version}</version>
+    </dependency>
+    
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit-dep</artifactId>
@@ -157,4 +160,13 @@
       <name>JBoss Repository</name>
     </repository>
   </repositories>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j-version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 </project>

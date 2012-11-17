@@ -187,14 +187,14 @@ public class CheckoutCommandTest extends AbstractCommandTest<CheckoutCommand> {
             "02 Fat Bottomed Girls.flac"));
     assertThat("The wrong actions were recorded.", recordingActionExecutor.getExecutedActions(), contains(new Action[] {
         new MoveAction(originalDeathOnTwoLegsFlacLocation, newDeathOnTwoLegsFlacLocation),
-        new DeleteAction(originalDeathOnTwoLegsEncodedLocation), 
         new UnlinkAction(originalDeathOnTwoLegsEncodedLocation, Sets.newHashSet((User) brianMay)),
+        new DeleteAction(originalDeathOnTwoLegsEncodedLocation), 
         new MoveAction(originalLazingOnASundayAfternoonFlacLocation, newLazingOnASundayAfternoonFlacLocation),
-        new DeleteAction(originalLazingOnASundayAfternoonEncodedLocation), 
         new UnlinkAction(originalLazingOnASundayAfternoonEncodedLocation, Sets.newHashSet((User) brianMay)),
+        new DeleteAction(originalLazingOnASundayAfternoonEncodedLocation), 
         new MoveAction(originalFatBottomedGirlsFlacLocation, newFatBottomedGirlsFlacLocation),
-        new DeleteAction(originalFatBottomedGirlsEncodedLocation), 
         new UnlinkAction(originalFatBottomedGirlsEncodedLocation, Sets.newHashSet((User) brianMay, (User) freddieMercury)),
+        new DeleteAction(originalFatBottomedGirlsEncodedLocation)
     }));
   }
 }
