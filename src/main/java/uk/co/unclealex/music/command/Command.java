@@ -144,7 +144,7 @@ public abstract class Command<C extends CommandLine> {
     List<String> flacPaths = commandLine.getFlacPaths();
     Function<String, Path> pathFunction = new Function<String, Path>() {
       public Path apply(String path) {
-        return Paths.get(path);
+        return Paths.get(path).toAbsolutePath();
       }
     };
     FileLocation requiredBasePath = getRequiredBasePath(getFileLocationFactory());
