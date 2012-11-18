@@ -84,7 +84,7 @@ public class LameEncodingService extends AbstractEncodingService implements Enco
         getProcessRequestBuilder().forResource("flac2mp3").withArguments(
             flacFile.toAbsolutePath().toString(),
             encodedFile.toAbsolutePath().toString());
-    processRequest.execute();
+    processRequest.executeAndWait();
   }
 
   /**

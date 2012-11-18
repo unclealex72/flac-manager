@@ -113,6 +113,21 @@ public interface MessageService {
   public String COMMIT_OWNERSHIP = "commitOwnership";
 
   /**
+   * The key for producing a message to say that a file is being kept on a device.
+   */
+  public String SYNC_KEEP = "syncKeep";
+
+  /**
+   * The key for producing a message to say that a file is being removed from a device.
+   */
+  public String SYNC_REMOVE = "syncRemove";
+
+  /**
+   * The key for producing a message to say that a file is being added to a device.
+   */
+  public String SYNC_ADD = "syncAdd";
+
+  /**
    * Print an internationalised message.
    * 
    * @param template

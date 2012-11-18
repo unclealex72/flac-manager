@@ -143,6 +143,21 @@ public class MessageServiceImplTest {
   }
   
   @Test
+  public void testSyncKeep() {
+    runTest("Keeping file a/b/c.mp3", MessageService.SYNC_KEEP, Paths.get("a", "b", "c.mp3"));
+  }
+  
+  @Test
+  public void testSyncAdd() {
+    runTest("Adding file a/b/c.mp3", MessageService.SYNC_ADD, Paths.get("a", "b", "c.mp3"));
+  }
+
+  @Test
+  public void testSyncRemove() {
+    runTest("Removing file a/b/c.mp3", MessageService.SYNC_REMOVE, Paths.get("a", "b", "c.mp3"));
+  }
+
+  @Test
   public void testFree() {
     runTest("My own message", "My own message");
   }

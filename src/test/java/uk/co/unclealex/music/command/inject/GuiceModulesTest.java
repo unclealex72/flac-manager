@@ -24,6 +24,9 @@
 
 package uk.co.unclealex.music.command.inject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +34,8 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import uk.co.unclealex.executable.streams.Stderr;
+import uk.co.unclealex.executable.streams.Stdin;
 import uk.co.unclealex.executable.streams.Stdout;
 import uk.co.unclealex.music.command.CheckinCommandLine;
 import uk.co.unclealex.music.command.CheckoutCommandLine;
@@ -80,6 +85,9 @@ public class GuiceModulesTest {
       @Override
       protected void configure() {
         bind(PrintWriter.class).annotatedWith(Stdout.class).toInstance(new PrintWriter(System.out));
+        bind(PrintStream.class).annotatedWith(Stdout.class).toInstance(System.out);
+        bind(PrintStream.class).annotatedWith(Stderr.class).toInstance(System.err);
+        bind(OutputStream.class).annotatedWith(Stdin.class).toInstance(new ByteArrayOutputStream());
       }
     };
     ExternalModule externalModule = new ExternalModule() {

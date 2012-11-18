@@ -51,6 +51,10 @@ import uk.co.unclealex.music.command.checkin.covers.SignedRequestsServiceImpl;
 import uk.co.unclealex.music.command.checkin.process.MappingService;
 import uk.co.unclealex.music.command.checkin.process.MappingServiceImpl;
 import uk.co.unclealex.music.configuration.Configuration;
+import uk.co.unclealex.music.configuration.Device;
+import uk.co.unclealex.music.configuration.FileSystemDevice;
+import uk.co.unclealex.music.configuration.IpodDevice;
+import uk.co.unclealex.music.configuration.MtpDevice;
 import uk.co.unclealex.music.configuration.json.JsonConfigurationFactory;
 import uk.co.unclealex.music.files.DirectoryService;
 import uk.co.unclealex.music.files.DirectoryServiceImpl;
@@ -64,8 +68,14 @@ import uk.co.unclealex.music.musicbrainz.MusicBrainzWebResourceFactory;
 import uk.co.unclealex.music.musicbrainz.MusicBrainzWebResourceFactoryImpl;
 import uk.co.unclealex.music.musicbrainz.OwnerService;
 import uk.co.unclealex.music.musicbrainz.OwnerServiceImpl;
+import uk.co.unclealex.music.sync.FileSystemDeviceSynchroniserFactory;
+import uk.co.unclealex.music.sync.IpodDeviceSynchroniserFactory;
+import uk.co.unclealex.music.sync.MtpDeviceSynchroniserFactory;
+import uk.co.unclealex.music.sync.SynchroniserFactory;
+import uk.co.unclealex.music.sync.SynchroniserFactoryImpl;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.TypeLiteral;
 
 /**
  * A module that contains all bindings that rely on either external
@@ -101,6 +111,11 @@ public class ExternalModule extends AbstractModule {
     // Directories and files.
     bind(DirectoryService.class).to(DirectoryServiceImpl.class);
     bind(MappingService.class).to(MappingServiceImpl.class);
+    // Device synchronisers.
+    bind(new TypeLiteral<SynchroniserFactory<Device>>() {}).to(SynchroniserFactoryImpl.class);
+    bind(new TypeLiteral<SynchroniserFactory<IpodDevice>>() {}).to(IpodDeviceSynchroniserFactory.class);
+    bind(new TypeLiteral<SynchroniserFactory<MtpDevice>>() {}).to(MtpDeviceSynchroniserFactory.class);
+    bind(new TypeLiteral<SynchroniserFactory<FileSystemDevice>>() {}).to(FileSystemDeviceSynchroniserFactory.class);
   }
 
   /**

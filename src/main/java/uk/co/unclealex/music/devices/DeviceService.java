@@ -24,6 +24,8 @@
 
 package uk.co.unclealex.music.devices;
 
+import java.nio.file.Path;
+
 import uk.co.unclealex.music.configuration.Device;
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.files.FileLocation;
@@ -42,4 +44,11 @@ public interface DeviceService {
    * @return The location of the symbolic link for a device owned by the owner.
    */
   public FileLocation getLinkLocation(User owner, FileLocation encodedLocation);
+  
+  /**
+   * Get the base path of the device repository for an owner.
+   * @param owner The {@link User} who owns the device.
+   * @return The base path of the device repository.
+   */
+  public Path getDeviceRepositoryBase(User owner);
 }

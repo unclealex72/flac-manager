@@ -41,19 +41,30 @@ import uk.co.unclealex.music.exception.InvalidDirectoriesException;
 public interface DirectoryService {
 
   /**
-   * List all FLAC files under a list of directories.
+   * List all music files under a list of directories.
    * 
    * @param requiredBasePath
    *          The path that all found directories must be relative to.
-   * @param flacDirectories
+   * @param directories
    *          The directories to search.
    * @throws InvalidDirectoriesException
    *           Thrown if any of the supplied directories were not directories or
    *           if any of the supplied directories were not relative to the
    *           required base path.
-   * @return All FLAC files found under the given directories.
+   * @return All music files found under the given directories.
+   * @throws IOException
+   */
+  public SortedSet<FileLocation> listFiles(FileLocation requiredBasePath, Iterable<? extends Path> directories)
+      throws InvalidDirectoriesException,
+      IOException;
+
+  /**
+   * List all music files under a directory.
+   * 
+   * @param basePath
+   *          The base path to search.
+   * @return All music files found under the given directory.
    * @throws IOException 
    */
-  public SortedSet<FileLocation> listFiles(FileLocation requiredBasePath, Iterable<? extends Path> flacDirectories)
-      throws InvalidDirectoriesException, IOException;
+  public SortedSet<FileLocation> listFiles(Path basePath) throws IOException;
 }

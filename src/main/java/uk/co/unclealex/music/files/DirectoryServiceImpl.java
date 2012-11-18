@@ -53,7 +53,7 @@ public class DirectoryServiceImpl implements DirectoryService {
    * @throws IOException
    */
   @Override
-  public SortedSet<FileLocation> listFiles(FileLocation requiredBasePath, Iterable<? extends Path> flacDirectories)
+  public SortedSet<FileLocation> listFiles(FileLocation requiredBasePath, Iterable<? extends Path> directories)
       throws InvalidDirectoriesException,
       IOException {
     Function<Path, Path> absoluteFunction = new Function<Path, Path>() {
@@ -62,26 +62,26 @@ public class DirectoryServiceImpl implements DirectoryService {
       }
     };
     final Path absoluteRequiredBasePath = absoluteFunction.apply(requiredBasePath.resolve());
-    Iterable<Path> absoluteFlacDirectories = Iterables.transform(flacDirectories, absoluteFunction);
+    Iterable<Path> absoluteDirectories = Iterables.transform(directories, absoluteFunction);
     Predicate<Path> isValidPathPredicate = new Predicate<Path>() {
       public boolean apply(Path path) {
         return Files.isDirectory(path) && path.startsWith(absoluteRequiredBasePath);
       }
     };
-    Iterable<? extends Path> invalidPaths = Iterables.filter(flacDirectories, Predicates.not(isValidPathPredicate));
+    Iterable<? extends Path> invalidPaths = Iterables.filter(directories, Predicates.not(isValidPathPredicate));
     if (!Iterables.isEmpty(invalidPaths)) {
       throw new InvalidDirectoriesException("The following paths are either not directories or not a subpath of "
           + absoluteRequiredBasePath, Iterables.filter(invalidPaths, Path.class));
     }
-    SortedSet<FileLocation> allFlacFileLocations = Sets.newTreeSet();
-    for (Path flacDirectory : absoluteFlacDirectories) {
+    SortedSet<FileLocation> allFileLocations = Sets.newTreeSet();
+    for (Path flacDirectory : absoluteDirectories) {
       SortedSet<Path> flacFiles = findAllFiles(flacDirectory);
       for (Path flacFile : flacFiles) {
-        allFlacFileLocations.add(requiredBasePath.resolve(absoluteRequiredBasePath
+        allFileLocations.add(requiredBasePath.resolve(absoluteRequiredBasePath
             .relativize(flacFile)));
       }
     }
-    return allFlacFileLocations;
+    return allFileLocations;
   }
 
   /**
@@ -92,15 +92,33 @@ public class DirectoryServiceImpl implements DirectoryService {
    * @retun A sorted set of all the found paths.
    */
   protected SortedSet<Path> findAllFiles(Path basePath) throws IOException {
-    final SortedSet<Path> flacFiles = Sets.newTreeSet();
+    final SortedSet<Path> files = Sets.newTreeSet();
     FileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        flacFiles.add(file);
+        files.add(file);
         return super.visitFile(file, attrs);
       }
     };
     Files.walkFileTree(basePath, visitor);
-    return flacFiles;
+    return files;
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SortedSet<FileLocation> listFiles(final Path basePath) throws IOException {
+    final SortedSet<FileLocation> fileLocations = Sets.newTreeSet();
+    FileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        FileLocation fileLocation = new FileLocation(basePath, basePath.relativize(file), Files.isWritable(file));
+        fileLocations.add(fileLocation);
+        return super.visitFile(file, attrs);
+      }
+    };
+    Files.walkFileTree(basePath, visitor);
+    return fileLocations;
   }
 }
