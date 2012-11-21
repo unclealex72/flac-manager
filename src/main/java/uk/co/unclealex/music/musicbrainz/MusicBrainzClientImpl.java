@@ -56,7 +56,7 @@ public class MusicBrainzClientImpl implements MusicBrainzClient {
   /**
    * The maximum number of release IDs allowed in a PUT or DELETE request.
    */
-  private static final int RELEASE_PATH_LIMIT = 400;
+  private static final int RELEASE_PATH_LIMIT = 100;
 
   /** 
    * The maximum size of a query.
