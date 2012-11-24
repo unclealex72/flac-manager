@@ -57,7 +57,7 @@ public class DeviceVisitorTest {
 
   @Test
   public void testMtpDevice() {
-    test(new MtpDeviceBean("name"), MtpDevice.class);
+    test(new MtpDeviceBean("name", "abcd:efgh"), MtpDevice.class);
   }
   
   public void test(Device device, Class<? extends Device> expectedDeviceClass) {

@@ -22,22 +22,26 @@
  *
  */
 
-package uk.co.unclealex.music.configuration;
+package uk.co.unclealex.music.sync;
 
-import org.hibernate.validator.constraints.NotEmpty;
+import java.io.IOException;
+
+import uk.co.unclealex.music.configuration.Device;
+import uk.co.unclealex.music.configuration.User;
+
+import com.google.common.collect.Multimap;
 
 /**
- * A interface to represent an MTP {@link Device}.
+ * An interface for classes that can find which devices are currently connected.
  * @author alex
  *
  */
-public interface MtpDevice extends Device {
+public interface ConnectedDeviceService {
 
   /**
-   * Get the USB ID of this device.
-   * @return The USB ID of this device.
+   * Find which devices are currently connected.
+   * @return A map of users with their connected devices.
+   * @throws IOException
    */
-  @NotEmpty
-  public String getUsbId();
-
+  public Multimap<User, Device> listConnectedDevices() throws IOException;
 }

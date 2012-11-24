@@ -44,13 +44,19 @@ public class MtpDeviceBean extends DataObject implements MtpDevice {
   private final String name;
 
   /**
+   * The USB ID of this device.
+   */
+  private final String usbId;
+  
+  /**
    * 
    * @param name
    */
   @JsonCreator
-  public MtpDeviceBean(@JsonProperty("name") String name) {
+  public MtpDeviceBean(@JsonProperty("name") String name, @JsonProperty("usbId") String usbId) {
     super();
     this.name = name;
+    this.usbId = usbId;
   }
 
 	/**
@@ -66,5 +72,9 @@ public class MtpDeviceBean extends DataObject implements MtpDevice {
    */
   public String getName() {
     return name;
+  }
+
+  public String getUsbId() {
+    return usbId;
   }
 }

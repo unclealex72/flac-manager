@@ -62,7 +62,7 @@ public class ConfigurationValidationTest {
   PathsBean defaultPathBean = new PathsBean(homeDir, homeDir, homeDir, homeDir);
   AmazonConfigurationBean defaultAmazonBean = new AmazonConfigurationBean("endpoint", "accessKey", "secretKey");
   List<UserBean> defaultUsers = Lists.newArrayList(new UserBean("alex", "MeMeMe", "pwd", Lists
-      .newArrayList((Device) new MtpDeviceBean("mtp"))));
+      .newArrayList((Device) new MtpDeviceBean("mtp", "118:118"))));
 
   @Test
   public void testConfigurationRequiresPathAndUsers() throws Exception {
@@ -130,10 +130,11 @@ public class ConfigurationValidationTest {
   public void testDevices() throws Exception {
     testValidate(
         new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean("aj", "aj", "aj", Lists.newArrayList(
-            (Device) new MtpDeviceBean(null),
+            (Device) new MtpDeviceBean(null, null),
             new FileSystemDeviceBean(null, null, null),
             new IpodDeviceBean(null)))), defaultAmazonBean),
         Violation.expect(NotEmpty.class, "users[0]", "devices[0]", "name"),
+        Violation.expect(NotEmpty.class, "users[0]", "devices[0]", "usbId"),
         Violation.expect(NotEmpty.class, "users[0]", "devices[1]", "name"),
         Violation.expect(NotNull.class, "users[0]", "devices[1]", "mountPoint"),
         Violation.expect(NotNull.class, "users[0]", "devices[2]", "mountPoint"));

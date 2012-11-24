@@ -75,6 +75,8 @@ import uk.co.unclealex.music.message.MessageService;
 import uk.co.unclealex.music.message.MessageServiceImpl;
 import uk.co.unclealex.music.musicbrainz.ChangeOwnershipService;
 import uk.co.unclealex.music.musicbrainz.ChangeOwnershipServiceImpl;
+import uk.co.unclealex.music.sync.ConnectedDeviceService;
+import uk.co.unclealex.music.sync.ConnectedDeviceServiceImpl;
 import uk.co.unclealex.process.inject.ProcessRequestBuilderModule;
 
 import com.google.inject.AbstractModule;
@@ -124,6 +126,7 @@ public class CommonModule extends AbstractModule {
     bind(Directories.class).toProvider(DirectoriesProvider.class);
     bind(new TypeLiteral<List<User>>() {
     }).toProvider(UsersProvider.class);
+    bind(ConnectedDeviceService.class).to(ConnectedDeviceServiceImpl.class);
   }
 
   /**
