@@ -138,6 +138,16 @@ public interface MessageService {
   public String FOUND_TRACK = "foundTrack";
 
   /**
+   * The key for producting a message to say that a device is being synchronised.
+   */
+  public String SYNCHRONISING = "sync";
+
+  /**
+   * The key for producing a message to say that a device has been found.
+   */
+  public String FOUND_DEVICE = "foundDevice";
+
+  /**
    * Print an internationalised message.
    * 
    * @param template
