@@ -26,7 +26,7 @@ package uk.co.unclealex.music.command.checkout;
 
 import uk.co.unclealex.music.command.CheckoutCommandLine;
 import uk.co.unclealex.music.command.Execution;
-import uk.co.unclealex.music.command.inject.CommonModule;
+import uk.co.unclealex.music.command.inject.ExecutionModule;
 
 import com.google.inject.TypeLiteral;
 
@@ -35,7 +35,7 @@ import com.google.inject.TypeLiteral;
  * @author alex
  *
  */
-public class CheckoutModule extends CommonModule<CheckoutCommandLine, CheckoutExecution> {
+public class CheckoutModule extends ExecutionModule<CheckoutCommandLine, CheckoutExecution> {
   
   /**
    * Instantiates a new checkout module.

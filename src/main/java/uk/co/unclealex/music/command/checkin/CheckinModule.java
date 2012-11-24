@@ -26,7 +26,7 @@ package uk.co.unclealex.music.command.checkin;
 
 import uk.co.unclealex.music.command.CheckinCommandLine;
 import uk.co.unclealex.music.command.Execution;
-import uk.co.unclealex.music.command.inject.CommonModule;
+import uk.co.unclealex.music.command.inject.ExecutionModule;
 
 import com.google.inject.TypeLiteral;
 
@@ -36,7 +36,7 @@ import com.google.inject.TypeLiteral;
  * @author alex
  * 
  */
-public class CheckinModule extends CommonModule<CheckinCommandLine, CheckinExecution> {
+public class CheckinModule extends ExecutionModule<CheckinCommandLine, CheckinExecution> {
 
   /**
    * Instantiates a new checkin module.

@@ -27,7 +27,7 @@ package uk.co.unclealex.music.command.own;
 import uk.co.unclealex.music.command.Execution;
 import uk.co.unclealex.music.command.OwnCommand;
 import uk.co.unclealex.music.command.OwnCommandLine;
-import uk.co.unclealex.music.command.inject.CommonModule;
+import uk.co.unclealex.music.command.inject.ExecutionModule;
 
 import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
@@ -37,7 +37,7 @@ import com.google.inject.TypeLiteral;
  * @author alex
  *
  */
-public class OwnModule extends CommonModule<OwnCommandLine, OwnExecution> {
+public class OwnModule extends ExecutionModule<OwnCommandLine, OwnExecution> {
 
   public OwnModule() {
     super(OwnExecution.class, new TypeLiteral<Execution<OwnCommandLine>>() {});
