@@ -173,7 +173,7 @@ public class IpodDeviceSynchroniserFactory extends MountedDeviceSynchroniserFact
             return deviceFile.getRelativePath();
           }
         };
-        Map<String, DeviceFile> deviceFilesByRelativePath = Maps.uniqueIndex(deviceFiles, deviceRelativePathFunction);
+        Map<String, DeviceFile> deviceFilesByRelativePath = Maps.newHashMap(Maps.uniqueIndex(deviceFiles, deviceRelativePathFunction));
         Function<FileLocation, String> fileLocationRelativePathFunction = new Function<FileLocation, String>() {
           public String apply(FileLocation fileLocation) {
             return fileLocation.getRelativePath().toString();

@@ -79,7 +79,10 @@ public class GtkPodExecutor extends PrintWriterStandardInputStreamSupplier imple
     standardInputStream.println(command);
     standardInputStream.flush();
     try {
-      getLock().wait();
+      Object lock = getLock();
+      synchronized (lock) {
+        lock.wait();
+      }
     }
     catch (InterruptedException e) {
       // Ignore.
@@ -101,7 +104,10 @@ public class GtkPodExecutor extends PrintWriterStandardInputStreamSupplier imple
   public void lineWritten(String line) {
     line = line.trim();
     if ("OK".equals(line)) {
-      getLock().notifyAll();
+      Object lock = getLock();
+      synchronized (lock) {
+        lock.notifyAll();
+      }
     }
     else {
       getOutput().add(line);
