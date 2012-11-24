@@ -83,6 +83,8 @@ public class MappingServiceImplTest {
       return new ActionsImpl();
     }
   };
+  @Mock MessageService messageService;
+  
   FileLocation fileLocation = new FileLocation(Paths.get("/"), Paths.get("flac.flac"), true);
 
   @Mock
@@ -92,7 +94,7 @@ public class MappingServiceImplTest {
 
   @Before
   public void setup() {
-    mappingService = new MappingServiceImpl(audioMusicFileFactory, validator, flacFileChecker);
+    mappingService = new MappingServiceImpl(audioMusicFileFactory, validator, flacFileChecker, messageService);
   }
 
   @Test

@@ -27,6 +27,7 @@ package uk.co.unclealex.music.command.checkin.process;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
@@ -41,16 +42,18 @@ import uk.co.unclealex.music.message.MessageService;
 
 /**
  * The default implementation of {@link MappingService}.
+ * 
  * @author alex
- *
+ * 
  */
 public class MappingServiceImpl implements MappingService {
 
   /**
-   * The {@link AudioMusicFileFactory} used to generate {@link MusicFile}s from FLAC files.
+   * The {@link AudioMusicFileFactory} used to generate {@link MusicFile}s from
+   * FLAC files.
    */
   private final AudioMusicFileFactory audioMusicFileFactory;
-  
+
   /**
    * The {@link Validator} used to validate that FLAC files are fully tagged.
    */
@@ -60,21 +63,33 @@ public class MappingServiceImpl implements MappingService {
    * The {@link FlacFileChecker} used to see if a file is a FLAC file or not.
    */
   private final FlacFileChecker flacFileChecker;
-  
+
+  /**
+   * The message service used to display track information.
+   */
+  private final MessageService messageService;
+
   /**
    * Instantiates a new mapping service impl.
-   *
-   * @param audioMusicFileFactory the audio music file factory
-   * @param validator the validator
+   * 
+   * @param audioMusicFileFactory
+   *          the audio music file factory
+   * @param validator
+   *          the validator
    */
   @Inject
-  public MappingServiceImpl(AudioMusicFileFactory audioMusicFileFactory, Validator validator, FlacFileChecker flacFileChecker) {
+  public MappingServiceImpl(
+      AudioMusicFileFactory audioMusicFileFactory,
+      Validator validator,
+      FlacFileChecker flacFileChecker,
+      MessageService messageService) {
     super();
     this.audioMusicFileFactory = audioMusicFileFactory;
     this.validator = validator;
     this.flacFileChecker = flacFileChecker;
+    this.messageService = messageService;
   }
-  
+
   /**
    * {@inheritDoc}
    */
@@ -86,14 +101,33 @@ public class MappingServiceImpl implements MappingService {
     AudioMusicFileFactory audioMusicFileFactory = getAudioMusicFileFactory();
     FlacFileChecker flacFileChecker = getFlacFileChecker();
     Validator validator = getValidator();
+    MessageService messageService = getMessageService();
     for (FileLocation fileLocation : fileLocations) {
       Path path = fileLocation.resolve();
       if (flacFileChecker.isFlacFile(path)) {
         MusicFile musicFile = audioMusicFileFactory.loadAndValidate(path);
-        for (ConstraintViolation<MusicFile> constraintViolation : validator.generateViolations(musicFile)) {
-          actions = actions.fail(fileLocation, String.format("%s: %s", fileLocation.resolve(), constraintViolation.getMessage()));
+        Set<ConstraintViolation<MusicFile>> constraintViolations = validator.generateViolations(musicFile);
+        if (constraintViolations.isEmpty()) {
+          musicFilesByFileLocation.put(fileLocation, musicFile);
+          messageService.printMessage(
+              MessageService.FOUND_TRACK,
+              fileLocation,
+              musicFile.getAlbumArtist(),
+              musicFile.getAlbum(),
+              musicFile.getDiscNumber(),
+              musicFile.getTotalDiscs(),
+              musicFile.getTrackNumber(),
+              musicFile.getTotalTracks(),
+              musicFile.getTitle());
         }
-        musicFilesByFileLocation.put(fileLocation, musicFile);        
+        else {
+          for (ConstraintViolation<MusicFile> constraintViolation : constraintViolations) {
+            actions =
+                actions.fail(
+                    fileLocation,
+                    String.format("%s: %s", fileLocation.resolve(), constraintViolation.getMessage()));
+          }
+        }
       }
       else {
         actions = actions.fail(fileLocation, MessageService.NOT_FLAC);
@@ -103,18 +137,22 @@ public class MappingServiceImpl implements MappingService {
   }
 
   /**
-   * Gets the {@link AudioMusicFileFactory} used to generate {@link MusicFile}s from FLAC files.
-   *
-   * @return the {@link AudioMusicFileFactory} used to generate {@link MusicFile}s from FLAC files
+   * Gets the {@link AudioMusicFileFactory} used to generate {@link MusicFile}s
+   * from FLAC files.
+   * 
+   * @return the {@link AudioMusicFileFactory} used to generate
+   *         {@link MusicFile}s from FLAC files
    */
   public AudioMusicFileFactory getAudioMusicFileFactory() {
     return audioMusicFileFactory;
   }
 
   /**
-   * Gets the {@link Validator} used to validate that FLAC files are fully tagged.
-   *
-   * @return the {@link Validator} used to validate that FLAC files are fully tagged
+   * Gets the {@link Validator} used to validate that FLAC files are fully
+   * tagged.
+   * 
+   * @return the {@link Validator} used to validate that FLAC files are fully
+   *         tagged
    */
   public Validator getValidator() {
     return validator;
@@ -122,6 +160,10 @@ public class MappingServiceImpl implements MappingService {
 
   public FlacFileChecker getFlacFileChecker() {
     return flacFileChecker;
+  }
+
+  public MessageService getMessageService() {
+    return messageService;
   }
 
 }

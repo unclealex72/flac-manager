@@ -56,7 +56,7 @@ public class MessageServiceImplTest {
 
   User brianMay = new UserBean("brian", "Brian May", "pwd", new ArrayList<Device>());
   User freddieMercury = new UserBean("freddie", "Freddie Mercury", "pwd", new ArrayList<Device>());
-  
+
   @Test
   public void testArtwork() throws URISyntaxException {
     runTest(
@@ -93,12 +93,20 @@ public class MessageServiceImplTest {
 
   @Test
   public void testOverwrite() {
-    runTest("Processing /mnt/flac/myflacfile.flac will cause /mnt/flac/myotherflacfile.flac to be overwritten", MessageService.OVERWRITE, fl1, fl2);
+    runTest(
+        "Processing /mnt/flac/myflacfile.flac will cause /mnt/flac/myotherflacfile.flac to be overwritten",
+        MessageService.OVERWRITE,
+        fl1,
+        fl2);
   }
 
   @Test
   public void testNonUnique() {
-    runTest("/mnt/mp3/myflacfile.mp3 will be generated more than once from /mnt/flac/myflacfile.flac, /mnt/flac/myotherflacfile.flac and /mnt/flac/yetanotherflacfile.flac", MessageService.NON_UNIQUE, fl4, Arrays.asList(fl1, fl2, fl3));
+    runTest(
+        "/mnt/mp3/myflacfile.mp3 will be generated more than once from /mnt/flac/myflacfile.flac, /mnt/flac/myotherflacfile.flac and /mnt/flac/yetanotherflacfile.flac",
+        MessageService.NON_UNIQUE,
+        fl4,
+        Arrays.asList(fl1, fl2, fl3));
   }
 
   @Test
@@ -110,7 +118,6 @@ public class MessageServiceImplTest {
   public void testNoOwner() {
     runTest("Cannot find the owned releases for Brian May", MessageService.NO_OWNER_INFORMATION, "Brian May");
   }
-
 
   @Test
   public void testLink() {
@@ -129,24 +136,32 @@ public class MessageServiceImplTest {
 
   @Test
   public void testAddOwner() {
-    runTest("Adding owners brian to /mnt/flac/myflacfile.flac", MessageService.ADD_OWNER, fl1, Lists.newArrayList(brianMay));
+    runTest(
+        "Adding owners brian to /mnt/flac/myflacfile.flac",
+        MessageService.ADD_OWNER,
+        fl1,
+        Lists.newArrayList(brianMay));
   }
-  
+
   @Test
   public void testRemoveOwner() {
-    runTest("Removing owners brian and freddie from /mnt/flac/myflacfile.flac", MessageService.REMOVE_OWNER, fl1, Lists.newArrayList(brianMay, freddieMercury));
+    runTest(
+        "Removing owners brian and freddie from /mnt/flac/myflacfile.flac",
+        MessageService.REMOVE_OWNER,
+        fl1,
+        Lists.newArrayList(brianMay, freddieMercury));
   }
-  
+
   @Test
   public void testCommitOwnership() {
     runTest("Committing ownership changes to MusicBrainz", MessageService.COMMIT_OWNERSHIP);
   }
-  
+
   @Test
   public void testSyncKeep() {
     runTest("Keeping file a/b/c.mp3", MessageService.SYNC_KEEP, Paths.get("a", "b", "c.mp3"));
   }
-  
+
   @Test
   public void testSyncAdd() {
     runTest("Adding file a/b/c.mp3", MessageService.SYNC_ADD, Paths.get("a", "b", "c.mp3"));
@@ -155,6 +170,27 @@ public class MessageServiceImplTest {
   @Test
   public void testSyncRemove() {
     runTest("Removing file a/b/c.mp3", MessageService.SYNC_REMOVE, Paths.get("a", "b", "c.mp3"));
+  }
+
+  @Test
+  public void testFoundFile() {
+    runTest("Found file /mnt/flac/myflacfile.flac", MessageService.FOUND_FILE, fl1);
+  }
+
+  @Test
+  public void testFoundTrack() {
+    runTest(
+        "Found artist Queen, album A Kind of Magic (1 of 2), track 6 of 9: Who Wants to Live Forever? at /mnt/flac/myflacfile.flac",
+        MessageService.FOUND_TRACK,
+        fl1,
+        "Queen",
+        "A Kind of Magic",
+        1,
+        2,
+        6,
+        9,
+        "Who Wants to Live Forever?");
+
   }
 
   @Test

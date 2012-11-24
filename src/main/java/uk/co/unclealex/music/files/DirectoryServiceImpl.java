@@ -33,7 +33,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.SortedSet;
 
+import javax.inject.Inject;
+
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
+import uk.co.unclealex.music.message.MessageService;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -46,6 +49,17 @@ import com.google.common.collect.Sets;
  * 
  */
 public class DirectoryServiceImpl implements DirectoryService {
+
+  /**
+   * The {@link MessageService} used to indicate that files have been found.
+   */
+  private final MessageService messageService;
+  
+  @Inject
+  public DirectoryServiceImpl(MessageService messageService) {
+    super();
+    this.messageService = messageService;
+  }
 
   /**
    * {@inheritDoc}
@@ -110,15 +124,21 @@ public class DirectoryServiceImpl implements DirectoryService {
   @Override
   public SortedSet<FileLocation> listFiles(final Path basePath) throws IOException {
     final SortedSet<FileLocation> fileLocations = Sets.newTreeSet();
+    final MessageService messageService = getMessageService();
     FileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
         FileLocation fileLocation = new FileLocation(basePath, basePath.relativize(file), Files.isWritable(file));
         fileLocations.add(fileLocation);
+        messageService.printMessage(MessageService.FOUND_FILE, fileLocation);
         return super.visitFile(file, attrs);
       }
     };
     Files.walkFileTree(basePath, visitor);
     return fileLocations;
+  }
+
+  public MessageService getMessageService() {
+    return messageService;
   }
 }

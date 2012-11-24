@@ -128,6 +128,16 @@ public interface MessageService {
   public String SYNC_ADD = "syncAdd";
 
   /**
+   * The key for producing a message to say that a file has been found.
+   */
+  public String FOUND_FILE = "foundFile";
+
+  /**
+   * The key for producing a message to say that a valid track has been found.
+   */
+  public String FOUND_TRACK = "foundTrack";
+
+  /**
    * Print an internationalised message.
    * 
    * @param template
