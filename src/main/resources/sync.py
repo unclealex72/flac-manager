@@ -105,10 +105,8 @@ class ipod_synchroniser(synchroniser):
       img_file.close()
       track.set_coverart(pixbuf)
       track.copy_to_ipod()
-    albumartist = tag.getArtist(eyeD3.frames.BAND_FID)
-    if (albumartist != ""):
-      track['albumartist'] = albumartist
-      track['compilation'] = 1
+    track['artist'] = tag.getArtist(eyeD3.frames.BAND_FID)
+    track['sort_artist'] = tag.getArtist("TSOP")
     self.added_file_count += 1
     if (self.added_file_count % 50 == 0):
       self.reset_db()
