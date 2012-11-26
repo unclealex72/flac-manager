@@ -86,7 +86,9 @@ public class FileUtilsImpl implements FileUtils {
   public void link(FileLocation fileLocation, FileLocation linkLocation) throws IOException {
     Path target = fileLocation.resolve();
     Path link = linkLocation.resolve();
-    Files.createDirectories(link.getParent());
-    Files.createSymbolicLink(link, target);
+    Path parent = link.getParent();
+    Files.createDirectories(parent);
+    Path relativeTarget = parent.relativize(target);
+    Files.createSymbolicLink(link, relativeTarget);
   }
 }
