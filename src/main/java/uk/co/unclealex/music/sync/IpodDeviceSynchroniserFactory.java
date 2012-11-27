@@ -49,6 +49,7 @@ import uk.co.unclealex.music.files.FileLocation;
 import uk.co.unclealex.music.message.MessageService;
 import uk.co.unclealex.process.builder.ProcessRequestBuilder;
 import uk.co.unclealex.process.packages.PackagesRequired;
+import uk.co.unclealex.process.stream.Executor;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
@@ -99,6 +100,15 @@ public class IpodDeviceSynchroniserFactory extends MountedDeviceSynchroniserFact
    */
   private final DeviceService deviceService;
 
+  /**
+   * Instantiates a new ipod device synchroniser factory.
+   *
+   * @param processRequestBuilder the process request builder
+   * @param audioMusicFileFactory the audio music file factory
+   * @param deviceService the device service
+   * @param directoryService the directory service
+   * @param messageService the message service
+   */
   @Inject
   public IpodDeviceSynchroniserFactory(
       ProcessRequestBuilder processRequestBuilder,
@@ -129,6 +139,9 @@ public class IpodDeviceSynchroniserFactory extends MountedDeviceSynchroniserFact
     return new IpodSynchroniser(owner, device);
   }
 
+  /**
+   * The Class IpodSynchroniser.
+   */
   class IpodSynchroniser implements Synchroniser {
 
     /**
@@ -142,10 +155,16 @@ public class IpodDeviceSynchroniserFactory extends MountedDeviceSynchroniserFact
     private final IpodDevice ipodDevice;
 
     /**
-     * The {@link GtkPodExecutor} used to talk to the iPOD.
+     * The {@link Executor} used to talk to the iPOD.
      */
-    private final GtkPodExecutor gtkPodExecutor = new GtkPodExecutor(Charsets.UTF_8);
+    private final Executor executor = new Executor("OK", Charsets.UTF_8);
 
+    /**
+     * Instantiates a new ipod synchroniser.
+     *
+     * @param owner the owner
+     * @param ipodDevice the ipod device
+     */
     public IpodSynchroniser(User owner, IpodDevice ipodDevice) {
       super();
       this.owner = owner;
@@ -158,11 +177,11 @@ public class IpodDeviceSynchroniserFactory extends MountedDeviceSynchroniserFact
     @Override
     public void synchronise() throws IOException {
       MessageService messageService = getMessageService();
-      GtkPodExecutor gtkPodExecutor = getGtkPodExecutor();
+      Executor executor = getExecutor();
       getProcessRequestBuilder()
           .forResource("sync.py")
           .withArguments("ipod", getIpodDevice().getMountPoint().toString())
-          .withStandardInputSupplier(gtkPodExecutor)
+          .withStandardInputSupplier(executor)
           .execute();
       try {
         Path deviceRepositoryBase = getDeviceService().getDeviceRepositoryBase(getOwner());
@@ -215,7 +234,7 @@ public class IpodDeviceSynchroniserFactory extends MountedDeviceSynchroniserFact
         log.error("There was an unexpected error trying to synchronise " + getIpodDevice(), e);
       }
       finally {
-        gtkPodExecutor.finish();
+        executor.finish();
         closeDevice();
       }
     }
@@ -223,10 +242,10 @@ public class IpodDeviceSynchroniserFactory extends MountedDeviceSynchroniserFact
     /**
      * Test if the lhs is later than the rhs but also that there is not exactly
      * an hour's difference.
-     * 
-     * @param lhs
-     * @param rhs
-     * @return
+     *
+     * @param lhs the lhs
+     * @param rhs the rhs
+     * @return true, if successful
      */
     protected boolean laterThan(long lhs, long rhs) {
       if (Math.abs(lhs - rhs) == MILLISECONDS_IN_HOUR) {
@@ -237,6 +256,12 @@ public class IpodDeviceSynchroniserFactory extends MountedDeviceSynchroniserFact
       }
     }
 
+    /**
+     * List device files.
+     *
+     * @return the sets the
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public Set<DeviceFile> listDeviceFiles() throws IOException {
       List<String> deviceFileStrings = executeCommand("LIST");
       Function<String, DeviceFile> deviceFileParserFunction = new Function<String, DeviceFile>() {
@@ -259,48 +284,107 @@ public class IpodDeviceSynchroniserFactory extends MountedDeviceSynchroniserFact
           Predicates.notNull()));
     }
 
+    /**
+     * Adds the.
+     *
+     * @param fileloLocation the filelo location
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public void add(FileLocation fileloLocation) throws IOException {
       executeCommand("ADD", fileloLocation.getRelativePath(), fileloLocation.resolve());
     }
 
+    /**
+     * Removes the.
+     *
+     * @param deviceFile the device file
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public void remove(DeviceFile deviceFile) throws IOException {
       executeCommand("REMOVE", deviceFile.getId());
     }
 
+    /**
+     * Close device.
+     *
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public void closeDevice() throws IOException {
       executeCommand("QUIT");
     }
 
+    /**
+     * Execute command.
+     *
+     * @param command the command
+     * @return the list
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     protected List<String> executeCommand(Object... command) throws IOException {
       String fullCommand = Joiner.on('|').join(command);
-      return getGtkPodExecutor().executeCommand(fullCommand);
+      return getExecutor().executeCommand(fullCommand);
     }
 
+    /**
+     * Gets the {@link IpodDevice} being synchronised.
+     *
+     * @return the {@link IpodDevice} being synchronised
+     */
     public IpodDevice getIpodDevice() {
       return ipodDevice;
     }
 
+    /**
+     * Gets the {@link User} owner of the iPod.
+     *
+     * @return the {@link User} owner of the iPod
+     */
     public User getOwner() {
       return owner;
     }
 
-    public GtkPodExecutor getGtkPodExecutor() {
-      return gtkPodExecutor;
+    /**
+     * Gets the {@link Executor} used to talk to the iPOD.
+     *
+     * @return the {@link Executor} used to talk to the iPOD
+     */
+    public Executor getExecutor() {
+      return executor;
     }
   }
 
+  /**
+   * Gets the {@link AudioMusicFileFactory} used to find a track's MusicBrainz ID.
+   *
+   * @return the {@link AudioMusicFileFactory} used to find a track's MusicBrainz ID
+   */
   public AudioMusicFileFactory getAudioMusicFileFactory() {
     return audioMusicFileFactory;
   }
 
+  /**
+   * Gets the {@link DeviceService} used to find the device's repository.
+   *
+   * @return the {@link DeviceService} used to find the device's repository
+   */
   public DeviceService getDeviceService() {
     return deviceService;
   }
 
+  /**
+   * Gets the {@link DirectoryService} used to search for MP3 files.
+   *
+   * @return the {@link DirectoryService} used to search for MP3 files
+   */
   public DirectoryService getDirectoryService() {
     return directoryService;
   }
 
+  /**
+   * Gets the {@link MessageService} used to relay messages to the user.
+   *
+   * @return the {@link MessageService} used to relay messages to the user
+   */
   public MessageService getMessageService() {
     return messageService;
   }
