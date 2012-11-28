@@ -18,7 +18,6 @@ import uk.co.unclealex.music.configuration.json.AmazonConfigurationBean;
 import uk.co.unclealex.music.configuration.json.ConfigurationBean;
 import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
 import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
-import uk.co.unclealex.music.configuration.json.MtpDeviceBean;
 import uk.co.unclealex.music.configuration.json.PathsBean;
 import uk.co.unclealex.music.configuration.json.UserBean;
 import uk.co.unclealex.music.violations.Violation;
@@ -62,7 +61,7 @@ public class ConfigurationValidationTest {
   PathsBean defaultPathBean = new PathsBean(homeDir, homeDir, homeDir, homeDir);
   AmazonConfigurationBean defaultAmazonBean = new AmazonConfigurationBean("endpoint", "accessKey", "secretKey");
   List<UserBean> defaultUsers = Lists.newArrayList(new UserBean("alex", "MeMeMe", "pwd", Lists
-      .newArrayList((Device) new MtpDeviceBean("mtp", "118:118"))));
+      .newArrayList((Device) new FileSystemDeviceBean("WALKMAN", Paths.get("/mnt/home"), Paths.get("WALKMAN")))));
 
   @Test
   public void testConfigurationRequiresPathAndUsers() throws Exception {
@@ -130,14 +129,11 @@ public class ConfigurationValidationTest {
   public void testDevices() throws Exception {
     testValidate(
         new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean("aj", "aj", "aj", Lists.newArrayList(
-            (Device) new MtpDeviceBean(null, null),
-            new FileSystemDeviceBean(null, null, null),
+            (Device) new FileSystemDeviceBean(null, null, null),
             new IpodDeviceBean(null)))), defaultAmazonBean),
         Violation.expect(NotEmpty.class, "users[0]", "devices[0]", "name"),
-        Violation.expect(NotEmpty.class, "users[0]", "devices[0]", "usbId"),
-        Violation.expect(NotEmpty.class, "users[0]", "devices[1]", "name"),
-        Violation.expect(NotNull.class, "users[0]", "devices[1]", "mountPoint"),
-        Violation.expect(NotNull.class, "users[0]", "devices[2]", "mountPoint"));
+        Violation.expect(NotNull.class, "users[0]", "devices[0]", "mountPoint"),
+        Violation.expect(NotNull.class, "users[0]", "devices[1]", "mountPoint"));
   }
 
   public void testValidate(ConfigurationBean configurationBean, Violation... expectedViolations) {

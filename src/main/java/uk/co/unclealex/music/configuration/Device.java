@@ -28,7 +28,6 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
 import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
-import uk.co.unclealex.music.configuration.json.MtpDeviceBean;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -42,9 +41,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=As.PROPERTY, property="type")
 @JsonSubTypes({
       @JsonSubTypes.Type(value=IpodDeviceBean.class, name="ipod"),
-      @JsonSubTypes.Type(value=FileSystemDeviceBean.class, name="hd"),
-      @JsonSubTypes.Type(value=MtpDeviceBean.class, name="mtp")
-
+      @JsonSubTypes.Type(value=FileSystemDeviceBean.class, name="hd")
   }) 
 public interface Device {
 

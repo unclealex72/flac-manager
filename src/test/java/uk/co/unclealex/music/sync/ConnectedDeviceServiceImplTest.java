@@ -29,6 +29,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,11 +43,8 @@ import uk.co.unclealex.music.configuration.Device;
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
 import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
-import uk.co.unclealex.music.configuration.json.MtpDeviceBean;
 import uk.co.unclealex.music.configuration.json.UserBean;
-import uk.co.unclealex.process.ProcessCallback;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Multimap;
 import com.mycila.inject.internal.guava.collect.Maps;
 
@@ -55,16 +53,6 @@ import com.mycila.inject.internal.guava.collect.Maps;
  * 
  */
 public class ConnectedDeviceServiceImplTest {
-
-  List<String> lsusbOutput = Arrays.asList(
-      "Bus 001 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub",
-      "Bus 002 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub",
-      "Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub",
-      "Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub",
-      "Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub",
-      "Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub",
-      "Bus 001 Device 003: ID 05c8:030d Cheng Uei Precision Industry Co., Ltd (Foxlink)",
-      "Bus 001 Device 004: ID 04f2:aff1 Chicony Electronics Co., Ltd");
 
   List<String> mtabOutput =
       Arrays
@@ -76,6 +64,7 @@ public class ConnectedDeviceServiceImplTest {
               "gvfsd-fuse /run/user/alex/gvfs fuse.gvfsd-fuse rw,nosuid,nodev,user=alex 0 0",
               "remote:/mnt/music /mnt/multimedia nfs rw,vers=4,addr=192.168.7.14,clientaddr=192.168.7.15 0 0",
               "/dev/sdb2 /media/brian/BRIAN'S\\040IPOD vfat rw,nosuid,nodev,uid=1000,gid=1000,shortname=mixed,dmask=0077,utf8=1,showexec,flush,uhelper=udisks2 0 0",
+              "/dev/sda1 /media/WALKMAN vfat rw,nosuid,nodev,uid=1000,gid=1000,shortname=mixed,dmask=0077,utf8=1,showexec,flush,uhelper=udisks2 0 0",
               "remote:/mnt/home /mnt/home nfs rw,vers=4,addr=192.168.7.14,clientaddr=192.168.7.15 0 0"
 
           );
@@ -87,9 +76,9 @@ public class ConnectedDeviceServiceImplTest {
     User brian =
         new UserBean("brian", "bmay", "queen", Arrays.asList(new Device[] {
             briansIpod,
-            new MtpDeviceBean("mtp", "05c8:ffff"),
+            new FileSystemDeviceBean("walkman", Paths.get("/mnt/brian"), Paths.get("MUSIC")),
             briansFs }));
-    MtpDeviceBean freddiesWalkman = new MtpDeviceBean("mtp", "05c8:030d");
+    FileSystemDeviceBean freddiesWalkman = new FileSystemDeviceBean("walkman", Paths.get("/media/WALKMAN"), Paths.get("MUSIC"));
     FileSystemDeviceBean freddiesFs = new FileSystemDeviceBean("dvb", Paths.get("/mnt/home"), Paths.get("Music"));
     User freddie =
         new UserBean("freddie", "fmercury", "queen", Arrays.asList(new Device[] {
@@ -98,21 +87,17 @@ public class ConnectedDeviceServiceImplTest {
             freddiesFs }));
     List<User> users = Arrays.asList(brian, freddie);
     ConnectedDeviceService connectedDeviceService = new ConnectedDeviceServiceImpl(users, null) {
+      /**
+       * {@inheritDoc}
+       */
       @Override
-      protected void executeProcess(ProcessCallback callback, String command, String... arguments) {
-        List<String> lines;
-        if ("lsusb".equals(command) && arguments.length == 0) {
-          lines = lsusbOutput;
-        }
-        else if ("cat".equals(command) && arguments.length == 1 && "/etc/mtab".equals(arguments[0])) {
-          lines = mtabOutput;
+      protected List<String> readFile(Path path) throws IOException {
+        if (Paths.get("/etc", "mtab").equals(path)) {
+          return mtabOutput;
         }
         else {
-          fail("An invalid native command was sent: " + command + " " + Joiner.on(' ').join(arguments));
-          return;
-        }
-        for (String line : lines) {
-          callback.lineWritten(line);
+          fail("An invalid native command was sent: " + path);
+          return null;
         }
       }
     };

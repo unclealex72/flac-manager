@@ -30,7 +30,6 @@ import uk.co.unclealex.music.configuration.Device;
 import uk.co.unclealex.music.configuration.DeviceVisitor;
 import uk.co.unclealex.music.configuration.FileSystemDevice;
 import uk.co.unclealex.music.configuration.IpodDevice;
-import uk.co.unclealex.music.configuration.MtpDevice;
 import uk.co.unclealex.music.configuration.User;
 
 /**
@@ -51,11 +50,6 @@ public class SynchroniserFactoryImpl implements SynchroniserFactory<Device> {
   private final SynchroniserFactory<FileSystemDevice> fileSystemSynchroniserFactory;
   
   /**
-   * A synchroniser factory used to exclusively create {@link Synchroniser}s for mtp devices.
-   */
-  private final SynchroniserFactory<MtpDevice> mtpFileSystemSynchroniserFactory;
-  
-  /**
    * Instantiates a new synchroniser factory impl.
    *
    * @param ipodSynchroniserFactory the ipod synchroniser factory
@@ -65,12 +59,10 @@ public class SynchroniserFactoryImpl implements SynchroniserFactory<Device> {
   @Inject
   public SynchroniserFactoryImpl(
       SynchroniserFactory<IpodDevice> ipodSynchroniserFactory,
-      SynchroniserFactory<FileSystemDevice> fileSystemSynchroniserFactory,
-      SynchroniserFactory<MtpDevice> mtpFileSystemSynchroniserFactory) {
+      SynchroniserFactory<FileSystemDevice> fileSystemSynchroniserFactory) {
     super();
     this.ipodSynchroniserFactory = ipodSynchroniserFactory;
     this.fileSystemSynchroniserFactory = fileSystemSynchroniserFactory;
-    this.mtpFileSystemSynchroniserFactory = mtpFileSystemSynchroniserFactory;
   }
 
   /**
@@ -94,14 +86,6 @@ public class SynchroniserFactoryImpl implements SynchroniserFactory<Device> {
       public Synchroniser visit(FileSystemDevice fileSystemDevice) {
         return getFileSystemSynchroniserFactory().createSynchroniser(owner, fileSystemDevice);
       }
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public Synchroniser visit(MtpDevice mtpDevice) {
-        return getMtpFileSystemSynchroniserFactory().createSynchroniser(owner, mtpDevice);
-      }
     };
     return device.accept(visitor);
   }
@@ -123,14 +107,5 @@ public class SynchroniserFactoryImpl implements SynchroniserFactory<Device> {
    */
   public SynchroniserFactory<FileSystemDevice> getFileSystemSynchroniserFactory() {
     return fileSystemSynchroniserFactory;
-  }
-
-  /**
-   * Gets the a synchroniser factory used to exclusively create {@link Synchroniser}s for mtp devices.
-   *
-   * @return the a synchroniser factory used to exclusively create {@link Synchroniser}s for mtp devices
-   */
-  public SynchroniserFactory<MtpDevice> getMtpFileSystemSynchroniserFactory() {
-    return mtpFileSystemSynchroniserFactory;
   }
 }

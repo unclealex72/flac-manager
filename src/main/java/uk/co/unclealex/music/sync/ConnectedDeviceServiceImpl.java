@@ -25,6 +25,10 @@
 package uk.co.unclealex.music.sync;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,12 +40,8 @@ import uk.co.unclealex.music.configuration.DeviceVisitor;
 import uk.co.unclealex.music.configuration.FileSystemDevice;
 import uk.co.unclealex.music.configuration.IpodDevice;
 import uk.co.unclealex.music.configuration.MountedDevice;
-import uk.co.unclealex.music.configuration.MtpDevice;
 import uk.co.unclealex.music.configuration.User;
-import uk.co.unclealex.process.AbstractProcessCallback;
-import uk.co.unclealex.process.ProcessCallback;
 import uk.co.unclealex.process.builder.ProcessRequestBuilder;
-import uk.co.unclealex.process.packages.PackagesRequired;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -56,7 +56,6 @@ import com.google.common.collect.Multimap;
  * @author alex
  * 
  */
-@PackagesRequired("usbutils")
 public class ConnectedDeviceServiceImpl implements ConnectedDeviceService {
 
   /**
@@ -65,15 +64,17 @@ public class ConnectedDeviceServiceImpl implements ConnectedDeviceService {
   private final List<User> users;
 
   /**
-   * The {@link ProcessRequestBuilder} used to run native processes.
+   * Instantiates a new connected device service impl.
+   * 
+   * @param users
+   *          the users
+   * @param processRequestBuilder
+   *          the process request builder
    */
-  private final ProcessRequestBuilder processRequestBuilder;
-
   @Inject
   public ConnectedDeviceServiceImpl(List<User> users, ProcessRequestBuilder processRequestBuilder) {
     super();
     this.users = users;
-    this.processRequestBuilder = processRequestBuilder;
   }
 
   /**
@@ -82,11 +83,10 @@ public class ConnectedDeviceServiceImpl implements ConnectedDeviceService {
   @Override
   public Multimap<User, Device> listConnectedDevices() throws IOException {
     HashMultimap<User, Device> connectedDevices = HashMultimap.create();
-    List<String> connectedUsbDevices = list(5, "lsusb");
-    List<String> mountedDevices = list(1, "cat", "/etc/mtab");
+    List<String> mountedDevices = list(1, Paths.get("/etc", "mtab"));
     for (User user : getUsers()) {
       for (Device device : user.getDevices()) {
-        if (isDeviceConnected(device, connectedUsbDevices, mountedDevices)) {
+        if (isDeviceConnected(device, mountedDevices)) {
           connectedDevices.put(user, device);
         }
       }
@@ -105,10 +105,7 @@ public class ConnectedDeviceServiceImpl implements ConnectedDeviceService {
    *          The list of mount points where physical devices are connected.
    * @return True if the device is connected, false otherwise.
    */
-  protected boolean isDeviceConnected(
-      Device device,
-      final List<String> connectedUsbDevices,
-      final List<String> mountedDevices) {
+  protected boolean isDeviceConnected(Device device, final List<String> mountedDevices) {
     DeviceVisitor<Boolean> visitor = new DeviceVisitor.Default<Boolean>() {
 
       @Override
@@ -121,11 +118,6 @@ public class ConnectedDeviceServiceImpl implements ConnectedDeviceService {
         return isMounted(fileSystemDevice);
       }
 
-      @Override
-      public Boolean visit(MtpDevice mtpDevice) {
-        return connectedUsbDevices.contains(mtpDevice.getUsbId());
-      }
-
       protected boolean isMounted(MountedDevice mountedDevice) {
         return mountedDevices.contains(mountedDevice.getMountPoint().toString());
       }
@@ -134,56 +126,42 @@ public class ConnectedDeviceServiceImpl implements ConnectedDeviceService {
   }
 
   /**
-   * Run a command and return a column from its output.
+   * Read a file and return a column from its output.
    * 
    * @param columnToReturn
    *          The number of the column to return.
-   * @param command
-   *          The command to run.
-   * @param arguments
-   *          The arguments to supply to the command.
+   * @param path
+   *          The path to read.
    * @return A list of strings, each containing a column from the command's
    *         output.
    * @throws IOException
+   *           Signals that an I/O exception has occurred.
    */
-  protected List<String> list(final int columnToReturn, String command, String... arguments) throws IOException {
-    final List<String> cells = Lists.newArrayList();
-    ProcessCallback callback = new AbstractProcessCallback() {
-      @Override
-      public void lineWritten(String line) {
-        String cell =
-            Iterables.get(
-                Splitter.on(CharMatcher.WHITESPACE).omitEmptyStrings().trimResults().split(line),
-                columnToReturn,
-                null);
-        if (cell != null) {
-          cells.add(processOctal(cell));
-        }
+  protected List<String> list(final int columnToReturn, Path path) throws IOException {
+    List<String> cells = Lists.newArrayList();
+    for (String line : readFile(path)) {
+      String cell =
+          Iterables.get(
+              Splitter.on(CharMatcher.WHITESPACE).omitEmptyStrings().trimResults().split(line),
+              columnToReturn,
+              null);
+      if (cell != null) {
+        cells.add(processOctal(cell));
       }
-    };
-    executeProcess(callback, command, arguments);
+    }
     return cells;
   }
 
-  /**
-   * Generate a process request.
-   * @param callback
-   * @param command
-   * @param arguments
-   * @return
-   * @throws IOException 
-   */
-  protected void executeProcess(
-      ProcessCallback callback,
-      String command,
-      String... arguments) throws IOException {
-    getProcessRequestBuilder().forCommand(command).withArguments(arguments).withCallbacks(callback).executeAndWait();
+  protected List<String> readFile(Path path) throws IOException {
+    return Files.readAllLines(path, Charset.defaultCharset());
   }
 
   /**
    * Convert octal escaped characters in strings.
-   * @param line The line to convert.
-   * @return A new string that contains normal characters 
+   * 
+   * @param line
+   *          The line to convert.
+   * @return A new string that contains normal characters
    */
   protected String processOctal(String line) {
     Pattern octalPattern = Pattern.compile("\\\\([0-7]{3})");
@@ -197,12 +175,12 @@ public class ConnectedDeviceServiceImpl implements ConnectedDeviceService {
     return sb.toString();
   }
 
+  /**
+   * Gets the list of known users.
+   * 
+   * @return the list of known users
+   */
   public List<User> getUsers() {
     return users;
   }
-
-  public ProcessRequestBuilder getProcessRequestBuilder() {
-    return processRequestBuilder;
-  }
-
 }

@@ -54,7 +54,6 @@ import uk.co.unclealex.music.configuration.Configuration;
 import uk.co.unclealex.music.configuration.Device;
 import uk.co.unclealex.music.configuration.FileSystemDevice;
 import uk.co.unclealex.music.configuration.IpodDevice;
-import uk.co.unclealex.music.configuration.MtpDevice;
 import uk.co.unclealex.music.configuration.json.JsonConfigurationFactory;
 import uk.co.unclealex.music.files.DirectoryService;
 import uk.co.unclealex.music.files.DirectoryServiceImpl;
@@ -70,7 +69,6 @@ import uk.co.unclealex.music.musicbrainz.OwnerService;
 import uk.co.unclealex.music.musicbrainz.OwnerServiceImpl;
 import uk.co.unclealex.music.sync.FileSystemDeviceSynchroniserFactory;
 import uk.co.unclealex.music.sync.IpodDeviceSynchroniserFactory;
-import uk.co.unclealex.music.sync.MtpDeviceSynchroniserFactory;
 import uk.co.unclealex.music.sync.SynchroniserFactory;
 import uk.co.unclealex.music.sync.SynchroniserFactoryImpl;
 
@@ -114,7 +112,6 @@ public class ExternalModule extends AbstractModule {
     // Device synchronisers.
     bind(new TypeLiteral<SynchroniserFactory<Device>>() {}).to(SynchroniserFactoryImpl.class);
     bind(new TypeLiteral<SynchroniserFactory<IpodDevice>>() {}).to(IpodDeviceSynchroniserFactory.class);
-    bind(new TypeLiteral<SynchroniserFactory<MtpDevice>>() {}).to(MtpDeviceSynchroniserFactory.class);
     bind(new TypeLiteral<SynchroniserFactory<FileSystemDevice>>() {}).to(FileSystemDeviceSynchroniserFactory.class);
   }
 

@@ -30,14 +30,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import uk.co.unclealex.music.configuration.Device;
-import uk.co.unclealex.music.configuration.DeviceVisitor;
-import uk.co.unclealex.music.configuration.FileSystemDevice;
-import uk.co.unclealex.music.configuration.IpodDevice;
-import uk.co.unclealex.music.configuration.MtpDevice;
 import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
 import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
-import uk.co.unclealex.music.configuration.json.MtpDeviceBean;
 
 /**
  * @author alex
@@ -55,11 +49,6 @@ public class DeviceVisitorTest {
     test(new FileSystemDeviceBean("name", Paths.get("abc"), Paths.get("abc")), FileSystemDevice.class);
   }
 
-  @Test
-  public void testMtpDevice() {
-    test(new MtpDeviceBean("name", "abcd:efgh"), MtpDevice.class);
-  }
-  
   public void test(Device device, Class<? extends Device> expectedDeviceClass) {
     DeviceVisitor<Class<? extends Device>> visitor = new DeviceVisitor.Default<Class<? extends Device>>() {
 
@@ -71,11 +60,6 @@ public class DeviceVisitorTest {
       @Override
       public Class<? extends Device> visit(FileSystemDevice fileSystemDevice) {
         return FileSystemDevice.class;
-      }
-
-      @Override
-      public Class<? extends Device> visit(MtpDevice mtpDevice) {
-        return MtpDevice.class;
       }
     };
     Class<? extends Device> actualDeviceClass = device.accept(visitor);

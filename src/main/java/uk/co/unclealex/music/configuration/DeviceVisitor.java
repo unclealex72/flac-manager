@@ -37,15 +37,6 @@ public interface DeviceVisitor<R> {
   public R visit(FileSystemDevice fileSystemDevice);
 
   /**
-   * Visit a {@link MtpDevice}.
-   * 
-   * @param mtpDevice
-   *          The device to visit.
-   * @return A value to be defined by implementing classes.
-   */
-  public R visit(MtpDevice mtpDevice);
-
-  /**
    * A default implementation of {@link DeviceVisitor} that throws an exception
    * if {@link DeviceVisitor#visit(Device)} is called.
    * 
