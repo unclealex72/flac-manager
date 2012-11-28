@@ -83,7 +83,7 @@
     <dependency>
       <groupId>uk.co.unclealex</groupId>
       <artifactId>jsr303-paths</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0</version>
     </dependency>
 
     <dependency>
