@@ -148,6 +148,11 @@ public interface MessageService {
   public String FOUND_DEVICE = "foundDevice";
 
   /**
+   * The key for producing a message to say that a device has been synchronised.
+   */
+  public String DEVICE_SYNCHRONISED = "deviceSynchronised";
+
+  /**
    * Print an internationalised message.
    * 
    * @param template

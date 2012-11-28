@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.inject.Inject;
 
@@ -75,7 +76,7 @@ public class MtpDeviceSynchroniserFactory extends BlockDeviceSynchroniserFactory
    * {@inheritDoc}
    */
   @Override
-  protected Path getMusicDirectoryRelativeToDevice(Path devicePath) {
-    return devicePath.resolve("Music");
+  protected Path getMusicDirectoryRelativeToDevice(MtpDevice device) {
+    return Paths.get("Music");
   }
 }

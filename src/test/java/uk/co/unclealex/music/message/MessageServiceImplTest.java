@@ -188,6 +188,11 @@ public class MessageServiceImplTest {
   }
 
   @Test
+  public void testFinishedSynchronising() {
+    runTest("Finished synchronising alex's iPOD", MessageService.DEVICE_SYNCHRONISED, "alex", "iPOD");
+  }
+
+  @Test
   public void testFoundTrack() {
     runTest(
         "Found artist Queen, album A Kind of Magic (1 of 2), track 6 of 9: Who Wants to Live Forever? at /mnt/flac/myflacfile.flac",

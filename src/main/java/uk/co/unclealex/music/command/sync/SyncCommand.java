@@ -116,6 +116,7 @@ public class SyncCommand {
     Synchroniser synchroniser = getSynchroniserFactory().createSynchroniser(user, device);
     try {
       synchroniser.synchronise();
+      printMessage(MessageService.DEVICE_SYNCHRONISED, user, device);
     }
     catch (Exception e) {
       log.error("Synchronising failed.", e);

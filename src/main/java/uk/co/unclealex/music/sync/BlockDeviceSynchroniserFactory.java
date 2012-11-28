@@ -78,11 +78,11 @@ public abstract class BlockDeviceSynchroniserFactory<D extends Device> extends M
   /**
    * Get the directory where music is stored on the device.
    * 
-   * @param devicePath
-   *          The path where the device is mounted.
-   * @return The path where music is stored.
+   * @param device
+   *          The device.
+   * @return The relative path where music is stored.
    */
-  protected abstract Path getMusicDirectoryRelativeToDevice(Path devicePath);
+  protected abstract Path getMusicDirectoryRelativeToDevice(D device);
 
   /**
    * {@inheritDoc}
@@ -124,13 +124,14 @@ public abstract class BlockDeviceSynchroniserFactory<D extends Device> extends M
      */
     @Override
     public void synchronise() throws IOException {
-      Path mountPoint = createOrFindMountPoint(getDevice());
-      Path targetDirectory = getMusicDirectoryRelativeToDevice(mountPoint);
+      D device = getDevice();
+      Path mountPoint = createOrFindMountPoint(device);
+      Path targetDirectory = mountPoint.resolve(getMusicDirectoryRelativeToDevice(device));
       Path sourceDirectory = getDeviceService().getDeviceRepositoryBase(getOwner());
       try {
         getProcessRequestBuilder()
             .forCommand("rsync")
-            .withArguments("-avr", "--delete-before", sourceDirectory.toString() + "/", targetDirectory.toString())
+            .withArguments("-avrL", "--delete-before", sourceDirectory.toString() + "/", targetDirectory.toString())
             .withStandardOutput(getStdout())
             .withStandardError(getStderr())
             .executeAndWait();

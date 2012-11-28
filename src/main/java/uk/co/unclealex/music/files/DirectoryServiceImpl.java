@@ -89,10 +89,10 @@ public class DirectoryServiceImpl implements DirectoryService {
     }
     SortedSet<FileLocation> allFileLocations = Sets.newTreeSet();
     for (Path flacDirectory : absoluteDirectories) {
-      SortedSet<Path> flacFiles = findAllFiles(flacDirectory);
-      for (Path flacFile : flacFiles) {
+      SortedSet<Path> files = findAllFiles(flacDirectory);
+      for (Path file : files) {
         allFileLocations.add(requiredBasePath.resolve(absoluteRequiredBasePath
-            .relativize(flacFile)));
+            .relativize(file)));
       }
     }
     return allFileLocations;

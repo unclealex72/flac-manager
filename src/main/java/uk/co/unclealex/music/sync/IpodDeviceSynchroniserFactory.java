@@ -178,9 +178,10 @@ public class IpodDeviceSynchroniserFactory extends MountedDeviceSynchroniserFact
     public void synchronise() throws IOException {
       MessageService messageService = getMessageService();
       Executor executor = getExecutor();
+      String mountPoint = getIpodDevice().getMountPoint().toString();
       getProcessRequestBuilder()
           .forResource("sync.py")
-          .withArguments("ipod", getIpodDevice().getMountPoint().toString())
+          .withArguments("ipod", mountPoint)
           .withStandardInputSupplier(executor)
           .execute();
       try {
@@ -237,6 +238,7 @@ public class IpodDeviceSynchroniserFactory extends MountedDeviceSynchroniserFact
         executor.finish();
         closeDevice();
       }
+      getProcessRequestBuilder().forCommand("pumount").withArguments(mountPoint).executeAndWait();
     }
 
     /**

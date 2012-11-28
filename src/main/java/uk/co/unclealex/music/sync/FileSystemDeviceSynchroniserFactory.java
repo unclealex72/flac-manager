@@ -68,7 +68,7 @@ public class FileSystemDeviceSynchroniserFactory extends BlockDeviceSynchroniser
    * {@inheritDoc}
    */
   @Override
-  protected Path getMusicDirectoryRelativeToDevice(Path devicePath) {
-    return devicePath;
+  protected Path getMusicDirectoryRelativeToDevice(FileSystemDevice device) {
+    return device.getRelativeMusicPath();
   }
 }
