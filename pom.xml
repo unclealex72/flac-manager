@@ -175,4 +175,11 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <scm>
+    <connection>scm:git:git@github.com:dcs3apj/flac-manager.git</connection>
+    <url>https://github.com/dcs3apj/flac-manager</url>
+    <developerConnection>scm:git:git@github.com:dcs3apj/flac-manager.git</developerConnection>
+  </scm>
+
 </project>
