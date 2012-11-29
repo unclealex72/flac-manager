@@ -67,13 +67,15 @@ import uk.co.unclealex.music.musicbrainz.MusicBrainzWebResourceFactory;
 import uk.co.unclealex.music.musicbrainz.MusicBrainzWebResourceFactoryImpl;
 import uk.co.unclealex.music.musicbrainz.OwnerService;
 import uk.co.unclealex.music.musicbrainz.OwnerServiceImpl;
-import uk.co.unclealex.music.sync.FileSystemDeviceSynchroniserFactory;
-import uk.co.unclealex.music.sync.IpodDeviceSynchroniserFactory;
+import uk.co.unclealex.music.sync.FileSystemSynchroniser;
+import uk.co.unclealex.music.sync.IpodSynchroniser;
+import uk.co.unclealex.music.sync.Synchroniser;
 import uk.co.unclealex.music.sync.SynchroniserFactory;
 import uk.co.unclealex.music.sync.SynchroniserFactoryImpl;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 /**
  * A module that contains all bindings that rely on either external
@@ -111,8 +113,14 @@ public class ExternalModule extends AbstractModule {
     bind(MappingService.class).to(MappingServiceImpl.class);
     // Device synchronisers.
     bind(new TypeLiteral<SynchroniserFactory<Device>>() {}).to(SynchroniserFactoryImpl.class);
-    bind(new TypeLiteral<SynchroniserFactory<IpodDevice>>() {}).to(IpodDeviceSynchroniserFactory.class);
-    bind(new TypeLiteral<SynchroniserFactory<FileSystemDevice>>() {}).to(FileSystemDeviceSynchroniserFactory.class);
+    install(
+        new FactoryModuleBuilder()
+        .implement(Synchroniser.class, IpodSynchroniser.class)
+        .build(new TypeLiteral<SynchroniserFactory<IpodDevice>>() {}));
+    install(
+        new FactoryModuleBuilder()
+        .implement(Synchroniser.class, FileSystemSynchroniser.class)
+        .build(new TypeLiteral<SynchroniserFactory<FileSystemDevice>>() {}));
   }
 
   /**

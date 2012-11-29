@@ -56,6 +56,23 @@ public class FileUtilsImpl implements FileUtils {
    * {@inheritDoc}
    */
   @Override
+  public void copy(FileLocation sourceFileLocation, FileLocation targetFileLocation)
+      throws IOException {
+    Path sourcePath = sourceFileLocation.resolve();
+    Path targetPath = targetFileLocation.resolve();
+    Path parentTargetPath = targetPath.getParent();
+    Files.createDirectories(parentTargetPath);
+    Path tempPath = Files.createTempFile(parentTargetPath, "device-file-", ".tmp");
+    Files.copy(sourcePath, tempPath, StandardCopyOption.REPLACE_EXISTING);
+    Files.move(tempPath, targetPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+    Path currentDirectory = sourcePath.getParent();
+    remove(sourceFileLocation.getBasePath(), currentDirectory);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void remove(FileLocation fileLocation) throws IOException {
     remove(fileLocation.getBasePath(), fileLocation.resolve());
   }

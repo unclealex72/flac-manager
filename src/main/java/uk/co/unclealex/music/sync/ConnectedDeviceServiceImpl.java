@@ -36,10 +36,6 @@ import java.util.regex.Pattern;
 import javax.inject.Inject;
 
 import uk.co.unclealex.music.configuration.Device;
-import uk.co.unclealex.music.configuration.DeviceVisitor;
-import uk.co.unclealex.music.configuration.FileSystemDevice;
-import uk.co.unclealex.music.configuration.IpodDevice;
-import uk.co.unclealex.music.configuration.MountedDevice;
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.process.builder.ProcessRequestBuilder;
 
@@ -106,23 +102,7 @@ public class ConnectedDeviceServiceImpl implements ConnectedDeviceService {
    * @return True if the device is connected, false otherwise.
    */
   protected boolean isDeviceConnected(Device device, final List<String> mountedDevices) {
-    DeviceVisitor<Boolean> visitor = new DeviceVisitor.Default<Boolean>() {
-
-      @Override
-      public Boolean visit(IpodDevice ipodDevice) {
-        return isMounted(ipodDevice);
-      }
-
-      @Override
-      public Boolean visit(FileSystemDevice fileSystemDevice) {
-        return isMounted(fileSystemDevice);
-      }
-
-      protected boolean isMounted(MountedDevice mountedDevice) {
-        return mountedDevices.contains(mountedDevice.getMountPoint().toString());
-      }
-    };
-    return device.accept(visitor);
+    return mountedDevices.contains(device.getMountPoint().toString());
   }
 
   /**

@@ -32,7 +32,7 @@ import uk.co.unclealex.validator.paths.IsRelative;
  * @author alex
  *
  */
-public interface FileSystemDevice extends MountedDevice {
+public interface FileSystemDevice extends Device {
 
   /**
    * Gets the path, relative to the mount pount, where music is stored, or null if music is stored at the root level.

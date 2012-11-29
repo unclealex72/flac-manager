@@ -107,4 +107,22 @@ public class FileUtilsImplTest {
     Assert.assertFalse("File source/dir exists.", Files.exists(fileToMove.resolve().getParent()));
     Assert.assertTrue("File source does not exist.", Files.exists(source));
   }
+
+  @Test
+  public void testCopy() throws IOException {
+    Path source = testDirectory.resolve("source");
+    Path target = testDirectory.resolve("target");
+    Files.createDirectories(target);
+    FileLocation fileToCopy = new FileLocation(source, Paths.get("dir", "copyme.txt"), false);
+    Files.createDirectories(fileToCopy.resolve().getParent());
+    Files.createFile(fileToCopy.resolve());
+    new FileUtilsImpl().copy(fileToCopy, new FileLocation(target, Paths.get("otherdir", "copiedme.txt"), false));
+    Assert.assertTrue(
+        "File target/otherdir/copiedme.txt does not exist.",
+        Files.exists(target.resolve(Paths.get("otherdir", "copiedme.txt"))));
+    Assert.assertFalse(
+        "File target/otherdir/copiedme.txt is a directory.",
+        Files.isDirectory(target.resolve(Paths.get("otherdir", "copiedme.txt"))));
+    Assert.assertTrue("File source/dir/copyme.txt does not exist.", Files.exists(fileToCopy.resolve()));
+  }
 }

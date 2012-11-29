@@ -1,19 +1,21 @@
 package uk.co.unclealex.music.sync;
 
+import com.google.common.collect.Ordering;
+
 /**
- * A class that encapsulates a path of a file on an iPOD.
+ * A class that encapsulates a path of a file on a device.
  * @author alex
  *
  */
 public class DeviceFile implements Comparable<DeviceFile> {
 
   /**
-   * The ID of the file on the iPOD.
+   * The ID of the file on the device.
    */
 	private final String id;
 	
 	/**
-	 * The relative path of the file on the iPOD.
+	 * The relative path of the file on the device.
 	 */
 	private final String relativePath;
 	
@@ -43,7 +45,7 @@ public class DeviceFile implements Comparable<DeviceFile> {
 	public int compareTo(DeviceFile o) {
 	  int cmp = getRelativePath().compareTo(o.getRelativePath());
 	  if (cmp == 0) {
-	    cmp = getId().compareTo(o.getId());
+	    cmp = Ordering.natural().nullsFirst().compare(getId(), o.getId());
 	    if (cmp == 0) {
 	      cmp = Long.valueOf(getLastModified()).compareTo(o.getLastModified());
 	    }
@@ -52,18 +54,18 @@ public class DeviceFile implements Comparable<DeviceFile> {
 	}
 
   /**
-   * Gets the ID of the file on the iPOD.
+   * Gets the ID of the file on the device.
    *
-   * @return the ID of the file on the iPOD
+   * @return the ID of the file on the device
    */
   public String getId() {
     return id;
   }
 
   /**
-   * Gets the relative path of the file on the iPOD.
+   * Gets the relative path of the file on the device.
    *
-   * @return the relative path of the file on the iPOD
+   * @return the relative path of the file on the device
    */
   public String getRelativePath() {
     return relativePath;

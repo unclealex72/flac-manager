@@ -49,6 +49,18 @@ public interface FileUtils {
   public void move(FileLocation sourceFileLocation, FileLocation targetFileLocation) throws IOException;
 
   /**
+   * Copy a path from a source directory to a target directory using an atomic
+   * file system copy, creating any required directories.
+   * 
+   * @param sourceFileLocation
+   *          The source file location.
+   * @param targetFileLocation
+   *          The target file location.
+   * @throws IOException
+   */
+  void copy(FileLocation sourceFileLocation, FileLocation targetFileLocation) throws IOException;
+
+  /**
    * Remove directories if they are empty and recurse up the directory tree.
    * 
    * @param fileLocation
@@ -58,8 +70,8 @@ public interface FileUtils {
   public void remove(FileLocation fileLocation) throws IOException;
 
   /**
-   * Create a relative symbolic link from one file to another, creating any required
-   * parent directories for the new link.
+   * Create a relative symbolic link from one file to another, creating any
+   * required parent directories for the new link.
    * 
    * @param fileLocation
    *          The location of the file to link to.
@@ -68,4 +80,5 @@ public interface FileUtils {
    * @throws IOException
    */
   public void link(FileLocation fileLocation, FileLocation linkLocation) throws IOException;
+
 }

@@ -24,6 +24,10 @@
 
 package uk.co.unclealex.music.configuration;
 
+import java.nio.file.Path;
+
+import javax.validation.constraints.NotNull;
+
 import org.hibernate.validator.constraints.NotEmpty;
 
 import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
@@ -51,6 +55,13 @@ public interface Device {
    */
   @NotEmpty
   public String getName();
+  
+  /**
+   * Get the path where this device is expected to be mounted.
+   * @return the path where this device is expected to be mounted.
+   */
+  @NotNull
+  public Path getMountPoint();
   
   /**
    * Accept a {@link DeviceVisitor}

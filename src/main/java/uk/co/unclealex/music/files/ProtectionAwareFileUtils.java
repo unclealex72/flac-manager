@@ -77,6 +77,20 @@ public class ProtectionAwareFileUtils implements FileUtils {
    * {@inheritDoc}
    */
   @Override
+  public void copy(FileLocation sourceFileLocation, FileLocation targetFileLocation) throws IOException {
+    unprotect(targetFileLocation);
+    try {
+      getFileUtils().copy(sourceFileLocation, targetFileLocation);
+    }
+    finally {
+      protect(targetFileLocation);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void remove(FileLocation fileLocation) throws IOException {
     unprotect(fileLocation);
     try {

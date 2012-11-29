@@ -29,6 +29,6 @@ package uk.co.unclealex.music.configuration;
  * @author alex
  *
  */
-public interface IpodDevice extends MountedDevice {
+public interface IpodDevice extends Device {
 
 }
