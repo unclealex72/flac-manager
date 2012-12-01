@@ -64,6 +64,7 @@ public class ConnectedDeviceServiceImplTest {
               "gvfsd-fuse /run/user/alex/gvfs fuse.gvfsd-fuse rw,nosuid,nodev,user=alex 0 0",
               "remote:/mnt/music /mnt/multimedia nfs rw,vers=4,addr=192.168.7.14,clientaddr=192.168.7.15 0 0",
               "/dev/sdb2 /media/brian/BRIAN'S\\040IPOD vfat rw,nosuid,nodev,uid=1000,gid=1000,shortname=mixed,dmask=0077,utf8=1,showexec,flush,uhelper=udisks2 0 0",
+              "/dev/sdd1 /media/TREVOR\\134x27S\\134x20IP vfat rw,sync,noatime,uid=1000 0 0",
               "/dev/sda1 /media/WALKMAN vfat rw,nosuid,nodev,uid=1000,gid=1000,shortname=mixed,dmask=0077,utf8=1,showexec,flush,uhelper=udisks2 0 0",
               "remote:/mnt/home /mnt/home nfs rw,vers=4,addr=192.168.7.14,clientaddr=192.168.7.15 0 0"
 

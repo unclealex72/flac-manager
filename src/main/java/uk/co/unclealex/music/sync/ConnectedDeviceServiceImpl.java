@@ -148,8 +148,8 @@ public class ConnectedDeviceServiceImpl implements ConnectedDeviceService {
     StringBuffer sb = new StringBuffer();
     Matcher matcher = octalPattern.matcher(line);
     while (matcher.find()) {
-      char ch = (char) Integer.parseInt(matcher.group(1), 8);
-      matcher.appendReplacement(sb, new String(new char[] { ch }));
+      Character ch = (char) Integer.parseInt(matcher.group(1), 8);
+      matcher.appendReplacement(sb, Matcher.quoteReplacement(ch.toString()));
     }
     matcher.appendTail(sb);
     return sb.toString();
