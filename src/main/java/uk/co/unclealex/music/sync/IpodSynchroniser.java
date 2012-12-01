@@ -120,7 +120,7 @@ public class IpodSynchroniser extends AbstractSynchroniser<IpodDevice> {
           else {
             DateTimeFormatter formatter = ISODateTimeFormat.dateHourMinuteSecond();
             List<String> deviceFileParts = Lists.newArrayList(Splitter.on('|').split(str));
-            if (deviceFileParts.size() != 2) {
+            if (deviceFileParts.size() != 3) {
               throw new IllegalStateException("Do not understand line: '" + str + "' sent from iPOD.");
             }
             DateTime dateTime = formatter.parseDateTime(deviceFileParts.get(2));
