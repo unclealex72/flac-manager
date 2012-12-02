@@ -29,9 +29,6 @@ import java.util.Map.Entry;
 
 import javax.inject.Inject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import uk.co.unclealex.executable.Executable;
 import uk.co.unclealex.executable.StandardHelpCommandLine;
 import uk.co.unclealex.music.command.inject.CommonModule;
@@ -41,111 +38,117 @@ import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
 import uk.co.unclealex.music.message.MessageService;
 import uk.co.unclealex.music.sync.ConnectedDeviceService;
-import uk.co.unclealex.music.sync.Synchroniser;
-import uk.co.unclealex.music.sync.SynchroniserFactory;
 import uk.co.unclealex.process.inject.PackageCheckingModule;
 
 import com.google.common.collect.Multimap;
 import com.lexicalscope.jewel.cli.CommandLineInterface;
 
 /**
- * The command used to synchronise connected {@link Device}s with the device repositories.
+ * The command used to synchronise connected {@link Device}s with the device
+ * repositories.
+ * 
  * @author alex
- *
+ * 
  */
 public class SyncCommand {
 
   /**
-   * The logger to use for reporting synchronisation errors.
-   */
-  private static final Logger log = LoggerFactory.getLogger(SyncCommand.class);
-  
-  /**
    * The {@link ConnectedDeviceService} used to find what devices are connected.
    */
   private final ConnectedDeviceService connectedDeviceService;
-  
+
   /**
-   * The {@link SynchroniserFactory} used to create {@link Synchroniser}s.
+   * The {@link SynchroniserService} used to synchronise connected devices.
    */
-  private final SynchroniserFactory<Device> synchroniserFactory;
-  
+  private final SynchroniserService synchroniserService;
+
   /**
    * The {@link MessageService} used to show messages to the end user.
    */
   private final MessageService messageService;
-  
+
+  /**
+   * Instantiates a new sync command.
+   * 
+   * @param connectedDeviceService
+   *          the connected device service
+   * @param synchroniserService
+   *          the synchroniser service
+   * @param messageService
+   *          the message service
+   */
   @Inject
   public SyncCommand(
       ConnectedDeviceService connectedDeviceService,
-      SynchroniserFactory<Device> synchroniserFactory,
+      SynchroniserService synchroniserService,
       MessageService messageService) {
     super();
     this.connectedDeviceService = connectedDeviceService;
-    this.synchroniserFactory = synchroniserFactory;
+    this.synchroniserService = synchroniserService;
     this.messageService = messageService;
   }
 
-
   /**
+   * Execute.
    * 
    * @param commandLine
+   *          the command line
    * @throws IOException
+   *           Signals that an I/O exception has occurred.
    * @throws InvalidDirectoriesException
+   *           the invalid directories exception
    */
   @Executable({ CommonModule.class, ExternalModule.class, PackageCheckingModule.class })
   public void execute(SyncCommandLine commandLine) throws IOException, InvalidDirectoriesException {
     Multimap<User, Device> connectedDevices = getConnectedDeviceService().listConnectedDevices();
     for (Entry<User, Device> entry : connectedDevices.entries()) {
-      printMessage(MessageService.FOUND_DEVICE, entry.getKey(), entry.getValue());
+      getMessageService().printMessage(
+          MessageService.FOUND_DEVICE,
+          entry.getKey().getName(),
+          entry.getValue().getName());
     }
-    for (Entry<User, Device> entry : connectedDevices.entries()) {
-      synchronise(entry.getKey(), entry.getValue());
-    }
+    getSynchroniserService().synchronise(connectedDevices);
   }
 
-  protected void printMessage(String template, User user, Device device) {
-    getMessageService().printMessage(template, user.getName(), device.getName());
-  }
   /**
-   * @param key
-   * @param value
+   * Gets the {@link ConnectedDeviceService} used to find what devices are
+   * connected.
+   * 
+   * @return the {@link ConnectedDeviceService} used to find what devices are
+   *         connected
    */
-  protected void synchronise(User user, Device device) {
-    printMessage(MessageService.SYNCHRONISING, user, device);
-    Synchroniser synchroniser = getSynchroniserFactory().createSynchroniser(user, device);
-    try {
-      synchroniser.synchronise();
-      printMessage(MessageService.DEVICE_SYNCHRONISED, user, device);
-    }
-    catch (Exception e) {
-      log.error("Synchronising failed.", e);
-    }
-  }
-
-
   public ConnectedDeviceService getConnectedDeviceService() {
     return connectedDeviceService;
   }
 
-
-  public SynchroniserFactory<Device> getSynchroniserFactory() {
-    return synchroniserFactory;
-  }
-
-
+  /**
+   * Gets the {@link MessageService} used to show messages to the end user.
+   * 
+   * @return the {@link MessageService} used to show messages to the end user
+   */
   public MessageService getMessageService() {
     return messageService;
+  }
+
+  /**
+   * Gets the {@link SynchroniserService} used to synchronise connected devices.
+   * 
+   * @return the {@link SynchroniserService} used to synchronise connected
+   *         devices
+   */
+  public SynchroniserService getSynchroniserService() {
+    return synchroniserService;
   }
 
 }
 
 /**
  * The command line for the {@link SyncCommand}.
+ * 
  * @author alex
- *
+ * 
  */
-@CommandLineInterface(application="flacman-sync")
+@CommandLineInterface(application = "flacman-sync")
 interface SyncCommandLine extends StandardHelpCommandLine {
-  
+
 }

@@ -26,7 +26,6 @@ package uk.co.unclealex.music.sync;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -44,6 +43,7 @@ import uk.co.unclealex.process.builder.ProcessRequestBuilder;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 /**
@@ -116,18 +116,15 @@ public abstract class AbstractSynchroniser<D extends Device> implements Synchron
    * {@inheritDoc}
    */
   @Override
-  public final void synchronise() throws IOException {
+  public final void synchronise(Multimap<User, FileLocation> deviceFilesByOwner) throws IOException {
     initialise();
-    MessageService messageService = getMessageService();
     try {
-      Path deviceRepositoryBase = getDeviceService().getDeviceRepositoryBase(getOwner());
-      Set<DeviceFile> deviceFiles = listDeviceFiles();
-      SortedSet<FileLocation> fileLocations = getDirectoryService().listFiles(deviceRepositoryBase);
       Function<DeviceFile, String> deviceRelativePathFunction = new Function<DeviceFile, String>() {
         public String apply(DeviceFile deviceFile) {
           return deviceFile.getRelativePath();
         }
       };
+      Set<DeviceFile> deviceFiles = listDeviceFiles();
       Map<String, DeviceFile> deviceFilesByRelativePath =
           Maps.newHashMap(Maps.uniqueIndex(deviceFiles, deviceRelativePathFunction));
       Function<FileLocation, String> fileLocationRelativePathFunction = new Function<FileLocation, String>() {
@@ -136,7 +133,7 @@ public abstract class AbstractSynchroniser<D extends Device> implements Synchron
         }
       };
       Map<String, FileLocation> fileLocationsByRelativePath =
-          Maps.uniqueIndex(fileLocations, fileLocationRelativePathFunction);
+          Maps.uniqueIndex(deviceFilesByOwner.get(getOwner()), fileLocationRelativePathFunction);
       SortedSet<DeviceFile> deviceFilesToRemove = Sets.newTreeSet();
       SortedSet<FileLocation> localFilesToAdd = Sets.newTreeSet();
       for (Map.Entry<String, FileLocation> entry : fileLocationsByRelativePath.entrySet()) {
@@ -152,17 +149,17 @@ public abstract class AbstractSynchroniser<D extends Device> implements Synchron
           localFilesToAdd.add(fileLocation);
         }
         else if (deviceFile != null) {
-          messageService.printMessage(MessageService.SYNC_KEEP, deviceFile.getRelativePath());
+          printMessage(MessageService.SYNC_KEEP, deviceFile.getRelativePath());
           deviceFilesByRelativePath.remove(relativePath);
         }
       }
       deviceFilesToRemove.addAll(deviceFilesByRelativePath.values());
       for (DeviceFile deviceFile : deviceFilesToRemove) {
-        messageService.printMessage(MessageService.SYNC_REMOVE, deviceFile.getRelativePath());
+        printMessage(MessageService.SYNC_REMOVE, deviceFile.getRelativePath());
         remove(deviceFile);
       }
       for (FileLocation fileLocation : localFilesToAdd) {
-        messageService.printMessage(MessageService.SYNC_ADD, fileLocation.getRelativePath());
+        printMessage(MessageService.SYNC_ADD, fileLocation.getRelativePath());
         add(fileLocation);
       }
     }
@@ -178,6 +175,10 @@ public abstract class AbstractSynchroniser<D extends Device> implements Synchron
         .executeAndWait();
   }
 
+  protected void printMessage(String template, Object parameter) {
+    getMessageService().printMessage(template, parameter, getOwner().getName(), getDevice().getName());
+  }
+  
   /**
    * Initialise the device so that it is ready to synchronise.
    * 

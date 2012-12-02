@@ -38,6 +38,7 @@ import org.junit.Test;
 
 import uk.co.unclealex.music.configuration.Device;
 import uk.co.unclealex.music.configuration.User;
+import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
 import uk.co.unclealex.music.configuration.json.UserBean;
 import uk.co.unclealex.music.files.FileLocation;
 
@@ -55,6 +56,7 @@ public class MessageServiceImplTest {
   FileLocation fl4 = new FileLocation(Paths.get("/mnt", "mp3"), Paths.get("myflacfile.mp3"), true);
 
   User brianMay = new UserBean("brian", "Brian May", "pwd", new ArrayList<Device>());
+  Device device = new IpodDeviceBean(Paths.get(""));
   User freddieMercury = new UserBean("freddie", "Freddie Mercury", "pwd", new ArrayList<Device>());
 
   @Test
@@ -159,17 +161,17 @@ public class MessageServiceImplTest {
 
   @Test
   public void testSyncKeep() {
-    runTest("Keeping file a/b/c.mp3", MessageService.SYNC_KEEP, Paths.get("a", "b", "c.mp3"));
+    runTest("brian's iPOD: Keeping file a/b/c.mp3", MessageService.SYNC_KEEP, Paths.get("a", "b", "c.mp3"), brianMay.getName(), device.getName());
   }
 
   @Test
   public void testSyncAdd() {
-    runTest("Adding file a/b/c.mp3", MessageService.SYNC_ADD, Paths.get("a", "b", "c.mp3"));
+    runTest("brian's iPOD: Adding file a/b/c.mp3", MessageService.SYNC_ADD, Paths.get("a", "b", "c.mp3"), brianMay.getName(), device.getName());
   }
 
   @Test
   public void testSyncRemove() {
-    runTest("Removing file a/b/c.mp3", MessageService.SYNC_REMOVE, Paths.get("a", "b", "c.mp3"));
+    runTest("brian's iPOD: Removing file a/b/c.mp3", MessageService.SYNC_REMOVE, Paths.get("a", "b", "c.mp3"), brianMay.getName(), device.getName());
   }
 
   @Test

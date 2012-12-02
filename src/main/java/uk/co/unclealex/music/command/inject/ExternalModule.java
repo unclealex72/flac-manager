@@ -29,6 +29,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -50,6 +52,8 @@ import uk.co.unclealex.music.command.checkin.covers.SignedRequestsService;
 import uk.co.unclealex.music.command.checkin.covers.SignedRequestsServiceImpl;
 import uk.co.unclealex.music.command.checkin.process.MappingService;
 import uk.co.unclealex.music.command.checkin.process.MappingServiceImpl;
+import uk.co.unclealex.music.command.sync.SynchroniserService;
+import uk.co.unclealex.music.command.sync.SynchroniserServiceImpl;
 import uk.co.unclealex.music.configuration.Configuration;
 import uk.co.unclealex.music.configuration.Device;
 import uk.co.unclealex.music.configuration.FileSystemDevice;
@@ -121,6 +125,8 @@ public class ExternalModule extends AbstractModule {
         new FactoryModuleBuilder()
         .implement(Synchroniser.class, FileSystemSynchroniser.class)
         .build(new TypeLiteral<SynchroniserFactory<FileSystemDevice>>() {}));
+    bind(ExecutorService.class).toInstance(Executors.newCachedThreadPool());
+    bind(SynchroniserService.class).to(SynchroniserServiceImpl.class);
   }
 
   /**
