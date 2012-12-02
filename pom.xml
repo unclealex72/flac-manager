@@ -13,7 +13,7 @@
   <url>http://unclealex.co.uk</url>
   <properties>
     <executable-groupId>uk.co.unclealex.executable</executable-groupId>
-    <executable-version>2.0.1-SNAPSHOT</executable-version>
+    <executable-version>2.0.1</executable-version>
     <slf4j-version>1.7.2</slf4j-version>
     <jersey-version>1.5</jersey-version>
   </properties>
