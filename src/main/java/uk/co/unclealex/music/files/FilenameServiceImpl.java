@@ -67,6 +67,6 @@ public class FilenameServiceImpl implements FilenameService {
     while (m.find()) {
       normalisedSequence.append(m.group());
     }
-    return normalisedSequence.toString().replaceAll("\\s+", " ");
+    return normalisedSequence.toString().replaceAll("\\s+", " ").trim();
   }
 }

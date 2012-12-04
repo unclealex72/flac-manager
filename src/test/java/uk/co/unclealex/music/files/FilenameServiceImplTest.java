@@ -45,13 +45,13 @@ public class FilenameServiceImplTest {
 
   @Test
   public void testSingleDisc() {
-    runTest("Mötörhead", "Good - Stuff", 1, 1, 2, "The Ace of Spades", FLAC,
+    runTest("Mötörhead", "Good - Stuff ", 1, 1, 2, "The Ace of Spades", FLAC,
         Paths.get("M", "Motorhead", "Good Stuff", "02 The Ace of Spades.flac"));
   }
 
   @Test
   public void testMultipleDiscs() {
-    runTest("Mötörhead", "Good - Stuff", 1, 2, 2, "The Ace of Spades", FLAC,
+    runTest("Mötörhead", "Good - Stuff ", 1, 2, 2, "The Ace of Spades", FLAC,
         Paths.get("M", "Motorhead", "Good Stuff 01", "02 The Ace of Spades.flac"));
   }
   
