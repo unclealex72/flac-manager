@@ -197,7 +197,7 @@ public class SynchroniserServiceImpl implements SynchroniserService {
     }
 
     protected void printMessage(String template) {
-      getMessageService().printMessage(template, getOwner(), getDevice());
+      getMessageService().printMessage(template, getOwner().getName(), getDevice().getName());
     }
     
     /**
