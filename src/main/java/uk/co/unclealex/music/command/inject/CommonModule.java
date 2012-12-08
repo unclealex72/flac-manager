@@ -75,8 +75,10 @@ import uk.co.unclealex.music.message.MessageService;
 import uk.co.unclealex.music.message.MessageServiceImpl;
 import uk.co.unclealex.music.musicbrainz.ChangeOwnershipService;
 import uk.co.unclealex.music.musicbrainz.ChangeOwnershipServiceImpl;
-import uk.co.unclealex.music.sync.ConnectedDeviceService;
-import uk.co.unclealex.music.sync.ConnectedDeviceServiceImpl;
+import uk.co.unclealex.music.sync.DeviceConnectionService;
+import uk.co.unclealex.music.sync.DeviceConnectionServiceImpl;
+import uk.co.unclealex.music.sync.scsi.ScsiIdFactory;
+import uk.co.unclealex.music.sync.scsi.ScsiIdFactoryImpl;
 import uk.co.unclealex.process.inject.ProcessRequestBuilderModule;
 
 import com.google.inject.AbstractModule;
@@ -86,6 +88,7 @@ import com.mycila.inject.jsr250.Jsr250;
 
 /**
  * The Guice {@link Module} for components common to all commands.
+ * 
  * @author alex
  */
 public class CommonModule extends AbstractModule {
@@ -126,7 +129,8 @@ public class CommonModule extends AbstractModule {
     bind(Directories.class).toProvider(DirectoriesProvider.class);
     bind(new TypeLiteral<List<User>>() {
     }).toProvider(UsersProvider.class);
-    bind(ConnectedDeviceService.class).to(ConnectedDeviceServiceImpl.class);
+    bind(DeviceConnectionService.class).to(DeviceConnectionServiceImpl.class);
+    bind(ScsiIdFactory.class).to(ScsiIdFactoryImpl.class);
   }
 
   /**
@@ -149,7 +153,7 @@ public class CommonModule extends AbstractModule {
      * @param configuration
      *          the configuration
      */
-    public ConfigurationAwareProvider(Configuration configuration) {
+    public ConfigurationAwareProvider(final Configuration configuration) {
       super();
       this.configuration = configuration;
     }
@@ -192,7 +196,7 @@ public class CommonModule extends AbstractModule {
        *          the configuration
        */
       @Inject
-      public DirectoriesProvider(Configuration configuration) {
+      public DirectoriesProvider(final Configuration configuration) {
         super(configuration);
       }
 
@@ -200,7 +204,7 @@ public class CommonModule extends AbstractModule {
        * {@inheritDoc}
        */
       @Override
-      protected Directories get(Configuration configuration) {
+      protected Directories get(final Configuration configuration) {
         return configuration.getDirectories();
       }
     }
@@ -218,7 +222,7 @@ public class CommonModule extends AbstractModule {
      *          the configuration
      */
     @Inject
-    public AmazonConfigurationProvider(Configuration configuration) {
+    public AmazonConfigurationProvider(final Configuration configuration) {
       super(configuration);
     }
 
@@ -226,7 +230,7 @@ public class CommonModule extends AbstractModule {
      * {@inheritDoc}
      */
     @Override
-    protected AmazonConfiguration get(Configuration configuration) {
+    protected AmazonConfiguration get(final Configuration configuration) {
       return configuration.getAmazon();
     }
   }
@@ -243,7 +247,7 @@ public class CommonModule extends AbstractModule {
      *          the configuration
      */
     @Inject
-    public UsersProvider(Configuration configuration) {
+    public UsersProvider(final Configuration configuration) {
       super(configuration);
     }
 
@@ -251,7 +255,7 @@ public class CommonModule extends AbstractModule {
      * {@inheritDoc}
      */
     @Override
-    protected List<User> get(Configuration configuration) {
+    protected List<User> get(final Configuration configuration) {
       return configuration.getUsers();
     }
   }
