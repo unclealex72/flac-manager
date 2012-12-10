@@ -75,10 +75,8 @@ import uk.co.unclealex.music.message.MessageService;
 import uk.co.unclealex.music.message.MessageServiceImpl;
 import uk.co.unclealex.music.musicbrainz.ChangeOwnershipService;
 import uk.co.unclealex.music.musicbrainz.ChangeOwnershipServiceImpl;
-import uk.co.unclealex.music.sync.DeviceConnectionService;
-import uk.co.unclealex.music.sync.DeviceConnectionServiceImpl;
 import uk.co.unclealex.music.sync.DriveUuidService;
-import uk.co.unclealex.music.sync.DriveUuidServiceImpl;
+import uk.co.unclealex.music.sync.drive.DriveUuidServiceImpl;
 import uk.co.unclealex.music.sync.scsi.ScsiIdFactory;
 import uk.co.unclealex.music.sync.scsi.ScsiIdFactoryImpl;
 import uk.co.unclealex.process.inject.ProcessRequestBuilderModule;
@@ -131,7 +129,7 @@ public class CommonModule extends AbstractModule {
     bind(Directories.class).toProvider(DirectoriesProvider.class);
     bind(new TypeLiteral<List<User>>() {
     }).toProvider(UsersProvider.class);
-    bind(DeviceConnectionService.class).to(DeviceConnectionServiceImpl.class);
+    // bind(DeviceConnectionService.class).to(DeviceConnectionServiceImpl.class);
     bind(ScsiIdFactory.class).to(ScsiIdFactoryImpl.class);
     bind(DriveUuidService.class).to(DriveUuidServiceImpl.class);
   }
