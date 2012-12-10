@@ -22,7 +22,7 @@
  *
  */
 
-package uk.co.unclealex.music.sync;
+package uk.co.unclealex.music.sync.drive;
 
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.hasEntry;
@@ -39,6 +39,7 @@ import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 
 import com.google.common.collect.BiMap;
 

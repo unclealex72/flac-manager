@@ -22,7 +22,7 @@
  *
  */
 
-package uk.co.unclealex.music.sync;
+package uk.co.unclealex.music.sync.drive;
 
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
@@ -36,6 +36,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashSet;
 
 import javax.annotation.PostConstruct;
+
+import uk.co.unclealex.music.sync.DriveUuidService;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
