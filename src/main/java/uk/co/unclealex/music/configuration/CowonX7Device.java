@@ -22,42 +22,16 @@
  *
  */
 
-package uk.co.unclealex.music.configuration.json;
-
-import uk.co.unclealex.music.DataObject;
-import uk.co.unclealex.music.configuration.Device;
+package uk.co.unclealex.music.configuration;
 
 /**
- * A base bean for {@link Device}s that present their contents as part of the
- * UNIX file system.
+ * An interface for Cowon X7 {@link Device}s. The Cowon X7 would be a standard
+ * {@link FileSystemDevice} except that it potentially mounts a extra flash
+ * drive as <code>X7 FLASH</code>, too.
  * 
  * @author alex
  * 
  */
-public abstract class AbstractFileSystemDeviceBean extends DataObject implements Device {
+public interface CowonX7Device extends Device {
 
-  /**
-   * The UUID of the device.
-   */
-  private final String uuid;
-
-  /**
-   * Instantiates a new abstract file system device bean.
-   * 
-   * @param uuid
-   *          the uuid
-   */
-  public AbstractFileSystemDeviceBean(final String uuid) {
-    super();
-    this.uuid = uuid;
-  }
-
-  /**
-   * Gets the UUID of the device.
-   * 
-   * @return the UUID of the device
-   */
-  public String getUuid() {
-    return uuid;
-  }
 }

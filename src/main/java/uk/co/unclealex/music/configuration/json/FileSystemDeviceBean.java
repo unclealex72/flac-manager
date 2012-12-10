@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A bean version of {@link FileSystemDevice}.
- *
+ * 
  * @author alex
  */
 public class FileSystemDeviceBean extends AbstractFileSystemDeviceBean implements FileSystemDevice {
@@ -26,9 +26,12 @@ public class FileSystemDeviceBean extends AbstractFileSystemDeviceBean implement
    */
   private final Path relativeMusicPath;
 
-  @JsonCreator  
-  public FileSystemDeviceBean(@JsonProperty("name") String name, @JsonProperty("mountPoint") Path mountPoint, @JsonProperty("relativeMusicPath") Path relativeMusicPath) {
-    super(mountPoint);
+  @JsonCreator
+  public FileSystemDeviceBean(
+      @JsonProperty("name") final String name,
+      @JsonProperty("uuid") final String uuid,
+      @JsonProperty("relativeMusicPath") final Path relativeMusicPath) {
+    super(uuid);
     this.name = name;
     this.relativeMusicPath = relativeMusicPath;
   }
@@ -37,8 +40,8 @@ public class FileSystemDeviceBean extends AbstractFileSystemDeviceBean implement
    * {@inheritDoc}
    */
   @Override
-  public <R> R accept(DeviceVisitor<R> deviceVisitor) {
-    return deviceVisitor.visit((FileSystemDevice) this);
+  public <R> R accept(final DeviceVisitor<R> deviceVisitor) {
+    return deviceVisitor.visit(this);
   }
 
   /**

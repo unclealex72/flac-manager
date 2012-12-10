@@ -25,6 +25,7 @@
 package uk.co.unclealex.music.sync;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -60,127 +61,159 @@ import com.google.inject.assistedinject.Assisted;
  * @author alex
  * 
  */
-@PackagesRequired({ "python-gpod", "python-eyed3", "python-gtk2", "pmount" })
+@PackagesRequired({ "python-gpod", "python-eyed3", "python-gtk2" })
 public class IpodSynchroniser extends AbstractSynchroniser<IpodDevice> {
 
-    /**
-     * The {@link Executor} used to talk to the iPOD.
-     */
-    private final Executor executor = new Executor("OK", Charsets.UTF_8);
+  /**
+   * The {@link Executor} used to talk to the iPOD.
+   */
+  private final Executor executor = new Executor("OK", Charsets.UTF_8);
 
-    /**
-     * Instantiates a new ipod synchroniser.
-     *
-     * @param messageService the message service
-     * @param directoryService the directory service
-     * @param deviceService the device service
-     * @param processRequestBuilder the process request builder
-     * @param owner the owner
-     * @param device the device
-     */
-    @Inject
-    public IpodSynchroniser(
-        MessageService messageService,
-        DirectoryService directoryService,
-        DeviceService deviceService,
-        ProcessRequestBuilder processRequestBuilder,
-        @Assisted User owner,
-        @Assisted IpodDevice device) {
-      super(messageService, directoryService, deviceService, processRequestBuilder, owner, device);
-    }
+  /**
+   * The {@link ProcessRequestBuilder} used to create requests for native
+   * processes.
+   */
+  private final ProcessRequestBuilder processRequestBuilder;
 
-    /**
-     * {@inheritDoc}
-     */
-    protected void initialise() throws IOException {
-      Executor executor = getExecutor();
-      String mountPoint = getDevice().getMountPoint().toString();
-      getProcessRequestBuilder()
-          .forResource("sync.py")
-          .withArguments("ipod", mountPoint)
-          .withStandardInputSupplier(executor)
-          .execute();
-    }
+  /**
+   * Instantiates a new ipod synchroniser.
+   * 
+   * @param messageService
+   *          the message service
+   * @param directoryService
+   *          the directory service
+   * @param deviceService
+   *          the device service
+   * @param processRequestBuilder
+   *          the process request builder
+   * @param owner
+   *          the owner
+   * @param device
+   *          the device
+   */
+  @Inject
+  public IpodSynchroniser(
+      final MessageService messageService,
+      final DirectoryService directoryService,
+      final DeviceService deviceService,
+      final DeviceConnectionService deviceConnectionService,
+      final ProcessRequestBuilder processRequestBuilder,
+      @Assisted final User owner,
+      @Assisted final IpodDevice device) {
+    super(messageService, directoryService, deviceService, deviceConnectionService, owner, device);
+    this.processRequestBuilder = processRequestBuilder;
+  }
 
-    /**
-     * List device files.
-     *
-     * @return the sets the
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    public Set<DeviceFile> listDeviceFiles() throws IOException {
-      List<String> deviceFileStrings = executeCommand("LIST");
-      Function<String, DeviceFile> deviceFileParserFunction = new Function<String, DeviceFile>() {
-        @Override
-        public DeviceFile apply(String str) {
-          str = str.trim();
-          if (str.isEmpty() || str.startsWith("**")) {
-            return null;
-          }
-          else {
-            DateTimeFormatter formatter = ISODateTimeFormat.dateHourMinuteSecond();
-            List<String> deviceFileParts = Lists.newArrayList(Splitter.on('|').split(str));
-            if (deviceFileParts.size() != 3) {
-              throw new IllegalStateException("Do not understand line: '" + str + "' sent from iPOD.");
-            }
-            DateTime dateTime = formatter.parseDateTime(deviceFileParts.get(2));
-            return new DeviceFile(deviceFileParts.get(0), deviceFileParts.get(1), dateTime.getMillis());
-          }
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void beforeMount() throws IOException {
+    // Nothing needs doing here.
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void afterMount(final Path mountPath) throws IOException {
+    getProcessRequestBuilder()
+        .forResource("sync.py")
+        .withArguments("ipod", mountPath.toString())
+        .withStandardInputSupplier(getExecutor())
+        .execute();
+  }
+
+  /**
+   * List device files.
+   * 
+   * @return the sets the
+   * @throws IOException
+   *           Signals that an I/O exception has occurred.
+   */
+  @Override
+  public Set<DeviceFile> listDeviceFiles() throws IOException {
+    final List<String> deviceFileStrings = executeCommand("LIST");
+    final Function<String, DeviceFile> deviceFileParserFunction = new Function<String, DeviceFile>() {
+      @Override
+      public DeviceFile apply(String str) {
+        str = str.trim();
+        if (str.isEmpty() || str.startsWith("**")) {
+          return null;
         }
-      };
-      return Sets.newTreeSet(Iterables.filter(
-          Iterables.transform(deviceFileStrings, deviceFileParserFunction),
-          Predicates.notNull()));
-    }
+        else {
+          final DateTimeFormatter formatter = ISODateTimeFormat.dateHourMinuteSecond();
+          final List<String> deviceFileParts = Lists.newArrayList(Splitter.on('|').split(str));
+          if (deviceFileParts.size() != 3) {
+            throw new IllegalStateException("Do not understand line: '" + str + "' sent from iPOD.");
+          }
+          final DateTime dateTime = formatter.parseDateTime(deviceFileParts.get(2));
+          return new DeviceFile(deviceFileParts.get(0), deviceFileParts.get(1), dateTime.getMillis());
+        }
+      }
+    };
+    return Sets.newTreeSet(Iterables.filter(
+        Iterables.transform(deviceFileStrings, deviceFileParserFunction),
+        Predicates.notNull()));
+  }
 
-    /**
-     * Adds the.
-     *
-     * @param fileloLocation the filelo location
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    public void add(FileLocation fileloLocation) throws IOException {
-      executeCommand("ADD", fileloLocation.getRelativePath(), fileloLocation.resolve());
-    }
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void add(final FileLocation fileloLocation) throws IOException {
+    executeCommand("ADD", fileloLocation.getRelativePath(), fileloLocation.resolve());
+  }
 
-    /**
-     * Removes the.
-     *
-     * @param deviceFile the device file
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    public void remove(DeviceFile deviceFile) throws IOException {
-      executeCommand("REMOVE", deviceFile.getId());
-    }
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void remove(final DeviceFile deviceFile) throws IOException {
+    executeCommand("REMOVE", deviceFile.getId());
+  }
 
-    /**
-     * Close device.
-     *
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    public void closeDevice() throws IOException {
-      executeCommand("QUIT");
-    }
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void beforeUnmount() throws IOException {
+    executeCommand("QUIT");
+  }
 
-    /**
-     * Execute command.
-     *
-     * @param command the command
-     * @return the list
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    protected List<String> executeCommand(Object... command) throws IOException {
-      String fullCommand = Joiner.on('|').join(command);
-      return getExecutor().executeCommand(fullCommand);
-    }
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void afterUnmount() throws IOException {
+    // Do nothing
+  }
 
-    /**
-     * Gets the {@link Executor} used to talk to the iPOD.
-     *
-     * @return the {@link Executor} used to talk to the iPOD
-     */
-    public Executor getExecutor() {
-      return executor;
-    }
+  /**
+   * Execute a command.
+   * 
+   * @param command
+   *          the command
+   * @return the list
+   * @throws IOException
+   *           Signals that an I/O exception has occurred.
+   */
+  protected List<String> executeCommand(final Object... command) throws IOException {
+    final String fullCommand = Joiner.on('|').join(command);
+    return getExecutor().executeCommand(fullCommand);
+  }
+
+  /**
+   * Gets the {@link Executor} used to talk to the iPOD.
+   * 
+   * @return the {@link Executor} used to talk to the iPOD
+   */
+  public Executor getExecutor() {
+    return executor;
+  }
+
+  public ProcessRequestBuilder getProcessRequestBuilder() {
+    return processRequestBuilder;
+  }
 
 }

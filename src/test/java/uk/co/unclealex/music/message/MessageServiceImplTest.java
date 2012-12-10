@@ -56,7 +56,7 @@ public class MessageServiceImplTest {
   FileLocation fl4 = new FileLocation(Paths.get("/mnt", "mp3"), Paths.get("myflacfile.mp3"), true);
 
   User brianMay = new UserBean("brian", "Brian May", "pwd", new ArrayList<Device>());
-  Device device = new IpodDeviceBean(Paths.get(""));
+  Device device = new IpodDeviceBean("118118");
   User freddieMercury = new UserBean("freddie", "Freddie Mercury", "pwd", new ArrayList<Device>());
 
   @Test
@@ -161,17 +161,32 @@ public class MessageServiceImplTest {
 
   @Test
   public void testSyncKeep() {
-    runTest("brian's iPOD: Keeping file a/b/c.mp3", MessageService.SYNC_KEEP, Paths.get("a", "b", "c.mp3"), brianMay.getName(), device.getName());
+    runTest(
+        "brian's iPOD: Keeping file a/b/c.mp3",
+        MessageService.SYNC_KEEP,
+        Paths.get("a", "b", "c.mp3"),
+        brianMay.getName(),
+        device.getName());
   }
 
   @Test
   public void testSyncAdd() {
-    runTest("brian's iPOD: Adding file a/b/c.mp3", MessageService.SYNC_ADD, Paths.get("a", "b", "c.mp3"), brianMay.getName(), device.getName());
+    runTest(
+        "brian's iPOD: Adding file a/b/c.mp3",
+        MessageService.SYNC_ADD,
+        Paths.get("a", "b", "c.mp3"),
+        brianMay.getName(),
+        device.getName());
   }
 
   @Test
   public void testSyncRemove() {
-    runTest("brian's iPOD: Removing file a/b/c.mp3", MessageService.SYNC_REMOVE, Paths.get("a", "b", "c.mp3"), brianMay.getName(), device.getName());
+    runTest(
+        "brian's iPOD: Removing file a/b/c.mp3",
+        MessageService.SYNC_REMOVE,
+        Paths.get("a", "b", "c.mp3"),
+        brianMay.getName(),
+        device.getName());
   }
 
   @Test
@@ -215,10 +230,10 @@ public class MessageServiceImplTest {
     runTest("My own message", "My own message");
   }
 
-  protected void runTest(String expectedMessage, String template, Object... arguments) {
-    StringWriter buffer = new StringWriter();
-    PrintWriter stdout = new PrintWriter(buffer, true);
-    MessageService messageService = new MessageServiceImpl(stdout);
+  protected void runTest(final String expectedMessage, final String template, final Object... arguments) {
+    final StringWriter buffer = new StringWriter();
+    final PrintWriter stdout = new PrintWriter(buffer, true);
+    final MessageService messageService = new MessageServiceImpl(stdout);
     messageService.printMessage(template, arguments);
     assertEquals("The wrong message was printed.", expectedMessage + "\n", buffer.toString());
   }

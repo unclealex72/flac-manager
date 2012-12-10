@@ -55,6 +55,7 @@ import uk.co.unclealex.music.command.checkin.process.MappingServiceImpl;
 import uk.co.unclealex.music.command.sync.SynchroniserService;
 import uk.co.unclealex.music.command.sync.SynchroniserServiceImpl;
 import uk.co.unclealex.music.configuration.Configuration;
+import uk.co.unclealex.music.configuration.CowonX7Device;
 import uk.co.unclealex.music.configuration.Device;
 import uk.co.unclealex.music.configuration.FileSystemDevice;
 import uk.co.unclealex.music.configuration.IpodDevice;
@@ -71,6 +72,7 @@ import uk.co.unclealex.music.musicbrainz.MusicBrainzWebResourceFactory;
 import uk.co.unclealex.music.musicbrainz.MusicBrainzWebResourceFactoryImpl;
 import uk.co.unclealex.music.musicbrainz.OwnerService;
 import uk.co.unclealex.music.musicbrainz.OwnerServiceImpl;
+import uk.co.unclealex.music.sync.CowonX7Synchroniser;
 import uk.co.unclealex.music.sync.FileSystemSynchroniser;
 import uk.co.unclealex.music.sync.IpodSynchroniser;
 import uk.co.unclealex.music.sync.Synchroniser;
@@ -116,15 +118,17 @@ public class ExternalModule extends AbstractModule {
     bind(DirectoryService.class).to(DirectoryServiceImpl.class);
     bind(MappingService.class).to(MappingServiceImpl.class);
     // Device synchronisers.
-    bind(new TypeLiteral<SynchroniserFactory<Device>>() {}).to(SynchroniserFactoryImpl.class);
-    install(
-        new FactoryModuleBuilder()
-        .implement(Synchroniser.class, IpodSynchroniser.class)
-        .build(new TypeLiteral<SynchroniserFactory<IpodDevice>>() {}));
-    install(
-        new FactoryModuleBuilder()
-        .implement(Synchroniser.class, FileSystemSynchroniser.class)
-        .build(new TypeLiteral<SynchroniserFactory<FileSystemDevice>>() {}));
+    bind(new TypeLiteral<SynchroniserFactory<Device>>() {
+    }).to(SynchroniserFactoryImpl.class);
+    install(new FactoryModuleBuilder().implement(Synchroniser.class, IpodSynchroniser.class).build(
+        new TypeLiteral<SynchroniserFactory<IpodDevice>>() {
+        }));
+    install(new FactoryModuleBuilder().implement(Synchroniser.class, FileSystemSynchroniser.class).build(
+        new TypeLiteral<SynchroniserFactory<FileSystemDevice>>() {
+        }));
+    install(new FactoryModuleBuilder().implement(Synchroniser.class, CowonX7Synchroniser.class).build(
+        new TypeLiteral<SynchroniserFactory<CowonX7Device>>() {
+        }));
     bind(ExecutorService.class).toInstance(Executors.newCachedThreadPool());
     bind(SynchroniserService.class).to(SynchroniserServiceImpl.class);
   }
@@ -138,7 +142,7 @@ public class ExternalModule extends AbstractModule {
   static class ConfigurationProvider implements Provider<Configuration> {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigurationProvider.class);
-    
+
     /**
      * The {@link Validator} used to validate the JSON configuration.
      */
@@ -151,7 +155,7 @@ public class ExternalModule extends AbstractModule {
      *          the validator
      */
     @Inject
-    public ConfigurationProvider(Validator validator) {
+    public ConfigurationProvider(final Validator validator) {
       super();
       this.validator = validator;
     }
@@ -161,18 +165,18 @@ public class ExternalModule extends AbstractModule {
      */
     @Override
     public Configuration get() {
-      Path configurationPath = Paths.get(System.getProperty("user.home"), ".flacman.json");
+      final Path configurationPath = Paths.get(System.getProperty("user.home"), ".flacman.json");
       try (InputStream in = Files.newInputStream(configurationPath)) {
-        Configuration configuration = new JsonConfigurationFactory().load(in);
+        final Configuration configuration = new JsonConfigurationFactory().load(in);
         return getValidator().validate(configuration, "The configuration is invalid");
       }
-      catch (ConstraintViolationException e) {
-        for (ConstraintViolation<?> cv : e.getConstraintViolations()) {
+      catch (final ConstraintViolationException e) {
+        for (final ConstraintViolation<?> cv : e.getConstraintViolations()) {
           log.error(cv.getPropertyPath() + ": " + cv.getMessage());
         }
         return null;
       }
-      catch (IOException e) {
+      catch (final IOException e) {
         throw new IllegalStateException("Could not read configuration file ", e);
       }
     }

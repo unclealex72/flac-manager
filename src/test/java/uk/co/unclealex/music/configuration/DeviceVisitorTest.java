@@ -30,39 +30,50 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import uk.co.unclealex.music.configuration.json.CowonX7DeviceBean;
 import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
 import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
 
 /**
  * @author alex
- *
+ * 
  */
 public class DeviceVisitorTest {
 
   @Test
   public void testIpodDevice() {
-    test(new IpodDeviceBean(Paths.get("abc")), IpodDevice.class);
+    test(new IpodDeviceBean("118118"), IpodDevice.class);
   }
 
   @Test
   public void testFileSystemDevice() {
-    test(new FileSystemDeviceBean("name", Paths.get("abc"), Paths.get("abc")), FileSystemDevice.class);
+    test(new FileSystemDeviceBean("name", "220220", Paths.get("abc")), FileSystemDevice.class);
   }
 
-  public void test(Device device, Class<? extends Device> expectedDeviceClass) {
-    DeviceVisitor<Class<? extends Device>> visitor = new DeviceVisitor.Default<Class<? extends Device>>() {
+  @Test
+  public void testCowonX7Device() {
+    test(new CowonX7DeviceBean("333999"), CowonX7Device.class);
+  }
+
+  public void test(final Device device, final Class<? extends Device> expectedDeviceClass) {
+    final DeviceVisitor<Class<? extends Device>> visitor = new DeviceVisitor.Default<Class<? extends Device>>() {
 
       @Override
-      public Class<? extends Device> visit(IpodDevice ipodDevice) {
+      public Class<? extends Device> visit(final IpodDevice ipodDevice) {
         return IpodDevice.class;
       }
 
       @Override
-      public Class<? extends Device> visit(FileSystemDevice fileSystemDevice) {
+      public Class<? extends Device> visit(final FileSystemDevice fileSystemDevice) {
         return FileSystemDevice.class;
       }
+
+      @Override
+      public Class<? extends Device> visit(final CowonX7Device cowonX7Device) {
+        return CowonX7Device.class;
+      }
     };
-    Class<? extends Device> actualDeviceClass = device.accept(visitor);
-    Assert.assertEquals("The wrong class was returned.", expectedDeviceClass,  actualDeviceClass);
+    final Class<? extends Device> actualDeviceClass = device.accept(visitor);
+    Assert.assertEquals("The wrong class was returned.", expectedDeviceClass, actualDeviceClass);
   }
 }

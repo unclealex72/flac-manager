@@ -37,6 +37,15 @@ public interface DeviceVisitor<R> {
   public R visit(FileSystemDevice fileSystemDevice);
 
   /**
+   * Visit a {@link CowonX7Device}.
+   * 
+   * @param cowonX7Device
+   *          The device to visit.
+   * @return A value to be defined by implementing classes.
+   */
+  public R visit(CowonX7Device cowonX7Device);
+
+  /**
    * A default implementation of {@link DeviceVisitor} that throws an exception
    * if {@link DeviceVisitor#visit(Device)} is called.
    * 
@@ -46,7 +55,8 @@ public interface DeviceVisitor<R> {
    */
   public abstract class Default<R> implements DeviceVisitor<R> {
 
-    public final R visit(Device device) {
+    @Override
+    public final R visit(final Device device) {
       throw new IllegalArgumentException(device.getClass() + " is not a valid device type.");
     }
   }

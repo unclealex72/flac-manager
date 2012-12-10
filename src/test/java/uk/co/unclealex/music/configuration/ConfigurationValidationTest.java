@@ -16,6 +16,7 @@ import org.junit.Test;
 import uk.co.unclealex.music.ValidatorImpl;
 import uk.co.unclealex.music.configuration.json.AmazonConfigurationBean;
 import uk.co.unclealex.music.configuration.json.ConfigurationBean;
+import uk.co.unclealex.music.configuration.json.CowonX7DeviceBean;
 import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
 import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
 import uk.co.unclealex.music.configuration.json.PathsBean;
@@ -61,7 +62,7 @@ public class ConfigurationValidationTest {
   PathsBean defaultPathBean = new PathsBean(homeDir, homeDir, homeDir, homeDir);
   AmazonConfigurationBean defaultAmazonBean = new AmazonConfigurationBean("endpoint", "accessKey", "secretKey");
   List<UserBean> defaultUsers = Lists.newArrayList(new UserBean("alex", "MeMeMe", "pwd", Lists
-      .newArrayList((Device) new FileSystemDeviceBean("WALKMAN", Paths.get("/mnt/home"), Paths.get("WALKMAN")))));
+      .newArrayList((Device) new FileSystemDeviceBean("WALKMAN", "123456", Paths.get("Music")))));
 
   @Test
   public void testConfigurationRequiresPathAndUsers() throws Exception {
@@ -130,15 +131,16 @@ public class ConfigurationValidationTest {
     testValidate(
         new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean("aj", "aj", "aj", Lists.newArrayList(
             (Device) new FileSystemDeviceBean(null, null, null),
+            new CowonX7DeviceBean(null),
             new IpodDeviceBean(null)))), defaultAmazonBean),
         Violation.expect(NotEmpty.class, "users[0]", "devices[0]", "name"),
         Violation.expect(NotNull.class, "users[0]", "devices[0]", "mountPoint"),
         Violation.expect(NotNull.class, "users[0]", "devices[1]", "mountPoint"));
   }
 
-  public void testValidate(ConfigurationBean configurationBean, Violation... expectedViolations) {
-    ValidatorImpl validator = new ValidatorImpl();
-    Set<Violation> actualViolations = Violation.typedViolations(validator.generateViolations(configurationBean));
+  public void testValidate(final ConfigurationBean configurationBean, final Violation... expectedViolations) {
+    final ValidatorImpl validator = new ValidatorImpl();
+    final Set<Violation> actualViolations = Violation.typedViolations(validator.generateViolations(configurationBean));
     assertThat("The wrong violations were found.", actualViolations, containsInAnyOrder(expectedViolations));
   }
 }

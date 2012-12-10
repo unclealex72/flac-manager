@@ -37,7 +37,7 @@ import uk.co.unclealex.music.configuration.Device;
 import uk.co.unclealex.music.configuration.User;
 import uk.co.unclealex.music.exception.InvalidDirectoriesException;
 import uk.co.unclealex.music.message.MessageService;
-import uk.co.unclealex.music.sync.ConnectedDeviceService;
+import uk.co.unclealex.music.sync.DeviceConnectionService;
 import uk.co.unclealex.process.inject.PackageCheckingModule;
 
 import com.google.common.collect.Multimap;
@@ -53,9 +53,9 @@ import com.lexicalscope.jewel.cli.CommandLineInterface;
 public class SyncCommand {
 
   /**
-   * The {@link ConnectedDeviceService} used to find what devices are connected.
+   * The {@link DeviceConnectionService} used to find what devices are connected.
    */
-  private final ConnectedDeviceService connectedDeviceService;
+  private final DeviceConnectionService connectedDeviceService;
 
   /**
    * The {@link SynchroniserService} used to synchronise connected devices.
@@ -79,7 +79,7 @@ public class SyncCommand {
    */
   @Inject
   public SyncCommand(
-      ConnectedDeviceService connectedDeviceService,
+      DeviceConnectionService connectedDeviceService,
       SynchroniserService synchroniserService,
       MessageService messageService) {
     super();
@@ -111,13 +111,13 @@ public class SyncCommand {
   }
 
   /**
-   * Gets the {@link ConnectedDeviceService} used to find what devices are
+   * Gets the {@link DeviceConnectionService} used to find what devices are
    * connected.
    * 
-   * @return the {@link ConnectedDeviceService} used to find what devices are
+   * @return the {@link DeviceConnectionService} used to find what devices are
    *         connected
    */
-  public ConnectedDeviceService getConnectedDeviceService() {
+  public DeviceConnectionService getConnectedDeviceService() {
     return connectedDeviceService;
   }
 

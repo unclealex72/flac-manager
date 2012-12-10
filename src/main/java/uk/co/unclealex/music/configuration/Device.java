@@ -24,12 +24,9 @@
 
 package uk.co.unclealex.music.configuration;
 
-import java.nio.file.Path;
-
-import javax.validation.constraints.NotNull;
-
 import org.hibernate.validator.constraints.NotEmpty;
 
+import uk.co.unclealex.music.configuration.json.CowonX7DeviceBean;
 import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
 import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
 
@@ -39,34 +36,41 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 
 /**
  * An interface that represents a type of external music device.
+ * 
  * @author alex
- *
+ * 
  */
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=As.PROPERTY, property="type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = As.PROPERTY, property = "type")
 @JsonSubTypes({
-      @JsonSubTypes.Type(value=IpodDeviceBean.class, name="ipod"),
-      @JsonSubTypes.Type(value=FileSystemDeviceBean.class, name="hd")
-  }) 
+    @JsonSubTypes.Type(value = IpodDeviceBean.class, name = "ipod"),
+    @JsonSubTypes.Type(value = CowonX7DeviceBean.class, name = "x7"),
+    @JsonSubTypes.Type(value = FileSystemDeviceBean.class, name = "hd") })
 public interface Device {
 
   /**
    * Get the name of this device.
+   * 
    * @return The name of this device.
    */
   @NotEmpty
   public String getName();
-  
+
   /**
-   * Get the path where this device is expected to be mounted.
-   * @return the path where this device is expected to be mounted.
+   * Get the unique UUID of this device. The device will have a symbolic link at
+   * <code>/dev/disks/by-uuid/UUID</code> that points to where the device is
+   * located.
+   * 
+   * @return The unique UUID of this device.
    */
-  @NotNull
-  public Path getMountPoint();
-  
+  public String getUuid();
+
   /**
    * Accept a {@link DeviceVisitor}
-   * @param deviceVisitor The device visitor to accept.
-   * @return The value returned by the {@link DeviceVisitor}s <code>visit()</code> method.
+   * 
+   * @param deviceVisitor
+   *          The device visitor to accept.
+   * @return The value returned by the {@link DeviceVisitor}s
+   *         <code>visit()</code> method.
    */
   public <R> R accept(DeviceVisitor<R> deviceVisitor);
 

@@ -1,23 +1,23 @@
 package uk.co.unclealex.music.configuration.json;
 
+import uk.co.unclealex.music.configuration.CowonX7Device;
 import uk.co.unclealex.music.configuration.DeviceVisitor;
-import uk.co.unclealex.music.configuration.IpodDevice;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * A bean version of {@link IpodDevice}.
+ * A bean version of {@link CowonX7Device}.
  * 
  * @author alex
  * 
  */
 @JsonIgnoreProperties("name")
-public class IpodDeviceBean extends AbstractFileSystemDeviceBean implements IpodDevice {
+public class CowonX7DeviceBean extends AbstractFileSystemDeviceBean implements CowonX7Device {
 
   @JsonCreator
-  public IpodDeviceBean(@JsonProperty("uuid") final String uuid) {
+  public CowonX7DeviceBean(@JsonProperty("uuid") final String uuid) {
     super(uuid);
   }
 
@@ -26,7 +26,7 @@ public class IpodDeviceBean extends AbstractFileSystemDeviceBean implements Ipod
    */
   @Override
   public String getName() {
-    return "iPOD";
+    return "Cowon X7";
   }
 
   @Override

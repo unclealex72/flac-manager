@@ -11,13 +11,17 @@
     "musicBrainzPassword" : "pwd",
     "devices" : [ {
       "type" : "ipod",
-      "mountPoint" : "/media/IPOD"
+      "uuid" : "118118"
     }, 
     {
       "type" : "hd",
       "name" : "hd device",
-      "mountPoint" : "mountPoint",
+      "uuid" : "333666",
       "relativeMusicPath" : "music"
+    }, 
+    {
+      "type" : "x7",
+      "uuid" : "220220"
     } ]
   } ],
   "amazon" : {
