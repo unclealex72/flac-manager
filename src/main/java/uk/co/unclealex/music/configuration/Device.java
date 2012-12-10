@@ -62,6 +62,7 @@ public interface Device {
    * 
    * @return The unique UUID of this device.
    */
+  @NotEmpty
   public String getUuid();
 
   /**

@@ -134,8 +134,9 @@ public class ConfigurationValidationTest {
             new CowonX7DeviceBean(null),
             new IpodDeviceBean(null)))), defaultAmazonBean),
         Violation.expect(NotEmpty.class, "users[0]", "devices[0]", "name"),
-        Violation.expect(NotNull.class, "users[0]", "devices[0]", "mountPoint"),
-        Violation.expect(NotNull.class, "users[0]", "devices[1]", "mountPoint"));
+        Violation.expect(NotEmpty.class, "users[0]", "devices[0]", "uuid"),
+        Violation.expect(NotEmpty.class, "users[0]", "devices[1]", "uuid"),
+        Violation.expect(NotEmpty.class, "users[0]", "devices[2]", "uuid"));
   }
 
   public void testValidate(final ConfigurationBean configurationBean, final Violation... expectedViolations) {
