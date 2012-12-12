@@ -32,11 +32,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import uk.co.unclealex.music.sync.scsi.ScsiId;
@@ -50,27 +53,48 @@ import com.google.common.collect.Lists;
  */
 public class LsscsiScsiServiceTest {
 
+  Path tmpDir;
+
+  @Before
+  public void setup() throws IOException {
+    tmpDir = Files.createTempDirectory("lsscsiscsitest-");
+  }
+
   @Test
   public void testLsscsi() throws IOException {
+    for (final String dir : new String[] { "sda", "sda1", "sda2", "sdb", "sr0" }) {
+      Files.createDirectories(tmpDir.resolve(dir));
+    }
     final ScsiIdFactory scsiIdFactory = mock(ScsiIdFactory.class);
     final ScsiId scsi0 = new ScsiId(0, 0, 0, 0);
+    final ScsiId scsi1 = new ScsiId(1, 0, 0, 0);
     final ScsiId scsi2 = new ScsiId(2, 0, 0, 0);
     when(scsiIdFactory.create("[0:0:0:0]")).thenReturn(scsi0);
+    when(scsiIdFactory.create("[1:0:0:0]")).thenReturn(scsi1);
     when(scsiIdFactory.create("[2:0:0:0]")).thenReturn(scsi2);
     final LsscsiScsiService scsiService = new LsscsiScsiService(null, scsiIdFactory) {
       @Override
       public List<String> generateLines() {
         return Lists.newArrayList(
-            "[0:0:0:0]    disk    ATA      INTEL SSDSC2MH12 PPG4  /dev/sda",
-            "[2:0:0:0]    cd/dvd  Slimtype DS8A5SH          XP91  /dev/sr0");
+            "[0:0:0:0]    disk    ATA      INTEL SSDSC2MH12 PPG4  " + tmpDir + "/sda",
+            "[1:0:0:0]    disk    ATA      INTEL SSDSC2MH12 PPG4  " + tmpDir + "/sdb",
+            "[2:0:0:0]    cd/dvd  Slimtype DS8A5SH          XP91  " + tmpDir + "/sr0");
       };
     };
     scsiService.initialise();
     final Map<ScsiId, Path> map = scsiService.getMap();
-    assertThat("The wrong number of scsi devices were returned.", map.entrySet(), hasSize(2));
+    assertThat("The wrong number of scsi devices were returned.", map.entrySet(), hasSize(3));
     assertThat(
         "The wrong scsi devices were returned.",
         map,
-        allOf(hasEntry(scsi0, Paths.get("/dev", "sda")), hasEntry(scsi2, Paths.get("/dev", "sr0"))));
+        allOf(
+            hasEntry(scsi0, tmpDir.resolve("sda1")),
+            hasEntry(scsi1, tmpDir.resolve("sdb")),
+            hasEntry(scsi2, tmpDir.resolve("sr0"))));
+  }
+
+  @After
+  public void delete() throws IOException {
+    FileUtils.deleteDirectory(tmpDir.toFile());
   }
 }

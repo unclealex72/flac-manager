@@ -25,9 +25,12 @@
 package uk.co.unclealex.music.sync.drive;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream.Filter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.SortedSet;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -39,6 +42,7 @@ import uk.co.unclealex.process.builder.ProcessRequestBuilder;
 import uk.co.unclealex.process.packages.PackagesRequired;
 
 import com.google.common.collect.BiMap;
+import com.google.common.collect.Sets;
 
 /**
  * An implementation of {@link ScsiService} that uses the Linux command
@@ -109,10 +113,26 @@ public class LsscsiScsiService extends AbstractStringCellMappingService<ScsiId, 
 
   /**
    * {@inheritDoc}
+   * 
+   * @throws IOException
    */
   @Override
-  public Path parseValue(final String value) {
-    return Paths.get(value);
+  public Path parseValue(final String value) throws IOException {
+    final Path scsiDevicePath = Paths.get(value);
+    final String deviceNameRegex = scsiDevicePath.getFileName().toString() + "[0-9]+";
+    final Filter<Path> f = new Filter<Path>() {
+      @Override
+      public boolean accept(final Path entry) throws IOException {
+        return entry.getFileName().toString().matches(deviceNameRegex);
+      }
+    };
+    final SortedSet<Path> partitionPaths = Sets.newTreeSet(Files.newDirectoryStream(scsiDevicePath.getParent(), f));
+    if (partitionPaths.isEmpty()) {
+      return scsiDevicePath;
+    }
+    else {
+      return partitionPaths.first();
+    }
   }
 
   /**

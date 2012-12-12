@@ -67,7 +67,7 @@ import com.google.common.collect.Multimap;
 @RunWith(MockitoJUnitRunner.class)
 public class DeviceConnectionServiceImplTest {
 
-  DeviceConnectionService deviceConnectionService;
+  DeviceConnectionServiceImpl deviceConnectionService;
   @Mock
   ScsiService scsiService;
   @Mock

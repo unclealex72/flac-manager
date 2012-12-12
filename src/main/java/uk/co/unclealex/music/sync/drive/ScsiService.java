@@ -40,10 +40,13 @@ import com.google.common.collect.BiMap;
 public interface ScsiService {
 
   /**
-   * List the device paths where each SCSI device is located.
+   * List the first partition path for each SCSI device connected to the
+   * machine. So, for example if SCSI device <i>A</i> is located at
+   * <code>/dev/sda</code> and has partitions at <code>/dev/sda1</code> and
+   * <code>/dev/sda2</code>, then the partition path is <code>/dev/sda1</code>/
    * 
-   * @return A map of Linux device paths keyed by the {@link ScsiId} of the SCSI
-   *         device located there.
+   * @return A map of Linux partition paths keyed by the {@link ScsiId} of the
+   *         SCSI device located there.
    */
   public BiMap<ScsiId, Path> listDevicePathsByScsiIds();
 }

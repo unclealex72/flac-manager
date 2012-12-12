@@ -126,7 +126,7 @@ public abstract class AbstractStringCellMappingService<K, V> {
    * @return A new key of the correct type or null if this key should not be
    *         added to the map.
    */
-  public abstract K parseKey(String key);
+  public abstract K parseKey(String key) throws IOException;
 
   /**
    * Parse a found value.
@@ -136,7 +136,7 @@ public abstract class AbstractStringCellMappingService<K, V> {
    * @return A new value of the correct type or null if this value should not be
    *         added to the map.
    */
-  public abstract V parseValue(String value);
+  public abstract V parseValue(String value) throws IOException;
 
   /**
    * Generate the lines that will be parsed into a {@link BiMap}.
