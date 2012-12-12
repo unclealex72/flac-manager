@@ -30,6 +30,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 import uk.co.unclealex.music.sync.scsi.ScsiId;
 import uk.co.unclealex.music.sync.scsi.ScsiIdFactory;
@@ -72,6 +73,7 @@ public class LsscsiScsiService extends AbstractStringCellMappingService<ScsiId, 
    * @param scsiIdFactory
    *          the scsi id factory
    */
+  @Inject
   public LsscsiScsiService(final ProcessRequestBuilder processRequestBuilder, final ScsiIdFactory scsiIdFactory) {
     super(0, -1);
     this.processRequestBuilder = processRequestBuilder;

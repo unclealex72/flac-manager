@@ -24,22 +24,38 @@
 
 package uk.co.unclealex.music.sync;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
-import com.google.common.collect.BiMap;
-
 /**
- * An interface for classes that can list the UUID of connected drives.
+ * An interface for classes that can mount and unmount devices.
  * 
  * @author alex
  * 
  */
-public interface DriveUuidService {
+public interface MounterService {
 
   /**
-   * List all connected devices that have a UUID.
+   * Mount a device.
    * 
-   * @return A map of Linux drive paths keyed by their UUID.
+   * @param devicePath
+   *          The path of the device to mount.
+   * @param directoryName
+   *          The directory name to supply to the <code>pmount</code> command.
+   * @return The new mount point of the device.
+   * @throws IOException
+   *           Signals that an I/O exception has occurred.
    */
-  public BiMap<String, Path> listDrivesByUuid();
+  public Path mount(final Path devicePath, final String directoryName) throws IOException;
+
+  /**
+   * Unmount a device.
+   * 
+   * @param path
+   *          The path where the device is mounted.
+   * @throws IOException
+   *           Signals that an I/O exception has occurred.
+   */
+  public void unmount(final Path path) throws IOException;
+
 }

@@ -37,7 +37,6 @@ import java.util.HashSet;
 
 import javax.annotation.PostConstruct;
 
-import uk.co.unclealex.music.sync.DriveUuidService;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;

@@ -77,8 +77,14 @@ import uk.co.unclealex.music.musicbrainz.ChangeOwnershipService;
 import uk.co.unclealex.music.musicbrainz.ChangeOwnershipServiceImpl;
 import uk.co.unclealex.music.sync.DeviceConnectionService;
 import uk.co.unclealex.music.sync.DeviceConnectionServiceImpl;
-import uk.co.unclealex.music.sync.DriveUuidService;
+import uk.co.unclealex.music.sync.MounterService;
+import uk.co.unclealex.music.sync.MounterServiceImpl;
+import uk.co.unclealex.music.sync.drive.DriveUuidService;
 import uk.co.unclealex.music.sync.drive.DriveUuidServiceImpl;
+import uk.co.unclealex.music.sync.drive.LsscsiScsiService;
+import uk.co.unclealex.music.sync.drive.MountedDriveService;
+import uk.co.unclealex.music.sync.drive.MtabMountedDriveService;
+import uk.co.unclealex.music.sync.drive.ScsiService;
 import uk.co.unclealex.music.sync.scsi.ScsiIdFactory;
 import uk.co.unclealex.music.sync.scsi.ScsiIdFactoryImpl;
 import uk.co.unclealex.process.inject.ProcessRequestBuilderModule;
@@ -134,6 +140,9 @@ public class CommonModule extends AbstractModule {
     bind(DeviceConnectionService.class).to(DeviceConnectionServiceImpl.class);
     bind(ScsiIdFactory.class).to(ScsiIdFactoryImpl.class);
     bind(DriveUuidService.class).to(DriveUuidServiceImpl.class);
+    bind(MounterService.class).to(MounterServiceImpl.class);
+    bind(MountedDriveService.class).to(MtabMountedDriveService.class);
+    bind(ScsiService.class).to(LsscsiScsiService.class);
   }
 
   /**
