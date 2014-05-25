@@ -62,9 +62,9 @@ import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.co.unclealex.music.configuration.Device;
-import uk.co.unclealex.music.configuration.User;
-import uk.co.unclealex.music.configuration.json.UserBean;
+import uk.co.unclealex.music.configuration.JDevice;
+import uk.co.unclealex.music.configuration.JUser;
+import uk.co.unclealex.music.configuration.json.JUserBean;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterators;
@@ -98,9 +98,9 @@ public abstract class MusicBrainzTester {
 
   CountingMusicBrainzRetryFilter countingMusicBrainzRetryFilter;
 
-  MusicBrainzWebResourceFactory musicBrainzWebResourceFactory;
+  JMusicBrainzWebResourceFactory musicBrainzWebResourceFactory;
 
-  User user = new UserBean("brian", "Brian", "may", new ArrayList<Device>());
+  JUser user = new JUserBean("brian", "Brian", "may", new ArrayList<JDevice>());
   
   @Before
   public void setup() throws Exception {
@@ -112,7 +112,7 @@ public abstract class MusicBrainzTester {
       @Override
       protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String userAgent = req.getHeader(HttpHeaders.USER_AGENT);
-        assertEquals("The wrong user agent was sent.", MusicBrainzWebResourceFactoryImpl.USER_AGENT, userAgent);
+        assertEquals("The wrong user agent was sent.", JMusicBrainzWebResourceFactoryImpl.USER_AGENT, userAgent);
         if (timesToReturn503 != 0) {
           timesToReturn503--;
           resp.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
@@ -172,7 +172,7 @@ public abstract class MusicBrainzTester {
     server.start();
     countingMusicBrainzRetryFilter = new CountingMusicBrainzRetryFilter(0, 2);
     musicBrainzWebResourceFactory =
-        new MusicBrainzWebResourceFactoryImpl("http://localhost:" + port + "/", countingMusicBrainzRetryFilter);
+        new JMusicBrainzWebResourceFactoryImpl("http://localhost:" + port + "/", countingMusicBrainzRetryFilter);
   }
 
   protected final SecurityHandler digestAuth(String username, String password, String realm) {
@@ -204,13 +204,13 @@ public abstract class MusicBrainzTester {
     server.stop();
   }
 
-  static class CountingMusicBrainzRetryFilter extends MusicBrainzRetryFilter {
+  static class CountingMusicBrainzRetryFilter extends JMusicBrainzRetryFilter {
 
     public int retryCount;
 
     public CountingMusicBrainzRetryFilter(
-        @MusicBrainzThrottleDelay long throttleDelay,
-        @MusicBrainzThrottleRetries int throttleRetries) {
+        @JMusicBrainzThrottleDelay long throttleDelay,
+        @JMusicBrainzThrottleRetries int throttleRetries) {
       super(throttleDelay, throttleRetries);
     }
 

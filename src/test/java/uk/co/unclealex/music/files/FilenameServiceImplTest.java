@@ -31,11 +31,9 @@ import org.junit.Assert;
 
 import org.junit.Test;
 
-import static uk.co.unclealex.music.files.Extension.*;
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.MusicFileBean;
-import uk.co.unclealex.music.files.Extension;
-import uk.co.unclealex.music.files.FilenameServiceImpl;
+import static uk.co.unclealex.music.files.JExtension.*;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.JMusicFileBean;
 
 /**
  * @author alex
@@ -55,15 +53,15 @@ public class FilenameServiceImplTest {
         Paths.get("M", "Motorhead", "Good Stuff 01", "02 The Ace of Spades.flac"));
   }
   
-  protected void runTest(String albumArtistSort, String album, int discNumber, int totalDiscs, int trackNumber, String title, Extension extension, Path expectedPath) {
-    MusicFile musicFile = new MusicFileBean();
+  protected void runTest(String albumArtistSort, String album, int discNumber, int totalDiscs, int trackNumber, String title, JExtension extension, Path expectedPath) {
+    JMusicFile musicFile = new JMusicFileBean();
     musicFile.setAlbumArtistSort(albumArtistSort);
     musicFile.setAlbum(album);
     musicFile.setDiscNumber(discNumber);
     musicFile.setTotalDiscs(totalDiscs);
     musicFile.setTrackNumber(trackNumber);
     musicFile.setTitle(title);
-    Path actualPath = new FilenameServiceImpl().toPath(musicFile, extension);
+    Path actualPath = new JFilenameServiceImpl().toPath(musicFile, extension);
     Assert.assertEquals("The wrong path was generated.", expectedPath, actualPath);
   }
 }

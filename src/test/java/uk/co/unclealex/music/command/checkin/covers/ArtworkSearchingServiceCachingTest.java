@@ -36,8 +36,8 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.MusicFileBean;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.JMusicFileBean;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -65,7 +65,7 @@ public class ArtworkSearchingServiceCachingTest {
     }
     
     @Override
-    protected String locateAlbumIdentifier(MusicFile musicFile) {
+    protected String locateAlbumIdentifier(JMusicFile musicFile) {
       return musicFile.getAsin();
     }
   }
@@ -76,9 +76,9 @@ public class ArtworkSearchingServiceCachingTest {
   String unknownIdentifier = "789";
   URI firstCoverArtUri;
   URI secondCoverArtUri;
-  MusicFile firstKnownMusicFile;
-  MusicFile secondKnownMusicFile;
-  MusicFile unknownMusicFile;
+  JMusicFile firstKnownMusicFile;
+  JMusicFile secondKnownMusicFile;
+  JMusicFile unknownMusicFile;
   
   @Before
   public void setup() throws URISyntaxException, IOException {
@@ -93,8 +93,8 @@ public class ArtworkSearchingServiceCachingTest {
     testArtworkSearchingService = new TestArtworkSearchingService(coverArtUrisByAlbumIdentifier);
   }
 
-  protected MusicFile musicFile(String identifier) {
-    MusicFile musicFile = new MusicFileBean();
+  protected JMusicFile musicFile(String identifier) {
+    JMusicFile musicFile = new JMusicFileBean();
     musicFile.setAsin(identifier);
     return musicFile;
   }

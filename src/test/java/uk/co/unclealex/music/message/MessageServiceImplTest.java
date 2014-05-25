@@ -36,11 +36,11 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import uk.co.unclealex.music.configuration.Device;
-import uk.co.unclealex.music.configuration.User;
-import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
-import uk.co.unclealex.music.configuration.json.UserBean;
-import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.configuration.JDevice;
+import uk.co.unclealex.music.configuration.JUser;
+import uk.co.unclealex.music.configuration.json.JIpodDeviceBean;
+import uk.co.unclealex.music.configuration.json.JUserBean;
+import uk.co.unclealex.music.files.JFileLocation;
 
 import com.google.common.collect.Lists;
 
@@ -50,54 +50,54 @@ import com.google.common.collect.Lists;
  */
 public class MessageServiceImplTest {
 
-  FileLocation fl1 = new FileLocation(Paths.get("/mnt", "flac"), Paths.get("myflacfile.flac"), true);
-  FileLocation fl2 = new FileLocation(Paths.get("/mnt", "flac"), Paths.get("myotherflacfile.flac"), true);
-  FileLocation fl3 = new FileLocation(Paths.get("/mnt", "flac"), Paths.get("yetanotherflacfile.flac"), true);
-  FileLocation fl4 = new FileLocation(Paths.get("/mnt", "mp3"), Paths.get("myflacfile.mp3"), true);
+  JFileLocation fl1 = new JFileLocation(Paths.get("/mnt", "flac"), Paths.get("myflacfile.flac"), true);
+  JFileLocation fl2 = new JFileLocation(Paths.get("/mnt", "flac"), Paths.get("myotherflacfile.flac"), true);
+  JFileLocation fl3 = new JFileLocation(Paths.get("/mnt", "flac"), Paths.get("yetanotherflacfile.flac"), true);
+  JFileLocation fl4 = new JFileLocation(Paths.get("/mnt", "mp3"), Paths.get("myflacfile.mp3"), true);
 
-  User brianMay = new UserBean("brian", "Brian May", "pwd", new ArrayList<Device>());
-  Device device = new IpodDeviceBean("118118");
-  User freddieMercury = new UserBean("freddie", "Freddie Mercury", "pwd", new ArrayList<Device>());
+  JUser brianMay = new JUserBean("brian", "Brian May", "pwd", new ArrayList<JDevice>());
+  JDevice device = new JIpodDeviceBean("118118");
+  JUser freddieMercury = new JUserBean("freddie", "Freddie Mercury", "pwd", new ArrayList<JDevice>());
 
   @Test
   public void testArtwork() throws URISyntaxException {
     runTest(
         "Using artwork for /mnt/flac/myflacfile.flac from http://unclealex.co.uk/",
-        MessageService.ARTWORK,
+        JMessageService.ARTWORK,
         fl1,
         new URI("http://unclealex.co.uk/"));
   }
 
   @Test
   public void testEncode() {
-    runTest("Encoding /mnt/flac/myflacfile.flac to /mnt/mp3/myflacfile.mp3", MessageService.ENCODE, fl1, fl4);
+    runTest("Encoding /mnt/flac/myflacfile.flac to /mnt/mp3/myflacfile.mp3", JMessageService.ENCODE, fl1, fl4);
   }
 
   @Test
   public void testDelete() {
-    runTest("Deleting /mnt/flac/myflacfile.flac", MessageService.DELETE, fl1);
+    runTest("Deleting /mnt/flac/myflacfile.flac", JMessageService.DELETE, fl1);
   }
 
   @Test
   public void testMove() {
-    runTest("Moving /mnt/flac/myflacfile.flac to /mnt/flac/myotherflacfile.flac", MessageService.MOVE, fl1, fl2);
+    runTest("Moving /mnt/flac/myflacfile.flac to /mnt/flac/myotherflacfile.flac", JMessageService.MOVE, fl1, fl2);
   }
 
   @Test
   public void testNotFlac() {
-    runTest("/mnt/mp3/myflacfile.mp3 is not a FLAC file", MessageService.NOT_FLAC, fl4);
+    runTest("/mnt/mp3/myflacfile.mp3 is not a FLAC file", JMessageService.NOT_FLAC, fl4);
   }
 
   @Test
   public void testMissingArtwork() {
-    runTest("Cannot find any artwork for /mnt/flac/yetanotherflacfile.flac", MessageService.MISSING_ARTWORK, fl3);
+    runTest("Cannot find any artwork for /mnt/flac/yetanotherflacfile.flac", JMessageService.MISSING_ARTWORK, fl3);
   }
 
   @Test
   public void testOverwrite() {
     runTest(
         "Processing /mnt/flac/myflacfile.flac will cause /mnt/flac/myotherflacfile.flac to be overwritten",
-        MessageService.OVERWRITE,
+        JMessageService.OVERWRITE,
         fl1,
         fl2);
   }
@@ -106,41 +106,41 @@ public class MessageServiceImplTest {
   public void testNonUnique() {
     runTest(
         "/mnt/mp3/myflacfile.mp3 will be generated more than once from /mnt/flac/myflacfile.flac, /mnt/flac/myotherflacfile.flac and /mnt/flac/yetanotherflacfile.flac",
-        MessageService.NON_UNIQUE,
+        JMessageService.NON_UNIQUE,
         fl4,
         Arrays.asList(fl1, fl2, fl3));
   }
 
   @Test
   public void testNotOwned() {
-    runTest("/mnt/flac/yetanotherflacfile.flac has no owners", MessageService.NOT_OWNED, fl3);
+    runTest("/mnt/flac/yetanotherflacfile.flac has no owners", JMessageService.NOT_OWNED, fl3);
   }
 
   @Test
   public void testNoOwner() {
-    runTest("Cannot find the owned releases for Brian May", MessageService.NO_OWNER_INFORMATION, "Brian May");
+    runTest("Cannot find the owned releases for Brian May", JMessageService.NO_OWNER_INFORMATION, "Brian May");
   }
 
   @Test
   public void testLink() {
-    runTest("Linking /mnt/flac/yetanotherflacfile.flac to /mnt/flac/myflacfile.flac", MessageService.LINK, fl1, fl3);
+    runTest("Linking /mnt/flac/yetanotherflacfile.flac to /mnt/flac/myflacfile.flac", JMessageService.LINK, fl1, fl3);
   }
 
   @Test
   public void testUnlink() {
-    runTest("Removing link /mnt/flac/yetanotherflacfile.flac", MessageService.UNLINK, fl1, fl3);
+    runTest("Removing link /mnt/flac/yetanotherflacfile.flac", JMessageService.UNLINK, fl1, fl3);
   }
 
   @Test
   public void testUnknownUser() {
-    runTest("brian is not a valid user name", MessageService.UNKNOWN_USER, "brian");
+    runTest("brian is not a valid user name", JMessageService.UNKNOWN_USER, "brian");
   }
 
   @Test
   public void testAddOwner() {
     runTest(
         "Adding owners brian to /mnt/flac/myflacfile.flac",
-        MessageService.ADD_OWNER,
+        JMessageService.ADD_OWNER,
         fl1,
         Lists.newArrayList(brianMay));
   }
@@ -149,21 +149,21 @@ public class MessageServiceImplTest {
   public void testRemoveOwner() {
     runTest(
         "Removing owners brian and freddie from /mnt/flac/myflacfile.flac",
-        MessageService.REMOVE_OWNER,
+        JMessageService.REMOVE_OWNER,
         fl1,
         Lists.newArrayList(brianMay, freddieMercury));
   }
 
   @Test
   public void testCommitOwnership() {
-    runTest("Committing ownership changes to MusicBrainz", MessageService.COMMIT_OWNERSHIP);
+    runTest("Committing ownership changes to MusicBrainz", JMessageService.COMMIT_OWNERSHIP);
   }
 
   @Test
   public void testSyncKeep() {
     runTest(
         "brian's iPOD: Keeping file a/b/c.mp3",
-        MessageService.SYNC_KEEP,
+        JMessageService.SYNC_KEEP,
         Paths.get("a", "b", "c.mp3"),
         brianMay.getName(),
         device.getName());
@@ -173,7 +173,7 @@ public class MessageServiceImplTest {
   public void testSyncAdd() {
     runTest(
         "brian's iPOD: Adding file a/b/c.mp3",
-        MessageService.SYNC_ADD,
+        JMessageService.SYNC_ADD,
         Paths.get("a", "b", "c.mp3"),
         brianMay.getName(),
         device.getName());
@@ -183,7 +183,7 @@ public class MessageServiceImplTest {
   public void testSyncRemove() {
     runTest(
         "brian's iPOD: Removing file a/b/c.mp3",
-        MessageService.SYNC_REMOVE,
+        JMessageService.SYNC_REMOVE,
         Paths.get("a", "b", "c.mp3"),
         brianMay.getName(),
         device.getName());
@@ -191,29 +191,29 @@ public class MessageServiceImplTest {
 
   @Test
   public void testFoundFile() {
-    runTest("Found file /mnt/flac/myflacfile.flac", MessageService.FOUND_FILE, fl1);
+    runTest("Found file /mnt/flac/myflacfile.flac", JMessageService.FOUND_FILE, fl1);
   }
 
   @Test
   public void testFoundDevice() {
-    runTest("Found alex's iPOD", MessageService.FOUND_DEVICE, "alex", "iPOD");
+    runTest("Found alex's iPOD", JMessageService.FOUND_DEVICE, "alex", "iPOD");
   }
 
   @Test
   public void testSynchronising() {
-    runTest("Synchronising alex's iPOD", MessageService.SYNCHRONISING, "alex", "iPOD");
+    runTest("Synchronising alex's iPOD", JMessageService.SYNCHRONISING, "alex", "iPOD");
   }
 
   @Test
   public void testFinishedSynchronising() {
-    runTest("Finished synchronising alex's iPOD", MessageService.DEVICE_SYNCHRONISED, "alex", "iPOD");
+    runTest("Finished synchronising alex's iPOD", JMessageService.DEVICE_SYNCHRONISED, "alex", "iPOD");
   }
 
   @Test
   public void testFoundTrack() {
     runTest(
         "Found artist Queen, album A Kind of Magic (1 of 2), track 6 of 9: Who Wants to Live Forever? at /mnt/flac/myflacfile.flac",
-        MessageService.FOUND_TRACK,
+        JMessageService.FOUND_TRACK,
         fl1,
         "Queen",
         "A Kind of Magic",
@@ -233,7 +233,7 @@ public class MessageServiceImplTest {
   protected void runTest(final String expectedMessage, final String template, final Object... arguments) {
     final StringWriter buffer = new StringWriter();
     final PrintWriter stdout = new PrintWriter(buffer, true);
-    final MessageService messageService = new MessageServiceImpl(stdout);
+    final JMessageService messageService = new JMessageServiceImpl(stdout);
     messageService.printMessage(template, arguments);
     assertEquals("The wrong message was printed.", expectedMessage + "\n", buffer.toString());
   }

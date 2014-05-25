@@ -29,10 +29,10 @@ import java.nio.file.Paths;
 
 import org.junit.Test;
 
-import uk.co.unclealex.music.MusicFileBean;
-import uk.co.unclealex.music.action.Actions;
-import uk.co.unclealex.music.action.ActionsImpl;
-import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.JMusicFileBean;
+import uk.co.unclealex.music.action.JActions;
+import uk.co.unclealex.music.action.JActionsImpl;
+import uk.co.unclealex.music.files.JFileLocation;
 
 /**
  * @author alex
@@ -40,30 +40,30 @@ import uk.co.unclealex.music.files.FileLocation;
  */
 public class FailuresOnlyFlacFilesValidatorTest extends FlacFileValidatorTest {
 
-  FileLocation fl = new FileLocation(Paths.get("/"), Paths.get("dummy"), true);
+  JFileLocation fl = new JFileLocation(Paths.get("/"), Paths.get("dummy"), true);
 
   @Test
   public void testIncludingFailure() throws IOException {
-    Actions actions =
-        new ActionsImpl()
+    JActions actions =
+        new JActionsImpl()
             .coverArt(fl)
             .delete(fl)
-            .encode(fl, fl, new MusicFileBean())
+            .encode(fl, fl, new JMusicFileBean())
             .fail(fl, "messageTemplate", 1, 2)
             .move(fl, fl)
             .fail(fl, "otherMessageTemplate", 3, 4);
-    Actions expectedActions =
-        new ActionsImpl().fail(fl, "messageTemplate", 1, 2).fail(fl, "otherMessageTemplate", 3, 4);
+    JActions expectedActions =
+        new JActionsImpl().fail(fl, "messageTemplate", 1, 2).fail(fl, "otherMessageTemplate", 3, 4);
     runTest(expectedActions, actions);
   }
 
   @Test
   public void testNoFailure() throws IOException {
-    Actions actions =
-        new ActionsImpl()
+    JActions actions =
+        new JActionsImpl()
             .coverArt(fl)
             .delete(fl)
-            .encode(fl, fl, new MusicFileBean())
+            .encode(fl, fl, new JMusicFileBean())
             .move(fl, fl);
     runTest(actions, actions);
   }
@@ -72,7 +72,7 @@ public class FailuresOnlyFlacFilesValidatorTest extends FlacFileValidatorTest {
    * {@inheritDoc}
    */
   @Override
-  protected FlacFilesValidator createFlacFilesValidator() {
-    return new FailuresOnlyFlacFilesValidator(actionsSupplier.get());
+  protected JFlacFilesValidator createFlacFilesValidator() {
+    return new JFailuresOnlyFlacFilesValidator(actionsSupplier.get());
   }
 }

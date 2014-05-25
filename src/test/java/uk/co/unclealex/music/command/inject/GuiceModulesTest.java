@@ -37,19 +37,19 @@ import org.junit.Test;
 import uk.co.unclealex.executable.streams.Stderr;
 import uk.co.unclealex.executable.streams.Stdin;
 import uk.co.unclealex.executable.streams.Stdout;
-import uk.co.unclealex.music.command.CheckinCommandLine;
-import uk.co.unclealex.music.command.CheckoutCommandLine;
-import uk.co.unclealex.music.command.CommandLine;
-import uk.co.unclealex.music.command.Execution;
-import uk.co.unclealex.music.command.checkin.CheckinExecution;
-import uk.co.unclealex.music.command.checkin.CheckinModule;
-import uk.co.unclealex.music.command.checkout.CheckoutExecution;
-import uk.co.unclealex.music.command.checkout.CheckoutModule;
-import uk.co.unclealex.music.configuration.Configuration;
+import uk.co.unclealex.music.command.JCheckinCommandLine;
+import uk.co.unclealex.music.command.JCheckoutCommandLine;
+import uk.co.unclealex.music.command.JCommandLine;
+import uk.co.unclealex.music.command.JExecution;
+import uk.co.unclealex.music.command.checkin.JCheckinExecution;
+import uk.co.unclealex.music.command.checkin.JCheckinModule;
+import uk.co.unclealex.music.command.checkout.JCheckoutExecution;
+import uk.co.unclealex.music.command.checkout.JCheckoutModule;
+import uk.co.unclealex.music.configuration.JConfiguration;
 import uk.co.unclealex.music.configuration.json.AmazonConfigurationBean;
-import uk.co.unclealex.music.configuration.json.ConfigurationBean;
-import uk.co.unclealex.music.configuration.json.PathsBean;
-import uk.co.unclealex.music.configuration.json.UserBean;
+import uk.co.unclealex.music.configuration.json.JConfigurationBean;
+import uk.co.unclealex.music.configuration.json.JPathsBean;
+import uk.co.unclealex.music.configuration.json.JUserBean;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -66,19 +66,19 @@ public class GuiceModulesTest {
 
   @Test
   public void testCheckin() {
-    runTest(new CheckinModule(), CheckinExecution.class, new TypeLiteral<Execution<CheckinCommandLine>>() {
+    runTest(new JCheckinModule(), JCheckinExecution.class, new TypeLiteral<JExecution<JCheckinCommandLine>>() {
     });
   }
 
   @Test
   public void testCheckout() {
-    runTest(new CheckoutModule(), CheckoutExecution.class, new TypeLiteral<Execution<CheckoutCommandLine>>() {
+    runTest(new JCheckoutModule(), JCheckoutExecution.class, new TypeLiteral<JExecution<JCheckoutCommandLine>>() {
     });
   }
 
-  public <C extends CommandLine, E extends Execution<C>> void runTest(
+  public <C extends JCommandLine, E extends JExecution<C>> void runTest(
       Module guiceModule,
-      Class<? extends Execution<?>> expectedExecutionClass,
+      Class<? extends JExecution<?>> expectedExecutionClass,
       TypeLiteral<E> typeLiteral) {
     Module stdoutModule = new AbstractModule() {
 
@@ -90,15 +90,15 @@ public class GuiceModulesTest {
         bind(OutputStream.class).annotatedWith(Stdin.class).toInstance(new ByteArrayOutputStream());
       }
     };
-    ExternalModule externalModule = new ExternalModule() {
+    JExternalModule externalModule = new JExternalModule() {
       @Override
       protected void bindConfiguration() {
-        ConfigurationBean configurationBean =
-            new ConfigurationBean(
-                new PathsBean(null, null, null, null),
-                (List<UserBean>) new ArrayList<UserBean>(),
+        JConfigurationBean configurationBean =
+            new JConfigurationBean(
+                new JPathsBean(null, null, null, null),
+                (List<JUserBean>) new ArrayList<JUserBean>(),
                 new AmazonConfigurationBean(null, null, null));
-        bind(Configuration.class).toInstance(configurationBean);
+        bind(JConfiguration.class).toInstance(configurationBean);
       }
     };
     Injector injector = Guice.createInjector(guiceModule, stdoutModule, externalModule);

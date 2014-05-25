@@ -42,7 +42,7 @@ public class MusicBrainzClientGetWithOneCollectionTest extends AbstractMusicBrai
   }
 
   @Test
-  public void testOneCollections() throws NoCollectionException, IOException {
+  public void testOneCollections() throws JNoCollectionException, IOException {
     runTest();
   }
 }

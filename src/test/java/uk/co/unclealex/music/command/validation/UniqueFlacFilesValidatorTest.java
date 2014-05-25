@@ -30,11 +30,11 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import uk.co.unclealex.music.MusicFileBean;
-import uk.co.unclealex.music.action.Actions;
-import uk.co.unclealex.music.action.ActionsImpl;
-import uk.co.unclealex.music.files.FileLocation;
-import uk.co.unclealex.music.message.MessageService;
+import uk.co.unclealex.music.JMusicFileBean;
+import uk.co.unclealex.music.action.JActions;
+import uk.co.unclealex.music.action.JActionsImpl;
+import uk.co.unclealex.music.files.JFileLocation;
+import uk.co.unclealex.music.message.JMessageService;
 
 import com.google.common.collect.Sets;
 
@@ -44,29 +44,29 @@ import com.google.common.collect.Sets;
  */
 public class UniqueFlacFilesValidatorTest extends FlacFileValidatorTest {
 
-  FileLocation fl1 = new FileLocation(Paths.get("/"), Paths.get("1"), true);
-  FileLocation fl2 = new FileLocation(Paths.get("/"), Paths.get("2"), true);
-  FileLocation fl3 = new FileLocation(Paths.get("/"), Paths.get("3"), true);
-  FileLocation fl4 = new FileLocation(Paths.get("/"), Paths.get("4"), true);
+  JFileLocation fl1 = new JFileLocation(Paths.get("/"), Paths.get("1"), true);
+  JFileLocation fl2 = new JFileLocation(Paths.get("/"), Paths.get("2"), true);
+  JFileLocation fl3 = new JFileLocation(Paths.get("/"), Paths.get("3"), true);
+  JFileLocation fl4 = new JFileLocation(Paths.get("/"), Paths.get("4"), true);
 
   @Test
   public void testAllUnqiue() throws IOException {
-    Actions actions = new ActionsImpl().encode(fl1, fl2, new MusicFileBean()).move(fl1, fl3).delete(fl4);
+    JActions actions = new JActionsImpl().encode(fl1, fl2, new JMusicFileBean()).move(fl1, fl3).delete(fl4);
     runTest(actions, actions);
   }
 
   @Test
   public void testNonUnqiue() throws IOException {
-    Actions actions =
-        new ActionsImpl().encode(fl1, fl3, new MusicFileBean()).move(fl2, fl3).move(fl1, fl4).move(fl2, fl4);
-    Actions expectedActions =
-        new ActionsImpl()
-            .encode(fl1, fl3, new MusicFileBean())
+    JActions actions =
+        new JActionsImpl().encode(fl1, fl3, new JMusicFileBean()).move(fl2, fl3).move(fl1, fl4).move(fl2, fl4);
+    JActions expectedActions =
+        new JActionsImpl()
+            .encode(fl1, fl3, new JMusicFileBean())
             .move(fl2, fl3)
             .move(fl1, fl4)
             .move(fl2, fl4)
-            .fail(fl3, MessageService.NON_UNIQUE, Sets.newTreeSet(Arrays.asList(fl1, fl2)))
-            .fail(fl4, MessageService.NON_UNIQUE, Sets.newTreeSet(Arrays.asList(fl1, fl2)));
+            .fail(fl3, JMessageService.NON_UNIQUE, Sets.newTreeSet(Arrays.asList(fl1, fl2)))
+            .fail(fl4, JMessageService.NON_UNIQUE, Sets.newTreeSet(Arrays.asList(fl1, fl2)));
     runTest(expectedActions, actions);
   }
 
@@ -74,7 +74,7 @@ public class UniqueFlacFilesValidatorTest extends FlacFileValidatorTest {
    * {@inheritDoc}
    */
   @Override
-  protected FlacFilesValidator createFlacFilesValidator() {
-    return new UniqueFlacFilesValidator();
+  protected JFlacFilesValidator createFlacFilesValidator() {
+    return new JUniqueFlacFilesValidator();
   }
 }

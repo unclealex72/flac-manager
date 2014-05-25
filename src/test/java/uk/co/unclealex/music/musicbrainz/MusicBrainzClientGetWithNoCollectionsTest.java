@@ -41,8 +41,8 @@ public class MusicBrainzClientGetWithNoCollectionsTest extends AbstractMusicBrai
     super("ws-no-collections/root.txt");
   }
 
-  @Test(expected=NoCollectionException.class)
-  public void testNoCollections() throws NoCollectionException, IOException {
+  @Test(expected=JNoCollectionException.class)
+  public void testNoCollections() throws JNoCollectionException, IOException {
     runTest();
   }
 }

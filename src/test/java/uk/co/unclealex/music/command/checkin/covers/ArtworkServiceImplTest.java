@@ -42,11 +42,11 @@ import javax.validation.ConstraintViolation;
 
 import org.junit.Test;
 
-import uk.co.unclealex.music.CoverArt;
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.Validator;
-import uk.co.unclealex.music.audio.AudioMusicFile;
-import uk.co.unclealex.music.audio.AudioMusicFileFactoryImpl;
+import uk.co.unclealex.music.JCoverArt;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.JValidator;
+import uk.co.unclealex.music.audio.JAudioMusicFile;
+import uk.co.unclealex.music.audio.JAudioMusicFileFactoryImpl;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.io.InputSupplier;
@@ -68,7 +68,7 @@ public class ArtworkServiceImplTest {
   }
   
   public void runTest(String resourceName) throws IOException, URISyntaxException {
-    Validator validator = new Validator() {
+    JValidator validator = new JValidator() {
       @Override
       public <T> T validate(T object, String message) {
         return object;
@@ -84,9 +84,9 @@ public class ArtworkServiceImplTest {
       Files.copy(in, musicFile, StandardCopyOption.REPLACE_EXISTING);
       in.close();
       final URI coverArtUri = getClass().getClassLoader().getResource("cover.jpg").toURI();
-      new ArtworkServiceImpl(new AudioMusicFileFactoryImpl(validator)).addArwork(musicFile, coverArtUri);
-      MusicFile audioMusicFile = new AudioMusicFile(musicFile);
-      CoverArt actualCoverArt = audioMusicFile.getCoverArt();
+      new ArtworkServiceImpl(new JAudioMusicFileFactoryImpl(validator)).addArwork(musicFile, coverArtUri);
+      JMusicFile audioMusicFile = new JAudioMusicFile(musicFile);
+      JCoverArt actualCoverArt = audioMusicFile.getCoverArt();
       assertEquals("The wrong mime type was returned.", "image/jpeg", actualCoverArt.getMimeType());
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       InputSupplier<InputStream> supplier = new InputSupplier<InputStream>() {

@@ -41,8 +41,8 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.co.unclealex.music.exception.InvalidDirectoriesException;
-import uk.co.unclealex.music.message.MessageService;
+import uk.co.unclealex.music.exception.JInvalidDirectoriesException;
+import uk.co.unclealex.music.message.JMessageService;
 
 import com.google.common.collect.Lists;
 
@@ -55,12 +55,12 @@ public class DirectoryServiceImplTest {
   private static final Logger log = LoggerFactory.getLogger(DirectoryServiceImplTest.class);
 
   Path testDirectory;
-  DirectoryServiceImpl flacDirectoryServiceImpl;
+  JDirectoryServiceImpl flacDirectoryServiceImpl;
 
   @Before
   public void createRepository() throws IOException {
     testDirectory = Files.createTempDirectory("directory-service-impl-test-");
-    flacDirectoryServiceImpl = new DirectoryServiceImpl(Mockito.mock(MessageService.class));
+    flacDirectoryServiceImpl = new JDirectoryServiceImpl(Mockito.mock(JMessageService.class));
     log.info("Using directory " + testDirectory);
     for (Path path : new Path[] {
         Paths.get("dir.flac", "myfile.flac"),
@@ -78,10 +78,10 @@ public class DirectoryServiceImplTest {
   }
 
   @Test
-  public void testListFilesSuccess() throws InvalidDirectoriesException, IOException {
-    SortedSet<FileLocation> actualFiles =
+  public void testListFilesSuccess() throws JInvalidDirectoriesException, IOException {
+    SortedSet<JFileLocation> actualFiles =
         flacDirectoryServiceImpl.listFiles(
-            new FileLocation(testDirectory, Paths.get(""), true),
+            new JFileLocation(testDirectory, Paths.get(""), true),
             Lists.newArrayList(testDirectory.resolve("dir.flac"), testDirectory.resolve("dir")));
     Assert.assertThat(
         "The wrong files were found.",
@@ -96,22 +96,22 @@ public class DirectoryServiceImplTest {
             ));
   }
 
-  protected FileLocation fileLocation(boolean readOnly, String first, String... more) {
-    return new FileLocation(testDirectory, Paths.get(first, more), readOnly);
+  protected JFileLocation fileLocation(boolean readOnly, String first, String... more) {
+    return new JFileLocation(testDirectory, Paths.get(first, more), readOnly);
   }
   
   @Test
   public void testListFilesFail() throws IOException {
     try {
       flacDirectoryServiceImpl.listFiles(
-          new FileLocation(testDirectory, Paths.get(""), true),
+          new JFileLocation(testDirectory, Paths.get(""), true),
           Lists.newArrayList(
               testDirectory.resolve("dir.flac"),
               testDirectory.getParent(),
               testDirectory.resolve("my.xml")));
       Assert.fail("Invalid directories did not fail.");
     }
-    catch (InvalidDirectoriesException e) {
+    catch (JInvalidDirectoriesException e) {
       Assert.assertThat(
           "The wrong files were marked as invalid.",
           e.getInvalidDirectories(),

@@ -44,7 +44,7 @@ import com.google.common.collect.Lists;
  */
 public class AbstractStringCellMappingServiceTest {
 
-  class TestStringCellMappingService extends AbstractStringCellMappingService<String, String> {
+  class TestStringCellMappingService extends JAbstractStringCellMappingService<String, String> {
 
     public TestStringCellMappingService() {
       super(1, -3);

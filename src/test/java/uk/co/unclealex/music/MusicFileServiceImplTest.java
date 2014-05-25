@@ -38,7 +38,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.co.unclealex.music.audio.AudioMusicFile;
+import uk.co.unclealex.music.audio.JAudioMusicFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -60,13 +60,13 @@ public class MusicFileServiceImplTest {
     try (InputStream in = getClass().getClassLoader().getResourceAsStream("untagged.mp3")) {
       Files.copy(in, mp3File, StandardCopyOption.REPLACE_EXISTING);
     }
-    MusicFile expected;
+    JMusicFile expected;
     try (InputStream in = getClass().getClassLoader().getResourceAsStream("tagged.json")) {
-      expected = new ObjectMapper().reader(MusicFileBean.class).readValue(in);
+      expected = new ObjectMapper().reader(JMusicFileBean.class).readValue(in);
     }
-    MusicFile mp3File = new AudioMusicFile(this.mp3File);
-    MusicFileService musicFileService = new MusicFileServiceImpl();
-    MusicFileBean actual = new MusicFileBean();
+    JMusicFile mp3File = new JAudioMusicFile(this.mp3File);
+    JMusicFileService musicFileService = new JMusicFileServiceImpl();
+    JMusicFileBean actual = new JMusicFileBean();
     musicFileService.transfer(expected, mp3File);
     musicFileService.transfer(mp3File, actual);
     Assert.assertEquals("The wrong tags were returned.", expected.toString(), actual.toString());

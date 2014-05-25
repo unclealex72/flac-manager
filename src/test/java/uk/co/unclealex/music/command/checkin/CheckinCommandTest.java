@@ -50,22 +50,16 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.action.Action;
-import uk.co.unclealex.music.action.Actions;
-import uk.co.unclealex.music.action.AddArtworkAction;
-import uk.co.unclealex.music.action.CoverArtAction;
-import uk.co.unclealex.music.action.EncodeAction;
-import uk.co.unclealex.music.action.FailureAction;
-import uk.co.unclealex.music.action.LinkAction;
-import uk.co.unclealex.music.action.MoveAction;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.action.*;
+import uk.co.unclealex.music.action.JActions;
 import uk.co.unclealex.music.command.AbstractCommandTest;
-import uk.co.unclealex.music.command.CheckinCommand;
-import uk.co.unclealex.music.command.CheckinCommandLine;
-import uk.co.unclealex.music.exception.InvalidDirectoriesException;
-import uk.co.unclealex.music.files.FileLocation;
-import uk.co.unclealex.music.files.FileLocationFactory;
-import uk.co.unclealex.music.message.MessageService;
+import uk.co.unclealex.music.command.JCheckinCommand;
+import uk.co.unclealex.music.command.JCheckinCommandLine;
+import uk.co.unclealex.music.exception.JInvalidDirectoriesException;
+import uk.co.unclealex.music.files.JFileLocation;
+import uk.co.unclealex.music.files.JFileLocationFactory;
+import uk.co.unclealex.music.message.JMessageService;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
@@ -76,22 +70,22 @@ import com.google.common.collect.Sets;
  * @author alex
  * 
  */
-public class CheckinCommandTest extends AbstractCommandTest<CheckinCommand> {
+public class CheckinCommandTest extends AbstractCommandTest<JCheckinCommand> {
 
   /**
    * @param commandClass
    * @param guiceModule
    */
   public CheckinCommandTest() {
-    super(CheckinCommand.class, new CheckinModule());
+    super(JCheckinCommand.class, new JCheckinModule());
   }
 
   @Test
-  public void testCheckinSuccess() throws IOException, InvalidDirectoriesException, URISyntaxException {
-    final FileLocationFactory fileLocationFactory = injector.getInstance(FileLocationFactory.class);
-    final FileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
-    final Function<Path, FileLocation> queenFactory = new Function<Path, FileLocation>() {
-      public FileLocation apply(Path path) {
+  public void testCheckinSuccess() throws IOException, JInvalidDirectoriesException, URISyntaxException {
+    final JFileLocationFactory fileLocationFactory = injector.getInstance(JFileLocationFactory.class);
+    final JFileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
+    final Function<Path, JFileLocation> queenFactory = new Function<Path, JFileLocation>() {
+      public JFileLocation apply(Path path) {
         return fileLocationFactory.createStagingFileLocation(path);
       }
     };
@@ -103,7 +97,7 @@ public class CheckinCommandTest extends AbstractCommandTest<CheckinCommand> {
         Paths.get("queen - a night at the opera", "02 lazing on a sunday afternoon.flac"),
         "lazing_on_a_sunday_afternoon.json");
     musicFilesByPath.put(Paths.get("queen - jazz", "02 fat bottomed girls.flac"), "fat_bottomed_girls_uncovered.json");
-    SortedSet<FileLocation> queenFileLocations =
+    SortedSet<JFileLocation> queenFileLocations =
         Sets.newTreeSet(Iterables.transform(musicFilesByPath.keySet(), queenFactory));
     when(directoryService.listFiles(eq(stagingDir), argThat(contains(stagingDir.resolve())))).thenReturn(
         queenFileLocations);
@@ -112,91 +106,91 @@ public class CheckinCommandTest extends AbstractCommandTest<CheckinCommand> {
     own(musicFileFor("death_on_two_legs.json"), brianMay);
     own(musicFileFor("lazing_on_a_sunday_afternoon.json"), brianMay);
     own(musicFileFor("fat_bottomed_girls_uncovered.json"), brianMay, freddieMercury);
-    Answer<Actions> mappingAnswer = new Answer<Actions>() {
+    Answer<JActions> mappingAnswer = new Answer<JActions>() {
       @Override
-      public Actions answer(InvocationOnMock invocation) throws IOException {
+      public JActions answer(InvocationOnMock invocation) throws IOException {
         @SuppressWarnings("unchecked")
-        SortedMap<FileLocation, MusicFile> musicFilesByFileLocation =
-            (SortedMap<FileLocation, MusicFile>) invocation.getArguments()[2];
+        SortedMap<JFileLocation, JMusicFile> musicFilesByFileLocation =
+            (SortedMap<JFileLocation, JMusicFile>) invocation.getArguments()[2];
         for (Entry<Path, String> entry : musicFilesByPath.entrySet()) {
           musicFilesByFileLocation.put(queenFactory.apply(entry.getKey()), musicFileFor(entry.getValue()));
         }
-        return (Actions) invocation.getArguments()[0];
+        return (JActions) invocation.getArguments()[0];
       }
     };
     when(
         mappingService.mapPathsToMusicFiles(
-            any(Actions.class),
-            argThat(contains(Iterables.toArray(queenFileLocations, FileLocation.class))),
-            anyMapOf(FileLocation.class, MusicFile.class))).thenAnswer(mappingAnswer);
+            any(JActions.class),
+            argThat(contains(Iterables.toArray(queenFileLocations, JFileLocation.class))),
+            anyMapOf(JFileLocation.class, JMusicFile.class))).thenAnswer(mappingAnswer);
     command.execute(commandLine(Collections.singletonList(stagingDir.resolve().toString())));
-    FileLocation originalDeathOnTwoLegsFlacLocation =
+    JFileLocation originalDeathOnTwoLegsFlacLocation =
         fileLocationFactory.createStagingFileLocation(Paths.get(
             "queen - a night at the opera",
             "01 death on two legs dedicated to.flac"));
-    FileLocation originalDeathOnTwoLegsEncodedLocation =
+    JFileLocation originalDeathOnTwoLegsEncodedLocation =
         fileLocationFactory.createEncodedFileLocation(Paths.get(
             "Q",
             "Queen",
             "A Night at the Opera 01",
             "01 Death on Two Legs Dedicated to.mp3"));
-    FileLocation newDeathOnTwoLegsFlacLocation =
+    JFileLocation newDeathOnTwoLegsFlacLocation =
         fileLocationFactory.createFlacFileLocation(Paths.get(
             "Q",
             "Queen",
             "A Night at the Opera 01",
             "01 Death on Two Legs Dedicated to.flac"));
-    FileLocation originalLazingOnASundayAfternoonFlacLocation =
+    JFileLocation originalLazingOnASundayAfternoonFlacLocation =
         fileLocationFactory.createStagingFileLocation(Paths.get(
             "queen - a night at the opera",
             "02 lazing on a sunday afternoon.flac"));
-    FileLocation originalLazingOnASundayAfternoonEncodedLocation =
+    JFileLocation originalLazingOnASundayAfternoonEncodedLocation =
         fileLocationFactory.createEncodedFileLocation(Paths.get(
             "Q",
             "Queen",
             "A Night at the Opera 01",
             "02 Lazing on a Sunday Afternoon.mp3"));
-    FileLocation newLazingOnASundayAfternoonFlacLocation =
+    JFileLocation newLazingOnASundayAfternoonFlacLocation =
         fileLocationFactory.createFlacFileLocation(Paths.get(
             "Q",
             "Queen",
             "A Night at the Opera 01",
             "02 Lazing on a Sunday Afternoon.flac"));
-    FileLocation originalFatBottomedGirlsFlacLocation =
+    JFileLocation originalFatBottomedGirlsFlacLocation =
         fileLocationFactory.createStagingFileLocation(Paths.get("queen - jazz", "02 fat bottomed girls.flac"));
-    FileLocation originalFatBottomedGirlsEncodedLocation =
+    JFileLocation originalFatBottomedGirlsEncodedLocation =
         fileLocationFactory.createEncodedFileLocation(Paths.get("Q", "Queen", "Jazz 01", "02 Fat Bottomed Girls.mp3"));
-    FileLocation newFatBottomedGirlsFlacLocation =
+    JFileLocation newFatBottomedGirlsFlacLocation =
         fileLocationFactory.createFlacFileLocation(Paths.get("Q", "Queen", "Jazz 01", "02 Fat Bottomed Girls.flac"));
-    assertThat("The wrong actions were recorded.", recordingActionExecutor.getExecutedActions(), contains(new Action[] {
-        new AddArtworkAction(originalFatBottomedGirlsFlacLocation, new URI("http://www.unclealex.co.uk/cover.jpg")),
-        new EncodeAction(
+    assertThat("The wrong actions were recorded.", recordingActionExecutor.getExecutedActions(), contains(new JAction[] {
+        new JAddArtworkAction(originalFatBottomedGirlsFlacLocation, new URI("http://www.unclealex.co.uk/cover.jpg")),
+        new JEncodeAction(
             originalDeathOnTwoLegsFlacLocation,
             originalDeathOnTwoLegsEncodedLocation,
             musicFileFor("death_on_two_legs.json")),
-        new LinkAction(originalDeathOnTwoLegsEncodedLocation, brianMay),
-        new MoveAction(originalDeathOnTwoLegsFlacLocation, newDeathOnTwoLegsFlacLocation),
-        new EncodeAction(
+        new JLinkAction(originalDeathOnTwoLegsEncodedLocation, brianMay),
+        new JMoveAction(originalDeathOnTwoLegsFlacLocation, newDeathOnTwoLegsFlacLocation),
+        new JEncodeAction(
             originalLazingOnASundayAfternoonFlacLocation,
             originalLazingOnASundayAfternoonEncodedLocation,
             musicFileFor("lazing_on_a_sunday_afternoon.json")),
-        new LinkAction(originalLazingOnASundayAfternoonEncodedLocation, brianMay),
-        new MoveAction(originalLazingOnASundayAfternoonFlacLocation, newLazingOnASundayAfternoonFlacLocation),
-        new CoverArtAction(originalFatBottomedGirlsFlacLocation),
-        new EncodeAction(
+        new JLinkAction(originalLazingOnASundayAfternoonEncodedLocation, brianMay),
+        new JMoveAction(originalLazingOnASundayAfternoonFlacLocation, newLazingOnASundayAfternoonFlacLocation),
+        new JCoverArtAction(originalFatBottomedGirlsFlacLocation),
+        new JEncodeAction(
             originalFatBottomedGirlsFlacLocation,
             originalFatBottomedGirlsEncodedLocation,
             musicFileFor("fat_bottomed_girls_uncovered.json")),
-        new LinkAction(originalFatBottomedGirlsEncodedLocation, brianMay, freddieMercury),
-        new MoveAction(originalFatBottomedGirlsFlacLocation, newFatBottomedGirlsFlacLocation) }));
+        new JLinkAction(originalFatBottomedGirlsEncodedLocation, brianMay, freddieMercury),
+        new JMoveAction(originalFatBottomedGirlsFlacLocation, newFatBottomedGirlsFlacLocation) }));
   }
   
   /**
    * @param flacPaths
    * @return
    */
-  protected CheckinCommandLine commandLine(final List<String> flacPaths) {
-    return new CheckinCommandLine() {
+  protected JCheckinCommandLine commandLine(final List<String> flacPaths) {
+    return new JCheckinCommandLine() {
       
       @Override
       public boolean getHelp() {
@@ -211,11 +205,11 @@ public class CheckinCommandTest extends AbstractCommandTest<CheckinCommand> {
   }
 
   @Test
-  public void testCheckinFailures() throws InvalidDirectoriesException, IOException, URISyntaxException {
-    final FileLocationFactory fileLocationFactory = injector.getInstance(FileLocationFactory.class);
-    final FileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
-    final Function<Path, FileLocation> queenFactory = new Function<Path, FileLocation>() {
-      public FileLocation apply(Path path) {
+  public void testCheckinFailures() throws JInvalidDirectoriesException, IOException, URISyntaxException {
+    final JFileLocationFactory fileLocationFactory = injector.getInstance(JFileLocationFactory.class);
+    final JFileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
+    final Function<Path, JFileLocation> queenFactory = new Function<Path, JFileLocation>() {
+      public JFileLocation apply(Path path) {
         return fileLocationFactory.createStagingFileLocation(path);
       }
     };
@@ -227,60 +221,60 @@ public class CheckinCommandTest extends AbstractCommandTest<CheckinCommand> {
         Paths.get("queen - a night at the opera", "02 lazing on a sunday afternoon.flac"),
         "lazing_on_a_sunday_afternoon.json");
     musicFilesByPath.put(Paths.get("queen - jazz", "02 fat bottomed girls.flac"), "fat_bottomed_girls_uncovered.json");
-    SortedSet<FileLocation> queenFileLocations =
+    SortedSet<JFileLocation> queenFileLocations =
         Sets.newTreeSet(Iterables.transform(musicFilesByPath.keySet(), queenFactory));
     when(directoryService.listFiles(eq(stagingDir), argThat(contains(stagingDir.resolve())))).thenReturn(
         queenFileLocations);
     own(musicFileFor("lazing_on_a_sunday_afternoon.json"), brianMay);
-    Answer<Actions> mappingAnswer = new Answer<Actions>() {
+    Answer<JActions> mappingAnswer = new Answer<JActions>() {
       @Override
-      public Actions answer(InvocationOnMock invocation) throws IOException {
+      public JActions answer(InvocationOnMock invocation) throws IOException {
         @SuppressWarnings("unchecked")
-        SortedMap<FileLocation, MusicFile> musicFilesByFileLocation =
-            (SortedMap<FileLocation, MusicFile>) invocation.getArguments()[2];
+        SortedMap<JFileLocation, JMusicFile> musicFilesByFileLocation =
+            (SortedMap<JFileLocation, JMusicFile>) invocation.getArguments()[2];
         for (Entry<Path, String> entry : musicFilesByPath.entrySet()) {
           musicFilesByFileLocation.put(queenFactory.apply(entry.getKey()), musicFileFor(entry.getValue()));
         }
-        return (Actions) invocation.getArguments()[0];
+        return (JActions) invocation.getArguments()[0];
       }
     };
     when(
         mappingService.mapPathsToMusicFiles(
-            any(Actions.class),
-            argThat(contains(Iterables.toArray(queenFileLocations, FileLocation.class))),
-            anyMapOf(FileLocation.class, MusicFile.class))).thenAnswer(mappingAnswer);
+            any(JActions.class),
+            argThat(contains(Iterables.toArray(queenFileLocations, JFileLocation.class))),
+            anyMapOf(JFileLocation.class, JMusicFile.class))).thenAnswer(mappingAnswer);
     command.execute(commandLine(Collections.singletonList(stagingDir.resolve().toString())));
-    FileLocation originalDeathOnTwoLegsFlacLocation =
+    JFileLocation originalDeathOnTwoLegsFlacLocation =
         fileLocationFactory.createStagingFileLocation(Paths.get(
             "queen - a night at the opera",
             "01 death on two legs dedicated to.flac"));
-    FileLocation originalLazingOnASundayAfternoonFlacLocation =
+    JFileLocation originalLazingOnASundayAfternoonFlacLocation =
         fileLocationFactory.createStagingFileLocation(Paths.get(
             "queen - a night at the opera",
             "02 lazing on a sunday afternoon.flac"));
-    FileLocation originalLazingOnASundayAfternoonEncodedLocation =
+    JFileLocation originalLazingOnASundayAfternoonEncodedLocation =
         fileLocationFactory.createEncodedFileLocation(Paths.get(
             "Q",
             "Queen",
             "A Night at the Opera 01",
             "02 Lazing on a Sunday Afternoon.mp3"));
-    FileLocation newLazingOnASundayAfternoonFlacLocation =
+    JFileLocation newLazingOnASundayAfternoonFlacLocation =
         fileLocationFactory.createFlacFileLocation(Paths.get(
             "Q",
             "Queen",
             "A Night at the Opera 01",
             "02 Lazing on a Sunday Afternoon.flac"));
-    FileLocation originalFatBottomedGirlsFlacLocation =
+    JFileLocation originalFatBottomedGirlsFlacLocation =
         fileLocationFactory.createStagingFileLocation(Paths.get("queen - jazz", "02 fat bottomed girls.flac"));
-    assertThat("The wrong actions were recorded.", recordingActionExecutor.getExecutedActions(), containsInAnyOrder(new Action[] {
-        new FailureAction(originalFatBottomedGirlsFlacLocation, MessageService.NOT_OWNED),
-        new FailureAction(originalFatBottomedGirlsFlacLocation, MessageService.MISSING_ARTWORK),
-        new FailureAction(originalLazingOnASundayAfternoonEncodedLocation, MessageService.NON_UNIQUE, tracks(originalDeathOnTwoLegsFlacLocation, originalLazingOnASundayAfternoonFlacLocation)),
-        new FailureAction(newLazingOnASundayAfternoonFlacLocation, MessageService.NON_UNIQUE, tracks(originalDeathOnTwoLegsFlacLocation, originalLazingOnASundayAfternoonFlacLocation))
+    assertThat("The wrong actions were recorded.", recordingActionExecutor.getExecutedActions(), containsInAnyOrder(new JAction[] {
+        new JFailureAction(originalFatBottomedGirlsFlacLocation, JMessageService.NOT_OWNED),
+        new JFailureAction(originalFatBottomedGirlsFlacLocation, JMessageService.MISSING_ARTWORK),
+        new JFailureAction(originalLazingOnASundayAfternoonEncodedLocation, JMessageService.NON_UNIQUE, tracks(originalDeathOnTwoLegsFlacLocation, originalLazingOnASundayAfternoonFlacLocation)),
+        new JFailureAction(newLazingOnASundayAfternoonFlacLocation, JMessageService.NON_UNIQUE, tracks(originalDeathOnTwoLegsFlacLocation, originalLazingOnASundayAfternoonFlacLocation))
     }));
   }
   
-  protected SortedSet<FileLocation> tracks(FileLocation... fileLocations) {
+  protected SortedSet<JFileLocation> tracks(JFileLocation... fileLocations) {
     return Sets.newTreeSet(Arrays.asList(fileLocations));
   }
 }

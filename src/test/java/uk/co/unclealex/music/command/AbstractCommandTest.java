@@ -43,21 +43,21 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import uk.co.unclealex.executable.streams.Stdout;
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.MusicFileBean;
-import uk.co.unclealex.music.action.Action;
-import uk.co.unclealex.music.action.ActionExecutor;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.JMusicFileBean;
+import uk.co.unclealex.music.action.JAction;
+import uk.co.unclealex.music.action.JActionExecutor;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkSearchingService;
-import uk.co.unclealex.music.command.checkin.process.MappingService;
-import uk.co.unclealex.music.configuration.Configuration;
-import uk.co.unclealex.music.configuration.Device;
-import uk.co.unclealex.music.configuration.User;
-import uk.co.unclealex.music.configuration.json.ConfigurationBean;
-import uk.co.unclealex.music.configuration.json.PathsBean;
-import uk.co.unclealex.music.configuration.json.UserBean;
-import uk.co.unclealex.music.files.DirectoryService;
-import uk.co.unclealex.music.musicbrainz.MusicBrainzClient;
-import uk.co.unclealex.music.musicbrainz.OwnerService;
+import uk.co.unclealex.music.command.checkin.process.JMappingService;
+import uk.co.unclealex.music.configuration.JConfiguration;
+import uk.co.unclealex.music.configuration.JDevice;
+import uk.co.unclealex.music.configuration.JUser;
+import uk.co.unclealex.music.configuration.json.JConfigurationBean;
+import uk.co.unclealex.music.configuration.json.JPathsBean;
+import uk.co.unclealex.music.configuration.json.JUserBean;
+import uk.co.unclealex.music.files.JDirectoryService;
+import uk.co.unclealex.music.musicbrainz.JMusicBrainzClient;
+import uk.co.unclealex.music.musicbrainz.JOwnerService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -74,7 +74,7 @@ import com.google.inject.Module;
  * 
  */
 @RunWith(MockitoJUnitRunner.class)
-public abstract class AbstractCommandTest<C extends Command<?>> {
+public abstract class AbstractCommandTest<C extends JCommand<?>> {
 
   private final Class<C> commandClass;
   private final Module guiceModule;
@@ -85,22 +85,22 @@ public abstract class AbstractCommandTest<C extends Command<?>> {
     this.guiceModule = guiceModule;
   }
 
-  ObjectReader musicFileReader = new ObjectMapper().reader(MusicFileBean.class);
+  ObjectReader musicFileReader = new ObjectMapper().reader(JMusicFileBean.class);
 
   public Injector injector;
   public Path tmpDir;
-  public Configuration configuration;
-  public UserBean freddieMercury = new UserBean("freddie", "FreddieMercury", "pwd", new ArrayList<Device>());
-  public UserBean brianMay = new UserBean("brian", "BrianMay", "pwd", new ArrayList<Device>());
+  public JConfiguration configuration;
+  public JUserBean freddieMercury = new JUserBean("freddie", "FreddieMercury", "pwd", new ArrayList<JDevice>());
+  public JUserBean brianMay = new JUserBean("brian", "BrianMay", "pwd", new ArrayList<JDevice>());
 
   private MapBasedOwnerService ownerService;
   @Mock
   public ArtworkSearchingService artworkSearchingService;
   @Mock
-  public MappingService mappingService;
+  public JMappingService mappingService;
   @Mock
-  public DirectoryService directoryService;
-  @Mock public MusicBrainzClient musicBrainzClient;
+  public JDirectoryService directoryService;
+  @Mock public JMusicBrainzClient musicBrainzClient;
   
   public RecordingActionExecutor recordingActionExecutor;
   public StringWriter stdout;
@@ -116,7 +116,7 @@ public abstract class AbstractCommandTest<C extends Command<?>> {
     Path stagingPath = tmpDir.resolve("staging");
     ownerService = new MapBasedOwnerService();
     configuration =
-        new ConfigurationBean(new PathsBean(flacPath, devicesPath, encodedPath, stagingPath), Arrays.asList(
+        new JConfigurationBean(new JPathsBean(flacPath, devicesPath, encodedPath, stagingPath), Arrays.asList(
             brianMay,
             freddieMercury), null);
     recordingActionExecutor = new RecordingActionExecutor();
@@ -125,14 +125,14 @@ public abstract class AbstractCommandTest<C extends Command<?>> {
 
       @Override
       protected void configure() {
-        bind(Configuration.class).toInstance(configuration);
+        bind(JConfiguration.class).toInstance(configuration);
         bind(ArtworkSearchingService.class).toInstance(artworkSearchingService);
-        bind(OwnerService.class).toInstance(ownerService);
-        bind(ActionExecutor.class).toInstance(recordingActionExecutor);
+        bind(JOwnerService.class).toInstance(ownerService);
+        bind(JActionExecutor.class).toInstance(recordingActionExecutor);
         bind(getCommandClass());
-        bind(MappingService.class).toInstance(mappingService);
-        bind(DirectoryService.class).toInstance(directoryService);
-        bind(MusicBrainzClient.class).toInstance(musicBrainzClient);
+        bind(JMappingService.class).toInstance(mappingService);
+        bind(JDirectoryService.class).toInstance(directoryService);
+        bind(JMusicBrainzClient.class).toInstance(musicBrainzClient);
         bind(PrintWriter.class).annotatedWith(Stdout.class).toInstance(new PrintWriter(stdout));
       }
     };
@@ -140,54 +140,54 @@ public abstract class AbstractCommandTest<C extends Command<?>> {
     command = injector.getInstance(getCommandClass());
   }
 
-  protected MusicFile musicFileFor(String resourceName) throws IOException {
+  protected JMusicFile musicFileFor(String resourceName) throws IOException {
     try (InputStream in = getClass().getClassLoader().getResourceAsStream(resourceName)) {
       return musicFileReader.readValue(in);
     }
   }
 
-  public void own(MusicFile musicFile, User... users) {
+  public void own(JMusicFile musicFile, JUser... users) {
     ownerService.owners.put(musicFile, Sets.newHashSet(users));
   }
   
-  static public class RecordingActionExecutor implements ActionExecutor {
+  static public class RecordingActionExecutor implements JActionExecutor {
 
     /**
      * A list of actions that have been passed to this executor.
      */
-    private final List<Action> executedActions = Lists.newArrayList();
+    private final List<JAction> executedActions = Lists.newArrayList();
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void execute(Action action) throws IOException {
+    public void execute(JAction action) throws IOException {
       getExecutedActions().add(action);
     }
 
-    public List<Action> getExecutedActions() {
+    public List<JAction> getExecutedActions() {
       return executedActions;
     }
   }
 
-  class MapBasedOwnerService implements OwnerService {
+  class MapBasedOwnerService implements JOwnerService {
 
-    final Map<MusicFile, Set<User>> owners = Maps.newHashMap();
+    final Map<JMusicFile, Set<JUser>> owners = Maps.newHashMap();
     
     /**
      * {@inheritDoc}
      */
     @Override
-    public Set<User> getOwnersForMusicFile(MusicFile musicFile) {
-      Set<User> users = owners.get(musicFile);
-      return users == null ? new HashSet<User>() : users;
+    public Set<JUser> getOwnersForMusicFile(JMusicFile musicFile) {
+      Set<JUser> users = owners.get(musicFile);
+      return users == null ? new HashSet<JUser>() : users;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean isFileOwnedByAnyone(MusicFile musicFile) {
+    public boolean isFileOwnedByAnyone(JMusicFile musicFile) {
       return owners.containsKey(musicFile);
     }
 
@@ -195,11 +195,11 @@ public abstract class AbstractCommandTest<C extends Command<?>> {
      * {@inheritDoc}
      */
     @Override
-    public Set<User> getAllInvalidOwners() {
-      return new HashSet<User>();
+    public Set<JUser> getAllInvalidOwners() {
+      return new HashSet<JUser>();
     }
 
-    public Map<MusicFile, Set<User>> getOwners() {
+    public Map<JMusicFile, Set<JUser>> getOwners() {
       return owners;
     }
     

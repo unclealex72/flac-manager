@@ -56,13 +56,13 @@ public class FileUtilsImplTest {
     Path source = testDirectory.resolve("source");
     Path target = testDirectory.resolve("target");
     Files.createDirectories(target);
-    FileLocation fileToMove = new FileLocation(source, Paths.get("dir", "moveme.txt"), false);
-    FileLocation fileToKeep = new FileLocation(source, Paths.get("dir", "keepme.txt"), false);
-    for (FileLocation fl : new FileLocation[] { fileToMove, fileToKeep }) {
+    JFileLocation fileToMove = new JFileLocation(source, Paths.get("dir", "moveme.txt"), false);
+    JFileLocation fileToKeep = new JFileLocation(source, Paths.get("dir", "keepme.txt"), false);
+    for (JFileLocation fl : new JFileLocation[] { fileToMove, fileToKeep }) {
       Files.createDirectories(fl.resolve().getParent());
       Files.createFile(fl.resolve());
     }
-    new FileUtilsImpl().move(fileToMove, new FileLocation(target, Paths.get("otherdir", "movedme.txt"), false));
+    new JFileUtilsImpl().move(fileToMove, new JFileLocation(target, Paths.get("otherdir", "movedme.txt"), false));
     Assert.assertTrue(
         "File target/otherdir/movedme.txt does not exist.",
         Files.exists(target.resolve(Paths.get("otherdir", "movedme.txt"))));
@@ -75,10 +75,10 @@ public class FileUtilsImplTest {
 
   @Test
   public void testLink() throws IOException {
-    FileLocation targetLocation = new FileLocation(false, testDirectory, "here.txt");
+    JFileLocation targetLocation = new JFileLocation(false, testDirectory, "here.txt");
     Files.createFile(targetLocation.resolve());
-    FileLocation linkLocation = new FileLocation(false, testDirectory, "link.d", "link.txt");
-    new FileUtilsImpl().link(targetLocation, linkLocation);
+    JFileLocation linkLocation = new JFileLocation(false, testDirectory, "link.d", "link.txt");
+    new JFileUtilsImpl().link(targetLocation, linkLocation);
     Assert.assertTrue("The newly created link was not a symbolic link.", Files.isSymbolicLink(linkLocation.resolve()));
     Path symlink = Files.readSymbolicLink(linkLocation.resolve());
     Assert.assertFalse("The generated symbolic link is not relative.", symlink.isAbsolute());
@@ -94,10 +94,10 @@ public class FileUtilsImplTest {
     Path source = testDirectory.resolve("source");
     Path target = testDirectory.resolve("target");
     Files.createDirectories(target);
-    FileLocation fileToMove = new FileLocation(source, Paths.get("dir", "moveme.txt"), false);
+    JFileLocation fileToMove = new JFileLocation(source, Paths.get("dir", "moveme.txt"), false);
     Files.createDirectories(fileToMove.resolve().getParent());
     Files.createFile(fileToMove.resolve());
-    new FileUtilsImpl().move(fileToMove, new FileLocation(target, Paths.get("otherdir", "movedme.txt"), false));
+    new JFileUtilsImpl().move(fileToMove, new JFileLocation(target, Paths.get("otherdir", "movedme.txt"), false));
     Assert.assertTrue(
         "File target/otherdir/movemed.txt does not exist.",
         Files.exists(target.resolve(Paths.get("otherdir", "movedme.txt"))));
@@ -113,10 +113,10 @@ public class FileUtilsImplTest {
     Path source = testDirectory.resolve("source");
     Path target = testDirectory.resolve("target");
     Files.createDirectories(target);
-    FileLocation fileToCopy = new FileLocation(source, Paths.get("dir", "copyme.txt"), false);
+    JFileLocation fileToCopy = new JFileLocation(source, Paths.get("dir", "copyme.txt"), false);
     Files.createDirectories(fileToCopy.resolve().getParent());
     Files.createFile(fileToCopy.resolve());
-    new FileUtilsImpl().copy(fileToCopy, new FileLocation(target, Paths.get("otherdir", "copiedme.txt"), false));
+    new JFileUtilsImpl().copy(fileToCopy, new JFileLocation(target, Paths.get("otherdir", "copiedme.txt"), false));
     Assert.assertTrue(
         "File target/otherdir/copiedme.txt does not exist.",
         Files.exists(target.resolve(Paths.get("otherdir", "copiedme.txt"))));

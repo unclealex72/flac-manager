@@ -36,11 +36,11 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.MusicFileBean;
-import uk.co.unclealex.music.configuration.Device;
-import uk.co.unclealex.music.configuration.User;
-import uk.co.unclealex.music.configuration.json.UserBean;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.JMusicFileBean;
+import uk.co.unclealex.music.configuration.JDevice;
+import uk.co.unclealex.music.configuration.JUser;
+import uk.co.unclealex.music.configuration.json.JUserBean;
 
 /**
  * @author alex
@@ -49,15 +49,15 @@ import uk.co.unclealex.music.configuration.json.UserBean;
 public class ChangeOwnershipServiceTest {
 
   @Test
-  public void testChangeOwnership() throws NoCollectionException {
-    MusicBrainzClient musicBrainzClient = mock(MusicBrainzClient.class);
-    ChangeOwnershipService changeOwnershipService = new ChangeOwnershipServiceImpl(musicBrainzClient);
-    User freddie = new UserBean("freddie", "Freddie Mercury", "pass", new ArrayList<Device>());
-    User brian = new UserBean("brian", "Brian May", "pass", new ArrayList<Device>());
+  public void testChangeOwnership() throws JNoCollectionException {
+    JMusicBrainzClient musicBrainzClient = mock(JMusicBrainzClient.class);
+    JChangeOwnershipService changeOwnershipService = new JChangeOwnershipServiceImpl(musicBrainzClient);
+    JUser freddie = new JUserBean("freddie", "Freddie Mercury", "pass", new ArrayList<JDevice>());
+    JUser brian = new JUserBean("brian", "Brian May", "pass", new ArrayList<JDevice>());
     String[] releaseIds = { "0", "1", "2", "3", "4", "5", "0", "1", "2", "3", "4", "5" };
-    MusicFile[] musicFiles = new MusicFile[releaseIds.length];
+    JMusicFile[] musicFiles = new JMusicFile[releaseIds.length];
     for (int idx = 0; idx < releaseIds.length; idx++) {
-      MusicFile musicFile = new MusicFileBean();
+      JMusicFile musicFile = new JMusicFileBean();
       musicFile.setAlbumId(releaseIds[idx]);
       musicFiles[idx] = musicFile;
     }

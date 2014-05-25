@@ -41,8 +41,8 @@ public class MusicBrainzClientGetWithTwoCollectionsFailTest extends AbstractMusi
     super("ws-two-collections-fail/root.txt");
   }
 
-  @Test(expected=NoCollectionException.class)
-  public void testTwoCollectionsFail() throws NoCollectionException, IOException {
+  @Test(expected=JNoCollectionException.class)
+  public void testTwoCollectionsFail() throws JNoCollectionException, IOException {
     runTest();
   }
 }

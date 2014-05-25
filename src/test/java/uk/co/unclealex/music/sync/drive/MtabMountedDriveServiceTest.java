@@ -47,7 +47,7 @@ public class MtabMountedDriveServiceTest {
 
   @Test
   public void testMtab() throws IOException {
-    final MtabMountedDriveService mountedDriveService = new MtabMountedDriveService() {
+    final JMtabMountedDriveService mountedDriveService = new JMtabMountedDriveService() {
       @Override
       public List<String> generateLines() throws IOException {
         return Lists

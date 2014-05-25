@@ -34,12 +34,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.MusicFileBean;
-import uk.co.unclealex.music.action.Actions;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.JMusicFileBean;
+import uk.co.unclealex.music.action.JActions;
 import uk.co.unclealex.music.command.checkin.covers.ArtworkSearchingService;
-import uk.co.unclealex.music.files.FileLocation;
-import uk.co.unclealex.music.message.MessageService;
+import uk.co.unclealex.music.files.JFileLocation;
+import uk.co.unclealex.music.message.JMessageService;
 
 /**
  * @author alex
@@ -47,39 +47,39 @@ import uk.co.unclealex.music.message.MessageService;
  */
 public class FindMissingCoverArtFlacFilesValidatorTest extends FlacFileValidatorTest {
 
-  FileLocation fileLocation;
+  JFileLocation fileLocation;
   URI uri;
   ArtworkSearchingService artworkSearchingService = Mockito.mock(ArtworkSearchingService.class);
-  MusicFile musicFile;
+  JMusicFile musicFile;
 
   @Before
   public void setup() throws URISyntaxException {
-    fileLocation = new FileLocation(Paths.get("/"), Paths.get("queen", "greatest hits", "01 bohemian rhapsody.flac"), true);
+    fileLocation = new JFileLocation(Paths.get("/"), Paths.get("queen", "greatest hits", "01 bohemian rhapsody.flac"), true);
     uri = new URI("http://somewhere.com/greatesthits.jpg");
-    musicFile = new MusicFileBean();
+    musicFile = new JMusicFileBean();
     musicFile.setAlbumId("12345");
     musicFilesByFlacPath = Collections.singletonMap(fileLocation, musicFile);
   }
   
   @Test
   public void testNoArtworkRequired() throws IOException {
-    Actions actions = actionsSupplier.get().delete(fileLocation);
+    JActions actions = actionsSupplier.get().delete(fileLocation);
     runTest(actions, actions);
   }
 
   @Test
   public void testFoundArtwork() throws IOException {
     Mockito.when(artworkSearchingService.findArtwork(musicFile)).thenReturn(uri);
-    Actions actions = actionsSupplier.get().coverArt(fileLocation);
-    Actions expectedActions = actionsSupplier.get().addArtwork(fileLocation, uri).coverArt(fileLocation);
+    JActions actions = actionsSupplier.get().coverArt(fileLocation);
+    JActions expectedActions = actionsSupplier.get().addArtwork(fileLocation, uri).coverArt(fileLocation);
     runTest(expectedActions, actions);
   }
   
   @Test
   public void testMissingArtwork() throws IOException {
     Mockito.when(artworkSearchingService.findArtwork(musicFile)).thenReturn(null);
-    Actions actions = actionsSupplier.get().coverArt(fileLocation);
-    Actions expectedActions = actionsSupplier.get().coverArt(fileLocation).fail(fileLocation, MessageService.MISSING_ARTWORK);
+    JActions actions = actionsSupplier.get().coverArt(fileLocation);
+    JActions expectedActions = actionsSupplier.get().coverArt(fileLocation).fail(fileLocation, JMessageService.MISSING_ARTWORK);
     runTest(expectedActions, actions);
   }
   
@@ -87,7 +87,7 @@ public class FindMissingCoverArtFlacFilesValidatorTest extends FlacFileValidator
    * {@inheritDoc}
    */
   @Override
-  protected FlacFilesValidator createFlacFilesValidator() {
-    return new FindMissingCoverArtFlacFilesValidator(actionsSupplier, artworkSearchingService);
+  protected JFlacFilesValidator createFlacFilesValidator() {
+    return new JFindMissingCoverArtFlacFilesValidator(actionsSupplier, artworkSearchingService);
   }
 }

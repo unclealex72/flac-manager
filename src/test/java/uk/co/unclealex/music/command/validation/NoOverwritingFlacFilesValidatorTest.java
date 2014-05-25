@@ -32,10 +32,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.co.unclealex.music.action.Actions;
-import uk.co.unclealex.music.action.ActionsImpl;
-import uk.co.unclealex.music.files.FileLocation;
-import uk.co.unclealex.music.message.MessageService;
+import uk.co.unclealex.music.action.JActions;
+import uk.co.unclealex.music.action.JActionsImpl;
+import uk.co.unclealex.music.files.JFileLocation;
+import uk.co.unclealex.music.message.JMessageService;
 
 /**
  * @author alex
@@ -43,41 +43,41 @@ import uk.co.unclealex.music.message.MessageService;
  */
 public class NoOverwritingFlacFilesValidatorTest extends FlacFileValidatorTest {
 
-  FileLocation existingFileLocation;
-  FileLocation nonExistingFileLocation;
+  JFileLocation existingFileLocation;
+  JFileLocation nonExistingFileLocation;
 
   @Before
   public void setup() throws IOException {
     existingFileLocation =
-        new FileLocation(Paths.get("/"), Paths.get("/").relativize(
+        new JFileLocation(Paths.get("/"), Paths.get("/").relativize(
             Files.createTempFile("no-overwriting-flac-files-validator-", ".flac")), true);
     nonExistingFileLocation =
-        new FileLocation(Paths.get("/"), Paths.get("/").relativize(
+        new JFileLocation(Paths.get("/"), Paths.get("/").relativize(
             Files.createTempFile("no-overwriting-flac-files-validator-", ".flac")), true);
     Files.delete(nonExistingFileLocation.resolve());
   }
 
   @Test
   public void testNonExisting() throws IOException {
-    Actions actions =
-        new ActionsImpl().move(existingFileLocation, nonExistingFileLocation);
+    JActions actions =
+        new JActionsImpl().move(existingFileLocation, nonExistingFileLocation);
     runTest(actions, actions);
   }
 
   @Test
   public void testExisting() throws IOException {
-    Actions actions =
-        new ActionsImpl().move(nonExistingFileLocation, existingFileLocation);
-    Actions expectedActions =
-        new ActionsImpl()
+    JActions actions =
+        new JActionsImpl().move(nonExistingFileLocation, existingFileLocation);
+    JActions expectedActions =
+        new JActionsImpl()
             .move(nonExistingFileLocation, existingFileLocation)
-            .fail(nonExistingFileLocation, MessageService.OVERWRITE, existingFileLocation);
+            .fail(nonExistingFileLocation, JMessageService.OVERWRITE, existingFileLocation);
     runTest(expectedActions, actions);
   }
 
   @After
   public void delete() throws IOException {
-    for (FileLocation fileLocation : new FileLocation[] { existingFileLocation, nonExistingFileLocation }) {
+    for (JFileLocation fileLocation : new JFileLocation[] { existingFileLocation, nonExistingFileLocation }) {
       Files.deleteIfExists(fileLocation.resolve());
     }
   }
@@ -86,7 +86,7 @@ public class NoOverwritingFlacFilesValidatorTest extends FlacFileValidatorTest {
    * {@inheritDoc}
    */
   @Override
-  protected FlacFilesValidator createFlacFilesValidator() {
-    return new NoOverwritingFlacFilesValidator();
+  protected JFlacFilesValidator createFlacFilesValidator() {
+    return new JNoOverwritingFlacFilesValidator();
   }
 }

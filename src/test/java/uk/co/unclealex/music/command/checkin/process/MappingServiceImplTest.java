@@ -47,17 +47,17 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.MusicFileBean;
-import uk.co.unclealex.music.Validator;
-import uk.co.unclealex.music.action.Action;
-import uk.co.unclealex.music.action.Actions;
-import uk.co.unclealex.music.action.ActionsImpl;
-import uk.co.unclealex.music.action.FailureAction;
-import uk.co.unclealex.music.audio.AudioMusicFileFactory;
-import uk.co.unclealex.music.files.FileLocation;
-import uk.co.unclealex.music.files.FlacFileChecker;
-import uk.co.unclealex.music.message.MessageService;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.JMusicFileBean;
+import uk.co.unclealex.music.JValidator;
+import uk.co.unclealex.music.action.JAction;
+import uk.co.unclealex.music.action.JActions;
+import uk.co.unclealex.music.action.JActionsImpl;
+import uk.co.unclealex.music.action.JFailureAction;
+import uk.co.unclealex.music.audio.JAudioMusicFileFactory;
+import uk.co.unclealex.music.files.JFileLocation;
+import uk.co.unclealex.music.files.JFlacFileChecker;
+import uk.co.unclealex.music.message.JMessageService;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
@@ -71,41 +71,42 @@ import com.google.common.collect.Sets;
 public class MappingServiceImplTest {
 
   @Mock
-  AudioMusicFileFactory audioMusicFileFactory;
+  JAudioMusicFileFactory audioMusicFileFactory;
   @Mock
-  Validator validator;
+  JValidator validator;
   @Mock
-  FlacFileChecker flacFileChecker;
-  MappingService mappingService;
-  Supplier<Actions> actionsSupplier = new Supplier<Actions>() {
+  JFlacFileChecker flacFileChecker;
+  JMappingService mappingService;
+  Supplier<JActions> actionsSupplier = new Supplier<JActions>() {
     @Override
-    public Actions get() {
-      return new ActionsImpl();
+    public JActions get() {
+      return new JActionsImpl();
     }
   };
-  @Mock MessageService messageService;
+  @Mock
+  JMessageService messageService;
   
-  FileLocation fileLocation = new FileLocation(Paths.get("/"), Paths.get("flac.flac"), true);
+  JFileLocation fileLocation = new JFileLocation(Paths.get("/"), Paths.get("flac.flac"), true);
 
   @Mock
-  ConstraintViolation<MusicFile> firstConstraintViolation;
+  ConstraintViolation<JMusicFile> firstConstraintViolation;
   @Mock
-  ConstraintViolation<MusicFile> secondConstraintViolation;
+  ConstraintViolation<JMusicFile> secondConstraintViolation;
 
   @Before
   public void setup() {
-    mappingService = new MappingServiceImpl(audioMusicFileFactory, validator, flacFileChecker, messageService);
+    mappingService = new JMappingServiceImpl(audioMusicFileFactory, validator, flacFileChecker, messageService);
   }
 
   @Test
   public void testValidFile() throws ConstraintViolationException, IOException {
-    MusicFile musicFile = new MusicFileBean();
+    JMusicFile musicFile = new JMusicFileBean();
     Path musicPath = fileLocation.resolve();
     when(audioMusicFileFactory.loadAndValidate(musicPath)).thenReturn(musicFile);
-    when(validator.generateViolations(musicFile)).thenReturn(new HashSet<ConstraintViolation<MusicFile>>());
+    when(validator.generateViolations(musicFile)).thenReturn(new HashSet<ConstraintViolation<JMusicFile>>());
     when(flacFileChecker.isFlacFile(musicPath)).thenReturn(true);
-    SortedMap<FileLocation, MusicFile> musicFilesByFileLocation = Maps.newTreeMap();
-    Actions actions =
+    SortedMap<JFileLocation, JMusicFile> musicFilesByFileLocation = Maps.newTreeMap();
+    JActions actions =
         mappingService.mapPathsToMusicFiles(
             actionsSupplier.get(),
             Collections.singleton(fileLocation),
@@ -118,7 +119,7 @@ public class MappingServiceImplTest {
   @Test
   public void testNonFlacFile() throws IOException {
     when(flacFileChecker.isFlacFile(fileLocation.resolve())).thenReturn(false);
-    testActions(new FailureAction(fileLocation, MessageService.NOT_FLAC));
+    testActions(new JFailureAction(fileLocation, JMessageService.NOT_FLAC));
   }
 
   @SuppressWarnings("unchecked")
@@ -127,16 +128,16 @@ public class MappingServiceImplTest {
     when(flacFileChecker.isFlacFile(fileLocation.resolve())).thenReturn(true);
     when(firstConstraintViolation.getMessage()).thenReturn("first");
     when(secondConstraintViolation.getMessage()).thenReturn("second");
-    MusicFile musicFile = new MusicFileBean();
+    JMusicFile musicFile = new JMusicFileBean();
     when(audioMusicFileFactory.loadAndValidate(fileLocation.resolve())).thenReturn(musicFile);
     when(validator.generateViolations(musicFile)).thenReturn(
         Sets.newHashSet(firstConstraintViolation, secondConstraintViolation));
-    testActions(new FailureAction(fileLocation, "/flac.flac: first"), new FailureAction(fileLocation, "/flac.flac: second"));
+    testActions(new JFailureAction(fileLocation, "/flac.flac: first"), new JFailureAction(fileLocation, "/flac.flac: second"));
   }
 
-  public void testActions(Action... expectedActions) throws IOException {
-    SortedMap<FileLocation, MusicFile> musicFilesByFileLocation = Maps.newTreeMap();
-    Actions actions =
+  public void testActions(JAction... expectedActions) throws IOException {
+    SortedMap<JFileLocation, JMusicFile> musicFilesByFileLocation = Maps.newTreeMap();
+    JActions actions =
         mappingService.mapPathsToMusicFiles(
             actionsSupplier.get(),
             Collections.singleton(fileLocation),

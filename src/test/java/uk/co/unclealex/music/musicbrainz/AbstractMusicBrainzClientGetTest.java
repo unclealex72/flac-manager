@@ -48,8 +48,8 @@ public class AbstractMusicBrainzClientGetTest extends MusicBrainzTester {
     super(rootResource);
   }
 
-  public void runTest() throws NoCollectionException, IOException {
-    MusicBrainzClient musicBrainzClient = new MusicBrainzClientImpl(musicBrainzWebResourceFactory);
+  public void runTest() throws JNoCollectionException, IOException {
+    JMusicBrainzClient musicBrainzClient = new JMusicBrainzClientImpl(musicBrainzWebResourceFactory);
     List<String> actualReleaseIds = musicBrainzClient.getRelasesForOwner(user);
     List<String> expectedReleaseIds = Lists.newArrayList();
     try (

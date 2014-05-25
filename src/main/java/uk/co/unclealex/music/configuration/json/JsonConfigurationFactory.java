@@ -29,8 +29,8 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import uk.co.unclealex.music.configuration.Configuration;
-import uk.co.unclealex.music.configuration.ConfigurationFactory;
+import uk.co.unclealex.music.configuration.JConfiguration;
+import uk.co.unclealex.music.configuration.JConfigurationFactory;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,26 +42,26 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
- * A {@link ConfigurationFactory} that reads a {@link ConfigurationBean} from a
+ * A {@link uk.co.unclealex.music.configuration.JConfigurationFactory} that reads a {@link JConfigurationBean} from a
  * JSON stream.
  * 
  * @author alex
  * 
  */
-public class JsonConfigurationFactory implements ConfigurationFactory {
+public class JsonConfigurationFactory implements JConfigurationFactory {
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Configuration load(InputStream in) throws IOException {
+  public JConfiguration load(InputStream in) throws IOException {
     ObjectMapper mapper = new ObjectMapper();
     SimpleModule testModule =
         new SimpleModule("ConfigurationModule", new Version(1, 0, 0, null, null, null)).addDeserializer(
             Path.class,
             new PathDeserializer());
     mapper.registerModule(testModule);
-    ObjectReader reader = mapper.reader(ConfigurationBean.class);
+    ObjectReader reader = mapper.reader(JConfigurationBean.class);
     return reader.readValue(in);
   }
 

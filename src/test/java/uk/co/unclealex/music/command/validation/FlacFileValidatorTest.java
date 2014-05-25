@@ -32,39 +32,39 @@ import java.util.Map;
 
 import javax.inject.Provider;
 
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.action.Action;
-import uk.co.unclealex.music.action.Actions;
-import uk.co.unclealex.music.action.ActionsImpl;
-import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.action.JAction;
+import uk.co.unclealex.music.action.JActions;
+import uk.co.unclealex.music.action.JActionsImpl;
+import uk.co.unclealex.music.files.JFileLocation;
 
 import com.google.common.collect.Iterables;
 
 /**
- * A base clase for testing {@link FlacFilesValidator}s.
+ * A base clase for testing {@link JFlacFilesValidator}s.
  * @author alex
  *
  */
 public abstract class FlacFileValidatorTest {
 
-  Map<FileLocation, MusicFile> musicFilesByFlacPath;
-  Provider<Actions> actionsSupplier = new Provider<Actions>() {
+  Map<JFileLocation, JMusicFile> musicFilesByFlacPath;
+  Provider<JActions> actionsSupplier = new Provider<JActions>() {
     @Override
-    public Actions get() {
-      return new ActionsImpl();
+    public JActions get() {
+      return new JActionsImpl();
     }
   };
   
-  public void runTest(Actions expectedActions, Actions actions) throws IOException {
+  public void runTest(JActions expectedActions, JActions actions) throws IOException {
     expectedActions = actionsSupplier.get().then(expectedActions);
-    FlacFilesValidator validator = createFlacFilesValidator();
-    Actions actualActions = validator.validate(musicFilesByFlacPath, actions);
+    JFlacFilesValidator validator = createFlacFilesValidator();
+    JActions actualActions = validator.validate(musicFilesByFlacPath, actions);
     assertThat(
         "The wrong actions were returned.",
         actualActions.get(),
-        contains(Iterables.toArray(expectedActions, Action.class)));
+        contains(Iterables.toArray(expectedActions, JAction.class)));
   }
 
-  protected abstract FlacFilesValidator createFlacFilesValidator();
+  protected abstract JFlacFilesValidator createFlacFilesValidator();
 
 }

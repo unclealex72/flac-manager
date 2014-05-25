@@ -36,10 +36,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.MusicFileBean;
-import uk.co.unclealex.music.configuration.User;
-import uk.co.unclealex.music.configuration.json.UserBean;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.JMusicFileBean;
+import uk.co.unclealex.music.configuration.JUser;
+import uk.co.unclealex.music.configuration.json.JUserBean;
 
 import com.google.common.collect.Lists;
 
@@ -51,19 +51,19 @@ import com.google.common.collect.Lists;
 public class OwnerServiceImplTest {
 
   @Mock
-  MusicBrainzClient musicBrainzClient;
-  OwnerServiceImpl ownerService;
-  User brianMay = new UserBean("brian", "Brian", null, null);
-  User freddieMercury = new UserBean("brian", "Freddie", null, null);
-  User rogerTaylor = new UserBean("roger", "Roger", null, null);
-  List<User> users = Lists.newArrayList(brianMay, freddieMercury, rogerTaylor);
+  JMusicBrainzClient musicBrainzClient;
+  JOwnerServiceImpl ownerService;
+  JUser brianMay = new JUserBean("brian", "Brian", null, null);
+  JUser freddieMercury = new JUserBean("brian", "Freddie", null, null);
+  JUser rogerTaylor = new JUserBean("roger", "Roger", null, null);
+  List<JUser> users = Lists.newArrayList(brianMay, freddieMercury, rogerTaylor);
 
   @Before
-  public void before() throws NoCollectionException {
+  public void before() throws JNoCollectionException {
     when(musicBrainzClient.getRelasesForOwner(brianMay)).thenReturn(Lists.newArrayList("1", "2", "3"));
     when(musicBrainzClient.getRelasesForOwner(freddieMercury)).thenReturn(Lists.newArrayList("2", "3", "4"));
-    when(musicBrainzClient.getRelasesForOwner(rogerTaylor)).thenThrow(new NoCollectionException("xyz"));
-    ownerService = new OwnerServiceImpl(musicBrainzClient, users);
+    when(musicBrainzClient.getRelasesForOwner(rogerTaylor)).thenThrow(new JNoCollectionException("xyz"));
+    ownerService = new JOwnerServiceImpl(musicBrainzClient, users);
     ownerService.setup();
   }
 
@@ -81,8 +81,8 @@ public class OwnerServiceImplTest {
     testOwnersForMusicFile("5");
   }
 
-  protected void testOwnersForMusicFile(String releaseId, User... expectedOwners) {
-    MusicFile musicFile = new MusicFileBean();
+  protected void testOwnersForMusicFile(String releaseId, JUser... expectedOwners) {
+    JMusicFile musicFile = new JMusicFileBean();
     musicFile.setAlbumId(releaseId);
     assertThat(
         "The wrong owners were found for release " + releaseId,
@@ -99,7 +99,7 @@ public class OwnerServiceImplTest {
   }
 
   protected void testIsMusicFileOwnedByAnyone(String releaseId, boolean expectedResult) {
-    MusicFile musicFile = new MusicFileBean();
+    JMusicFile musicFile = new JMusicFileBean();
     musicFile.setAlbumId(releaseId);
     assertEquals(
         "Checking whether release " + releaseId + " has any owners returned the wrong result.",

@@ -42,8 +42,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.co.unclealex.music.sync.scsi.ScsiId;
-import uk.co.unclealex.music.sync.scsi.ScsiIdFactory;
+import uk.co.unclealex.music.sync.scsi.JScsiId;
+import uk.co.unclealex.music.sync.scsi.JScsiIdFactory;
 
 import com.google.common.collect.Lists;
 
@@ -65,14 +65,14 @@ public class LsscsiScsiServiceTest {
     for (final String dir : new String[] { "sda", "sda1", "sda2", "sdb", "sr0" }) {
       Files.createDirectories(tmpDir.resolve(dir));
     }
-    final ScsiIdFactory scsiIdFactory = mock(ScsiIdFactory.class);
-    final ScsiId scsi0 = new ScsiId(0, 0, 0, 0);
-    final ScsiId scsi1 = new ScsiId(1, 0, 0, 0);
-    final ScsiId scsi2 = new ScsiId(2, 0, 0, 0);
+    final JScsiIdFactory scsiIdFactory = mock(JScsiIdFactory.class);
+    final JScsiId scsi0 = new JScsiId(0, 0, 0, 0);
+    final JScsiId scsi1 = new JScsiId(1, 0, 0, 0);
+    final JScsiId scsi2 = new JScsiId(2, 0, 0, 0);
     when(scsiIdFactory.create("[0:0:0:0]")).thenReturn(scsi0);
     when(scsiIdFactory.create("[1:0:0:0]")).thenReturn(scsi1);
     when(scsiIdFactory.create("[2:0:0:0]")).thenReturn(scsi2);
-    final LsscsiScsiService scsiService = new LsscsiScsiService(null, scsiIdFactory) {
+    final JLsscsiScsiService scsiService = new JLsscsiScsiService(null, scsiIdFactory) {
       @Override
       public List<String> generateLines() {
         return Lists.newArrayList(
@@ -82,7 +82,7 @@ public class LsscsiScsiServiceTest {
       };
     };
     scsiService.initialise();
-    final Map<ScsiId, Path> map = scsiService.getMap();
+    final Map<JScsiId, Path> map = scsiService.getMap();
     assertThat("The wrong number of scsi devices were returned.", map.entrySet(), hasSize(3));
     assertThat(
         "The wrong scsi devices were returned.",

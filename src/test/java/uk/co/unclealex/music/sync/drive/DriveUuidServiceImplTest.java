@@ -67,7 +67,7 @@ public class DriveUuidServiceImplTest {
       final Matcher<Map<? extends String, ? extends Path>> thisMatcher = hasEntry(uuid, devicePath);
       matcher = (matcher == null) ? thisMatcher : both(thisMatcher).and(matcher);
     }
-    final DriveUuidServiceImpl driveUuidService = new DriveUuidServiceImpl() {
+    final JDriveUuidServiceImpl driveUuidService = new JDriveUuidServiceImpl() {
       @Override
       protected Path getBasePath() {
         return uuidBasePath;

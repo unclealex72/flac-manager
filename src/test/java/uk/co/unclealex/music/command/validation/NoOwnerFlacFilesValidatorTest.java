@@ -35,17 +35,17 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.MusicFileBean;
-import uk.co.unclealex.music.action.Action;
-import uk.co.unclealex.music.action.Actions;
-import uk.co.unclealex.music.action.ActionsImpl;
-import uk.co.unclealex.music.action.FailureAction;
-import uk.co.unclealex.music.configuration.User;
-import uk.co.unclealex.music.configuration.json.UserBean;
-import uk.co.unclealex.music.files.FileLocation;
-import uk.co.unclealex.music.message.MessageService;
-import uk.co.unclealex.music.musicbrainz.OwnerService;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.JMusicFileBean;
+import uk.co.unclealex.music.action.JAction;
+import uk.co.unclealex.music.action.JActions;
+import uk.co.unclealex.music.action.JActionsImpl;
+import uk.co.unclealex.music.action.JFailureAction;
+import uk.co.unclealex.music.configuration.JUser;
+import uk.co.unclealex.music.configuration.json.JUserBean;
+import uk.co.unclealex.music.files.JFileLocation;
+import uk.co.unclealex.music.message.JMessageService;
+import uk.co.unclealex.music.musicbrainz.JOwnerService;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -58,39 +58,39 @@ public class NoOwnerFlacFilesValidatorTest {
 
   @Test
   public void testOwnerValidation() throws IOException {
-    OwnerService ownerService = mock(OwnerService.class);
-    User brianMay = new UserBean("brian", "Brian", null, null);
-    User freddieMercury = new UserBean("freddie", "Freddie", null, null);
+    JOwnerService ownerService = mock(JOwnerService.class);
+    JUser brianMay = new JUserBean("brian", "Brian", null, null);
+    JUser freddieMercury = new JUserBean("freddie", "Freddie", null, null);
     when(ownerService.getAllInvalidOwners()).thenReturn(Sets.newHashSet(brianMay, freddieMercury));
-    MusicFile mf1 = musicFile("1");
-    MusicFile mf2 = musicFile("2");
-    MusicFile mf3 = musicFile("3");
-    FileLocation fl1 = fileLocation("1");
-    FileLocation fl2 = fileLocation("2");
-    FileLocation fl3 = fileLocation("3");
+    JMusicFile mf1 = musicFile("1");
+    JMusicFile mf2 = musicFile("2");
+    JMusicFile mf3 = musicFile("3");
+    JFileLocation fl1 = fileLocation("1");
+    JFileLocation fl2 = fileLocation("2");
+    JFileLocation fl3 = fileLocation("3");
     when(ownerService.isFileOwnedByAnyone(mf1)).thenReturn(false);
     when(ownerService.isFileOwnedByAnyone(mf2)).thenReturn(true);
     when(ownerService.isFileOwnedByAnyone(mf3)).thenReturn(false);
-    FlacFilesValidator flacFilesValidator = new NoOwnerFlacFilesValidator(ownerService);
-    Map<FileLocation, MusicFile> musicFilesByFlacPath = Maps.newHashMap();
+    JFlacFilesValidator flacFilesValidator = new JNoOwnerFlacFilesValidator(ownerService);
+    Map<JFileLocation, JMusicFile> musicFilesByFlacPath = Maps.newHashMap();
     musicFilesByFlacPath.put(fl1, mf1);
     musicFilesByFlacPath.put(fl2, mf2);
     musicFilesByFlacPath.put(fl3, mf3);
-    Actions actualActions = flacFilesValidator.validate(musicFilesByFlacPath, new ActionsImpl());
-    assertThat("The wrong actions were returned", actualActions, containsInAnyOrder(new Action[] {
-        new FailureAction(null, MessageService.NO_OWNER_INFORMATION, brianMay.getMusicBrainzUserName()),
-        new FailureAction(null, MessageService.NO_OWNER_INFORMATION, freddieMercury.getMusicBrainzUserName()),
-        new FailureAction(fl1, MessageService.NOT_OWNED),
-        new FailureAction(fl3, MessageService.NOT_OWNED) }));
+    JActions actualActions = flacFilesValidator.validate(musicFilesByFlacPath, new JActionsImpl());
+    assertThat("The wrong actions were returned", actualActions, containsInAnyOrder(new JAction[] {
+        new JFailureAction(null, JMessageService.NO_OWNER_INFORMATION, brianMay.getMusicBrainzUserName()),
+        new JFailureAction(null, JMessageService.NO_OWNER_INFORMATION, freddieMercury.getMusicBrainzUserName()),
+        new JFailureAction(fl1, JMessageService.NOT_OWNED),
+        new JFailureAction(fl3, JMessageService.NOT_OWNED) }));
   }
 
-  protected MusicFile musicFile(String releaseId) {
-    MusicFile musicFile = new MusicFileBean();
+  protected JMusicFile musicFile(String releaseId) {
+    JMusicFile musicFile = new JMusicFileBean();
     musicFile.setAlbumId(releaseId);
     return musicFile;
   }
 
-  protected FileLocation fileLocation(String path) {
-    return new FileLocation(Paths.get("/"), Paths.get("flac", path), true);
+  protected JFileLocation fileLocation(String path) {
+    return new JFileLocation(Paths.get("/"), Paths.get("flac", path), true);
   }
 }

@@ -42,7 +42,7 @@ public class MusicBrainzClientGetWithTwoCollectionsSuccessTest extends AbstractM
   }
 
   @Test
-  public void testTwoCollectionsSuccess() throws NoCollectionException, IOException {
+  public void testTwoCollectionsSuccess() throws JNoCollectionException, IOException {
     runTest();
   }
 }

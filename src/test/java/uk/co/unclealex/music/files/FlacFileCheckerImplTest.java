@@ -60,7 +60,7 @@ public class FlacFileCheckerImplTest {
       try (InputStream in = getClass().getClassLoader().getResourceAsStream(resourceName)) {
         Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
       }
-      boolean result = new FlacFileCheckerImpl().isFlacFile(path);
+      boolean result = new JFlacFileCheckerImpl().isFlacFile(path);
       Assert.assertEquals("The wrong result was returned whilst checking whether " + resourceName + " is a flac file.", expectedResult, result);
     }
     finally {

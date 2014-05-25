@@ -13,14 +13,14 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.junit.Test;
 
-import uk.co.unclealex.music.ValidatorImpl;
+import uk.co.unclealex.music.JValidatorImpl;
 import uk.co.unclealex.music.configuration.json.AmazonConfigurationBean;
-import uk.co.unclealex.music.configuration.json.ConfigurationBean;
-import uk.co.unclealex.music.configuration.json.CowonX7DeviceBean;
-import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
-import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
-import uk.co.unclealex.music.configuration.json.PathsBean;
-import uk.co.unclealex.music.configuration.json.UserBean;
+import uk.co.unclealex.music.configuration.json.JConfigurationBean;
+import uk.co.unclealex.music.configuration.json.JCowonX7DeviceBean;
+import uk.co.unclealex.music.configuration.json.JFileSystemDeviceBean;
+import uk.co.unclealex.music.configuration.json.JIpodDeviceBean;
+import uk.co.unclealex.music.configuration.json.JPathsBean;
+import uk.co.unclealex.music.configuration.json.JUserBean;
 import uk.co.unclealex.music.violations.Violation;
 import uk.co.unclealex.validator.paths.CanRead;
 import uk.co.unclealex.validator.paths.CanWrite;
@@ -59,15 +59,15 @@ import com.google.common.collect.Lists;
 public class ConfigurationValidationTest {
 
   Path homeDir = Paths.get(System.getProperty("user.home"));
-  PathsBean defaultPathBean = new PathsBean(homeDir, homeDir, homeDir, homeDir);
+  JPathsBean defaultPathBean = new JPathsBean(homeDir, homeDir, homeDir, homeDir);
   AmazonConfigurationBean defaultAmazonBean = new AmazonConfigurationBean("endpoint", "accessKey", "secretKey");
-  List<UserBean> defaultUsers = Lists.newArrayList(new UserBean("alex", "MeMeMe", "pwd", Lists
-      .newArrayList((Device) new FileSystemDeviceBean("WALKMAN", "123456", Paths.get("Music")))));
+  List<JUserBean> defaultUsers = Lists.newArrayList(new JUserBean("alex", "MeMeMe", "pwd", Lists
+      .newArrayList((JDevice) new JFileSystemDeviceBean("WALKMAN", "123456", Paths.get("Music")))));
 
   @Test
   public void testConfigurationRequiresPathAndUsers() throws Exception {
     testValidate(
-        new ConfigurationBean(null, null, null),
+        new JConfigurationBean(null, null, null),
         Violation.expect(NotNull.class, "directories"),
         Violation.expect(NotNull.class, "amazon"),
         Violation.expect(NotEmpty.class, "users"));
@@ -76,7 +76,7 @@ public class ConfigurationValidationTest {
   @Test
   public void testConfigurationRequiresAllPaths() throws Exception {
     testValidate(
-        new ConfigurationBean(new PathsBean(null, null, null, null), defaultUsers, defaultAmazonBean),
+        new JConfigurationBean(new JPathsBean(null, null, null, null), defaultUsers, defaultAmazonBean),
         Violation.expect(NotNull.class, "directories", "stagingPath"),
         Violation.expect(NotNull.class, "directories", "encodedPath"),
         Violation.expect(NotNull.class, "directories", "flacPath"),
@@ -85,8 +85,8 @@ public class ConfigurationValidationTest {
 
   @Test
   public void testConfigurationRequiresValidPaths() throws Exception {
-    testValidate(new ConfigurationBean(
-        new PathsBean(Paths.get("a"), Paths.get("a"), Paths.get("a"), Paths.get("a")),
+    testValidate(new JConfigurationBean(
+        new JPathsBean(Paths.get("a"), Paths.get("a"), Paths.get("a"), Paths.get("a")),
         defaultUsers,
         defaultAmazonBean), Violation.expect(IsDirectory.class, "directories", "stagingPath"), Violation.expect(
         CanRead.class,
@@ -105,9 +105,9 @@ public class ConfigurationValidationTest {
 
   @Test
   public void testUserRequiresUserNamePasswordAndDevices() throws Exception {
-    testValidate(new ConfigurationBean(
+    testValidate(new JConfigurationBean(
         defaultPathBean,
-        Lists.newArrayList(new UserBean(null, null, null, null)),
+        Lists.newArrayList(new JUserBean(null, null, null, null)),
         defaultAmazonBean), Violation.expect(NotEmpty.class, "users[0]", "name"), Violation.expect(
         NotEmpty.class,
         "users[0]",
@@ -120,7 +120,7 @@ public class ConfigurationValidationTest {
   @Test
   public void testAmazonRequiresUrlAndKeys() throws Exception {
     testValidate(
-        new ConfigurationBean(defaultPathBean, defaultUsers, new AmazonConfigurationBean(null, null, null)),
+        new JConfigurationBean(defaultPathBean, defaultUsers, new AmazonConfigurationBean(null, null, null)),
         Violation.expect(NotEmpty.class, "amazon", "endpoint"),
         Violation.expect(NotEmpty.class, "amazon", "accessKey"),
         Violation.expect(NotEmpty.class, "amazon", "secretKey"));
@@ -129,18 +129,18 @@ public class ConfigurationValidationTest {
   @Test
   public void testDevices() throws Exception {
     testValidate(
-        new ConfigurationBean(defaultPathBean, Lists.newArrayList(new UserBean("aj", "aj", "aj", Lists.newArrayList(
-            (Device) new FileSystemDeviceBean(null, null, null),
-            new CowonX7DeviceBean(null),
-            new IpodDeviceBean(null)))), defaultAmazonBean),
+        new JConfigurationBean(defaultPathBean, Lists.newArrayList(new JUserBean("aj", "aj", "aj", Lists.newArrayList(
+            (JDevice) new JFileSystemDeviceBean(null, null, null),
+            new JCowonX7DeviceBean(null),
+            new JIpodDeviceBean(null)))), defaultAmazonBean),
         Violation.expect(NotEmpty.class, "users[0]", "devices[0]", "name"),
         Violation.expect(NotEmpty.class, "users[0]", "devices[0]", "uuid"),
         Violation.expect(NotEmpty.class, "users[0]", "devices[1]", "uuid"),
         Violation.expect(NotEmpty.class, "users[0]", "devices[2]", "uuid"));
   }
 
-  public void testValidate(final ConfigurationBean configurationBean, final Violation... expectedViolations) {
-    final ValidatorImpl validator = new ValidatorImpl();
+  public void testValidate(final JConfigurationBean configurationBean, final Violation... expectedViolations) {
+    final JValidatorImpl validator = new JValidatorImpl();
     final Set<Violation> actualViolations = Violation.typedViolations(validator.generateViolations(configurationBean));
     assertThat("The wrong violations were found.", actualViolations, containsInAnyOrder(expectedViolations));
   }

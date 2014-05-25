@@ -42,9 +42,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.co.unclealex.music.CoverArt;
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.ValidatorImpl;
+import uk.co.unclealex.music.JCoverArt;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.JValidatorImpl;
 import uk.co.unclealex.music.violations.Violation;
 
 import com.google.common.io.ByteStreams;
@@ -102,12 +102,12 @@ public class AudioMusicFileFactoryImplTest {
 
   @Test
   public void testTagged() throws IOException {
-    MusicFile musicFile = load("tagged.flac");
+    JMusicFile musicFile = load("tagged.flac");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     try (InputStream in = getClass().getClassLoader().getResourceAsStream("cover.jpg")) {
       ByteStreams.copy(in, out);
     }
-    CoverArt expectedCoverArt = new CoverArt(out.toByteArray(), "image/jpeg");
+    JCoverArt expectedCoverArt = new JCoverArt(out.toByteArray(), "image/jpeg");
     Assert.assertEquals("The music file has the wrong album.", "Metal: A Headbanger's Companion", musicFile.getAlbum());
     Assert.assertEquals("The music file has the wrong album artist.", "Various Artists", musicFile.getAlbumArtist());
     Assert.assertEquals(
@@ -142,11 +142,11 @@ public class AudioMusicFileFactoryImplTest {
 
   }
 
-  public MusicFile load(String resourceName) throws IOException {
+  public JMusicFile load(String resourceName) throws IOException {
     URL resource = getClass().getClassLoader().getResource(resourceName);
     try (InputStream in = resource.openStream()) {
       Files.copy(in, tempMusicFile, StandardCopyOption.REPLACE_EXISTING);
     }
-    return new AudioMusicFileFactoryImpl(new ValidatorImpl()).loadAndValidate(tempMusicFile);
+    return new JAudioMusicFileFactoryImpl(new JValidatorImpl()).loadAndValidate(tempMusicFile);
   }
 }

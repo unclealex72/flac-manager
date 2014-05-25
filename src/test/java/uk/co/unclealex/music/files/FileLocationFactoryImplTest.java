@@ -31,8 +31,8 @@ import java.nio.file.Paths;
 
 import org.junit.Test;
 
-import uk.co.unclealex.music.configuration.Directories;
-import uk.co.unclealex.music.configuration.json.PathsBean;
+import uk.co.unclealex.music.configuration.JDirectories;
+import uk.co.unclealex.music.configuration.json.JPathsBean;
 
 /**
  * @author alex
@@ -40,13 +40,13 @@ import uk.co.unclealex.music.configuration.json.PathsBean;
  */
 public class FileLocationFactoryImplTest {
 
-  Directories directories = new PathsBean(
+  JDirectories directories = new JPathsBean(
       Paths.get("/flacPath"),
       Paths.get("/devicesPath"),
       Paths.get("/encodedPath"),
       Paths.get("/stagingPath"));
 
-  FileLocationFactory fileLocationFactory = new FileLocationFactoryImpl(directories);
+  JFileLocationFactory fileLocationFactory = new JFileLocationFactoryImpl(directories);
 
   @Test
   public void testFlac() {
@@ -75,10 +75,10 @@ public class FileLocationFactoryImplTest {
         fileLocationFactory.createStagingFileLocation(Paths.get("my", "flac", "file.flac")));
   }
 
-  protected void test(boolean expectedReadOnly, Path expectedBasePath, Path expectedRelativePath, FileLocation actualFileLocation) {
+  protected void test(boolean expectedReadOnly, Path expectedBasePath, Path expectedRelativePath, JFileLocation actualFileLocation) {
     assertEquals(
         "The wrong file location was created.",
-        new FileLocation(expectedBasePath, expectedRelativePath, expectedReadOnly),
+        new JFileLocation(expectedBasePath, expectedRelativePath, expectedReadOnly),
         actualFileLocation);
   }
 }

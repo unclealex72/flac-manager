@@ -47,20 +47,17 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.action.Action;
-import uk.co.unclealex.music.action.Actions;
-import uk.co.unclealex.music.action.ChangeOwnerAction;
-import uk.co.unclealex.music.action.FailureAction;
-import uk.co.unclealex.music.action.UpdateOwnershipAction;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.action.*;
+import uk.co.unclealex.music.action.JActions;
 import uk.co.unclealex.music.command.AbstractCommandTest;
-import uk.co.unclealex.music.command.OwnCommand;
-import uk.co.unclealex.music.command.OwnCommandLine;
-import uk.co.unclealex.music.configuration.User;
-import uk.co.unclealex.music.exception.InvalidDirectoriesException;
-import uk.co.unclealex.music.files.FileLocation;
-import uk.co.unclealex.music.files.FileLocationFactory;
-import uk.co.unclealex.music.message.MessageService;
+import uk.co.unclealex.music.command.JOwnCommand;
+import uk.co.unclealex.music.command.JOwnCommandLine;
+import uk.co.unclealex.music.configuration.JUser;
+import uk.co.unclealex.music.exception.JInvalidDirectoriesException;
+import uk.co.unclealex.music.files.JFileLocation;
+import uk.co.unclealex.music.files.JFileLocationFactory;
+import uk.co.unclealex.music.message.JMessageService;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -73,23 +70,23 @@ import com.google.common.collect.Sets;
  * @author alex
  * 
  */
-public class OwnCommandTest extends AbstractCommandTest<OwnCommand> {
+public class OwnCommandTest extends AbstractCommandTest<JOwnCommand> {
 
   /**
    * @param commandClass
    * @param guiceModule
    */
   public OwnCommandTest() {
-    super(OwnCommand.class, new OwnModule());
+    super(JOwnCommand.class, new JOwnModule());
   }
 
   @Test
-  public void testAdd() throws IOException, InvalidDirectoriesException {
-    final FileLocationFactory fileLocationFactory = injector.getInstance(FileLocationFactory.class);
-    final FileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
+  public void testAdd() throws IOException, JInvalidDirectoriesException {
+    final JFileLocationFactory fileLocationFactory = injector.getInstance(JFileLocationFactory.class);
+    final JFileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
     final Path queenDir = stagingDir.resolve(Paths.get("q", "queen")).resolve();
-    final Function<Path, FileLocation> queenFactory = new Function<Path, FileLocation>() {
-      public FileLocation apply(Path path) {
+    final Function<Path, JFileLocation> queenFactory = new Function<Path, JFileLocation>() {
+      public JFileLocation apply(Path path) {
         return fileLocationFactory.createStagingFileLocation(Paths.get("q", "queen").resolve(path));
       }
     };
@@ -99,29 +96,29 @@ public class OwnCommandTest extends AbstractCommandTest<OwnCommand> {
         "death_on_two_legs.json");
     musicFilesByPath.put(Paths.get("a kind of magic", "01 one vision.flac"), "one_vision.json");
     musicFilesByPath.put(Paths.get("jazz", "02 fat bottomed girls.flac"), "fat_bottomed_girls.json");
-    SortedSet<FileLocation> queenFileLocations =
+    SortedSet<JFileLocation> queenFileLocations =
         Sets.newTreeSet(Iterables.transform(musicFilesByPath.keySet(), queenFactory));
     when(directoryService.listFiles(eq(stagingDir), argThat(contains(queenDir)))).thenReturn(queenFileLocations);
     own(musicFileFor("death_on_two_legs.json"), brianMay);
     own(musicFileFor("fat_bottomed_girls.json"), brianMay, freddieMercury);
-    Answer<Actions> mappingAnswer = new Answer<Actions>() {
+    Answer<JActions> mappingAnswer = new Answer<JActions>() {
       @Override
-      public Actions answer(InvocationOnMock invocation) throws IOException {
+      public JActions answer(InvocationOnMock invocation) throws IOException {
         @SuppressWarnings("unchecked")
-        SortedMap<FileLocation, MusicFile> musicFilesByFileLocation =
-            (SortedMap<FileLocation, MusicFile>) invocation.getArguments()[2];
+        SortedMap<JFileLocation, JMusicFile> musicFilesByFileLocation =
+            (SortedMap<JFileLocation, JMusicFile>) invocation.getArguments()[2];
         for (Entry<Path, String> entry : musicFilesByPath.entrySet()) {
           musicFilesByFileLocation.put(queenFactory.apply(entry.getKey()), musicFileFor(entry.getValue()));
         }
-        return (Actions) invocation.getArguments()[0];
+        return (JActions) invocation.getArguments()[0];
       }
     };
     when(
         mappingService.mapPathsToMusicFiles(
-            any(Actions.class),
-            argThat(contains(Iterables.toArray(queenFileLocations, FileLocation.class))),
-            anyMapOf(FileLocation.class, MusicFile.class))).thenAnswer(mappingAnswer);
-    OwnCommandLine ownCommandLine = new OwnCommandLine() {
+            any(JActions.class),
+            argThat(contains(Iterables.toArray(queenFileLocations, JFileLocation.class))),
+            anyMapOf(JFileLocation.class, JMusicFile.class))).thenAnswer(mappingAnswer);
+    JOwnCommandLine ownCommandLine = new JOwnCommandLine() {
       public boolean getHelp() {
         return false;
       }
@@ -142,33 +139,33 @@ public class OwnCommandTest extends AbstractCommandTest<OwnCommand> {
       }
     };
     command.execute(ownCommandLine);
-    FileLocation deathOnTwoLegsFlacLocation =
+    JFileLocation deathOnTwoLegsFlacLocation =
         fileLocationFactory.createStagingFileLocation(Paths.get(
             "q",
             "queen",
             "a night at the opera",
             "01 death on two legs dedicated to.flac"));
-    FileLocation oneVisionFlacLocation =
+    JFileLocation oneVisionFlacLocation =
         fileLocationFactory.createStagingFileLocation(Paths.get("q", "queen", "a kind of magic", "01 one vision.flac"));
     assertThat(
         "The wrong actions were recorded.",
         recordingActionExecutor.getExecutedActions(),
-        contains(new Action[] {
-                new ChangeOwnerAction(oneVisionFlacLocation, musicFileFor("one_vision.json"), true, Lists
-                    .newArrayList((User) brianMay, freddieMercury)),
-                    new ChangeOwnerAction(deathOnTwoLegsFlacLocation, musicFileFor("death_on_two_legs.json"), true, Lists.newArrayList(
-                        (User)
+        contains(new JAction[] {
+                new JChangeOwnerAction(oneVisionFlacLocation, musicFileFor("one_vision.json"), true, Lists
+                    .newArrayList((JUser) brianMay, freddieMercury)),
+                    new JChangeOwnerAction(deathOnTwoLegsFlacLocation, musicFileFor("death_on_two_legs.json"), true, Lists.newArrayList(
+                        (JUser)
                         freddieMercury)),
-            new UpdateOwnershipAction() }));
+            new JUpdateOwnershipAction() }));
   }
   
   @Test
-  public void testRemove() throws IOException, InvalidDirectoriesException {
-    final FileLocationFactory fileLocationFactory = injector.getInstance(FileLocationFactory.class);
-    final FileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
+  public void testRemove() throws IOException, JInvalidDirectoriesException {
+    final JFileLocationFactory fileLocationFactory = injector.getInstance(JFileLocationFactory.class);
+    final JFileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
     final Path queenDir = stagingDir.resolve(Paths.get("q", "queen")).resolve();
-    final Function<Path, FileLocation> queenFactory = new Function<Path, FileLocation>() {
-      public FileLocation apply(Path path) {
+    final Function<Path, JFileLocation> queenFactory = new Function<Path, JFileLocation>() {
+      public JFileLocation apply(Path path) {
         return fileLocationFactory.createStagingFileLocation(Paths.get("q", "queen").resolve(path));
       }
     };
@@ -178,29 +175,29 @@ public class OwnCommandTest extends AbstractCommandTest<OwnCommand> {
         "death_on_two_legs.json");
     musicFilesByPath.put(Paths.get("a kind of magic", "01 one vision.flac"), "one_vision.json");
     musicFilesByPath.put(Paths.get("jazz", "02 fat bottomed girls.flac"), "fat_bottomed_girls.json");
-    SortedSet<FileLocation> queenFileLocations =
+    SortedSet<JFileLocation> queenFileLocations =
         Sets.newTreeSet(Iterables.transform(musicFilesByPath.keySet(), queenFactory));
     when(directoryService.listFiles(eq(stagingDir), argThat(contains(queenDir)))).thenReturn(queenFileLocations);
     own(musicFileFor("death_on_two_legs.json"), brianMay, freddieMercury);
     own(musicFileFor("one_vision.json"), brianMay, freddieMercury);
-    Answer<Actions> mappingAnswer = new Answer<Actions>() {
+    Answer<JActions> mappingAnswer = new Answer<JActions>() {
       @Override
-      public Actions answer(InvocationOnMock invocation) throws IOException {
+      public JActions answer(InvocationOnMock invocation) throws IOException {
         @SuppressWarnings("unchecked")
-        SortedMap<FileLocation, MusicFile> musicFilesByFileLocation =
-            (SortedMap<FileLocation, MusicFile>) invocation.getArguments()[2];
+        SortedMap<JFileLocation, JMusicFile> musicFilesByFileLocation =
+            (SortedMap<JFileLocation, JMusicFile>) invocation.getArguments()[2];
         for (Entry<Path, String> entry : musicFilesByPath.entrySet()) {
           musicFilesByFileLocation.put(queenFactory.apply(entry.getKey()), musicFileFor(entry.getValue()));
         }
-        return (Actions) invocation.getArguments()[0];
+        return (JActions) invocation.getArguments()[0];
       }
     };
     when(
         mappingService.mapPathsToMusicFiles(
-            any(Actions.class),
-            argThat(contains(Iterables.toArray(queenFileLocations, FileLocation.class))),
-            anyMapOf(FileLocation.class, MusicFile.class))).thenAnswer(mappingAnswer);
-    OwnCommandLine ownCommandLine = new OwnCommandLine() {
+            any(JActions.class),
+            argThat(contains(Iterables.toArray(queenFileLocations, JFileLocation.class))),
+            anyMapOf(JFileLocation.class, JMusicFile.class))).thenAnswer(mappingAnswer);
+    JOwnCommandLine ownCommandLine = new JOwnCommandLine() {
       public boolean getHelp() {
         return false;
       }
@@ -221,33 +218,33 @@ public class OwnCommandTest extends AbstractCommandTest<OwnCommand> {
       }
     };
     command.execute(ownCommandLine);
-    FileLocation deathOnTwoLegsFlacLocation =
+    JFileLocation deathOnTwoLegsFlacLocation =
         fileLocationFactory.createStagingFileLocation(Paths.get(
             "q",
             "queen",
             "a night at the opera",
             "01 death on two legs dedicated to.flac"));
-    FileLocation oneVisionFlacLocation =
+    JFileLocation oneVisionFlacLocation =
         fileLocationFactory.createStagingFileLocation(Paths.get("q", "queen", "a kind of magic", "01 one vision.flac"));
     assertThat(
         "The wrong actions were recorded.",
         recordingActionExecutor.getExecutedActions(),
-        contains(new Action[] {
-            new ChangeOwnerAction(oneVisionFlacLocation, musicFileFor("one_vision.json"), false, Lists
-                .newArrayList((User) brianMay)),
-            new ChangeOwnerAction(deathOnTwoLegsFlacLocation, musicFileFor("death_on_two_legs.json"), false, Lists.newArrayList(
-                (User)
+        contains(new JAction[] {
+            new JChangeOwnerAction(oneVisionFlacLocation, musicFileFor("one_vision.json"), false, Lists
+                .newArrayList((JUser) brianMay)),
+            new JChangeOwnerAction(deathOnTwoLegsFlacLocation, musicFileFor("death_on_two_legs.json"), false, Lists.newArrayList(
+                (JUser)
                 brianMay)),
-            new UpdateOwnershipAction() }));
+            new JUpdateOwnershipAction() }));
   }
   
   @Test
-  public void testNoChange() throws IOException, InvalidDirectoriesException {
-    final FileLocationFactory fileLocationFactory = injector.getInstance(FileLocationFactory.class);
-    final FileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
+  public void testNoChange() throws IOException, JInvalidDirectoriesException {
+    final JFileLocationFactory fileLocationFactory = injector.getInstance(JFileLocationFactory.class);
+    final JFileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
     final Path queenDir = stagingDir.resolve(Paths.get("q", "queen")).resolve();
-    final Function<Path, FileLocation> queenFactory = new Function<Path, FileLocation>() {
-      public FileLocation apply(Path path) {
+    final Function<Path, JFileLocation> queenFactory = new Function<Path, JFileLocation>() {
+      public JFileLocation apply(Path path) {
         return fileLocationFactory.createStagingFileLocation(Paths.get("q", "queen").resolve(path));
       }
     };
@@ -257,27 +254,27 @@ public class OwnCommandTest extends AbstractCommandTest<OwnCommand> {
         "death_on_two_legs.json");
     musicFilesByPath.put(Paths.get("a kind of magic", "01 one vision.flac"), "one_vision.json");
     musicFilesByPath.put(Paths.get("jazz", "02 fat bottomed girls.flac"), "fat_bottomed_girls.json");
-    SortedSet<FileLocation> queenFileLocations =
+    SortedSet<JFileLocation> queenFileLocations =
         Sets.newTreeSet(Iterables.transform(musicFilesByPath.keySet(), queenFactory));
     when(directoryService.listFiles(eq(stagingDir), argThat(contains(queenDir)))).thenReturn(queenFileLocations);
-    Answer<Actions> mappingAnswer = new Answer<Actions>() {
+    Answer<JActions> mappingAnswer = new Answer<JActions>() {
       @Override
-      public Actions answer(InvocationOnMock invocation) throws IOException {
+      public JActions answer(InvocationOnMock invocation) throws IOException {
         @SuppressWarnings("unchecked")
-        SortedMap<FileLocation, MusicFile> musicFilesByFileLocation =
-            (SortedMap<FileLocation, MusicFile>) invocation.getArguments()[2];
+        SortedMap<JFileLocation, JMusicFile> musicFilesByFileLocation =
+            (SortedMap<JFileLocation, JMusicFile>) invocation.getArguments()[2];
         for (Entry<Path, String> entry : musicFilesByPath.entrySet()) {
           musicFilesByFileLocation.put(queenFactory.apply(entry.getKey()), musicFileFor(entry.getValue()));
         }
-        return (Actions) invocation.getArguments()[0];
+        return (JActions) invocation.getArguments()[0];
       }
     };
     when(
         mappingService.mapPathsToMusicFiles(
-            any(Actions.class),
-            argThat(contains(Iterables.toArray(queenFileLocations, FileLocation.class))),
-            anyMapOf(FileLocation.class, MusicFile.class))).thenAnswer(mappingAnswer);
-    OwnCommandLine ownCommandLine = new OwnCommandLine() {
+            any(JActions.class),
+            argThat(contains(Iterables.toArray(queenFileLocations, JFileLocation.class))),
+            anyMapOf(JFileLocation.class, JMusicFile.class))).thenAnswer(mappingAnswer);
+    JOwnCommandLine ownCommandLine = new JOwnCommandLine() {
       public boolean getHelp() {
         return false;
       }
@@ -301,16 +298,16 @@ public class OwnCommandTest extends AbstractCommandTest<OwnCommand> {
     assertThat(
         "The wrong actions were recorded.",
         recordingActionExecutor.getExecutedActions(),
-        emptyCollectionOf(Action.class));
+        emptyCollectionOf(JAction.class));
   }
   
   @Test
-  public void testInvalidUser() throws IOException, InvalidDirectoriesException {
-    final FileLocationFactory fileLocationFactory = injector.getInstance(FileLocationFactory.class);
-    final FileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
+  public void testInvalidUser() throws IOException, JInvalidDirectoriesException {
+    final JFileLocationFactory fileLocationFactory = injector.getInstance(JFileLocationFactory.class);
+    final JFileLocation stagingDir = fileLocationFactory.createStagingFileLocation(Paths.get(""));
     final Path queenDir = stagingDir.resolve(Paths.get("q", "queen")).resolve();
-    final Function<Path, FileLocation> queenFactory = new Function<Path, FileLocation>() {
-      public FileLocation apply(Path path) {
+    final Function<Path, JFileLocation> queenFactory = new Function<Path, JFileLocation>() {
+      public JFileLocation apply(Path path) {
         return fileLocationFactory.createStagingFileLocation(Paths.get("q", "queen").resolve(path));
       }
     };
@@ -320,27 +317,27 @@ public class OwnCommandTest extends AbstractCommandTest<OwnCommand> {
         "death_on_two_legs.json");
     musicFilesByPath.put(Paths.get("a kind of magic", "01 one vision.flac"), "one_vision.json");
     musicFilesByPath.put(Paths.get("jazz", "02 fat bottomed girls.flac"), "fat_bottomed_girls.json");
-    SortedSet<FileLocation> queenFileLocations =
+    SortedSet<JFileLocation> queenFileLocations =
         Sets.newTreeSet(Iterables.transform(musicFilesByPath.keySet(), queenFactory));
     when(directoryService.listFiles(eq(stagingDir), argThat(contains(queenDir)))).thenReturn(queenFileLocations);
-    Answer<Actions> mappingAnswer = new Answer<Actions>() {
+    Answer<JActions> mappingAnswer = new Answer<JActions>() {
       @Override
-      public Actions answer(InvocationOnMock invocation) throws IOException {
+      public JActions answer(InvocationOnMock invocation) throws IOException {
         @SuppressWarnings("unchecked")
-        SortedMap<FileLocation, MusicFile> musicFilesByFileLocation =
-            (SortedMap<FileLocation, MusicFile>) invocation.getArguments()[2];
+        SortedMap<JFileLocation, JMusicFile> musicFilesByFileLocation =
+            (SortedMap<JFileLocation, JMusicFile>) invocation.getArguments()[2];
         for (Entry<Path, String> entry : musicFilesByPath.entrySet()) {
           musicFilesByFileLocation.put(queenFactory.apply(entry.getKey()), musicFileFor(entry.getValue()));
         }
-        return (Actions) invocation.getArguments()[0];
+        return (JActions) invocation.getArguments()[0];
       }
     };
     when(
         mappingService.mapPathsToMusicFiles(
-            any(Actions.class),
-            argThat(contains(Iterables.toArray(queenFileLocations, FileLocation.class))),
-            anyMapOf(FileLocation.class, MusicFile.class))).thenAnswer(mappingAnswer);
-    OwnCommandLine ownCommandLine = new OwnCommandLine() {
+            any(JActions.class),
+            argThat(contains(Iterables.toArray(queenFileLocations, JFileLocation.class))),
+            anyMapOf(JFileLocation.class, JMusicFile.class))).thenAnswer(mappingAnswer);
+    JOwnCommandLine ownCommandLine = new JOwnCommandLine() {
       public boolean getHelp() {
         return false;
       }
@@ -365,6 +362,6 @@ public class OwnCommandTest extends AbstractCommandTest<OwnCommand> {
     assertThat(
         "The wrong actions were recorded.",
         recordingActionExecutor.getExecutedActions(),
-        contains(new Action[] { new FailureAction(null, MessageService.UNKNOWN_USER, "brain")}));
+        contains(new JAction[] { new JFailureAction(null, JMessageService.UNKNOWN_USER, "brain")}));
   }
 }

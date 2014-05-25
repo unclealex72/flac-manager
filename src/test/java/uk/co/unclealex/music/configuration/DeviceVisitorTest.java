@@ -30,9 +30,9 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import uk.co.unclealex.music.configuration.json.CowonX7DeviceBean;
-import uk.co.unclealex.music.configuration.json.FileSystemDeviceBean;
-import uk.co.unclealex.music.configuration.json.IpodDeviceBean;
+import uk.co.unclealex.music.configuration.json.JCowonX7DeviceBean;
+import uk.co.unclealex.music.configuration.json.JFileSystemDeviceBean;
+import uk.co.unclealex.music.configuration.json.JIpodDeviceBean;
 
 /**
  * @author alex
@@ -42,38 +42,38 @@ public class DeviceVisitorTest {
 
   @Test
   public void testIpodDevice() {
-    test(new IpodDeviceBean("118118"), IpodDevice.class);
+    test(new JIpodDeviceBean("118118"), JIpodDevice.class);
   }
 
   @Test
   public void testFileSystemDevice() {
-    test(new FileSystemDeviceBean("name", "220220", Paths.get("abc")), FileSystemDevice.class);
+    test(new JFileSystemDeviceBean("name", "220220", Paths.get("abc")), JFileSystemDevice.class);
   }
 
   @Test
   public void testCowonX7Device() {
-    test(new CowonX7DeviceBean("333999"), CowonX7Device.class);
+    test(new JCowonX7DeviceBean("333999"), JCowonX7Device.class);
   }
 
-  public void test(final Device device, final Class<? extends Device> expectedDeviceClass) {
-    final DeviceVisitor<Class<? extends Device>> visitor = new DeviceVisitor.Default<Class<? extends Device>>() {
+  public void test(final JDevice device, final Class<? extends JDevice> expectedDeviceClass) {
+    final JDeviceVisitor<Class<? extends JDevice>> visitor = new JDeviceVisitor.Default<Class<? extends JDevice>>() {
 
       @Override
-      public Class<? extends Device> visit(final IpodDevice ipodDevice) {
-        return IpodDevice.class;
+      public Class<? extends JDevice> visit(final JIpodDevice ipodDevice) {
+        return JIpodDevice.class;
       }
 
       @Override
-      public Class<? extends Device> visit(final FileSystemDevice fileSystemDevice) {
-        return FileSystemDevice.class;
+      public Class<? extends JDevice> visit(final JFileSystemDevice fileSystemDevice) {
+        return JFileSystemDevice.class;
       }
 
       @Override
-      public Class<? extends Device> visit(final CowonX7Device cowonX7Device) {
-        return CowonX7Device.class;
+      public Class<? extends JDevice> visit(final JCowonX7Device cowonX7Device) {
+        return JCowonX7Device.class;
       }
     };
-    final Class<? extends Device> actualDeviceClass = device.accept(visitor);
+    final Class<? extends JDevice> actualDeviceClass = device.accept(visitor);
     Assert.assertEquals("The wrong class was returned.", expectedDeviceClass, actualDeviceClass);
   }
 }

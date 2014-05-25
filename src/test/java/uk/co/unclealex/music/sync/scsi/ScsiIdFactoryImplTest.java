@@ -34,7 +34,7 @@ import org.junit.Test;
  */
 public class ScsiIdFactoryImplTest {
 
-  ScsiIdFactory scsiIdFactory = new ScsiIdFactoryImpl();
+  JScsiIdFactory scsiIdFactory = new JScsiIdFactoryImpl();
 
   @Test
   public void testNumeric() {
@@ -46,8 +46,8 @@ public class ScsiIdFactoryImplTest {
     runTest(scsiIdFactory.create("[5:9:72:912]"));
   }
 
-  public void runTest(final ScsiId actualScsiId) {
-    Assert.assertEquals("The wrong SCSI ID was returned.", new ScsiId(5, 9, 72, 912), actualScsiId);
+  public void runTest(final JScsiId actualScsiId) {
+    Assert.assertEquals("The wrong SCSI ID was returned.", new JScsiId(5, 9, 72, 912), actualScsiId);
   }
 
 }

@@ -69,10 +69,10 @@ public class ProtectionServiceImplTest {
   }
 
   protected void runTest(ProtectionServiceCallback callback, boolean readOnly, boolean expectWritable) throws IOException {
-    FileLocation newFile = new FileLocation(testDirectory, Paths.get("a", "good", "time.txt"), readOnly);
+    JFileLocation newFile = new JFileLocation(testDirectory, Paths.get("a", "good", "time.txt"), readOnly);
     Files.createDirectories(newFile.resolve().getParent());
     Files.createFile(newFile.resolve());
-    callback.execute(new ProtectionServiceImpl(), newFile);
+    callback.execute(new JProtectionServiceImpl(), newFile);
     for (Path path : new Path[] {
         testDirectory,
         testDirectory.resolve(Paths.get("a")),
@@ -84,13 +84,13 @@ public class ProtectionServiceImplTest {
   }
   
   interface ProtectionServiceCallback {
-    public void execute(ProtectionService protectionService, FileLocation fileLocation) throws IOException;
+    public void execute(JProtectionService protectionService, JFileLocation fileLocation) throws IOException;
   }
   
   class ProtectCallback implements ProtectionServiceCallback {
     
     @Override
-    public void execute(ProtectionService protectionService, FileLocation fileLocation) throws IOException {
+    public void execute(JProtectionService protectionService, JFileLocation fileLocation) throws IOException {
       protectionService.protect(fileLocation);
     }
   }
@@ -98,7 +98,7 @@ public class ProtectionServiceImplTest {
   class UnprotectCallback implements ProtectionServiceCallback {
     
     @Override
-    public void execute(ProtectionService protectionService, FileLocation fileLocation) throws IOException {
+    public void execute(JProtectionService protectionService, JFileLocation fileLocation) throws IOException {
       protectionService.unprotect(fileLocation);
     }
   }

@@ -33,9 +33,9 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import uk.co.unclealex.music.configuration.Configuration;
-import uk.co.unclealex.music.configuration.ConfigurationFactory;
-import uk.co.unclealex.music.configuration.Device;
+import uk.co.unclealex.music.configuration.JConfiguration;
+import uk.co.unclealex.music.configuration.JConfigurationFactory;
+import uk.co.unclealex.music.configuration.JDevice;
 
 import com.google.common.collect.Lists;
 
@@ -47,24 +47,24 @@ public class JsonConfigurationFactoryTest {
 
   @Test
   public void testDeserialisation() throws IOException {
-    final PathsBean expectedDirectories =
-        new PathsBean(
+    final JPathsBean expectedDirectories =
+        new JPathsBean(
             Paths.get("flacPath"),
             Paths.get("devicesPath"),
             Paths.get("encodedPath"),
             Paths.get("stagingPath"));
-    final Device ipod = new IpodDeviceBean("118118");
-    final Device cowonx7 = new CowonX7DeviceBean("220220");
-    final Device hd = new FileSystemDeviceBean("hd device", "333666", Paths.get("music"));
-    final UserBean alex = new UserBean("alex", "MeMeMe", "pwd", Lists.newArrayList(ipod, hd, cowonx7));
-    final List<UserBean> expectedUsers = Lists.newArrayList(alex);
+    final JDevice ipod = new JIpodDeviceBean("118118");
+    final JDevice cowonx7 = new JCowonX7DeviceBean("220220");
+    final JDevice hd = new JFileSystemDeviceBean("hd device", "333666", Paths.get("music"));
+    final JUserBean alex = new JUserBean("alex", "MeMeMe", "pwd", Lists.newArrayList(ipod, hd, cowonx7));
+    final List<JUserBean> expectedUsers = Lists.newArrayList(alex);
     final AmazonConfigurationBean expectedAmazon = new AmazonConfigurationBean("endpoint", "accessKey", "secretKey");
-    final ConfigurationBean expectedConfigurationBean =
-        new ConfigurationBean(expectedDirectories, expectedUsers, expectedAmazon);
+    final JConfigurationBean expectedConfigurationBean =
+        new JConfigurationBean(expectedDirectories, expectedUsers, expectedAmazon);
 
-    final ConfigurationFactory configurationFactory = new JsonConfigurationFactory();
+    final JConfigurationFactory configurationFactory = new JsonConfigurationFactory();
     try (InputStream in = getClass().getClassLoader().getResourceAsStream("configuration.json")) {
-      final Configuration configuration = configurationFactory.load(in);
+      final JConfiguration configuration = configurationFactory.load(in);
       Assert.assertEquals("The configuration bean was not read correctly.", expectedConfigurationBean, configuration);
     }
   }

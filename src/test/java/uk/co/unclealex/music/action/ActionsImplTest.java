@@ -32,9 +32,9 @@ import java.util.List;
 
 import org.junit.Test;
 
-import uk.co.unclealex.music.MusicFile;
-import uk.co.unclealex.music.MusicFileBean;
-import uk.co.unclealex.music.files.FileLocation;
+import uk.co.unclealex.music.JMusicFile;
+import uk.co.unclealex.music.JMusicFileBean;
+import uk.co.unclealex.music.files.JFileLocation;
 
 /**
  * @author alex
@@ -44,24 +44,24 @@ public class ActionsImplTest {
 
   @Test
   public void testBuildActions() {
-    Actions actions = new ActionsImpl();
-    MusicFile flacMusicFile = new MusicFileBean();
+    JActions actions = new JActionsImpl();
+    JMusicFile flacMusicFile = new JMusicFileBean();
     flacMusicFile.setAlbum("Dummy");
-    List<Action> actualActions =
+    List<JAction> actualActions =
         actions
             .delete(fileLocation("delete"))
             .encode(fileLocation("flacEncode"), fileLocation("mp3encode"), flacMusicFile)
             .fail(fileLocation("fail"), "D'Oh!", 1, 2)
             .move(fileLocation("from"), fileLocation("to"))
             .get();
-    assertThat("The wrong actions were generated", actualActions, contains(new Action[] {
-        new DeleteAction(fileLocation("delete")),
-        new EncodeAction(fileLocation("flacEncode"), fileLocation("mp3encode"), flacMusicFile),
-        new FailureAction(fileLocation("fail"), "D'Oh!", 1, 2),
-        new MoveAction(fileLocation("from"), fileLocation("to")) }));
+    assertThat("The wrong actions were generated", actualActions, contains(new JAction[] {
+        new JDeleteAction(fileLocation("delete")),
+        new JEncodeAction(fileLocation("flacEncode"), fileLocation("mp3encode"), flacMusicFile),
+        new JFailureAction(fileLocation("fail"), "D'Oh!", 1, 2),
+        new JMoveAction(fileLocation("from"), fileLocation("to")) }));
   }
 
-  protected FileLocation fileLocation(String path) {
-    return new FileLocation(Paths.get("/dummy"), Paths.get(path), false);
+  protected JFileLocation fileLocation(String path) {
+    return new JFileLocation(Paths.get("/dummy"), Paths.get(path), false);
   }
 }
