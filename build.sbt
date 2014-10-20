@@ -1,6 +1,14 @@
-name := "flac-manager"
+name := """flac-manager"""
 
-version := "6.0.0-SNAPSHOT"
+version := "1.0-SNAPSHOT"
 
-organization := "uk.co.unclealex"
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
+scalaVersion := "2.11.1"
+
+libraryDependencies ++= Seq(
+  jdbc,
+  anorm,
+  cache,
+  ws
+)
