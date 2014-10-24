@@ -33,7 +33,7 @@ import org.specs2.mutable._
  * @author alex
  *
  */
-class FileUtilsImplTest extends Specification with PathMatchers {
+class FileUtilsImplSpec extends Specification with PathMatchers {
 
   val fileUtils = new FileUtilsImpl
 
