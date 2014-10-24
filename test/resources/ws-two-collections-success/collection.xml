@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://musicbrainz.org/ns/mmd-2.0#">
+    <collection-list>
+        <collection id="aaa2a722-0540-4260-b12d-1eae32760b9d">
+            <name>All by myself</name>
+            <editor>UncleAlex72</editor>
+            <release-list count="456"/>
+        </collection>
+        <collection id="bba2a722-0540-4260-b12d-1eae32760b9d">
+            <name>All my music</name>
+            <editor>UncleAlex72</editor>
+            <release-list count="456"/>
+        </collection>
+    </collection-list>
+</metadata>

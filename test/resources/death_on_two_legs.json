@@ -1,0 +1,21 @@
+{
+    "albumArtistSort": "Queen",
+    "albumArtist": "Queen",
+    "album": "A Night at the Opera",
+    "artist": "Queen",
+    "artistSort": "Queen",
+    "title": "Death on Two Legs (Dedicated to...)",
+    "totalDiscs": 2,
+    "totalTracks": 12,
+    "discNumber": 1,
+    "albumArtistId": "0383dadf-2a4e-4d10-a46a-e9e041da8eb3",
+    "albumId": "f14638e1-fb36-358c-aba2-39b084864b13",
+    "artistId": "0383dadf-2a4e-4d10-a46a-e9e041da8eb3",
+    "trackId": "a46d027a-39e0-4b47-b19b-bb7682839ac5",
+    "asin": "B004M17IU8",
+    "trackNumber": 1,
+    "coverArt": {
+        "imageData": "AA==",
+        "mimeType": "image/jpeg"
+    }
+}

@@ -1,0 +1,1200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://musicbrainz.org/ns/mmd-2.0#">
+    <collection id="bba2a722-0540-4260-b12d-1eae32760b9d">
+        <name>All my music</name>
+        <editor>UncleAlex72</editor>
+        <release-list count="456">
+            <release id="024266d8-3fe7-3e76-956c-08354200e28a">
+                <title>The Spider’s Lullabye</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009</date>
+                <country>DE</country>
+                <barcode>4028466106612</barcode>
+            </release>
+            <release id="03c51ea9-0372-3348-a745-354c96a242ce">
+                <title>Resurrection</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-03-02</date>
+                <country>DE</country>
+                <barcode>727361182328</barcode>
+            </release>
+            <release id="0495d1b0-42bc-32ac-8aa4-79344cf80b51">
+                <title>Frozen in Time</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2005</date>
+                <country>NL</country>
+                <barcode>016861815622</barcode>
+            </release>
+            <release id="056aa19f-1b5b-461e-b133-642dca4c2aa7">
+                <title>Death of a Dead Day</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-06-06</date>
+                <country>US</country>
+                <barcode>874007000925</barcode>
+            </release>
+            <release id="0c0fd81a-b5ce-3105-b5e7-cd460504e74b">
+                <title>Voodoo</title>
+                <status>Official</status>
+                <packaging>Jewel Case</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009</date>
+                <country>DE</country>
+                <barcode>4028466106636</barcode>
+            </release>
+            <release id="0d3f74c0-3c76-3f58-8fe7-4b06cf2db03a">
+                <title>See You on the Other Side</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2005-12-06</date>
+                <country>US</country>
+                <barcode>094634742825</barcode>
+            </release>
+            <release id="1208cf76-1b88-4c91-8385-80da29d02c13">
+                <title>Invaders Must Die</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-02-23</date>
+                <country>GB</country>
+                <barcode>711297880113</barcode>
+            </release>
+            <release id="1208fc4e-5655-3531-8810-afaa78c15fd2">
+                <title>Elect the Dead</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-10-23</date>
+                <country>US</country>
+                <barcode>093624992837</barcode>
+            </release>
+            <release id="1365ffbd-eaa3-398a-8edf-507b24aec5f6">
+                <title>Hypnotize</title>
+                <status>Official</status>
+                <quality>high</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2005-11-23</date>
+                <country>JP</country>
+                <barcode>4547366022728</barcode>
+            </release>
+            <release id="1398aa4e-dbca-4d5d-b2e4-68f1e510a7f5">
+                <title>Metal Hammer #167: Trash: Back to Skool!</title>
+                <status>Promotion</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-07</date>
+                <country>GB</country>
+            </release>
+            <release id="144526f8-40ab-49b0-85d5-fc28694be43e">
+                <title>Killer Queen: A Tribute to Queen</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2005-08-09</date>
+                <country>US</country>
+                <barcode>720616252227</barcode>
+            </release>
+            <release id="16935dae-785b-45bf-bd21-de03d40cbe60">
+                <title>Scars on Broadway</title>
+                <status>Official</status>
+                <packaging>Other</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-08-01</date>
+                <country>DE</country>
+                <barcode>602517781054</barcode>
+            </release>
+            <release id="1aca3787-184b-4c2c-8f8b-41af9a78a190">
+                <title>The Bends</title>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008</date>
+                <country>US</country>
+            </release>
+            <release id="1e1e4b7e-27f2-430c-a1aa-c9833f2ff455">
+                <title>On Divine Winds</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2010-10-08</date>
+                <country>DE</country>
+                <barcode>039841492903</barcode>
+            </release>
+            <release id="219e44d5-5c05-498a-829e-13c253b6f360">
+                <title>Eternal Pyre</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-06-06</date>
+                <country>US</country>
+                <barcode>054391568526</barcode>
+            </release>
+            <release id="291b6479-212a-4134-aa68-1971938ab531">
+                <title>Terrorizer: Fear Candy 70</title>
+                <status>Promotion</status>
+                <packaging>Cardboard/Paper Sleeve</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009</date>
+                <country>GB</country>
+            </release>
+            <release id="29f32ce1-8b4c-4757-bd11-d9a072fc11db">
+                <title>The Trick to Life</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-10-22</date>
+                <country>GB</country>
+                <barcode>886971569124</barcode>
+            </release>
+            <release id="34fcb6d0-5e42-3e79-83aa-83a47e1cd850">
+                <title>Mr. Bungle</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-04</date>
+                <country>US</country>
+                <barcode>646315513615</barcode>
+            </release>
+            <release id="3847810d-872d-4050-a4a6-980a422655d3">
+                <title>Tosca</title>
+                <status>Official</status>
+                <packaging>Jewel Case</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>ita</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2005</date>
+                <country>GB</country>
+                <barcode>5055159707923</barcode>
+            </release>
+            <release id="38c769e9-570a-3282-843f-f4dc3d4d156f">
+                <title>MTV Unplugged in New York</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-06-24</date>
+                <country>JP</country>
+                <barcode>4988005560865</barcode>
+            </release>
+            <release id="39e63033-1c7e-3b0b-aa09-3a38b56e6654">
+                <title>The Ultimate Sin</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-06-20</date>
+                <country>JP</country>
+                <barcode>4547366030495</barcode>
+            </release>
+            <release id="3d86a1f2-dbcb-48af-b48a-de5b774e1277">
+                <title>Xecutioner’s Return</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-08-27</date>
+                <country>GB</country>
+                <barcode>803341227279</barcode>
+            </release>
+            <release id="44cc4a3b-fa89-401c-81b7-0e543aeb8e54">
+                <title>Full Metal Garage: The Songs That Drove Metallica</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-06-26</date>
+                <country>GB</country>
+            </release>
+            <release id="4586a48d-5b0e-31ee-bfaf-5f1bb122abcc">
+                <title>Keeper of the Seven Keys, Part II</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-08-08</date>
+                <country>US</country>
+                <barcode>060768642928</barcode>
+            </release>
+            <release id="481da710-0b18-3259-a7d7-83f793069723">
+                <title>Fortress</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-01-29</date>
+                <country>US</country>
+                <barcode>601091048324</barcode>
+            </release>
+            <release id="48a62b21-5686-4520-97bc-d06f937d0d5d">
+                <title>Black Sabbath</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-07-02</date>
+                <country>XE</country>
+                <barcode>602527008172</barcode>
+            </release>
+            <release id="4a2df415-1b2f-480c-8b89-31ad29e108c0">
+                <title>The Very Best Definitive Ultimate Greatest Hits Collection</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-06-01</date>
+                <country>GB</country>
+                <barcode>5051865440123</barcode>
+            </release>
+            <release id="4b63b41d-fb44-3193-bf77-44abfbee17b0">
+                <title>Death Magnetic</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-09-12</date>
+                <country>AR</country>
+                <barcode>0602517840201</barcode>
+            </release>
+            <release id="5894e5ca-af8b-323e-8881-4220b73ed54c">
+                <title>Necropolis</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-08-21</date>
+                <country>DE</country>
+                <barcode>0727361239626</barcode>
+            </release>
+            <release id="5c519b97-5ed4-3709-aff9-19fb1809c3b1">
+                <title>All Hope Is Gone</title>
+                <status>Official</status>
+                <quality>high</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-08-22</date>
+                <country>NL</country>
+                <barcode>016861793852</barcode>
+            </release>
+            <release id="5d4973cd-56e6-4373-8e5a-4313ad3c8259">
+                <title>God Hates Us All</title>
+                <status>Official</status>
+                <packaging>Jewel Case</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-06-22</date>
+                <country>XE</country>
+                <barcode>886971311020</barcode>
+            </release>
+            <release id="5f257d89-7dc6-4a25-b99f-b2fbb59fc7b4">
+                <title>Pet Sounds</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-04-07</date>
+                <country>US</country>
+                <barcode>780014203122</barcode>
+            </release>
+            <release id="6478e1d2-089a-4b30-984d-4cb2d527d720">
+                <title>Smear Campaign</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-09-18</date>
+                <country>DE</country>
+                <barcode>5051099768727</barcode>
+            </release>
+            <release id="64cf3b3a-5374-4ef8-8c7a-38a3f2d2b966">
+                <title>Paranoid</title>
+                <status>Official</status>
+                <disambiguation>Deluxe Expanded Edition</disambiguation>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-03-30</date>
+                <country>GB</country>
+                <barcode>602517824447</barcode>
+            </release>
+            <release id="659ed0e2-dcda-42af-9b13-bd842f86634c">
+                <title>Korn III: Remember Who You Are</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2010-09-07</date>
+                <country>AU</country>
+                <barcode>016861775759</barcode>
+            </release>
+            <release id="66524079-465b-4579-a895-87f7c94197ec">
+                <title>Handle With Care</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-09-09</date>
+                <country>JP</country>
+                <barcode>4988003374518</barcode>
+            </release>
+            <release id="689ad009-e4fa-4037-9786-6093076232b4">
+                <title>Black Aria II</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-10-17</date>
+                <country>US</country>
+            </release>
+            <release id="6a024716-fc5b-46db-a42f-a33a8878601f">
+                <title>Sounds of the Animal Kingdom / Kill Trend Suicide</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-10-17</date>
+                <country>US</country>
+                <barcode>781676659722</barcode>
+            </release>
+            <release id="6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e">
+                <title>Metal: A Headbanger's Companion</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-04-23</date>
+                <country>US</country>
+                <barcode>745316035123</barcode>
+            </release>
+            <release id="71d9b219-a7e6-3ebc-8703-5e8a4ff12647">
+                <title>The Best of David Bowie 1980-1987</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007</date>
+                <country>GB</country>
+                <barcode>094638647829</barcode>
+            </release>
+            <release id="75b17f23-8ad1-3df2-9c7c-cae03b2b8eb4">
+                <title>London Calling</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-12-14</date>
+                <country>GB</country>
+                <barcode>886976183929</barcode>
+            </release>
+            <release id="75feb500-0585-4c50-84cf-fb2048f250b4">
+                <title>Roadworks</title>
+                <status>Promotion</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-07-02</date>
+                <country>GB</country>
+            </release>
+            <release id="7818acb4-d58e-4428-b1e9-581af2c0133f">
+                <title>Flight 666: The Original Soundtrack</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-05-25</date>
+                <country>XW</country>
+                <barcode>5099969775727</barcode>
+            </release>
+            <release id="79411d1e-b187-3800-bdc4-10d89b5dfe5b">
+                <title>Star Wars: The Empire Strikes Back</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-11-06</date>
+                <country>US</country>
+                <barcode>886971411423</barcode>
+            </release>
+            <release id="7af3a94a-4f52-31c5-a0fa-a9116123ba3f">
+                <title>The Great Cold Distance</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-03-14</date>
+                <country>US</country>
+                <barcode>801056812827</barcode>
+            </release>
+            <release id="7db47c5f-38e1-3330-aee5-fc313be52a39">
+                <title>Deth Red Sabaoth</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2010-06-28</date>
+                <country>GB</country>
+                <barcode>884860025423</barcode>
+            </release>
+            <release id="7e6a49ee-9927-466c-bde2-0c4d802c24e2">
+                <title>Rock Montreal</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-10</date>
+                <country>XW</country>
+            </release>
+            <release id="823a4507-0214-4494-94b4-a412bea51fb3">
+                <title>Kezia</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-04-04</date>
+                <country>US</country>
+                <barcode>601091043022</barcode>
+            </release>
+            <release id="86c00ec1-abea-4261-ae69-c917cefc9722">
+                <title>2007-07-05: Rotundenplatz, Vienna, Austria</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-07-10</date>
+                <country>XW</country>
+            </release>
+            <release id="888cf3a3-f323-340d-a644-3bff2bef0c5b">
+                <title>The Final Frontier</title>
+                <status>Official</status>
+                <quality>low</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2010-08-17</date>
+                <country>US</country>
+                <barcode>886977424717</barcode>
+            </release>
+            <release id="8aa64919-d176-4b97-a9c4-8bfa130cc6d3">
+                <title>NME: Muse: The Supermassive Selection</title>
+                <status>Promotion</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-06-13</date>
+                <country>GB</country>
+            </release>
+            <release id="90059277-8e4e-4bf9-82f8-0c0b7895eaf0">
+                <title>Ignorance / Surf Nicaragua</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-06-18</date>
+                <country>GB</country>
+                <barcode>039841458121</barcode>
+            </release>
+            <release id="934cc3b7-a856-4500-9875-fb4272362571">
+                <title>Chopped, Screwed, Live &amp; Unglued</title>
+                <status>Official</status>
+                <packaging>Digipak</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-09-26</date>
+                <country>US</country>
+                <barcode>094635277326</barcode>
+            </release>
+            <release id="95509fa6-3ea9-40bc-acd1-f463b5ce460d">
+                <title>ICON</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2010-08-31</date>
+                <country>US</country>
+                <barcode>602527473260</barcode>
+            </release>
+            <release id="96433203-1e58-415e-b34e-ea6afec2b2ad">
+                <title>MTV Unplugged</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-03-06</date>
+                <country>US</country>
+                <barcode>094638602729</barcode>
+            </release>
+            <release id="96ea4fc3-bce0-3982-965f-d0f127a38d12">
+                <title>Ride the Lightning</title>
+                <status>Official</status>
+                <quality>high</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-04-15</date>
+                <country>US</country>
+            </release>
+            <release id="99025112-73d7-42fd-8dea-50886f78b10e">
+                <title>World of Mann</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006</date>
+                <country>GB</country>
+            </release>
+            <release id="9d1deaf1-e6d9-42b3-9b23-33c785b85b55">
+                <title>Lonely Day</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-04-07</date>
+                <country>XE</country>
+                <barcode>828768314128</barcode>
+            </release>
+            <release id="9d78db3a-748f-49f5-a5fd-f18e759b9e75">
+                <title>... Of Frost and War</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-05-16</date>
+                <country>DE</country>
+            </release>
+            <release id="9e35a4da-b7b7-4d63-b1dc-d52ff5d021d6">
+                <title>The Kinks Choral Collection</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-06-15</date>
+                <country>GB</country>
+            </release>
+            <release id="9e779e4e-7649-3821-b414-347191c62611">
+                <title>Give Me Your Soul… Please</title>
+                <status>Official</status>
+                <packaging>Digipak</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-06-29</date>
+                <country>DE</country>
+                <barcode>4028466115409</barcode>
+            </release>
+            <release id="9ec684cf-7529-300f-b6c4-6c56086dfe93">
+                <title>Black Holes and Revelations</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-08-18</date>
+                <country>US</country>
+                <barcode>825646350919</barcode>
+            </release>
+            <release id="a00b843f-0e21-45a1-ab1f-e6089e740fbd">
+                <title>Star Wars: Return of the Jedi</title>
+                <status>Official</status>
+                <packaging>Jewel Case</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-05-05</date>
+                <country>GB</country>
+                <barcode>5099709295225</barcode>
+            </release>
+            <release id="a2ed7c5b-a739-4e0e-8693-4c434c6a6399">
+                <title>Gallop Meets the Earth</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-09-15</date>
+                <country>US</country>
+            </release>
+            <release id="a3187e14-b786-3b13-91e2-9e20089056bd">
+                <title>The Way of All Flesh</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-10-13</date>
+                <country>XE</country>
+                <barcode>3760053841063</barcode>
+            </release>
+            <release id="a31c85ca-6460-4cfb-a4bb-74ed4210bc78">
+                <title>2009-03-02: O2 Arena, London, UK</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-03</date>
+                <country>XW</country>
+            </release>
+            <release id="a3e12fa9-dda7-4762-bea3-1f0197b54c4c">
+                <title>HAARP</title>
+                <status>Official</status>
+                <quality>low</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-03-17</date>
+                <country>GB</country>
+                <barcode>0825646968244</barcode>
+            </release>
+            <release id="a430ab40-b6ad-3add-98fe-276d5251a42b">
+                <title>From Mars to Sirius</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2005-09-27</date>
+                <country>FR</country>
+                <barcode>5051011033728</barcode>
+            </release>
+            <release id="a5f7c33a-7518-32a4-a4e7-11425503108c">
+                <title>Live at Reading</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-10-30</date>
+                <country>DE</country>
+                <barcode>602527203737</barcode>
+            </release>
+            <release id="a69c9d57-62be-3e40-b9aa-ef3557d53c5f">
+                <title>Led Zeppelin IV</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008</date>
+                <country>US</country>
+            </release>
+            <release id="a73b696a-cabb-32bf-a639-1e498eca93d5">
+                <title>Black Rain</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-05-18</date>
+                <country>XE</country>
+                <barcode>886971018929</barcode>
+            </release>
+            <release id="a8374629-0d63-3f11-b175-848de03039dd">
+                <title>The Open Door</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-09-30</date>
+                <country>IT</country>
+            </release>
+            <release id="ab4e75c9-2046-3ef1-af40-bc8e0f13a959">
+                <title>Minutes to Midnight</title>
+                <status>Official</status>
+                <quality>high</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007</date>
+                <country>ZA</country>
+                <barcode>6001212221836</barcode>
+            </release>
+            <release id="abfd8f73-00b3-3827-8b7d-139b148de92d">
+                <title>Slide It In</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-04-23</date>
+                <country>JP</country>
+                <barcode>4988005510808</barcode>
+            </release>
+            <release id="ac5d6d99-a61f-4a9c-8fad-9546ccd33425">
+                <title>Six Feet Down Under EP</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2010-09-20</date>
+                <country>NZ</country>
+                <barcode>0602527515762</barcode>
+            </release>
+            <release id="b1576267-c0db-3e07-afb1-ac8405895350">
+                <title>Scum</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006</date>
+                <country>GB</country>
+                <barcode>5055006500349</barcode>
+            </release>
+            <release id="b8d4997e-1dfc-4738-a3a3-deca92b15bf5">
+                <title>New Breed</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-10-16</date>
+                <country>GB</country>
+                <barcode>5060087562872</barcode>
+            </release>
+            <release id="be39b403-0f5e-3795-bd1a-16520e6d26c1">
+                <title>Terra Incognita</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-08-10</date>
+                <country>GB</country>
+                <barcode>3760053841216</barcode>
+            </release>
+            <release id="c3cb6c20-0f40-499e-bf0f-2492d71f7346">
+                <title>Total Madness: All the Greatest Hits &amp; More!</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-09-21</date>
+                <country>GB</country>
+                <barcode>0698458040121</barcode>
+            </release>
+            <release id="c52c9581-cc4f-4562-a115-876639d12283">
+                <title>Metal</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-04-16</date>
+                <country>XE</country>
+                <barcode>693723023120</barcode>
+            </release>
+            <release id="c6b85521-0eda-3470-89f2-15acf8ca48d7">
+                <title>Them Crooked Vultures</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009</date>
+                <country>AR</country>
+                <barcode>886976193621</barcode>
+            </release>
+            <release id="d10b1dbb-ebdc-3f66-b8f8-5685fd5ba5d5">
+                <title>Mezmerize</title>
+                <status>Official</status>
+                <quality>high</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2005</date>
+                <country>US</country>
+                <barcode>2519875512221</barcode>
+            </release>
+            <release id="d481353c-167d-3dfe-b28b-4eda00cbe7a9">
+                <title>Fabulous Disaster</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006</date>
+                <country>DE</country>
+                <barcode>5051099603325</barcode>
+            </release>
+            <release id="d49815dc-4140-4408-a9f3-af3b80bce152">
+                <title>Christ Illusion</title>
+                <status>Official</status>
+                <packaging>Digipak</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-07-24</date>
+                <country>US</country>
+                <barcode>886971333626</barcode>
+            </release>
+            <release id="d838abc0-98f5-395c-85c6-b5459a54a295">
+                <title>This Is Thrash</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-08-11</date>
+                <country>GB</country>
+                <barcode>698458333728</barcode>
+            </release>
+            <release id="dd0cf839-db75-4999-aee9-d39093c94382">
+                <title>Reflections in B Minor</title>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2005</date>
+            </release>
+            <release id="ddb47da9-d1f8-4c4d-bc0f-f61273553b46">
+                <title>The Hitchhiker's Guide to the Galaxy: The Complete Radio Series</title>
+                <status>Official</status>
+                <packaging>Jewel Case</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2005-10-03</date>
+                <country>GB</country>
+                <barcode>9780563504191</barcode>
+            </release>
+            <release id="df01ad21-8579-3cc9-ab24-8b6116ae69a6">
+                <title>The Yes Album</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-07-22</date>
+                <country>JP</country>
+                <barcode>4943674092000</barcode>
+            </release>
+            <release id="e5087f32-7218-3f54-a3c5-126704974c9a">
+                <title>Time Waits for No Slave</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-02-10</date>
+                <country>US</country>
+                <barcode>727701854526</barcode>
+            </release>
+            <release id="e836cfd8-7c5d-4f49-9a34-08a1ea7ea15c">
+                <title>Lead Us!!!</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-01-22</date>
+                <country>US</country>
+            </release>
+            <release id="ee36cd20-7461-3e83-a2a7-23ae64942c1b">
+                <title>Never, Neverland</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-04-23</date>
+                <country>JP</country>
+                <barcode>4527583007500</barcode>
+            </release>
+            <release id="eefb4f65-d735-49af-9407-193c94fa3196">
+                <title>The Art of War</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2005-11-16</date>
+                <country>SE</country>
+                <barcode>7320470059524</barcode>
+            </release>
+            <release id="ef7e91e2-71c2-47b1-88c0-2e35893ffaa5">
+                <title>Game Over / The Plague</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2008-08-29</date>
+                <country>DE</country>
+                <barcode>5051099621084</barcode>
+            </release>
+            <release id="f123609c-b1eb-4def-a08a-a7d5a6690cae">
+                <title>Live &amp; Rare</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-05-06</date>
+                <country>US</country>
+                <barcode>828768224724</barcode>
+            </release>
+            <release id="f26dc033-e9f0-43f6-b13f-5f6c943bb43c">
+                <title>Over the Years and Through the Woods</title>
+                <status>Official</status>
+                <packaging>Keep Case</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2005-11-21</date>
+                <country>GB</country>
+                <barcode>602498876152</barcode>
+            </release>
+            <release id="f357c701-ed28-3f2a-88f6-e481ebf1f896">
+                <title>[untitled]</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2007-07-30</date>
+                <country>MX</country>
+                <barcode>5099950157624</barcode>
+            </release>
+            <release id="f3ffaac1-b965-472a-8b42-dee94096c2c6">
+                <title>Impressions in Blood</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2006-08-23</date>
+                <country>JP</country>
+            </release>
+            <release id="f7206a56-4e39-368f-a08f-9392b0f3306b">
+                <title>The Resistance</title>
+                <status>Official</status>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-09-14</date>
+                <country>GB</country>
+                <barcode>825646874347</barcode>
+            </release>
+            <release id="fa59805c-fcd5-44dd-833d-e60f029a97b8">
+                <title>World Painted Blood</title>
+                <status>Official</status>
+                <packaging>Jewel Case</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009-11-03</date>
+                <country>US</country>
+                <barcode>886974131823</barcode>
+            </release>
+            <release id="ffa07c60-f933-3864-a90e-7527880bf785">
+                <title>House of God</title>
+                <status>Official</status>
+                <packaging>Jewel Case</packaging>
+                <quality>normal</quality>
+                <text-representation>
+                    <language>eng</language>
+                    <script>Latn</script>
+                </text-representation>
+                <date>2009</date>
+                <country>DE</country>
+                <barcode>4028466106643</barcode>
+            </release>
+        </release-list>
+    </collection>
+</metadata>
