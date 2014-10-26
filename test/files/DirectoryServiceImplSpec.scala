@@ -27,7 +27,7 @@ package files
 import java.io.File
 import java.nio.file.{Paths, Files, Path}
 
-import message.MessageService
+import message.{MessageType, MessageService}
 import org.specs2.mutable._
 import org.specs2.mock._
 
@@ -41,8 +41,11 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
 
     def fl(path: String, paths: String*): FileLocation = FileLocation(rootDirectory, Paths.get(path, paths: _*), true)
 
-    val messageService: MessageService = mock[MessageService]
-    val directoryService = new DirectoryServiceImpl(mock)
+    object NullMessageService extends MessageService {
+      override def printMessage(template: MessageType): Unit = {}
+    }
+
+    val directoryService = new DirectoryServiceImpl(NullMessageService)
 
     def before(rootDirectory: Path) = {
       val paths = Seq(

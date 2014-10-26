@@ -35,7 +35,7 @@ import message.{FOUND_FILE, MessageService}
 
 import scala.collection.immutable.SortedSet
 import scala.collection.mutable
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
  * @author alex
@@ -54,8 +54,8 @@ class DirectoryServiceImpl(messageService: MessageService) extends DirectoryServ
     val absoluteDirectories = directories map absolute
     val invalidPaths = directories.filterNot(path => Files.isDirectory(path) && path.startsWith(absoluteRequiredBasePath))
     if (!invalidPaths.isEmpty) {
-      throw new InvalidDirectoriesException(
-        s"The following paths either do not exist or are not a subpath of ${absoluteRequiredBasePath}: ${invalidPaths.mkString(", ")}", invalidPaths)
+      Failure(new InvalidDirectoriesException(
+        s"The following paths either do not exist or are not a subpath of ${absoluteRequiredBasePath}: ${invalidPaths.mkString(", ")}", invalidPaths))
     }
     else {
       val allAbsoluteFiles = absoluteDirectories.map(findAllFiles)
