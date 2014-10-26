@@ -24,6 +24,6 @@ class FlacFileCheckerImplSpec extends Specification {
 
   def checking(resourceName: String): Boolean = {
     val in = classOf[FlacFileCheckerImplSpec].getClassLoader.getResourceAsStream(resourceName)
-    new FlacFileCheckerImpl().isFlacFile(in).get
+    new FlacFileCheckerImpl().isFlacFile(in)
   }
 }

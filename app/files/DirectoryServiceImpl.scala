@@ -48,18 +48,18 @@ class DirectoryServiceImpl(messageService: MessageService) extends DirectoryServ
    *
    * @throws IOException
    */
-  def listFiles(requiredBasePath: FileLocation, directories: Traversable[Path]): Try[SortedSet[FileLocation]] = {
+  def listFiles(requiredBasePath: FileLocation, directories: Traversable[Path]): Try[SortedSet[FileLocation]] = Try {
     def absolute: Path => Path = _.toAbsolutePath
     val absoluteRequiredBasePath = absolute(requiredBasePath);
     val absoluteDirectories = directories map absolute
     val invalidPaths = directories.filterNot(path => Files.isDirectory(path) && path.startsWith(absoluteRequiredBasePath))
     if (!invalidPaths.isEmpty) {
-      Failure(new InvalidDirectoriesException(
-        s"The following paths either do not exist or are not a subpath of ${absoluteRequiredBasePath}: ${invalidPaths.mkString(", ")}", invalidPaths))
+      throw new InvalidDirectoriesException(
+        s"The following paths either do not exist or are not a subpath of ${absoluteRequiredBasePath}: ${invalidPaths.mkString(", ")}", invalidPaths)
     }
     else {
       val allAbsoluteFiles = absoluteDirectories.map(findAllFiles)
-      Success(allAbsoluteFiles.flatten.map(path => requiredBasePath.resolve(absoluteRequiredBasePath.relativize(path))).to[SortedSet])
+      allAbsoluteFiles.flatten.map(path => requiredBasePath.resolve(absoluteRequiredBasePath.relativize(path))).to[SortedSet]
     }
   }
 
@@ -81,14 +81,14 @@ class DirectoryServiceImpl(messageService: MessageService) extends DirectoryServ
   }
 
 
-  override def listFiles(basePath: Path): Try[SortedSet[FileLocation]] = {
+  override def listFiles(basePath: Path): Try[SortedSet[FileLocation]] = Try {
     val fileLocations = mutable.Buffer[FileLocation]()
     walkFileTree(basePath) { path =>
       val fileLocation = FileLocation(basePath, basePath.relativize(path), Files.isWritable(path))
       fileLocations += fileLocation
       messageService.printMessage(FOUND_FILE(fileLocation))
     }
-    Success(fileLocations.to[SortedSet])
+    fileLocations.to[SortedSet]
   }
 
 }
