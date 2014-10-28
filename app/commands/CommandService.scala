@@ -1,5 +1,5 @@
-/**
- * Copyright 2012 Alex Jones
+/*
+ * Copyright 2014 Alex Jones
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,25 +9,31 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
- * under the License.    
- *
- * @author unclealex72
- *
+ * under the License.
  */
 
-package configuration
+package commands
 
 /**
- * An interface that represents a type of external music device.
- *
- * @author alex
- *
+ * A trait for providing the absolute file locations of the sync.py and flac2mp3.sh resources.
+ * Created by alex on 27/10/14.
  */
-trait Device
+trait CommandService {
+
+  /**
+   * The absolute location of the sync.py command.
+   */
+  def syncCommand: String
+
+  /**
+   * The absolute location of the flac2mp3.sh command.
+   */
+  def flac2mp3Command: String
+}
