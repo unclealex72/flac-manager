@@ -26,7 +26,6 @@ package musicbrainz;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import configuration.Device;
 import configuration.User;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -35,16 +34,12 @@ import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.SecurityHandler;
 import org.eclipse.jetty.security.authentication.DigestAuthenticator;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Credential;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
-import scala.collection.mutable.Seq;
-import scala.collection.mutable.ListBuffer;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
@@ -92,7 +87,7 @@ public class MusicBrainzTestContext {
 
     MusicBrainzClientImpl musicBrainzClient;
 
-    User user = new User("brian", "Brian", "may", scala.collection.JavaConversions.asScalaBuffer(new ArrayList<Device>()).toSeq());
+    User user = new User("brian", "Brian", "may", "");
 
     List<String> requestLog = new ArrayList<>();
 

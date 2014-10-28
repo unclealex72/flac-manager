@@ -25,8 +25,7 @@
 package configuration
 
 /**
- * A configuration item for a user. Users must also have a MusicBrainz login and
- * can own a number of {@link Device}s.
+ * A configuration item for a user. Users must also have a MusicBrainz login and own an iPod.
  *
  * @author alex
  *
@@ -56,8 +55,10 @@ case class User(
                  musicBrainzPassword: String,
 
                  /**
-                  * Gets the {@link Device}s owned by this user.
+                  * Get the unique UUID of this user's iPod. The device will have a symbolic link at
+                  * <code>/dev/disks/by-uuid/UUID</code> that points to where the device is
+                  * located.
                   *
-                  * @return the { @link Device}s owned by this user
+                  * @return The unique UUID of the user's iPod.
                   */
-                 devices: Seq[Device])
+                 uuid: String)
