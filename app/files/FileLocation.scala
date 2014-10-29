@@ -26,7 +26,8 @@ package files
 
 ;
 
-import java.nio.file.Path;
+import java.nio.file.{Files, Path}
+;
 
 /**
  * A class that encapsulates a location of a file within a repository of music
@@ -47,7 +48,6 @@ case class FileLocation(
                           * The location of the file relative to the base path.
                           */
                          val relativePath: Path,
-
                          /**
                           * True if this file location should be read-only, false otherwise.
                           */
