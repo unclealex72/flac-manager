@@ -140,34 +140,8 @@ class ipod_synchroniser(synchroniser):
         self.db.close()
 
 
-#Note that this doesn't work due to pymtp not working on Ubuntu 10.04
-#class mtp_synchroniser(synchroniser):
-#  def __init__(self):
-#    self.mtp = pymtp.MTP()
-#    self.mtp.connect()
-#    folders = self.mtp.get_folder_list()
-#    for key in folders:
-#      folder = folders[key]
-#      if "Music" == folder.name:
-#        self.music_folder_id = folder.folder_id
-#    
-#  def list_device_files(self):
-#    pass
-#
-#  def add(self, path, audio_file):
-#    pass
-#  
-#  def remove(self, id):
-#    pass
-#  
-#  def quit(self):
-#    self.mtp.disconnect()
-
 def main(args):
-    if args[0] == "ipod":
-        synchroniser = ipod_synchroniser(args[1])
-    else:
-        synchroniser = mtp_synchroniser()
+    ipod_synchroniser(args[0])
     synchroniser.run()
 
 
