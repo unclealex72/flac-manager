@@ -28,6 +28,7 @@ import java.nio.file.{Paths, Files, Path}
 
 import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.mutable._
+import tempfs.TempFileSystem
 
 /**
  * @author alex

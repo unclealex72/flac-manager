@@ -30,6 +30,7 @@ import java.nio.file.{Paths, Files, Path}
 import message.{MessageType, MessageService}
 import org.specs2.mutable._
 import org.specs2.mock._
+import tempfs.TempFileSystem
 
 /**
  * @author alex

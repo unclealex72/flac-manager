@@ -19,32 +19,23 @@
  * under the License.
  */
 
-package files
+package sync.drive
 
-import java.io.File
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 
-import org.specs2.mutable.After
-
-
-trait TempFileSystem extends After {
-
-  lazy val rootDirectory: Path = {
-    val rootDirectory = Files.createTempDirectory("flac-manager-")
-    before(rootDirectory)
-    rootDirectory
-  }
-
-  def before(rootDirectory: Path): Unit
-
-  def after = {
-    def removeRecursively(f: File) {
-      f.setWritable(true)
-      if (f.isDirectory) {
-        f.listFiles().foreach(removeRecursively)
-      }
-      f.delete
-    }
-    removeRecursively(rootDirectory.toFile)
-  }
+/**
+ * An interface for classes that can list which Linux drives (
+ * <code>/dev/sd*</code>) are mounted and where.
+ *
+ * @author alex
+ *
+ */
+trait MountedDriveService {
+  /**
+   * List all currently mounted Linux drives.
+   *
+   * @return A { @link com.google.common.collect.BiMap} whose keys are mount points and values are the
+   *         corresponding drive paths.
+   */
+  def listDevicesByMountPoint: Seq[(Path, Path)]
 }
