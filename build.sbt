@@ -35,5 +35,3 @@ libraryDependencies ++= Seq(
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
 
 unmanagedResourceDirectories in Compile <+= baseDirectory(_ / "resources")
-
-scalacOptions ++= Seq("-feature")
