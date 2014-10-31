@@ -41,9 +41,7 @@ class DriveUuidServiceImplSpec extends Specification {
       val uuidBasePath = Files.createDirectory(rootDirectory.resolve("uuids"))
       val deviceBasePath = Files.createDirectory(rootDirectory.resolve("devices"))
       val driveUuidService: DriveUuidServiceImpl = new DriveUuidServiceImpl {
-        protected override def getBasePath: Path = {
-          return uuidBasePath
-        }
+        protected override def getBasePath: Path = uuidBasePath
       }
       val uuids = Seq("one", "two", "three").map { uuid =>
         val devicePath: Path = Files.createDirectories(deviceBasePath.resolve(uuid + uuid))

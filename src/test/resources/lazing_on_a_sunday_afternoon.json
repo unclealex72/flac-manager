@@ -1,0 +1,21 @@
+{
+  "albumArtistSort" : "Queen",
+  "albumArtist" : "Queen",
+  "album" : "A Night at the Opera",
+  "artist" : "Queen",
+  "artistSort" : "Queen",
+  "title" : "Lazing on a Sunday Afternoon",
+  "totalDiscs" : 2,
+  "totalTracks" : 12,
+  "discNumber" : 1,
+  "albumArtistId" : "0383dadf-2a4e-4d10-a46a-e9e041da8eb3",
+  "albumId" : "f14638e1-fb36-358c-aba2-39b084864b13",
+  "artistId" : "0383dadf-2a4e-4d10-a46a-e9e041da8eb3",
+  "trackId" : "a69ca3a1-65ff-491a-b25e-fa2010963e26",
+  "asin" : "B004M17IU8",
+  "trackNumber" : 2,
+  "coverArt" : {
+    "imageData" : "AA==",
+    "mimeType" : "image/jpeg"
+  }
+}

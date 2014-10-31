@@ -24,8 +24,7 @@ package sync
 import java.io.IOException
 import java.nio.file.{Paths, Path}
 import java.text.SimpleDateFormat
-
-import files.FileLocation
+import common.files.FileLocation
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 

@@ -1,0 +1,32 @@
+{
+  "directories" : {
+    "flacPath" : "flacPath",
+    "devicesPath" : "devicesPath",
+    "encodedPath" : "encodedPath",
+    "stagingPath" : "stagingPath"
+  },
+  "users" : [ {
+    "name" : "alex",
+    "musicBrainzUserName" : "MeMeMe",
+    "musicBrainzPassword" : "pwd",
+    "devices" : [ {
+      "type" : "ipod",
+      "uuid" : "118118"
+    }, 
+    {
+      "type" : "hd",
+      "name" : "hd device",
+      "uuid" : "333666",
+      "relativeMusicPath" : "music"
+    }, 
+    {
+      "type" : "x7",
+      "uuid" : "220220"
+    } ]
+  } ],
+  "amazon" : {
+      "endpoint" : "endpoint",
+      "accessKey" : "accessKey", 
+      "secretKey" : "secretKey"
+  }
+}

@@ -21,7 +21,7 @@
 
 package sync
 
-import files.FileLocation
+import common.files.FileLocation
 
 /**
  * A trait to find the last modified time for a file location. This is abstracted to a seperate trait for testing.

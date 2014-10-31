@@ -23,7 +23,7 @@ package sync
 
 import java.nio.file.Path
 
-import files.FileLocation
+import common.files.FileLocation
 
 import scala.util.Try
 

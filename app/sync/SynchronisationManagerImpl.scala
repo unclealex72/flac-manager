@@ -23,12 +23,12 @@ package sync
 
 ;
 
+import common.files.FileLocation
+
 import scala.concurrent.duration._
 
 import java.nio.file.Files
 import java.nio.file.Path
-
-import files.FileLocation
 
 
 import scala.collection.SortedSet
