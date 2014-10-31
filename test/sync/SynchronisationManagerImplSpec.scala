@@ -25,6 +25,7 @@ import java.io.IOException
 import java.nio.file.{Paths, Path}
 import java.text.SimpleDateFormat
 import common.files.FileLocation
+import common.message._
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
@@ -38,6 +39,7 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
   "The synchronisation manager" should {
     "Add a music file that is not on the device" in {
       val deviceConnectionService = mock[DeviceConnectionService]
+      implicit val messageService = mock[MessageService]
       val fileLocation: FileLocation = FileLocation("/mp3", "b.txt", false)
       val lastModifiedFactory = MapLastModifiedFactory(
         fileLocation -> "05/09/1972 10:15:00")
@@ -46,11 +48,14 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       device.listDeviceFiles returns Set()
       synchronisationManager.synchroniseFiles(device, lastModifiedFactory.fileLocations)
       there was one(device).add(fileLocation)
+      there was one(messageService).printMessage(SYNC_ADD(fileLocation))
       there were no(device).remove(any[DeviceFile])
+      there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
     "Remove a device file that no longer exists" in {
       val deviceConnectionService = mock[DeviceConnectionService]
+      implicit val messageService = mock[MessageService]
       val lastModifiedFactory = MapLastModifiedFactory()
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
       val device = mock[Device]
@@ -59,10 +64,13 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       synchronisationManager.synchroniseFiles(device, lastModifiedFactory.fileLocations)
       there were no(device).add(any[FileLocation])
       there was one(device).remove(deviceFile)
+      there was one(messageService).printMessage(SYNC_REMOVE(deviceFile))
+      there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
     "Overwrite an outdated device file" in {
       val deviceConnectionService = mock[DeviceConnectionService]
+      implicit val messageService = mock[MessageService]
       val fileLocation = FileLocation("/a", "a.txt", true)
       val lastModifiedFactory = MapLastModifiedFactory(fileLocation -> "05/09/1973 09:12:00")
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
@@ -72,10 +80,13 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       synchronisationManager.synchroniseFiles(device, lastModifiedFactory.fileLocations)
       there was one(device).add(fileLocation)
       there were no(device).remove(any[DeviceFile])
+      there was one(messageService).printMessage(SYNC_ADD(fileLocation))
+      there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
     "Keep a device file that is exactly one hour older than a music file" in {
       val deviceConnectionService = mock[DeviceConnectionService]
+      implicit val messageService = mock[MessageService]
       val fileLocation = FileLocation("/a", "a.txt", true)
       val lastModifiedFactory = MapLastModifiedFactory(fileLocation -> "05/09/1972 10:12:00")
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
@@ -85,10 +96,13 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       synchronisationManager.synchroniseFiles(device, lastModifiedFactory.fileLocations)
       there were no(device).add(any[FileLocation])
       there were no(device).remove(any[DeviceFile])
+      there was one(messageService).printMessage(SYNC_KEEP(deviceFile))
+      there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
     "Keep a device file that is exactly one hour newer than a music file" in {
       val deviceConnectionService = mock[DeviceConnectionService]
+      implicit val messageService = mock[MessageService]
       val fileLocation = FileLocation("/a", "a.txt", true)
       val lastModifiedFactory = MapLastModifiedFactory(fileLocation -> "05/09/1972 09:12:00")
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
@@ -98,10 +112,13 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       synchronisationManager.synchroniseFiles(device, lastModifiedFactory.fileLocations)
       there were no(device).add(any[FileLocation])
       there were no(device).remove(any[DeviceFile])
+      there was one(messageService).printMessage(SYNC_KEEP(deviceFile))
+      there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
     "Successfully mount and unmount a device after a successful transfer" in {
       val deviceConnectionService = mock[DeviceConnectionService]
+      implicit val messageService = mock[MessageService]
       val lastModifiedFactory = MapLastModifiedFactory()
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
       val device = mock[Device]
@@ -114,10 +131,12 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       there was one(device).beforeUnmount
       there was one(device).afterUnmount
       result must beASuccessfulTry[Unit]
+      there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
     "Successfully mount and unmount a device after an unsuccessful transfer" in {
       val deviceConnectionService = mock[DeviceConnectionService]
+      implicit val messageService = mock[MessageService]
       val lastModifiedFactory = MapLastModifiedFactory()
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
       val device = mock[Device]
@@ -131,6 +150,7 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       there was one(device).afterUnmount
       result must beAFailedTry[Unit]
       result.failed.get must beAnInstanceOf[RuntimeException]
+      there were noMoreCallsTo(messageService, deviceConnectionService)
     }
   }
 

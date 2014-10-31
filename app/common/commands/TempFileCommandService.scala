@@ -35,6 +35,9 @@ class TempFileCommandService extends CommandService {
     val commandPath = Files.createTempFile("flacman-", s"-$resourceName")
     commandPath.toFile.deleteOnExit
     val in = getClass.getResourceAsStream(resourceName)
+    if (in == null) {
+      throw new IllegalStateException(s"Cannot find resource $resourceName")
+    }
     Files.copy(in, commandPath, StandardCopyOption.REPLACE_EXISTING)
     val permissions = Sets.newHashSet(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE, GROUP_READ, OTHERS_READ)
     Files.setPosixFilePermissions(commandPath, permissions)

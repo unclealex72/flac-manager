@@ -24,7 +24,11 @@
 
 package common.message
 
+import java.nio.file.Path
+
+import common.configuration.User
 import common.files.FileLocation
+import sync.DeviceFile
 
 /**
  * An interface for classes that can print internationalised messages to users.
@@ -44,17 +48,28 @@ trait MessageService {
   def printMessage(template: MessageType): Unit
 }
 
-sealed abstract class MessageType(val key: String, val parameters: Any*)
+
+sealed abstract class MessageType(val key: String, val parameters: String*)
+
+private object MessageTypeImplicits {
+  implicit def fileLocationToString(fileLocation: FileLocation) = fileLocation.resolve.toString
+
+  implicit def deviceFileToString(deviceFile: DeviceFile) = deviceFile.relativePath
+
+  implicit def userToString(user: User) = user.name
+}
+
+import MessageTypeImplicits._
 
 /**
  * The key for producing an encoding message.
  */
-case class ENCODE(fileLocation: FileLocation) extends MessageType("encode", Seq(fileLocation))
+case class ENCODE(fileLocation: FileLocation) extends MessageType("encode", fileLocation)
 
 /**
  * The key for producing a delete message.
  */
-case class DELETE(fileLocation: FileLocation) extends MessageType("delete", Seq(fileLocation))
+case class DELETE(fileLocation: FileLocation) extends MessageType("delete", fileLocation)
 
 /**
  * The key for producing a move message.
@@ -109,7 +124,7 @@ object UNKNOWN_USER extends MessageType("unknownUser")
 /**
  * The key for producing add owner messages.
  */
-object ADD_OWNER extends MessageType("addOwner")
+case class ADD_OWNER(path: String) extends MessageType("addOwner")
 
 /**
  * The key for producing remove owner messages.
@@ -124,22 +139,27 @@ object COMMIT_OWNERSHIP extends MessageType("commitOwnership")
 /**
  * The key for producing a message to say that a file is being kept on a device.
  */
-object SYNC_KEEP extends MessageType("syncKeep")
+case class SYNC_KEEP(deviceFile: DeviceFile) extends MessageType("syncKeep", deviceFile)
 
 /**
  * The key for producing a message to say that a file is being removed from a device.
  */
-object SYNC_REMOVE extends MessageType("syncRemove")
+case class SYNC_REMOVE(deviceFile: DeviceFile) extends MessageType("syncRemove", deviceFile)
+
+/**
+ * The key for producing a message to say that a file is being removed from a device.
+ */
+case class SYNC_IGNORE(path: String) extends MessageType("syncIgnore")
 
 /**
  * The key for producing a message to say that a file is being added to a device.
  */
-object SYNC_ADD extends MessageType("syncAdd")
+case class SYNC_ADD(fileLocation: FileLocation) extends MessageType("syncAdd", fileLocation)
 
 /**
  * The key for producing a message to say that a file has been found.
  */
-case class FOUND_FILE(fileLocation: FileLocation) extends MessageType("foundFile")
+case class FOUND_FILE(fileLocation: FileLocation) extends MessageType("foundFile", fileLocation)
 
 /**
  * The key for producing a message to say that a valid track has been found.
@@ -149,14 +169,14 @@ object FOUND_TRACK extends MessageType("foundTrack")
 /**
  * The key for producing a message to say that a device is being synchronised.
  */
-object SYNCHRONISING extends MessageType("sync")
+case class SYNCHRONISING(user: User) extends MessageType("sync", user)
 
 /**
  * The key for producing a message to say that a device has been found.
  */
-object FOUND_DEVICE extends MessageType("foundDevice")
+case class FOUND_DEVICE(user: User) extends MessageType("foundDevice", user)
 
 /**
  * The key for producing a message to say that a device has been synchronised.
  */
-object DEVICE_SYNCHRONISED extends MessageType("deviceSynchronised")
+case class DEVICE_SYNCHRONISED(user: User) extends MessageType("deviceSynchronised", user)

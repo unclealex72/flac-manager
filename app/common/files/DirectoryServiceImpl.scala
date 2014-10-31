@@ -27,7 +27,7 @@ package common.files
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 
-import common.message.{FOUND_FILE, MessageService}
+import common.message._
 
 import scala.collection.immutable.SortedSet
 import scala.collection.mutable

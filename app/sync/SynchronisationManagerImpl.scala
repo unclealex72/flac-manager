@@ -21,31 +21,26 @@
 
 package sync
 
-;
-
-import common.files.FileLocation
-
-import scala.concurrent.duration._
-
-import java.nio.file.Files
 import java.nio.file.Path
 
+import common.files.FileLocation
+import common.message._
 
 import scala.collection.SortedSet
+import scala.concurrent.duration._
 import scala.util.Try
+
 
 /**
  * The base class for {@link Synchroniser}s that looks after deciding which
  * files need to be added, kept and removed but delegates the actual adding and
  * removing to its subclasses.
  *
- * @param <D>
- *         The type of the device being synchronised.
  * @author alex
  */
 class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionService, val lastModifiedFactory: LastModifiedFactory) {
 
-  def synchronise(device: Device, fileLocations: Traversable[FileLocation]): Try[Unit] = {
+  def synchronise(device: Device, fileLocations: Traversable[FileLocation])(implicit messageService: MessageService): Try[Unit] = {
     device.beforeMount
     val mountPath = mount(device)
     device.afterMount(mountPath)
@@ -56,7 +51,7 @@ class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionSe
     syncResult
   }
 
-  def synchroniseFiles(device: Device, fileLocations: Traversable[FileLocation]): Try[Unit] = Try {
+  def synchroniseFiles(device: Device, fileLocations: Traversable[FileLocation])(implicit messageService: MessageService): Try[Unit] = Try {
     def unique[K, V]: Map[K, Traversable[V]] => Map[K, V] = m => m.mapValues(_.find(_ => true).get)
     val deviceFilesByRelativePath = unique(device.listDeviceFiles.groupBy(_.relativePath))
     val fileLocationsByRelativePath = unique(fileLocations.groupBy(_.relativePath.toString))
@@ -105,33 +100,35 @@ class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionSe
 }
 
 sealed trait FileAction {
-  def broadcast = {}
+  def broadcast(implicit messageService: MessageService): Unit = {
+    messageService.printMessage(message)
+  }
 
-  def message: String;
+  def message: MessageType
 
   def execute(device: Device): Unit
 }
 
 case class Add(fileLocation: FileLocation) extends FileAction {
-  def message = s"Adding ${fileLocation.relativePath}"
+  def message = SYNC_ADD(fileLocation)
 
   def execute(device: Device) = device.add(fileLocation)
 }
 
 case class Remove(deviceFile: DeviceFile) extends FileAction {
-  def message = s"Removing ${deviceFile.relativePath}"
+  def message = SYNC_REMOVE(deviceFile)
 
   def execute(device: Device) = device.remove(deviceFile)
 }
 
 case class Keep(deviceFile: DeviceFile) extends FileAction {
-  def message = s"Keeping ${deviceFile.relativePath}"
+  def message = SYNC_KEEP(deviceFile)
 
   def execute(device: Device) = {}
 }
 
 case class Ignore(relativePath: String) extends FileAction {
-  def message = s"Ignoring ${relativePath}"
+  def message = SYNC_IGNORE(relativePath)
 
   def execute(device: Device) = {}
 }

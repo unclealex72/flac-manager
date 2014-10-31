@@ -54,7 +54,7 @@ class synchroniser:
     def list(self):
         for device_file in self.list_device_files():
             self.out("%s|%s|%s" % (
-            device_file.id, self.unflatten_relative_path(device_file.path), device_file.last_modified))
+                device_file.id, self.unflatten_relative_path(device_file.path), device_file.last_modified))
 
     def out(self, message, stdout=True):
         if stdout:
