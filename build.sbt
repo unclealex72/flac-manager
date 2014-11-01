@@ -15,8 +15,6 @@ libraryDependencies ++= Seq(
   "joda-time" % "joda-time" % "2.2",
   "org.joda" % "joda-convert" % "1.3.1",
   "com.escalatesoft.subcut" %% "subcut" % "2.1",
-  // JSON
-  "io.argonaut" %% "argonaut" % "6.0.4",
   // Validation
   "com.wix" %% "accord-core" % "0.4",
   "org" % "jaudiotagger" % "2.0.3",

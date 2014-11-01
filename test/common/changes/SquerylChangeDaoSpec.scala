@@ -33,7 +33,7 @@ import sync.DeviceFile
  * @author alex
  *
  */
-class SquerylGameDaoTest extends Specification with StrictLogging {
+class SquerylGameDaoSpec extends Specification with StrictLogging {
 
   object Dsl {
 
