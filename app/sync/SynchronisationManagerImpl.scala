@@ -23,7 +23,7 @@ package sync
 
 import java.nio.file.Path
 
-import common.files.FileLocation
+import common.files.{DeviceFileLocation, FlacFileLocation, FileLocation}
 import common.message._
 
 import scala.collection.SortedSet
@@ -38,9 +38,9 @@ import scala.util.Try
  *
  * @author alex
  */
-class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionService, val lastModifiedFactory: LastModifiedFactory) {
+class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionService, val lastModifiedFactory: LastModifiedFactory) extends SynchronisationManager {
 
-  def synchronise(device: Device, fileLocations: Traversable[FileLocation])(implicit messageService: MessageService): Try[Unit] = {
+  def synchronise(device: Device, fileLocations: Traversable[DeviceFileLocation])(implicit messageService: MessageService): Try[Unit] = {
     device.beforeMount
     val mountPath = mount(device)
     device.afterMount(mountPath)
@@ -51,7 +51,7 @@ class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionSe
     syncResult
   }
 
-  def synchroniseFiles(device: Device, fileLocations: Traversable[FileLocation])(implicit messageService: MessageService): Try[Unit] = Try {
+  def synchroniseFiles(device: Device, fileLocations: Traversable[DeviceFileLocation])(implicit messageService: MessageService): Try[Unit] = Try {
     def unique[K, V]: Map[K, Traversable[V]] => Map[K, V] = m => m.mapValues(_.find(_ => true).get)
     val deviceFilesByRelativePath = unique(device.listDeviceFiles.groupBy(_.relativePath))
     val fileLocationsByRelativePath = unique(fileLocations.groupBy(_.relativePath.toString))

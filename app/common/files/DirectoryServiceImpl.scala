@@ -27,6 +27,7 @@ package common.files
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 
+import common.configuration.Directories
 import common.message._
 
 import scala.collection.immutable.SortedSet
@@ -38,26 +39,27 @@ import common.files.FileLocationImplicits._
  * @author alex
  *
  */
-class DirectoryServiceImpl(messageService: MessageService) extends DirectoryService {
+class DirectoryServiceImpl(messageService: MessageService)(implicit directories: Directories) extends DirectoryService {
 
-  /**
-   * {@inheritDoc}
-   *
-   * @throws IOException
-   */
-  def listFiles(requiredBasePath: FileLocation, directories: Traversable[Path]): Try[SortedSet[FileLocation]] = Try {
-    def absolute: Path => Path = _.toAbsolutePath
-    val absoluteRequiredBasePath = absolute(requiredBasePath);
-    val absoluteDirectories = directories map absolute
-    val invalidPaths = directories.filterNot(path => Files.isDirectory(path) && path.startsWith(absoluteRequiredBasePath))
-    if (!invalidPaths.isEmpty) {
-      throw new InvalidDirectoriesException(
-        s"The following paths either do not exist or are not a subpath of ${absoluteRequiredBasePath}: ${invalidPaths.mkString(", ")}", invalidPaths)
+
+  override def listStagedFiles(relativePaths: Traversable[Path]): Try[SortedSet[StagedFlacFileLocation]] = {
+    listFiles[StagedFlacFileLocation](directories.stagingPath, relativePaths, path => StagedFlacFileLocation(path))
+  }
+
+  override def listFlacFiles(relativePaths: Traversable[Path]): Try[SortedSet[FlacFileLocation]] = {
+    listFiles(directories.flacPath, relativePaths, path => FlacFileLocation(path))
+  }
+
+  def listFiles[FL <: FileLocation](basePath: Path, relativePaths: Traversable[Path], fileLocationFactory: Path => FL): Try[SortedSet[FL]] = Try {
+    val fileLocations = mutable.Buffer[FL]()
+    relativePaths.map(basePath.resolve(_)).foreach { absolutePath =>
+      walkFileTree(absolutePath) { path =>
+        val fileLocation = fileLocationFactory(basePath.relativize(path))
+        fileLocations += fileLocation
+        messageService.printMessage(FOUND_FILE(fileLocation))
+      }
     }
-    else {
-      val allAbsoluteFiles = absoluteDirectories.map(findAllFiles)
-      allAbsoluteFiles.flatten.map(path => requiredBasePath.resolve(absoluteRequiredBasePath.relativize(path))).to[SortedSet]
-    }
+    fileLocations.to[SortedSet]
   }
 
   def walkFileTree(path: Path)(visitor: Path => Any): Unit = {
@@ -69,23 +71,4 @@ class DirectoryServiceImpl(messageService: MessageService) extends DirectoryServ
     }
     Files.walkFileTree(path, simpleFileVisitor)
   }
-
-
-  def findAllFiles: Path => Traversable[Path] = { path =>
-    val files: mutable.Buffer[Path] = mutable.Buffer.empty;
-    walkFileTree(path)(path => files += path)
-    files
-  }
-
-
-  override def listFiles(basePath: Path): Try[SortedSet[FileLocation]] = Try {
-    val fileLocations = mutable.Buffer[FileLocation]()
-    walkFileTree(basePath) { path =>
-      val fileLocation = FileLocation(basePath, basePath.relativize(path), Files.isWritable(path))
-      fileLocations += fileLocation
-      messageService.printMessage(FOUND_FILE(fileLocation))
-    }
-    fileLocations.to[SortedSet]
-  }
-
 }

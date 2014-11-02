@@ -42,9 +42,8 @@ trait DirectoryService {
   /**
    * List all music files under a list of directories.
    *
-   * @param requiredBasePath
    * The path that all found directories must be relative to.
-   * @param directories
+   * @param relativePaths
    * The directories to search.
    * @throws InvalidDirectoriesException
    * Thrown if any of the supplied directories were not directories or
@@ -53,15 +52,8 @@ trait DirectoryService {
    * @return All music files found under the given directories.
    * @throws IOException
    */
-  def listFiles(requiredBasePath: FileLocation, directories: Traversable[Path]): Try[SortedSet[FileLocation]]
+  def listStagedFiles(relativePaths: Traversable[Path]): Try[SortedSet[StagedFlacFileLocation]]
 
-  /**
-   * List all music files under a directory.
-   *
-   * @param basePath
-   * The base path to search.
-   * @return All music files found under the given directory.
-   * @throws IOException
-   */
-  def listFiles(basePath: Path): Try[SortedSet[FileLocation]]
+  def listFlacFiles(relativePaths: Traversable[Path]): Try[SortedSet[FlacFileLocation]]
+
 }

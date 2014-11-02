@@ -24,10 +24,12 @@ package sync
 import java.io.IOException
 import java.nio.file.{Paths, Path}
 import java.text.SimpleDateFormat
-import common.files.FileLocation
+import common.configuration.{User, Directories}
+import common.files.{DeviceFileLocation, FileLocation}
 import common.message._
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import org.specs2.specification.Scope
 
 /**
  * Created by alex on 29/10/14.
@@ -36,11 +38,17 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
 
   import Implicits._
 
+  trait context extends Scope {
+    implicit val directories = Directories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"))
+    val user: User = User("freddie", "", "", "")
+    val deviceConnectionService = mock[DeviceConnectionService]
+    implicit val messageService: MessageService = mock[MessageService]
+    val ID = "ID"
+  }
+
   "The synchronisation manager" should {
-    "Add a music file that is not on the device" in {
-      val deviceConnectionService = mock[DeviceConnectionService]
-      implicit val messageService = mock[MessageService]
-      val fileLocation: FileLocation = FileLocation("/mp3", "b.txt", false)
+    "Add a music file that is not on the device" in new context {
+      val fileLocation: DeviceFileLocation = DeviceFileLocation(user, "b.txt")
       val lastModifiedFactory = MapLastModifiedFactory(
         fileLocation -> "05/09/1972 10:15:00")
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
@@ -53,13 +61,11 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
-    "Remove a device file that no longer exists" in {
-      val deviceConnectionService = mock[DeviceConnectionService]
-      implicit val messageService = mock[MessageService]
+    "Remove a device file that no longer exists" in new context {
       val lastModifiedFactory = MapLastModifiedFactory()
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
       val device = mock[Device]
-      val deviceFile: DeviceFile = DeviceFile("a", "a.txt", "05/09/1972 09:12:00")
+      val deviceFile: DeviceFile = DeviceFile(ID, "a.txt", "05/09/1972 09:12:00")
       device.listDeviceFiles returns Set(deviceFile)
       synchronisationManager.synchroniseFiles(device, lastModifiedFactory.fileLocations)
       there were no(device).add(any[FileLocation])
@@ -68,14 +74,12 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
-    "Overwrite an outdated device file" in {
-      val deviceConnectionService = mock[DeviceConnectionService]
-      implicit val messageService = mock[MessageService]
-      val fileLocation = FileLocation("/a", "a.txt", true)
+    "Overwrite an outdated device file" in new context {
+      val fileLocation = DeviceFileLocation(user, "a.txt")
       val lastModifiedFactory = MapLastModifiedFactory(fileLocation -> "05/09/1973 09:12:00")
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
       val device = mock[Device]
-      val deviceFile: DeviceFile = DeviceFile("a", "a.txt", "05/09/1972 09:12:00")
+      val deviceFile: DeviceFile = DeviceFile(ID, "a.txt", "05/09/1972 09:12:00")
       device.listDeviceFiles returns Set(deviceFile)
       synchronisationManager.synchroniseFiles(device, lastModifiedFactory.fileLocations)
       there was one(device).add(fileLocation)
@@ -84,14 +88,12 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
-    "Keep a device file that is exactly one hour older than a music file" in {
-      val deviceConnectionService = mock[DeviceConnectionService]
-      implicit val messageService = mock[MessageService]
-      val fileLocation = FileLocation("/a", "a.txt", true)
+    "Keep a device file that is exactly one hour older than a music file" in new context {
+      val fileLocation = DeviceFileLocation(user, "a.txt")
       val lastModifiedFactory = MapLastModifiedFactory(fileLocation -> "05/09/1972 10:12:00")
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
       val device = mock[Device]
-      val deviceFile: DeviceFile = DeviceFile("a", "a.txt", "05/09/1972 09:12:00")
+      val deviceFile: DeviceFile = DeviceFile(ID, "a.txt", "05/09/1972 09:12:00")
       device.listDeviceFiles returns Set(deviceFile)
       synchronisationManager.synchroniseFiles(device, lastModifiedFactory.fileLocations)
       there were no(device).add(any[FileLocation])
@@ -100,14 +102,12 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
-    "Keep a device file that is exactly one hour newer than a music file" in {
-      val deviceConnectionService = mock[DeviceConnectionService]
-      implicit val messageService = mock[MessageService]
-      val fileLocation = FileLocation("/a", "a.txt", true)
+    "Keep a device file that is exactly one hour newer than a music file" in new context {
+      val fileLocation = DeviceFileLocation(user, "a.txt")
       val lastModifiedFactory = MapLastModifiedFactory(fileLocation -> "05/09/1972 09:12:00")
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
       val device = mock[Device]
-      val deviceFile: DeviceFile = DeviceFile("a", "a.txt", "05/09/1972 10:12:00")
+      val deviceFile: DeviceFile = DeviceFile(ID, "a.txt", "05/09/1972 10:12:00")
       device.listDeviceFiles returns Set(deviceFile)
       synchronisationManager.synchroniseFiles(device, lastModifiedFactory.fileLocations)
       there were no(device).add(any[FileLocation])
@@ -116,9 +116,7 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
-    "Successfully mount and unmount a device after a successful transfer" in {
-      val deviceConnectionService = mock[DeviceConnectionService]
-      implicit val messageService = mock[MessageService]
+    "Successfully mount and unmount a device after a successful transfer" in new context {
       val lastModifiedFactory = MapLastModifiedFactory()
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
       val device = mock[Device]
@@ -134,9 +132,7 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
-    "Successfully mount and unmount a device after an unsuccessful transfer" in {
-      val deviceConnectionService = mock[DeviceConnectionService]
-      implicit val messageService = mock[MessageService]
+    "Successfully mount and unmount a device after an unsuccessful transfer" in new context {
       val lastModifiedFactory = MapLastModifiedFactory()
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService, lastModifiedFactory)
       val device = mock[Device]
@@ -157,17 +153,17 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
 
 }
 
-class MapLastModifiedFactory(m: Map[FileLocation, Long]) extends LastModifiedFactory {
+class MapLastModifiedFactory(m: Map[DeviceFileLocation, Long]) extends LastModifiedFactory {
 
   val fileLocations = m.keys
 
-  override def lastModified(fileLocation: FileLocation): Long = m.get(fileLocation).get
+  override def lastModified(fileLocation: FileLocation): Long = m.get(fileLocation.asInstanceOf[DeviceFileLocation]).get
 
 }
 
 object MapLastModifiedFactory {
 
-  def apply(es: (FileLocation, Long)*): MapLastModifiedFactory = new MapLastModifiedFactory(Map(es: _*))
+  def apply(es: (DeviceFileLocation, Long)*): MapLastModifiedFactory = new MapLastModifiedFactory(Map(es: _*))
 }
 
 object Implicits {

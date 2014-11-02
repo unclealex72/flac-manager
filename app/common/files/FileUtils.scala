@@ -24,12 +24,7 @@
 
 package common.files
 
-;
-
-import java.io.IOException
-
 import scala.util.Try
-;
 
 /**
  * Utilities for manipulating files and directories in ways not directly

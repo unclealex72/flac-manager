@@ -26,7 +26,8 @@ package files
 
 import java.nio.file.{Paths, Files, Path}
 
-import common.files.{FileUtilsImpl, FileLocation}
+import common.configuration.Directories
+import common.files.{TestFileLocation, FileUtilsImpl, FileLocation}
 import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.mutable._
 import tempfs.TempFileSystem
@@ -49,13 +50,13 @@ class FileUtilsImplSpec extends Specification with PathMatchers {
   "Moving a file with siblings" should {
     "move only the file and not its siblings" in new fs {
       Files.createDirectories(target)
-      val fileToMove = FileLocation(source, Paths.get("dir", "moveme.txt"), false)
-      val fileToKeep = FileLocation(source, Paths.get("dir", "keepme.txt"), false)
+      val fileToMove = TestFileLocation(source, "dir", "moveme.txt")
+      val fileToKeep = TestFileLocation(source, "dir", "keepme.txt")
       Seq(fileToMove, fileToKeep).foreach { fl =>
         Files.createDirectories(fl.resolve.getParent());
         Files.createFile(fl.resolve);
       }
-      fileUtils.move(fileToMove, new FileLocation(target, Paths.get("otherdir", "movedme.txt"), false))
+      fileUtils.move(fileToMove, TestFileLocation(target, "otherdir", "movedme.txt"))
       target.resolve(Paths.get("otherdir", "movedme.txt")) must exist
       target.resolve(Paths.get("otherdir", "movedme.txt")) must not(beADirectory)
       fileToKeep.resolve must exist
@@ -65,9 +66,9 @@ class FileUtilsImplSpec extends Specification with PathMatchers {
 
   "Linking to a file" should {
     "create a relative link that points to the original file" in new fs {
-      val targetLocation = FileLocation(rootDirectory, Paths.get("here.txt"), false)
+      val targetLocation = TestFileLocation(rootDirectory, "here.txt")
       Files.createFile(targetLocation.resolve);
-      val linkLocation = FileLocation(rootDirectory, Paths.get("link.d", "link.txt"), false)
+      val linkLocation = TestFileLocation(rootDirectory, "link.d", "link.txt")
       fileUtils.link(targetLocation, linkLocation)
       linkLocation.resolve must beASymbolicLink
       val symlink = Files.readSymbolicLink(linkLocation.resolve)
@@ -79,10 +80,10 @@ class FileUtilsImplSpec extends Specification with PathMatchers {
   "Moving a file without siblings" should {
     "move the file and remove all empty directories" in new fs {
       Files.createDirectories(target)
-      val fileToMove = FileLocation(source, Paths.get("dir", "moveme.txt"), false)
+      val fileToMove = TestFileLocation(source, "dir", "moveme.txt")
       Files.createDirectories(fileToMove.resolve.getParent())
       Files.createFile(fileToMove.resolve)
-      fileUtils.move(fileToMove, new FileLocation(target, Paths.get("otherdir", "movedme.txt"), false))
+      fileUtils.move(fileToMove, TestFileLocation(target, "otherdir", "movedme.txt"))
       target.resolve(Paths.get("otherdir", "movedme.txt")) must exist
       target.resolve(Paths.get("otherdir", "movedme.txt")) must not(beADirectory)
       fileToMove.resolve.getParent must not(exist)
@@ -93,10 +94,10 @@ class FileUtilsImplSpec extends Specification with PathMatchers {
   "Copying a file" should {
     "also create any required missing directories" in new fs {
       Files.createDirectories(target)
-      val fileToCopy = new FileLocation(source, Paths.get("dir", "copyme.txt"), false)
+      val fileToCopy = TestFileLocation(source, "dir", "copyme.txt")
       Files.createDirectories(fileToCopy.resolve.getParent)
       Files.createFile(fileToCopy.resolve)
-      fileUtils.copy(fileToCopy, new FileLocation(target, Paths.get("otherdir", "copiedme.txt"), false))
+      fileUtils.copy(fileToCopy, TestFileLocation(target, "otherdir", "copiedme.txt"))
       target.resolve(Paths.get("otherdir", "copiedme.txt")) must exist
       target.resolve(Paths.get("otherdir", "copiedme.txt")) must not(beADirectory)
       fileToCopy.resolve must exist

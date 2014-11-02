@@ -26,6 +26,7 @@ package common.files
 
 import java.nio.file.{Paths, Files, Path}
 
+import common.configuration.Directories
 import common.message.{MessageType, MessageService}
 import org.specs2.mutable._
 import org.specs2.mock._
@@ -39,13 +40,15 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
 
   trait fs extends TempFileSystem {
 
-    def fl(path: String, paths: String*): FileLocation = FileLocation(rootDirectory, Paths.get(path, paths: _*), true)
+    lazy implicit val directories = Directories(rootDirectory, rootDirectory, rootDirectory, rootDirectory)
+
+    def fl(path: String, paths: String*): FlacFileLocation = FlacFileLocation(path, paths: _*)
 
     object NullMessageService extends MessageService {
       override def printMessage(template: MessageType): Unit = {}
     }
 
-    val directoryService = new DirectoryServiceImpl(NullMessageService)
+    implicit val directoryService = new DirectoryServiceImpl(NullMessageService)
 
     def before(rootDirectory: Path) = {
       val paths = Seq(
@@ -68,9 +71,7 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
 
   "listing files in valid directories" should {
     "list the files" in new fs {
-      val fileLocations = directoryService.listFiles(
-        fl(""),
-        Seq("dir.flac", "dir").map(f => rootDirectory.resolve(f)))
+      val fileLocations = directoryService.listFlacFiles(Seq("dir.flac", "dir").map(f => rootDirectory.resolve(f)))
       fileLocations must beASuccessfulTry
       fileLocations.get must contain(exactly(
         fl("dir.flac", "myfile.flac"),
@@ -83,16 +84,4 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
     }
   }
 
-  "listing files in invalid directories" should {
-    "list the invalid directories inside an exception" in new fs {
-      val fileLocations = directoryService.listFiles(fl(""), Seq(rootDirectory.resolve("dir.flac"), rootDirectory.getParent, rootDirectory.resolve("my.xml")))
-      fileLocations must beAFailedTry
-      var exception = fileLocations.failed.get
-      exception must beAnInstanceOf[InvalidDirectoriesException]
-      exception.asInstanceOf[InvalidDirectoriesException].paths must contain(exactly(
-        rootDirectory.getParent,
-        rootDirectory.resolve("my.xml")
-      ))
-    }
-  }
 }
