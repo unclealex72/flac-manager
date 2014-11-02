@@ -30,6 +30,7 @@ import ProcessCommunicator._
  * Created by alex on 29/10/14.
  */
 class ProcessCommunicatorSpec extends Specification {
+  sequential
 
   "The process communicator" should {
     "be able to read output from an echoing command" in {
