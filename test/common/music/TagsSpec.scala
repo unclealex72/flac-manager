@@ -28,8 +28,7 @@ import java.nio.file.Paths
 
 import common.files.FLAC
 import org.specs2.mutable._
-
-import scala.util.{Success, Try}
+import com.wix.accord._
 
 /**
  * @author alex
@@ -51,6 +50,58 @@ class TagsSpec extends Specification {
     }
   }
 
+  "validating a totally empty tag" should {
+    "report every single violation" in {
+      val result = validate(SimpleTags("", "", 0, 0, 0, ""))
+      result must beAnInstanceOf[Failure]
+      result match {
+        case Success => {}
+        case Failure(violations: Set[Violation]) => {
+          val descriptions = violations.flatMap(_.description)
+          descriptions must contain(exactly(
+            "totalTracks",
+            "album",
+            "albumArtistId",
+            "discNumber",
+            "artistSort",
+            "albumId",
+            "title",
+            "coverArt",
+            "albumArtist",
+            "artist",
+            "trackId",
+            "artistId",
+            "trackNumber",
+            "totalDiscs",
+            "albumArtistSort"))
+        }
+      }
+      true must beTrue
+    }
+  }
+
+  "validating a well-defined tag" should {
+    "succeed" in {
+      val validTag = Tags(
+        "Various Artists Sort",
+        "Various Artists",
+        "Metal: A Headbanger's Companion",
+        "Napalm Death",
+        "Napalm Death Sort",
+        "Suffer The Children",
+        6,
+        17,
+        1,
+        "89ad4ac3-39f7-470e-963a-56509c546377",
+        "6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e",
+        "ce7bba8b-026b-4aa6-bddb-f98ed6d595e4",
+        "5b0ef8e9-9b55-4a3e-aca6-d816d6bbc00f",
+        Some("B000Q66HUA"),
+        3,
+        CoverArt(new Array[Byte](0), "mime"))
+      validate(validTag) must not(beAnInstanceOf[Failure])
+    }
+  }
   object SimpleTags {
     def apply(albumArtistSort: String, album: String, discNumber: Int, totalDiscs: Int, trackNumber: Int, title: String): Tags = Tags(
       albumArtistSort, "", album, "", "", title,
