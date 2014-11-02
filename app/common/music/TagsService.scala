@@ -19,40 +19,19 @@
  * under the License.
  */
 
-package tempfs
+package common.music
 
-import java.io.File
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 
-import org.specs2.mutable.After
-
-
-trait TempFileSystem extends After {
-
-  lazy val rootDirectory: Path = {
-    val rootDirectory = Files.createTempDirectory("flac-manager-")
-    before(rootDirectory)
-    rootDirectory
-  }
-
-  def before(rootDirectory: Path): Unit
-
-  def after = {
-    def removeRecursively(f: File) {
-      f.setWritable(true)
-      if (f.isDirectory) {
-        f.listFiles().foreach(removeRecursively)
-      }
-      f.delete
-    }
-    removeRecursively(rootDirectory.toFile)
-  }
-}
+import scala.util.Try
 
 /**
- * A simple subtrait that does nothing during the before clause.
+ * A trait to add tags to and read tags from files.
+ * Created by alex on 02/11/14.
  */
-trait DefaultTempFileSystem extends TempFileSystem {
+trait TagsService {
 
-  def before(rootDirectory: Path): Unit = {}
+  def read(path: Path): Try[Tags]
+
+  def write(path: Path, tags: Tags): Try[Unit]
 }
