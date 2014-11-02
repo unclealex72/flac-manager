@@ -74,7 +74,7 @@ case class DELETE(fileLocation: FileLocation) extends MessageType("delete", file
 /**
  * The key for producing a move message.
  */
-object MOVE extends MessageType("move")
+case class MOVE(source: FileLocation, target: FileLocation) extends MessageType("move", source, target)
 
 /**
  * The key for producing a not flac file message.

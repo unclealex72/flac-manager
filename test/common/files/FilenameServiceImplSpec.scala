@@ -26,7 +26,7 @@ package common.files
 
 import java.nio.file.Paths
 
-import common.music.{FLAC, CoverArt, MusicFile}
+import common.music.{CoverArt, MusicFile}
 import org.specs2.mutable._
 
 import scala.util.{Success, Try}

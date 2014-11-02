@@ -27,6 +27,7 @@ package common.files
 import java.nio.file.{Paths, Path}
 
 import common.configuration.{User, Directories}
+import common.files.PathImplicits._
 
 /**
  * A class that encapsulates a location of a file within a repository of music
@@ -62,12 +63,20 @@ trait FileLocation {
 /**
  * A `FileLocation` in the staging repository.
  */
-trait StagedFlacFileLocation extends FileLocation
+trait StagedFlacFileLocation extends FileLocation {
+
+  def toStagedFlacFileLocation: StagedFlacFileLocation
+}
 
 /**
  * A `FileLocation` in the FLAC repository.
  */
-trait FlacFileLocation extends FileLocation
+trait FlacFileLocation extends FileLocation {
+
+  def toStagedFlacFileLocation: StagedFlacFileLocation
+
+  def toEncodedFileLocation: EncodedFileLocation
+}
 
 /**
  * A `FileLocation` in the encoded repository.
@@ -106,9 +115,11 @@ sealed abstract class AbstractFlacFileLocation(
                                                 override val directoryFactory: Directories => Path,
                                                 override implicit val directories: Directories) extends AbstractFileLocation(name, relativePath, directoryFactory, directories) {
 
-  def toEncodedFileLocation: EncodedFileLocation = EncodedFileLocation(relativePath withMp3Extension)
+  def toStagedFlacFileLocation: StagedFlacFileLocation = StagedFlacFileLocation(relativePath)
 
-  def toOwnedEncodedFileLocation(user: User): DeviceFileLocation = DeviceFileLocation(user, relativePath withMp3Extension)
+  def toEncodedFileLocation: EncodedFileLocation = EncodedFileLocation(relativePath withExtension MP3)
+
+  def toOwnedEncodedFileLocation(user: User): DeviceFileLocation = DeviceFileLocation(user, relativePath withExtension MP3)
 
 }
 
@@ -180,19 +191,4 @@ object DeviceFileLocation {
 
   def apply(user: User, path: String, paths: String*)(implicit directories: Directories): DeviceFileLocation =
     DeviceFileLocation(user, Paths.get(path, paths: _*))
-}
-
-object PathImplicits {
-
-  implicit class WithMp3Extension(path: Path) {
-
-    val FILENAME = """(.+)\..+?""".r
-
-    def withMp3Extension: Path = {
-      val parent = path.getParent
-      val filename = FILENAME.replaceAllIn(path.getFileName.toString, m => s"${m.group(1)}.mp3")
-      parent.resolve(filename)
-    }
-  }
-
 }

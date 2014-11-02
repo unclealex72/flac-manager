@@ -3,6 +3,8 @@ package common.music
 import java.nio.file.{Paths, Path}
 import java.text.Normalizer
 
+import common.files.Extension
+
 import scala.util.Try
 
 /**
