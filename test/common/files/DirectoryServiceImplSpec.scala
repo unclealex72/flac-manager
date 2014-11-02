@@ -44,11 +44,11 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
 
     def fl(path: String, paths: String*): FlacFileLocation = FlacFileLocation(path, paths: _*)
 
-    object NullMessageService extends MessageService {
+    implicit object NullMessageService extends MessageService {
       override def printMessage(template: MessageType): Unit = {}
     }
 
-    implicit val directoryService = new DirectoryServiceImpl(NullMessageService)
+    implicit val directoryService = new DirectoryServiceImpl
 
     def before(rootDirectory: Path) = {
       val paths = Seq(

@@ -22,6 +22,7 @@
 package checkout
 
 import common.files.FlacFileLocation
+import common.message.MessageService
 
 import scala.util.Try
 
@@ -36,5 +37,5 @@ trait CheckoutService {
    * @param flacFileLocations
    * @return
    */
-  def checkout(flacFileLocations: Traversable[FlacFileLocation]): Try[Unit]
+  def checkout(flacFileLocations: Traversable[FlacFileLocation])(implicit messageService: MessageService): Try[Unit]
 }

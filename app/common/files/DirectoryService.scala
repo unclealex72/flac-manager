@@ -26,6 +26,8 @@ package common.files
 
 import java.nio.file.Path
 
+import common.message.MessageService
+
 import scala.collection.immutable.SortedSet
 import scala.util.Try
 
@@ -52,8 +54,8 @@ trait DirectoryService {
    * @return All music files found under the given directories.
    * @throws IOException
    */
-  def listStagedFiles(relativePaths: Traversable[Path]): Try[SortedSet[StagedFlacFileLocation]]
+  def listStagedFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): Try[SortedSet[StagedFlacFileLocation]]
 
-  def listFlacFiles(relativePaths: Traversable[Path]): Try[SortedSet[FlacFileLocation]]
+  def listFlacFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): Try[SortedSet[FlacFileLocation]]
 
 }

@@ -42,8 +42,8 @@ class CheckoutServiceImplSpec extends Specification with Mockito {
     "log and move it to the staging directory" in {
       val flacFileLocation = FlacFileLocation("a", "b", "c.flac")
       val fileUtils = mock[FileUtils]
-      val messageService = mock[MessageService]
-      val checkoutService = new CheckoutServiceImpl(fileUtils, messageService)
+      implicit val messageService = mock[MessageService]
+      val checkoutService = new CheckoutServiceImpl(fileUtils)
       val result = checkoutService.checkout(Seq(flacFileLocation))
       result must beASuccessfulTry
       val expectedStagedFlacFileLocation = StagedFlacFileLocation("a", "b", "c.flac")
