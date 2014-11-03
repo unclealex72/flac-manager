@@ -44,7 +44,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito {
       val fileUtils = mock[FileUtils]
       implicit val messageService = mock[MessageService]
       val checkoutService = new CheckoutServiceImpl(fileUtils)
-      val result = checkoutService.checkout(Seq(flacFileLocation))
+      val result = checkoutService.checkout(flacFileLocation)
       result must beASuccessfulTry
       val expectedStagedFlacFileLocation = StagedFlacFileLocation("a", "b", "c.flac")
       there was one(messageService).printMessage(MOVE(flacFileLocation, expectedStagedFlacFileLocation))

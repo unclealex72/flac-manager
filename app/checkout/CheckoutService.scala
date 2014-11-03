@@ -33,9 +33,9 @@ import scala.util.Try
 trait CheckoutService {
 
   /**
-   * Checkout a list of FLAC files.
-   * @param flacFileLocations
+   * Checkout a FLAC file.
+   * @param flacFileLocation
    * @return
    */
-  def checkout(flacFileLocations: Traversable[FlacFileLocation])(implicit messageService: MessageService): Try[Unit]
+  def checkout(flacFileLocation: FlacFileLocation)(implicit messageService: MessageService): Try[Unit]
 }

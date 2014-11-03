@@ -31,15 +31,13 @@ import scala.util.Try
  */
 class CheckoutServiceImpl(fileUtils: FileUtils) extends CheckoutService {
   /**
-   * Checkout a list of FLAC files.
-   * @param flacFileLocations
+   * Checkout a FLAC file.
+   * @param flacFileLocation
    * @return
    */
-  override def checkout(flacFileLocations: Traversable[FlacFileLocation])(implicit messageService: MessageService): Try[Unit] = Try {
-    flacFileLocations.foreach { flacFileLocation =>
-      val stagingFlacFileLocation = flacFileLocation.toStagedFlacFileLocation
-      messageService.printMessage(MOVE(flacFileLocation, stagingFlacFileLocation))
-      fileUtils.move(flacFileLocation, stagingFlacFileLocation)
-    }
+  override def checkout(flacFileLocation: FlacFileLocation)(implicit messageService: MessageService): Try[Unit] = Try {
+    val stagingFlacFileLocation = flacFileLocation.toStagedFlacFileLocation
+    messageService.printMessage(MOVE(flacFileLocation, stagingFlacFileLocation))
+    fileUtils.move(flacFileLocation, stagingFlacFileLocation)
   }
 }
