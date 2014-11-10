@@ -24,18 +24,9 @@ package checkout
 import common.files.FlacFileLocation
 import common.message.MessageService
 
-import scala.util.Try
-
 /**
- * The main trait for checking out files from the FLAC repository into the staging repository.
- * Created by alex on 02/11/14.
+ * Created by alex on 09/11/14.
  */
-trait CheckoutService {
-
-  /**
-   * Checkout a FLAC file.
-   * @param flacFileLocation
-   * @return
-   */
-  def checkout(flacFileLocation: FlacFileLocation)(implicit messageService: MessageService): Try[Unit]
+trait CheckoutCommand {
+  def checkout(locations: Seq[FlacFileLocation])(implicit messageService: MessageService): Unit
 }

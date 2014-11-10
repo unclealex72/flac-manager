@@ -27,6 +27,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.regex.Matcher
 
+import common.AbstractStringCellMappingService
+
 import scala.collection.JavaConversions._
 
 /**

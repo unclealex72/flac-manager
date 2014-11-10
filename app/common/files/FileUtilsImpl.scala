@@ -6,7 +6,7 @@
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
  * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
+ * "License") you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
@@ -24,12 +24,13 @@
 
 package common.files
 
-;
 
 import java.nio.file.{Files, Path, StandardCopyOption}
 
+import common.message._
+
 import scala.util.Try
-;
+
 
 /**
  * The default implementation of {@link FileUtils}.
@@ -39,29 +40,31 @@ import scala.util.Try
  */
 class FileUtilsImpl extends FileUtils {
 
-  override def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation): Try[Unit] = Try {
+  override def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
+    messageService.printMessage(MOVE(sourceFileLocation, targetFileLocation))
     val sourcePath = sourceFileLocation.resolve
     val targetPath = targetFileLocation.resolve
     Files.createDirectories(targetPath.getParent)
     Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE)
     val currentDirectory = sourcePath.getParent
-    remove(sourceFileLocation.basePath, currentDirectory);
+    remove(sourceFileLocation.basePath, currentDirectory)
   }
 
-  override def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation): Try[Unit] = Try {
+  override def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
     val sourcePath = sourceFileLocation.resolve
     val targetPath = targetFileLocation.resolve
     val parentTargetPath = targetPath.getParent
-    Files.createDirectories(parentTargetPath);
-    val tempPath = Files.createTempFile(parentTargetPath, "device-file-", ".tmp");
-    Files.copy(sourcePath, tempPath, StandardCopyOption.REPLACE_EXISTING);
-    Files.move(tempPath, targetPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-    val currentDirectory = sourcePath.getParent();
-    remove(sourceFileLocation.basePath, currentDirectory);
+    Files.createDirectories(parentTargetPath)
+    val tempPath = Files.createTempFile(parentTargetPath, "device-file-", ".tmp")
+    Files.copy(sourcePath, tempPath, StandardCopyOption.REPLACE_EXISTING)
+    Files.move(tempPath, targetPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+    val currentDirectory = sourcePath.getParent()
+    remove(sourceFileLocation.basePath, currentDirectory)
   }
 
-  override def remove(fileLocation: FileLocation): Try[Unit] = Try {
-    remove(fileLocation.basePath, fileLocation.resolve);
+  override def remove(fileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
+    messageService.printMessage(DELETE(fileLocation))
+    remove(fileLocation.basePath, fileLocation.resolve)
   }
 
   def remove(basePath: Path, currentPath: Path): Try[Unit] = Try {
@@ -72,23 +75,29 @@ class FileUtilsImpl extends FileUtils {
       val dir = Files.newDirectoryStream(currentPath)
       val directoryIsEmpty = !dir.iterator().hasNext()
       if (directoryIsEmpty) {
-        Files.delete(currentPath);
-        remove(basePath, currentPath.getParent());
+        Files.delete(currentPath)
+        remove(basePath, currentPath.getParent())
       }
       dir.close
     }
     else {
-      Files.deleteIfExists(currentPath);
-      remove(basePath, currentPath.getParent());
+      Files.deleteIfExists(currentPath)
+      remove(basePath, currentPath.getParent())
     }
   }
 
-  override def link(fileLocation: FileLocation, linkLocation: FileLocation): Try[Unit] = Try {
-    val target = fileLocation.resolve;
-    val link = linkLocation.resolve;
-    val parent = link.getParent;
-    Files.createDirectories(parent);
-    val relativeTarget = parent.relativize(target);
-    Files.createSymbolicLink(link, relativeTarget);
+  override def link(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService): Unit = {
+    messageService.printMessage(LINK(fileLocation, linkLocation))
+    val target = fileLocation.resolve
+    val link = linkLocation.resolve
+    val parent = link.getParent
+    Files.createDirectories(parent)
+    val relativeTarget = parent.relativize(target)
+    Files.createSymbolicLink(link, relativeTarget)
+  }
+
+  override def isDirectory(fileLocation: FileLocation) = {
+    val path = fileLocation.resolve
+    Files.exists(path) && !Files.isSymbolicLink(path) && Files.isDirectory(path)
   }
 }

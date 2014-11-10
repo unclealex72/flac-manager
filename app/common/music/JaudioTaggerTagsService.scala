@@ -50,7 +50,7 @@ import scala.util.Try
  */
 class JaudioTaggerTagsService extends TagsService {
 
-  override def read(path: Path): Try[Tags] = Try {
+  override def read(path: Path): Tags = {
     val audioFile = loadAudioFile(path)
     val tag = audioFile.getTag
     implicit def get[V](singleTag: SingleTag[V]): V = singleTag.get(tag)
@@ -60,7 +60,7 @@ class JaudioTaggerTagsService extends TagsService {
       ALBUM_ARTIST_ID, ALBUM_ID, ARTIST_ID, TRACK_ID, ASIN, TRACK_NUMBER, COVER_ART)
   }
 
-  override def write(path: Path, tags: Tags): Try[Unit] = Try {
+  override def write(path: Path, tags: Tags): Unit = Try {
     val audioFile = loadAudioFile(path)
     implicit val tag = audioFile.getTag
     ALBUM_ARTIST_SORT.set(tags.albumArtistSort)

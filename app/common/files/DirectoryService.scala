@@ -54,8 +54,8 @@ trait DirectoryService {
    * @return All music files found under the given directories.
    * @throws IOException
    */
-  def listStagedFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): Try[SortedSet[StagedFlacFileLocation]]
+  def listStagedFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): SortedSet[StagedFlacFileLocation]
 
-  def listFlacFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): Try[SortedSet[FlacFileLocation]]
+  def listFlacFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): SortedSet[FlacFileLocation]
 
 }

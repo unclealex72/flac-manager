@@ -31,7 +31,7 @@ import scala.util.Try
  */
 trait TagsService {
 
-  def read(path: Path): Try[Tags]
+  def read(path: Path): Tags
 
-  def write(path: Path, tags: Tags): Try[Unit]
+  def write(path: Path, tags: Tags): Unit
 }

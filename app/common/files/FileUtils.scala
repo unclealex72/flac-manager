@@ -24,6 +24,8 @@
 
 package common.files
 
+import common.message.MessageService
+
 import scala.util.Try
 
 /**
@@ -46,7 +48,7 @@ trait FileUtils {
    * The target file location.
    * @throws IOException
    */
-  def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation): Try[Unit]
+  def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit
 
   /**
    * Copy a path from a source directory to a target directory using an atomic
@@ -58,7 +60,7 @@ trait FileUtils {
    * The target file location.
    * @throws IOException
    */
-  def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation): Try[Unit]
+  def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit
 
   /**
    * Remove directories if they are empty and recurse up the directory tree.
@@ -67,7 +69,7 @@ trait FileUtils {
    * The location of the current file to remove if empty.
    * @throws IOException
    */
-  def remove(fileLocation: FileLocation): Try[Unit]
+  def remove(fileLocation: FileLocation)(implicit messageService: MessageService): Unit
 
   /**
    * Create a relative symbolic link from one file to another, creating any
@@ -79,6 +81,12 @@ trait FileUtils {
    * The location of the new symbolic link.
    * @throws IOException
    */
-  def link(fileLocation: FileLocation, linkLocation: FileLocation): Try[Unit]
+  def link(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService): Unit
 
+  /**
+   * Return true if the file location points to a directory, false otherwise.
+   * @param fileLocation
+   * @return
+   */
+  def isDirectory(fileLocation: FileLocation): Boolean
 }

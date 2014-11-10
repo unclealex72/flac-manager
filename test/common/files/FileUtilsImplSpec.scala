@@ -28,7 +28,9 @@ import java.nio.file.{Paths, Files, Path}
 
 import common.configuration.Directories
 import common.files.{TestFileLocation, FileUtilsImpl, FileLocation}
+import common.message.{LINK, MOVE, MessageService}
 import org.specs2.matcher.{Expectable, Matcher}
+import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import tempfs.TempFileSystem
 
@@ -36,13 +38,14 @@ import tempfs.TempFileSystem
  * @author alex
  *
  */
-class FileUtilsImplSpec extends Specification with PathMatchers {
+class FileUtilsImplSpec extends Specification with PathMatchers with Mockito {
 
   val fileUtils = new FileUtilsImpl
 
   trait fs extends TempFileSystem {
     lazy val source = rootDirectory.resolve("source")
     lazy val target = rootDirectory.resolve("target")
+    implicit val messageService: MessageService = mock[MessageService]
 
     def before(rootDirectory: Path): Unit = {}
   }
@@ -56,11 +59,13 @@ class FileUtilsImplSpec extends Specification with PathMatchers {
         Files.createDirectories(fl.resolve.getParent());
         Files.createFile(fl.resolve);
       }
-      fileUtils.move(fileToMove, TestFileLocation(target, "otherdir", "movedme.txt"))
+      val targetLocation = TestFileLocation(target, "otherdir", "movedme.txt")
+      fileUtils.move(fileToMove, targetLocation)
       target.resolve(Paths.get("otherdir", "movedme.txt")) must exist
       target.resolve(Paths.get("otherdir", "movedme.txt")) must not(beADirectory)
       fileToKeep.resolve must exist
       fileToMove.resolve must not(exist)
+      there was one(messageService).printMessage(MOVE(fileToMove, targetLocation))
     }
   }
 
@@ -74,6 +79,7 @@ class FileUtilsImplSpec extends Specification with PathMatchers {
       val symlink = Files.readSymbolicLink(linkLocation.resolve)
       symlink must not(beAbsolute)
       linkLocation.resolve.getParent.resolve(symlink).toAbsolutePath must beTheSameFileAs(targetLocation.resolve.toAbsolutePath())
+      there was one(messageService).printMessage(LINK(targetLocation, linkLocation))
     }
   }
 
@@ -83,11 +89,13 @@ class FileUtilsImplSpec extends Specification with PathMatchers {
       val fileToMove = TestFileLocation(source, "dir", "moveme.txt")
       Files.createDirectories(fileToMove.resolve.getParent())
       Files.createFile(fileToMove.resolve)
-      fileUtils.move(fileToMove, TestFileLocation(target, "otherdir", "movedme.txt"))
+      val targetLocation = TestFileLocation(target, "otherdir", "movedme.txt")
+      fileUtils.move(fileToMove, targetLocation)
       target.resolve(Paths.get("otherdir", "movedme.txt")) must exist
       target.resolve(Paths.get("otherdir", "movedme.txt")) must not(beADirectory)
       fileToMove.resolve.getParent must not(exist)
       source must exist
+      there was one(messageService).printMessage(MOVE(fileToMove, targetLocation))
     }
   }
 
@@ -101,6 +109,22 @@ class FileUtilsImplSpec extends Specification with PathMatchers {
       target.resolve(Paths.get("otherdir", "copiedme.txt")) must exist
       target.resolve(Paths.get("otherdir", "copiedme.txt")) must not(beADirectory)
       fileToCopy.resolve must exist
+    }
+  }
+
+  "Checking whether a file is a directory or not" should {
+    "return true for a directory" in new fs {
+      Files.createDirectories(source.resolve("dir"))
+      fileUtils.isDirectory(TestFileLocation(source, "dir")) must beTrue
+    }
+    "return false for a file" in new fs {
+      Files.createDirectories(source)
+      Files.createFile(source.resolve("file"))
+      fileUtils.isDirectory(TestFileLocation(source, "file")) must beFalse
+    }
+    "return false for a file that does not exist" in new fs {
+      Files.createDirectories(source)
+      fileUtils.isDirectory(TestFileLocation(source, "nodir")) must beFalse
     }
   }
 }

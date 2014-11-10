@@ -19,25 +19,17 @@
  * under the License.
  */
 
-package checkout
+package common.owners
 
-import common.files.{FileUtils, FlacFileLocation}
-import common.message._
-
-import scala.util.Try
+import common.message.MessageService
+import common.music.Tags
 
 /**
- * Created by alex on 02/11/14.
+ * Created by alex on 03/11/14.
  */
-class CheckoutServiceImpl(fileUtils: FileUtils) extends CheckoutService {
-  /**
-   * Checkout a FLAC file.
-   * @param flacFileLocation
-   * @return
-   */
-  override def checkout(flacFileLocation: FlacFileLocation)(implicit messageService: MessageService): Try[Unit] = Try {
-    val stagingFlacFileLocation = flacFileLocation.toStagedFlacFileLocation
-    messageService.printMessage(MOVE(flacFileLocation, stagingFlacFileLocation))
-    fileUtils.move(flacFileLocation, stagingFlacFileLocation)
-  }
+trait OwnerService {
+
+  def own(tags: Tags)(implicit messageService: MessageService): Unit
+
+  def unown(tags: Tags)(implicit messageService: MessageService): Unit
 }

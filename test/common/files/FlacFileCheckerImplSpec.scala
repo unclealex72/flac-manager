@@ -14,7 +14,7 @@ class FlacFileCheckerImplSpec extends Specification {
     }
 
     "correctly identify a non-FLAC file" in {
-      checking("one_vision.json") must beFalse
+      checking("cover.jpg") must beFalse
     }
 
     "correctly identify an empty file" in {

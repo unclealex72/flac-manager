@@ -47,7 +47,7 @@ class FlacFileCheckerImpl extends FlacFileChecker {
    * @return True if the file is a FLAC file or false otherwise.
    * @throws IOException
    */
-  override def isFlacFile(path: Path): Try[Boolean] = Try {
+  override def isFlacFile(path: Path): Boolean = {
     val in = new FileInputStream(path.toFile)
     try {
       isFlacFile(in)

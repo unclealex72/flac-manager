@@ -19,23 +19,15 @@
  * under the License.
  */
 
-package common.files
+package checkin
 
-import java.util.concurrent.locks.ReentrantLock
+import common.files.StagedFlacFileLocation
+import common.message.MessageService
 
 /**
- * A `FileUtils` that only allows one operation to be performed at a time.
- * Created by alex on 01/11/14.
+ * Created by alex on 09/11/14.
  */
-class ThreadSafeFileUtils(override val delegate: FileUtils) extends DecoratingFileUtils(delegate) {
-
-  /**
-   * The lock used to make sure only one operation is performed at a time.
-   */
-  val LOCK: ReentrantLock = new ReentrantLock
-
-  def before(fileLocations: Seq[FileLocation]) = { LOCK.lock() }
-
-  def after(fileLocations: Seq[FileLocation]) = { LOCK.unlock() }
+trait CheckinCommand {
+  def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): Unit
 
 }

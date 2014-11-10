@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package sync.drive
+package common
 
 /**
  * An abstract class for services that create sequences of tuples from cells taken

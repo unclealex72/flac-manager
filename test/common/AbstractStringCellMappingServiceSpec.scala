@@ -19,9 +19,7 @@
  * under the License.
  */
 
-package sync.drive
-
-import java.io.IOException
+package common
 
 import org.specs2.mutable._
 

@@ -26,6 +26,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
+import common.AbstractStringCellMappingService
+
 import scala.collection.SortedSet
 import scala.sys.process._
 import scala.collection.JavaConversions._

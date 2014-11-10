@@ -22,34 +22,38 @@
 package common.files
 
 import com.typesafe.scalalogging.StrictLogging
-
-import scala.util.Try
+import common.message.MessageService
 
 /**
- * An implementation of {@link FileUtils} that decorates another {@link FileUtils} 
+ * An implementation of {@link FileUtils} that decorates another {@link FileUtils}
  * @author alex
  *
  */
 abstract class DecoratingFileUtils(val delegate: FileUtils) extends FileUtils with StrictLogging {
 
-  def wrap(block: => FileUtils => Try[Unit])(fileLocations: FileLocation*): Try[Unit] = {
+  def wrap(block: => FileUtils => Unit)(fileLocations: FileLocation*): Unit = {
     before(fileLocations)
-    val result = block(delegate)
-    after(fileLocations)
-    result
+    try {
+      block(delegate)
+    }
+    finally {
+      after(fileLocations)
+    }
   }
 
-  override def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation): Try[Unit] =
+  override def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit =
     wrap(_.move(sourceFileLocation, targetFileLocation))(sourceFileLocation, targetFileLocation)
 
-  override def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation): Try[Unit] =
+  override def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit =
     wrap(_.copy(sourceFileLocation, targetFileLocation))(targetFileLocation)
 
-  override def remove(fileLocation: FileLocation): Try[Unit] =
+  override def remove(fileLocation: FileLocation)(implicit messageService: MessageService): Unit =
     wrap(_.remove(fileLocation))(fileLocation)
 
-  override def link(fileLocation: FileLocation, linkLocation: FileLocation): Try[Unit] =
+  override def link(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService): Unit =
     wrap(_.link(fileLocation, linkLocation))(fileLocation, linkLocation)
+
+  override def isDirectory(fileLocation: FileLocation) = delegate.isDirectory(fileLocation)
 
   def before(fileLocations: Seq[FileLocation]): Unit
 

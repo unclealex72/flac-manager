@@ -27,7 +27,7 @@ package common.message
 import java.nio.file.Path
 
 import common.configuration.User
-import common.files.FileLocation
+import common.files.{FlacFileLocation, StagedFlacFileLocation, FileLocation}
 import sync.DeviceFile
 
 /**
@@ -38,7 +38,6 @@ import sync.DeviceFile
  */
 trait MessageService {
 
-
   /**
    * Print an internationalised message.
    *
@@ -46,8 +45,29 @@ trait MessageService {
    * The template key used to select the message.
    */
   def printMessage(template: MessageType): Unit
+
+  def exception(t: Throwable): Unit
+
+  /**
+   * Notify all listing printing services that printing has finished.
+   */
+  def finished: Unit
+
 }
 
+/**
+ * A trait for building messaging services.
+ */
+trait MessageServiceBuilder {
+
+  def build: MessageService
+
+  def withPrinter(printer: String => Unit): MessageServiceBuilder
+
+  def withExceptionHandler(handler: Throwable => Unit): MessageServiceBuilder
+
+  def withFinish(finish: () => Unit): MessageServiceBuilder
+}
 
 sealed abstract class MessageType(val key: String, val parameters: String*)
 
@@ -72,6 +92,16 @@ case class ENCODE(fileLocation: FileLocation) extends MessageType("encode", file
 case class DELETE(fileLocation: FileLocation) extends MessageType("delete", fileLocation)
 
 /**
+ * The key for producing a checkin message.
+ */
+case class CHECKIN(stagedFlacFileLocation: StagedFlacFileLocation) extends MessageType("checkin", stagedFlacFileLocation)
+
+/**
+ * The key for producing a checkin message.
+ */
+case class CHECKOUT(flacFileLocation: FlacFileLocation) extends MessageType("checkout", flacFileLocation)
+
+/**
  * The key for producing a move message.
  */
 case class MOVE(source: FileLocation, target: FileLocation) extends MessageType("move", source, target)
@@ -80,11 +110,6 @@ case class MOVE(source: FileLocation, target: FileLocation) extends MessageType(
  * The key for producing a not flac file message.
  */
 object NOT_FLAC extends MessageType("notFlac")
-
-/**
- * The key for producing a missing artwork message.
- */
-object MISSING_ARTWORK extends MessageType("missingArtwork")
 
 /**
  * The key for producing an overwrite message.
@@ -97,29 +122,14 @@ object OVERWRITE extends MessageType("overwrite")
 object NON_UNIQUE extends MessageType("nonUnique")
 
 /**
- * The key for producing not owned messages.
- */
-object NOT_OWNED extends MessageType("notOwned")
-
-/**
- * The key for producing not owned messages.
- */
-object NO_OWNER_INFORMATION extends MessageType("noOwner")
-
-/**
  * The key for producing link messages.
  */
-object LINK extends MessageType("link")
+case class LINK(fileLocation: FileLocation, linkLocation: FileLocation) extends MessageType("link")
 
 /**
  * The key for producing link messages.
  */
 object UNLINK extends MessageType("unlink")
-
-/**
- * The key for producing unknown user messages.
- */
-object UNKNOWN_USER extends MessageType("unknownUser")
 
 /**
  * The key for producing add owner messages.
@@ -180,3 +190,8 @@ case class FOUND_DEVICE(user: User) extends MessageType("foundDevice", user)
  * The key for producing a message to say that a device has been synchronised.
  */
 case class DEVICE_SYNCHRONISED(user: User) extends MessageType("deviceSynchronised", user)
+
+/**
+ * The key for producing error keys.
+ */
+case class ERROR(errorKey: String, args: Seq[Any]) extends MessageType("error." + errorKey, args.map(_.toString): _*)

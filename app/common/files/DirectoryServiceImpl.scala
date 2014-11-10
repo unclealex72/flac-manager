@@ -42,15 +42,15 @@ import common.files.FileLocationImplicits._
 class DirectoryServiceImpl(implicit directories: Directories) extends DirectoryService {
 
 
-  override def listStagedFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): Try[SortedSet[StagedFlacFileLocation]] = {
+  override def listStagedFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): SortedSet[StagedFlacFileLocation] = {
     listFiles[StagedFlacFileLocation](directories.stagingPath, relativePaths, path => StagedFlacFileLocation(path))
   }
 
-  override def listFlacFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): Try[SortedSet[FlacFileLocation]] = {
+  override def listFlacFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): SortedSet[FlacFileLocation] = {
     listFiles(directories.flacPath, relativePaths, path => FlacFileLocation(path))
   }
 
-  def listFiles[FL <: FileLocation](basePath: Path, relativePaths: Traversable[Path], fileLocationFactory: Path => FL)(implicit messageService: MessageService): Try[SortedSet[FL]] = Try {
+  def listFiles[FL <: FileLocation](basePath: Path, relativePaths: Traversable[Path], fileLocationFactory: Path => FL)(implicit messageService: MessageService): SortedSet[FL] = {
     val fileLocations = mutable.Buffer[FL]()
     relativePaths.map(basePath.resolve(_)).foreach { absolutePath =>
       walkFileTree(absolutePath) { path =>

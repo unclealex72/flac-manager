@@ -1,5 +1,5 @@
-/**
- * Copyright 2012 Alex Jones
+/*
+ * Copyright 2014 Alex Jones
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,7 +9,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -17,33 +17,21 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
- * @author unclealex72
- *
  */
 
-package common.files
+package checkin
 
-;
-
-import java.io.IOException
 import java.nio.file.Path
 
+import common.message.MessageService
+
 import scala.util.Try
-;
 
 /**
- * An interface for classes that determine whether a file contains FLAC information or not.
- * @author alex
- *
+ * The main trait for checking in a single FLAC file.
+ * Created by alex on 03/11/14.
  */
-trait FlacFileChecker {
+trait CheckinService {
 
-  /**
-   * Check whether a file is a FLAC encoded file or not.
-   * @param path The file to check.
-   * @return True if the file is a FLAC file or false otherwise.
-   * @throws IOException
-   */
-  def isFlacFile(path: Path): Boolean
+  def execute(paths: Seq[Path])(implicit messageService: MessageService): Try[Unit]
 }

@@ -53,9 +53,7 @@ class JaudioTaggerTagsServiceSpec extends Specification {
       val tempMusicFile = rootDirectory.resolve("tagged.flac")
       Files.copy(flacIn, tempMusicFile, StandardCopyOption.REPLACE_EXISTING)
       flacIn.close
-      val tryTags = tagsService.read(tempMusicFile)
-      tryTags must beASuccessfulTry
-      val tags = tryTags.get
+      val tags = tagsService.read(tempMusicFile)
       tags.album must be equalTo ("Metal: A Headbanger's Companion")
       tags.albumArtist must be equalTo ("Various Artists")
       tags.albumArtistId must be equalTo ("89ad4ac3-39f7-470e-963a-56509c546377")
@@ -100,8 +98,7 @@ class JaudioTaggerTagsServiceSpec extends Specification {
       val tempMusicFile = rootDirectory.resolve("tagged.mp3")
       Files.copy(flacIn, tempMusicFile, StandardCopyOption.REPLACE_EXISTING)
       flacIn.close
-      val tryWrite = tagsService.write(tempMusicFile, tagsToWrite)
-      tryWrite must beASuccessfulTry
+      tagsService.write(tempMusicFile, tagsToWrite)
       val lines = Seq("id3v2", "-l", tempMusicFile.toString).lineStream.toList
       lines must contain(
         "UFID (Unique file identifier): http://musicbrainz.org, 36 bytes",
@@ -127,8 +124,7 @@ class JaudioTaggerTagsServiceSpec extends Specification {
       val tempMusicFile = rootDirectory.resolve("tagged.flac")
       Files.copy(flacIn, tempMusicFile, StandardCopyOption.REPLACE_EXISTING)
       flacIn.close
-      val tryWrite = tagsService.write(tempMusicFile, tagsToWrite)
-      tryWrite must beASuccessfulTry
+      tagsService.write(tempMusicFile, tagsToWrite)
       val lines = Seq("metaflac", "--export-tags-to=-", tempMusicFile.toString).lineStream.toList
       lines must contain(
         "ALBUMARTISTSORT=Various Artists Sort",

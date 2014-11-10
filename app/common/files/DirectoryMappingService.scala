@@ -1,5 +1,5 @@
-/**
- * Copyright 2012 Alex Jones
+/*
+ * Copyright 2014 Alex Jones
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,7 +9,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -17,33 +17,23 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
- * @author unclealex72
- *
  */
 
 package common.files
 
-;
-
-import java.io.IOException
 import java.nio.file.Path
 
-import scala.util.Try
-;
-
 /**
- * An interface for classes that determine whether a file contains FLAC information or not.
- * @author alex
- *
+ * The trait for services that can resolve NFS mounts on client services
+ * Created by alex on 06/11/14.
  */
-trait FlacFileChecker {
+trait DirectoryMappingService {
 
   /**
-   * Check whether a file is a FLAC encoded file or not.
-   * @param path The file to check.
-   * @return True if the file is a FLAC file or false otherwise.
-   * @throws IOException
+   * Resolve a set of client side directories into a map of server side directories.
+   * @param mtab The contents of the client's /etc/mtab file.
+   * @param directories
+   * @return A map of the original directories to the resolved directories
    */
-  def isFlacFile(path: Path): Boolean
+  def withMtab(mtab: String): String => Path
 }

@@ -46,6 +46,10 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
 
     implicit object NullMessageService extends MessageService {
       override def printMessage(template: MessageType): Unit = {}
+
+      override def finished = {}
+
+      override def exception(t: Throwable) = {}
     }
 
     implicit val directoryService = new DirectoryServiceImpl
@@ -72,8 +76,7 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
   "listing files in valid directories" should {
     "list the files" in new fs {
       val fileLocations = directoryService.listFlacFiles(Seq("dir.flac", "dir").map(f => rootDirectory.resolve(f)))
-      fileLocations must beASuccessfulTry
-      fileLocations.get must contain(exactly(
+      fileLocations must contain(exactly(
         fl("dir.flac", "myfile.flac"),
         fl("dir.flac", "inner", "myfile.flac"),
         fl("dir", "your.flac"),
