@@ -37,7 +37,7 @@ abstract class DecoratingFileUtils(val delegate: FileUtils) extends FileUtils wi
       block(delegate)
     }
     finally {
-      after(fileLocations)
+      after(fileLocations.filter(exists))
     }
   }
 
@@ -47,8 +47,12 @@ abstract class DecoratingFileUtils(val delegate: FileUtils) extends FileUtils wi
   override def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit =
     wrap(_.copy(sourceFileLocation, targetFileLocation))(targetFileLocation)
 
-  override def remove(fileLocation: FileLocation)(implicit messageService: MessageService): Unit =
-    wrap(_.remove(fileLocation))(fileLocation)
+  override def remove(fileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
+    before(Seq(fileLocation))
+    delegate.remove(fileLocation)
+  }
+
+  override def exists(fileLocation: FileLocation): Boolean = delegate.exists(fileLocation)
 
   override def link(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService): Unit =
     wrap(_.link(fileLocation, linkLocation))(fileLocation, linkLocation)

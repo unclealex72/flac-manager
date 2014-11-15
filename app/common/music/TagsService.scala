@@ -20,11 +20,10 @@
  */
 
 package common.music
-
 import java.nio.file.Path
 
-import scala.util.Try
-
+import com.wix.accord._
+import common.music.Tags._
 /**
  * A trait to add tags to and read tags from files.
  * Created by alex on 02/11/14.
@@ -32,6 +31,14 @@ import scala.util.Try
 trait TagsService {
 
   def read(path: Path): Tags
+
+  def readAndValidate(path: Path): Either[Set[Violation], Tags] = {
+    val tags = read(path)
+    validate(tags) match {
+      case Success => Right(tags)
+      case Failure(violations) => Left(violations)
+    }
+  }
 
   def write(path: Path, tags: Tags): Unit
 }

@@ -21,22 +21,15 @@
 
 package controllers
 
-import java.nio.file.{Files, Path}
-
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
-import com.typesafe.scalalogging.{Logger, StrictLogging}
-import common.configuration.{User, Directories, Users}
-import common.files._
+import com.typesafe.scalalogging.Logger
 import common.message.{ERROR, MessageService, MessageServiceBuilder}
 import org.slf4j.LoggerFactory
-import own.{Unown, Own, OwnCommand}
-import play.api.data.{Form, Mapping}
-import play.api.data.Forms._
-import play.api.data.validation.{ValidationError, Invalid, Valid, Constraint}
+import own.{Own, OwnCommand, Unown}
+import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.iteratee.{Concurrent, Enumerator}
 import play.api.mvc.{Action, Controller}
-import play.api.libs.concurrent.Execution.Implicits._
 import sync.SyncCommand
 
 import scala.util.Try
@@ -84,20 +77,15 @@ class CommandsController(
     val enumerator: (MessageService => Unit) => Enumerator[String] = cmd => Concurrent.unicast[String](onStart = channel => {
       val messageService = messageServiceBuilder.
         withPrinter(message => logger.info(message)).
-        withPrinter(message => channel.push(message + "\n")).
-        withFinish(() => logger.info("Completed")).
-        withFinish(() => channel.eofAndEnd()).build
-      Try(cmd(messageService)).recover { case e => {
-        messageService.exception(e)
-        channel.eofAndEnd
-      }
-      }
+        withPrinter(message => channel.push(message + "\n")).build
+      Try(cmd(messageService)).recover { case e => messageService.exception(e)}
+      channel.eofAndEnd
     })
     parameterBuilder.bindFromRequest match {
       case Right(parameters) => Ok.chunked(enumerator(cmd(parameters)))
-      case Left(formErrors) => BadRequest.chunked(enumerator { messageService =>
+      case Left(formErrors) => BadRequest.chunked(enumerator { implicit messageService =>
         formErrors.foreach { formError =>
-          messageService.printMessage(ERROR(formError.key, formError.message, formError.args))
+          ERROR(formError.key, formError.message, formError.args)
         }
       })
     }

@@ -21,15 +21,13 @@
 
 package common.message
 
-import java.io.{StringWriter, PrintWriter}
-
 import play.api.i18n.Messages
 
 /**
  * A `MessageServiceBuilder` that builds messages using Play's bundle support.
  * Created by alex on 06/11/14.
  */
-class I18nMessageServiceBuilder(printers: Seq[String => Unit], exceptionHandlers: Seq[Throwable => Unit], finishes: Seq[() => Unit]) extends MessageServiceBuilder {
+class I18nMessageServiceBuilder(printers: Seq[String => Unit], exceptionHandlers: Seq[Throwable => Unit]) extends MessageServiceBuilder {
 
   override def build: MessageService = new MessageService() {
 
@@ -42,24 +40,18 @@ class I18nMessageServiceBuilder(printers: Seq[String => Unit], exceptionHandlers
       exceptionHandlers.foreach(exceptionHandler => exceptionHandler(t))
     }
 
-    override def finished: Unit = finishes.foreach(finish => finish())
-
   }
 
   override def withPrinter(printer: String => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(printers :+ printer, exceptionHandlers, finishes)
+    new I18nMessageServiceBuilder(printers :+ printer, exceptionHandlers)
   }
 
   override def withExceptionHandler(exceptionHandler: Throwable => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(printers, exceptionHandlers :+ exceptionHandler, finishes)
-  }
-
-  override def withFinish(finish: () => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(printers, exceptionHandlers, finishes :+ finish)
+    new I18nMessageServiceBuilder(printers, exceptionHandlers :+ exceptionHandler)
   }
 }
 
 object I18nMessageServiceBuilder {
 
-  def apply: I18nMessageServiceBuilder = new I18nMessageServiceBuilder(Seq(), Seq(), Seq())
+  def apply: I18nMessageServiceBuilder = new I18nMessageServiceBuilder(Seq(), Seq())
 }

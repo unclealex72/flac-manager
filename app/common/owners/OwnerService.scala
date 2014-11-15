@@ -21,6 +21,7 @@
 
 package common.owners
 
+import common.configuration.User
 import common.message.MessageService
 import common.music.Tags
 
@@ -29,7 +30,9 @@ import common.music.Tags
  */
 trait OwnerService {
 
-  def own(tags: Tags)(implicit messageService: MessageService): Unit
+  def listCollections()(implicit messageService: MessageService): Tags => Set[User]
 
-  def unown(tags: Tags)(implicit messageService: MessageService): Unit
+  def own(tags: Seq[Tags])(implicit messageService: MessageService): Unit
+
+  def unown(tags: Seq[Tags])(implicit messageService: MessageService): Unit
 }

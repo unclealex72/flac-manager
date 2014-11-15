@@ -23,14 +23,14 @@ package common.controllers
 
 import java.nio.file.Paths
 
-import common.configuration.{User, Users, Directories}
+import common.configuration.{Directories, User, Users}
 import common.files._
 import controllers._
 import org.specs2.matcher.Matcher
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import org.specs2.specification.Scope
-import play.api.data.{FormError, Form}
+import play.api.data.FormError
 import play.api.test.FakeRequest
 
 /**
@@ -43,7 +43,7 @@ class ParameterBuildersImplSpec extends Specification with Mockito {
     val MTAB = "mtab" -> "some"
     lazy val fileUtils = mock[FileUtils]
     fileUtils.isDirectory(any[FileLocation]) answers { fileLocation =>
-      fileLocation.asInstanceOf[FileLocation].resolve.getFileName.toString == "dir"
+      fileLocation.asInstanceOf[FileLocation].toPath.getFileName.toString == "dir"
     }
     lazy val users = mock[Users]
     val brian: User = User("Brian", "", "", "")

@@ -21,15 +21,19 @@
 
 package common.files
 
-import java.nio.file.{Paths, Path}
+import java.nio.file.{Path, Paths}
 
 /**
  * A `FileLocation` that can be used for testing.
  * Created by alex on 02/11/14.
  */
-case class TestFileLocation(val basePath: Path, val relativePath: Path) extends FileLocation
+case class TestFileLocation(val basePath: Path, val relativePath: Path, val readOnly: Boolean) extends FileLocation
 
 object TestFileLocation {
 
-  def apply(basePath: Path, path: String, paths: String*): TestFileLocation = TestFileLocation(basePath, Paths.get(path, paths: _*))
+  def apply(basePath: Path, readOnly: Boolean, path: String, paths: String*): TestFileLocation =
+    TestFileLocation(basePath, Paths.get(path, paths: _*), readOnly)
+
+  def apply(basePath: Path, path: String, paths: String*): TestFileLocation =
+    TestFileLocation(basePath, true, path, paths: _*)
 }

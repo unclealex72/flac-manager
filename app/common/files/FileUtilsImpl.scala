@@ -38,12 +38,12 @@ import scala.util.Try
  * @author alex
  *
  */
-class FileUtilsImpl extends FileUtils {
+class FileUtilsImpl extends FileUtils with Messaging {
 
   override def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
-    messageService.printMessage(MOVE(sourceFileLocation, targetFileLocation))
-    val sourcePath = sourceFileLocation.resolve
-    val targetPath = targetFileLocation.resolve
+    log(MOVE(sourceFileLocation, targetFileLocation))
+    val sourcePath = sourceFileLocation.toPath
+    val targetPath = targetFileLocation.toPath
     Files.createDirectories(targetPath.getParent)
     Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE)
     val currentDirectory = sourcePath.getParent
@@ -51,8 +51,8 @@ class FileUtilsImpl extends FileUtils {
   }
 
   override def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
-    val sourcePath = sourceFileLocation.resolve
-    val targetPath = targetFileLocation.resolve
+    val sourcePath = sourceFileLocation.toPath
+    val targetPath = targetFileLocation.toPath
     val parentTargetPath = targetPath.getParent
     Files.createDirectories(parentTargetPath)
     val tempPath = Files.createTempFile(parentTargetPath, "device-file-", ".tmp")
@@ -63,8 +63,8 @@ class FileUtilsImpl extends FileUtils {
   }
 
   override def remove(fileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
-    messageService.printMessage(DELETE(fileLocation))
-    remove(fileLocation.basePath, fileLocation.resolve)
+    log(DELETE(fileLocation))
+    remove(fileLocation.basePath, fileLocation.toPath)
   }
 
   def remove(basePath: Path, currentPath: Path): Try[Unit] = Try {
@@ -87,9 +87,9 @@ class FileUtilsImpl extends FileUtils {
   }
 
   override def link(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService): Unit = {
-    messageService.printMessage(LINK(fileLocation, linkLocation))
-    val target = fileLocation.resolve
-    val link = linkLocation.resolve
+    log(LINK(fileLocation, linkLocation))
+    val target = fileLocation.toPath
+    val link = linkLocation.toPath
     val parent = link.getParent
     Files.createDirectories(parent)
     val relativeTarget = parent.relativize(target)
@@ -97,7 +97,9 @@ class FileUtilsImpl extends FileUtils {
   }
 
   override def isDirectory(fileLocation: FileLocation) = {
-    val path = fileLocation.resolve
+    val path = fileLocation.toPath
     Files.exists(path) && !Files.isSymbolicLink(path) && Files.isDirectory(path)
   }
+
+  def exists(fileLocation: FileLocation) = Files.exists(fileLocation.toPath)
 }

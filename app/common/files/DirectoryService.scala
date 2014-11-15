@@ -24,12 +24,9 @@
 
 package common.files
 
-import java.nio.file.Path
-
 import common.message.MessageService
 
-import scala.collection.immutable.SortedSet
-import scala.util.Try
+import scala.collection.SortedSet
 
 /**
  * An interface for classes that resolve directories and find FLAC files under
@@ -54,8 +51,6 @@ trait DirectoryService {
    * @return All music files found under the given directories.
    * @throws IOException
    */
-  def listStagedFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): SortedSet[StagedFlacFileLocation]
-
-  def listFlacFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): SortedSet[FlacFileLocation]
+  def listFiles[FL <: FileLocation](directories: Traversable[FL])(implicit messageService: MessageService): SortedSet[FL]
 
 }

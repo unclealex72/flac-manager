@@ -21,7 +21,7 @@
 
 package common.music
 
-import java.nio.file.{Paths, Path}
+import java.nio.file.{Path, Paths}
 import java.text.Normalizer
 
 import common.files.Extension

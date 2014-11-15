@@ -24,12 +24,10 @@
 
 package files
 
-import java.nio.file.{Paths, Files, Path}
+import java.nio.file.{Files, Path, Paths}
 
-import common.configuration.Directories
-import common.files.{TestFileLocation, FileUtilsImpl, FileLocation}
-import common.message.{LINK, MOVE, MessageService}
-import org.specs2.matcher.{Expectable, Matcher}
+import common.files.{FileUtilsImpl, TestFileLocation}
+import common.message.{LINK, MOVE, TestMessageService}
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import tempfs.TempFileSystem
@@ -45,7 +43,7 @@ class FileUtilsImplSpec extends Specification with PathMatchers with Mockito {
   trait fs extends TempFileSystem {
     lazy val source = rootDirectory.resolve("source")
     lazy val target = rootDirectory.resolve("target")
-    implicit val messageService: MessageService = mock[MessageService]
+    implicit val messageService: TestMessageService = mock[TestMessageService]
 
     def before(rootDirectory: Path): Unit = {}
   }
@@ -56,15 +54,15 @@ class FileUtilsImplSpec extends Specification with PathMatchers with Mockito {
       val fileToMove = TestFileLocation(source, "dir", "moveme.txt")
       val fileToKeep = TestFileLocation(source, "dir", "keepme.txt")
       Seq(fileToMove, fileToKeep).foreach { fl =>
-        Files.createDirectories(fl.resolve.getParent());
-        Files.createFile(fl.resolve);
+        Files.createDirectories(fl.toPath.getParent());
+        Files.createFile(fl.toPath);
       }
       val targetLocation = TestFileLocation(target, "otherdir", "movedme.txt")
       fileUtils.move(fileToMove, targetLocation)
       target.resolve(Paths.get("otherdir", "movedme.txt")) must exist
       target.resolve(Paths.get("otherdir", "movedme.txt")) must not(beADirectory)
-      fileToKeep.resolve must exist
-      fileToMove.resolve must not(exist)
+      fileToKeep.toPath must exist
+      fileToMove.toPath must not(exist)
       there was one(messageService).printMessage(MOVE(fileToMove, targetLocation))
     }
   }
@@ -72,13 +70,13 @@ class FileUtilsImplSpec extends Specification with PathMatchers with Mockito {
   "Linking to a file" should {
     "create a relative link that points to the original file" in new fs {
       val targetLocation = TestFileLocation(rootDirectory, "here.txt")
-      Files.createFile(targetLocation.resolve);
+      Files.createFile(targetLocation.toPath);
       val linkLocation = TestFileLocation(rootDirectory, "link.d", "link.txt")
       fileUtils.link(targetLocation, linkLocation)
-      linkLocation.resolve must beASymbolicLink
-      val symlink = Files.readSymbolicLink(linkLocation.resolve)
+      linkLocation.toPath must beASymbolicLink
+      val symlink = Files.readSymbolicLink(linkLocation.toPath)
       symlink must not(beAbsolute)
-      linkLocation.resolve.getParent.resolve(symlink).toAbsolutePath must beTheSameFileAs(targetLocation.resolve.toAbsolutePath())
+      linkLocation.toPath.getParent.resolve(symlink).toAbsolutePath must beTheSameFileAs(targetLocation.toPath.toAbsolutePath())
       there was one(messageService).printMessage(LINK(targetLocation, linkLocation))
     }
   }
@@ -87,13 +85,13 @@ class FileUtilsImplSpec extends Specification with PathMatchers with Mockito {
     "move the file and remove all empty directories" in new fs {
       Files.createDirectories(target)
       val fileToMove = TestFileLocation(source, "dir", "moveme.txt")
-      Files.createDirectories(fileToMove.resolve.getParent())
-      Files.createFile(fileToMove.resolve)
+      Files.createDirectories(fileToMove.toPath.getParent())
+      Files.createFile(fileToMove.toPath)
       val targetLocation = TestFileLocation(target, "otherdir", "movedme.txt")
       fileUtils.move(fileToMove, targetLocation)
       target.resolve(Paths.get("otherdir", "movedme.txt")) must exist
       target.resolve(Paths.get("otherdir", "movedme.txt")) must not(beADirectory)
-      fileToMove.resolve.getParent must not(exist)
+      fileToMove.toPath.getParent must not(exist)
       source must exist
       there was one(messageService).printMessage(MOVE(fileToMove, targetLocation))
     }
@@ -103,12 +101,12 @@ class FileUtilsImplSpec extends Specification with PathMatchers with Mockito {
     "also create any required missing directories" in new fs {
       Files.createDirectories(target)
       val fileToCopy = TestFileLocation(source, "dir", "copyme.txt")
-      Files.createDirectories(fileToCopy.resolve.getParent)
-      Files.createFile(fileToCopy.resolve)
+      Files.createDirectories(fileToCopy.toPath.getParent)
+      Files.createFile(fileToCopy.toPath)
       fileUtils.copy(fileToCopy, TestFileLocation(target, "otherdir", "copiedme.txt"))
       target.resolve(Paths.get("otherdir", "copiedme.txt")) must exist
       target.resolve(Paths.get("otherdir", "copiedme.txt")) must not(beADirectory)
-      fileToCopy.resolve must exist
+      fileToCopy.toPath must exist
     }
   }
 

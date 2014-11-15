@@ -26,8 +26,6 @@ package common.files
 
 import common.message.MessageService
 
-import scala.util.Try
-
 /**
  * Utilities for manipulating files and directories in ways not directly
  * supported by the JDK.
@@ -89,4 +87,6 @@ trait FileUtils {
    * @return
    */
   def isDirectory(fileLocation: FileLocation): Boolean
+
+  def exists(fileLocation: FileLocation): Boolean
 }

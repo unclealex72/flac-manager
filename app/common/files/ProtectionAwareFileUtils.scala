@@ -30,7 +30,6 @@ import java.nio.file.attribute.PosixFilePermission
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.collection.JavaConversions._
-import scala.util.Try
 
 /**
  * An implementation of {@link FileUtils} that decorates another {@link FileUtils} and is aware of whether {@link
@@ -40,20 +39,21 @@ import scala.util.Try
  */
 class ProtectionAwareFileUtils(override val delegate: FileUtils) extends DecoratingFileUtils(delegate) with StrictLogging {
 
-  def before(fileLocations: Seq[FileLocation]): Unit = alterWritable(false, fileLocations)
-  def after(fileLocations: Seq[FileLocation]): Unit = alterWritable(true, fileLocations)
+  def before(fileLocations: Seq[FileLocation]): Unit = alterWritable(_ => true, fileLocations)
 
-  def alterWritable(writable: Boolean, fileLocations: Seq[FileLocation]): Unit = {
+  def after(fileLocations: Seq[FileLocation]): Unit = alterWritable(!_.readOnly, fileLocations)
+
+  def alterWritable(writable: FileLocation => Boolean, fileLocations: Seq[FileLocation]): Unit = {
     fileLocations foreach alterWritableSingular(writable)
   }
 
-  def alterWritableSingular: Boolean => FileLocation => Unit = { allowWrites => fileLocation =>
-    var currentPath = fileLocation.resolve
+  def alterWritableSingular: (FileLocation => Boolean) => FileLocation => Unit = { allowWritesFactory => fileLocation =>
+    var currentPath = fileLocation.toPath
     val terminatingPath = fileLocation.basePath.getParent
     while (currentPath != null && !currentPath.equals(terminatingPath)) {
       if (Files.exists(currentPath)) {
         val posixFilePermissions = Files.getPosixFilePermissions(currentPath);
-        if (allowWrites) {
+        if (allowWritesFactory(fileLocation)) {
           logger.debug("Setting " + currentPath + " to read and write.");
           posixFilePermissions.add(PosixFilePermission.OWNER_WRITE);
         }

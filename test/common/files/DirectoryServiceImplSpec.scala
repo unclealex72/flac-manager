@@ -24,12 +24,12 @@
 
 package common.files
 
-import java.nio.file.{Paths, Files, Path}
+import java.nio.file.{Files, Path, Paths}
 
 import common.configuration.Directories
-import common.message.{MessageType, MessageService}
-import org.specs2.mutable._
+import common.message.{MessageService, MessageType}
 import org.specs2.mock._
+import org.specs2.mutable._
 import tempfs.TempFileSystem
 
 /**
@@ -46,8 +46,6 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
 
     implicit object NullMessageService extends MessageService {
       override def printMessage(template: MessageType): Unit = {}
-
-      override def finished = {}
 
       override def exception(t: Throwable) = {}
     }
@@ -75,7 +73,7 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
 
   "listing files in valid directories" should {
     "list the files" in new fs {
-      val fileLocations = directoryService.listFlacFiles(Seq("dir.flac", "dir").map(f => rootDirectory.resolve(f)))
+      val fileLocations = directoryService.listFiles(Seq(FlacFileLocation("dir.flac"), FlacFileLocation("dir")))
       fileLocations must contain(exactly(
         fl("dir.flac", "myfile.flac"),
         fl("dir.flac", "inner", "myfile.flac"),

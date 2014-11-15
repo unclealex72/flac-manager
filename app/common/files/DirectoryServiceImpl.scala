@@ -24,51 +24,28 @@
 
 package common.files
 
-import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
+import java.nio.file._
 
 import common.configuration.Directories
+import common.files.FileLocationImplicits._
 import common.message._
 
+import scala.collection.JavaConversions._
 import scala.collection.immutable.SortedSet
-import scala.collection.mutable
-import scala.util.Try
-import common.files.FileLocationImplicits._
-
 /**
  * @author alex
  *
  */
-class DirectoryServiceImpl(implicit directories: Directories) extends DirectoryService {
+class DirectoryServiceImpl(implicit directories: Directories) extends DirectoryService with Messaging {
 
 
-  override def listStagedFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): SortedSet[StagedFlacFileLocation] = {
-    listFiles[StagedFlacFileLocation](directories.stagingPath, relativePaths, path => StagedFlacFileLocation(path))
-  }
-
-  override def listFlacFiles(relativePaths: Traversable[Path])(implicit messageService: MessageService): SortedSet[FlacFileLocation] = {
-    listFiles(directories.flacPath, relativePaths, path => FlacFileLocation(path))
-  }
-
-  def listFiles[FL <: FileLocation](basePath: Path, relativePaths: Traversable[Path], fileLocationFactory: Path => FL)(implicit messageService: MessageService): SortedSet[FL] = {
-    val fileLocations = mutable.Buffer[FL]()
-    relativePaths.map(basePath.resolve(_)).foreach { absolutePath =>
-      walkFileTree(absolutePath) { path =>
-        val fileLocation = fileLocationFactory(basePath.relativize(path))
-        fileLocations += fileLocation
-        messageService.printMessage(FOUND_FILE(fileLocation))
-      }
+  override def listFiles[FL <: FileLocation](fileLocations: Traversable[FL])(implicit messageService: MessageService): SortedSet[FL] = {
+    fileLocations.foldLeft(SortedSet.empty[FL]) { (allFileLocations, fl) =>
+      val childFileLocations = Files.list(fl).iterator().toSeq.map(p => fl.extendTo(p.getFileName))
+      val (childDirectories, childFiles) = childFileLocations.sorted.partition(fl => Files.isDirectory(fl))
+      childFiles.foreach(fl => log(FOUND_FILE(fl)))
+      allFileLocations ++ childFiles ++ listFiles(childDirectories)
     }
-    fileLocations.to[SortedSet]
-  }
 
-  def walkFileTree(path: Path)(visitor: Path => Any): Unit = {
-    val simpleFileVisitor = new SimpleFileVisitor[Path] {
-      override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
-        visitor(file)
-        super.visitFile(file, attrs)
-      }
-    }
-    Files.walkFileTree(path, simpleFileVisitor)
   }
 }

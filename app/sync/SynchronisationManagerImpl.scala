@@ -23,7 +23,7 @@ package sync
 
 import java.nio.file.Path
 
-import common.files.{DeviceFileLocation, FlacFileLocation, FileLocation}
+import common.files.{DeviceFileLocation, FileLocation}
 import common.message._
 
 import scala.collection.SortedSet
@@ -38,7 +38,8 @@ import scala.util.Try
  *
  * @author alex
  */
-class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionService, val lastModifiedFactory: LastModifiedFactory) extends SynchronisationManager {
+class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionService, val lastModifiedFactory: LastModifiedFactory)
+  extends SynchronisationManager with Messaging {
 
   def synchronise(device: Device, fileLocations: Traversable[DeviceFileLocation])(implicit messageService: MessageService): Try[Unit] = {
     device.beforeMount
@@ -99,36 +100,32 @@ class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionSe
   }
 }
 
-sealed trait FileAction {
-  def broadcast(implicit messageService: MessageService): Unit = {
-    messageService.printMessage(message)
-  }
-
-  def message: MessageType
+sealed trait FileAction extends Messaging {
+  def broadcast(implicit messageService: MessageService): Unit
 
   def execute(device: Device): Unit
 }
 
 case class Add(fileLocation: FileLocation) extends FileAction {
-  def message = SYNC_ADD(fileLocation)
+  def broadcast(implicit messageService: MessageService) = log(SYNC_ADD(fileLocation))
 
   def execute(device: Device) = device.add(fileLocation)
 }
 
 case class Remove(deviceFile: DeviceFile) extends FileAction {
-  def message = SYNC_REMOVE(deviceFile)
+  def broadcast(implicit messageService: MessageService) = log(SYNC_REMOVE(deviceFile))
 
   def execute(device: Device) = device.remove(deviceFile)
 }
 
 case class Keep(deviceFile: DeviceFile) extends FileAction {
-  def message = SYNC_KEEP(deviceFile)
+  def broadcast(implicit messageService: MessageService) = log(SYNC_KEEP(deviceFile))
 
   def execute(device: Device) = {}
 }
 
 case class Ignore(relativePath: String) extends FileAction {
-  def message = SYNC_IGNORE(relativePath)
+  def broadcast(implicit messageService: MessageService) = log(SYNC_IGNORE(relativePath))
 
   def execute(device: Device) = {}
 }

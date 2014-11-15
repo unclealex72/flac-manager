@@ -21,10 +21,10 @@
 
 package sync
 
-import java.io.IOException
-import java.nio.file.{Paths, Path}
+import java.nio.file.{Path, Paths}
 import java.text.SimpleDateFormat
-import common.configuration.{User, Directories}
+
+import common.configuration.{Directories, User}
 import common.files.{DeviceFileLocation, FileLocation}
 import common.message._
 import org.specs2.mock.Mockito
@@ -36,13 +36,13 @@ import org.specs2.specification.Scope
  */
 class SynchronisationManagerImplSpec extends Specification with Mockito {
 
-  import Implicits._
+  import sync.Implicits._
 
   trait context extends Scope {
     implicit val directories = Directories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"))
     val user: User = User("freddie", "", "", "")
     val deviceConnectionService = mock[DeviceConnectionService]
-    implicit val messageService: MessageService = mock[MessageService]
+    implicit val messageService: TestMessageService = mock[TestMessageService]
     val ID = "ID"
   }
 

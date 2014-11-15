@@ -24,10 +24,10 @@
 
 package common.files
 
-import java.nio.file.{Paths, Path}
+import java.nio.file.{Path, Paths}
 
-import common.configuration.{User, Directories}
-import common.files.PathImplicits._
+import common.configuration.{Directories, User}
+import common.music.Tags
 
 /**
  * A class that encapsulates a location of a file within a repository of music
@@ -54,10 +54,15 @@ trait FileLocation {
    *
    * @return The absolute path of the file identified by this class.
    */
-  def resolve: Path = {
+  def toPath: Path = {
     basePath.resolve(relativePath);
   }
 
+  /**
+   * True if this file location should be read only, false otherwise.
+   * @return
+   */
+  def readOnly: Boolean
 }
 
 /**
@@ -65,7 +70,7 @@ trait FileLocation {
  */
 trait StagedFlacFileLocation extends FileLocation {
 
-  def toStagedFlacFileLocation: StagedFlacFileLocation
+  def toFlacFileLocation(tags: Tags): FlacFileLocation
 }
 
 /**
@@ -93,14 +98,32 @@ trait DeviceFileLocation extends FileLocation
 
 object FileLocationImplicits {
 
-  implicit def fileLocationOrdering[FL <: FileLocation]: Ordering[FL] = Ordering.by(_.resolve)
+  implicit def fileLocationOrdering[FL <: FileLocation]: Ordering[FL] = Ordering.by(_.toPath)
 
-  implicit def asAbsolutePath(fileLocation: FileLocation): Path = fileLocation.resolve
+  implicit def asAbsolutePath(fileLocation: FileLocation): Path = fileLocation.toPath
+
+  /**
+   * An implicit class to add a resolve argument that then means that the FileLocation trait does not
+   * need to be parameterised.
+   * @param fileLocation
+   * @tparam FL
+   */
+  implicit class Resolver[FL <: FileLocation](val fileLocation: FL)(implicit val directories: Directories) {
+
+    def extendTo(path: Path): FL = {
+      val newRelativePath: Path = fileLocation.relativePath.resolve(path)
+      (if (fileLocation.isInstanceOf[FlacFileLocation]) FlacFileLocationImpl(newRelativePath, directories)
+      else if (fileLocation.isInstanceOf[StagedFlacFileLocation]) StagedFlacFileLocationImpl(newRelativePath, directories)
+      else if (fileLocation.isInstanceOf[EncodedFileLocation]) EncodedFileLocationImpl(newRelativePath, directories)
+      else DeviceFileLocationImpl(fileLocation.asInstanceOf[DeviceFileLocationImpl].user, newRelativePath, directories)).asInstanceOf[FL]
+    }
+  }
 }
 
 abstract class AbstractFileLocation(
                                      val name: String,
                                      val relativePath: Path,
+                                     val readOnly: Boolean,
                                      val directoryFactory: Directories => Path,
                                      val directories: Directories) {
 
@@ -109,13 +132,14 @@ abstract class AbstractFileLocation(
   override def toString: String = s"$name($relativePath)"
 }
 
-import PathImplicits._
+import common.files.PathImplicits._
 
 sealed abstract class AbstractFlacFileLocation(
                                                 override val name: String,
                                                 override val relativePath: Path,
+                                                override val readOnly: Boolean,
                                                 override val directoryFactory: Directories => Path,
-                                                override implicit val directories: Directories) extends AbstractFileLocation(name, relativePath, directoryFactory, directories) {
+                                                override implicit val directories: Directories) extends AbstractFileLocation(name, relativePath, readOnly, directoryFactory, directories) {
 
   def toStagedFlacFileLocation: StagedFlacFileLocation = StagedFlacFileLocation(relativePath)
 
@@ -148,7 +172,12 @@ private object Unapply {
 case class StagedFlacFileLocationImpl(
                                        override val relativePath: Path,
                                        override val directories: Directories) extends AbstractFlacFileLocation(
-  "StagedFlacFileLocation", relativePath, _.stagingPath, directories) with StagedFlacFileLocation
+  "StagedFlacFileLocation", relativePath, false, _.stagingPath, directories) with StagedFlacFileLocation {
+
+  override def toFlacFileLocation(tags: Tags): FlacFileLocation = {
+    FlacFileLocation(tags.asPath(FLAC))(directories)
+  }
+}
 
 object StagedFlacFileLocation {
 
@@ -169,7 +198,7 @@ object StagedFlacFileLocation {
  */
 case class FlacFileLocationImpl(
                                  override val relativePath: Path, override val directories: Directories) extends AbstractFlacFileLocation(
-  "FlacFileLocation", relativePath, _.flacPath, directories) with FlacFileLocation
+  "FlacFileLocation", relativePath, true, _.flacPath, directories) with FlacFileLocation
 
 object FlacFileLocation {
 
@@ -190,7 +219,7 @@ object FlacFileLocation {
  */
 case class EncodedFileLocationImpl(
                                     override val relativePath: Path, override val directories: Directories) extends AbstractFileLocation(
-  "EncodedFlacFileLocation", relativePath, _.encodedPath, directories) with EncodedFileLocation {
+  "EncodedFlacFileLocation", relativePath, true, _.encodedPath, directories) with EncodedFileLocation {
   override def toDeviceFileLocation(user: User): DeviceFileLocation = DeviceFileLocation(user, relativePath)(directories)
 }
 
@@ -209,7 +238,7 @@ object EncodedFileLocation {
  */
 case class DeviceFileLocationImpl(
                                    val user: User, override val relativePath: Path, override val directories: Directories) extends AbstractFileLocation(
-  "OwnedEncodedFlacFileLocation", relativePath, _.devicesPath.resolve(user.name), directories) with DeviceFileLocation
+  "OwnedEncodedFlacFileLocation", relativePath, true, _.devicesPath.resolve(user.name), directories) with DeviceFileLocation
 
 object DeviceFileLocation {
   def apply(user: User, relativePath: Path)(implicit directories: Directories): DeviceFileLocation =
