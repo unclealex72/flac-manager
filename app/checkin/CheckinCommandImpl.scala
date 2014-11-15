@@ -24,6 +24,7 @@ package checkin
 import common.configuration.User
 import common.files.FileLocationImplicits._
 import common.files._
+import common.message.MessageTypes._
 import common.message._
 import common.music.{Tags, TagsService}
 import common.owners.OwnerService

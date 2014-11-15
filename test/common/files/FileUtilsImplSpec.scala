@@ -27,7 +27,8 @@ package files
 import java.nio.file.{Files, Path, Paths}
 
 import common.files.{FileUtilsImpl, TestFileLocation}
-import common.message.{LINK, MOVE, TestMessageService}
+import common.message.MessageTypes._
+import common.message.TestMessageService
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import tempfs.TempFileSystem

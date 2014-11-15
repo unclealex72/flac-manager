@@ -27,6 +27,7 @@ package common.files
 
 import java.nio.file.{Files, Path, StandardCopyOption}
 
+import common.message.MessageTypes._
 import common.message._
 
 import scala.util.Try

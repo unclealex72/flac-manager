@@ -5,7 +5,8 @@ import java.nio.file.Paths
 import common.configuration.{Directories, User}
 import common.files.FileLocationImplicits._
 import common.files._
-import common.message.{TestMessageService, _}
+import common.message.MessageTypes._
+import common.message.TestMessageService
 import common.music.{CoverArt, Tags, TagsService}
 import common.owners.OwnerService
 import org.specs2.mock.Mockito

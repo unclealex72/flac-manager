@@ -1,0 +1,42 @@
+package common.owners
+
+import common.configuration.{User, Users}
+import common.message.MessageTypes._
+import common.message.{MessageService, Messaging}
+import common.music.Tags
+import common.musicbrainz.MusicBrainzClient
+
+import scala.concurrent._
+import scala.concurrent.duration._
+
+/**
+ * Created by alex on 15/11/14.
+ */
+class OwnerServiceImpl(val musicBrainzClient: MusicBrainzClient, val users: Users) extends OwnerService with Messaging {
+
+  val timeout: FiniteDuration = 10 seconds
+
+  override def listCollections()(implicit messageService: MessageService): Tags => Set[User] = {
+    val collectionsByUser = users().map { user =>
+      log(READING_COLLECTION(user))
+      val collection = Await.result(musicBrainzClient.relasesForOwner(user), timeout)
+      user -> collection
+    }.toSet
+    tags => collectionsByUser.filter(_._2.exists(id => id == tags.albumId)).map(_._1)
+
+  }
+
+  override def own(user: User, tags: Seq[Tags])(implicit messageService: MessageService): Unit = {
+    changeOwnership(user, tags, musicBrainzClient.addReleases _)
+  }
+
+  override def unown(user: User, tags: Seq[Tags])(implicit messageService: MessageService): Unit = {
+    changeOwnership(user, tags, musicBrainzClient.removeReleases _)
+  }
+
+  def changeOwnership(user: User, tags: Seq[Tags], block: (User, Traversable[String]) => Future[Unit]): Unit = {
+    val albumIds = tags.map(_.albumId)
+    Await.result(block(user, albumIds), timeout)
+  }
+
+}

@@ -23,11 +23,11 @@
  */
 
 package common.files
-
 import java.nio.file._
 
 import common.configuration.Directories
 import common.files.FileLocationImplicits._
+import common.message.MessageTypes._
 import common.message._
 
 import scala.collection.JavaConversions._

@@ -24,6 +24,7 @@ package sync
 import java.nio.file.Path
 
 import common.files.{DeviceFileLocation, FileLocation}
+import common.message.MessageTypes._
 import common.message._
 
 import scala.collection.SortedSet

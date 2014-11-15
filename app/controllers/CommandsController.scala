@@ -24,7 +24,8 @@ package controllers
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
 import com.typesafe.scalalogging.Logger
-import common.message.{ERROR, MessageService, MessageServiceBuilder}
+import common.message.MessageTypes._
+import common.message.{MessageService, MessageServiceBuilder}
 import org.slf4j.LoggerFactory
 import own.{Own, OwnCommand, Unown}
 import play.api.libs.concurrent.Execution.Implicits._
@@ -45,8 +46,6 @@ class CommandsController(
                           checkoutCommand: CheckoutCommand,
                           ownCommand: OwnCommand
                           ) extends Controller {
-
-
   def sync = command[Parameters](
     "sync", parameterBuilders.syncParametersBuilder, _ => ms => syncCommand.synchronise(ms))
 

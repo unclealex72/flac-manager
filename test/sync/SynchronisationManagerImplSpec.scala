@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat
 
 import common.configuration.{Directories, User}
 import common.files.{DeviceFileLocation, FileLocation}
+import common.message.MessageTypes._
 import common.message._
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
