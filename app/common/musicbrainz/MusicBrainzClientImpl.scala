@@ -27,9 +27,8 @@ package common.musicbrainz
 import com.ning.http.client.Realm.{AuthScheme, RealmBuilder}
 import com.typesafe.scalalogging.StrictLogging
 import common.configuration.User
-import dispatch._, Defaults._
-
-import dispatch._, Defaults._
+import dispatch.Defaults._
+import dispatch._
 
 import scala.xml.Elem
 
@@ -80,7 +79,7 @@ class MusicBrainzClientImpl(val musicBrainzHost: String) extends MusicBrainzClie
    * @param newReleaseIds The new releases to add to the user's collection.
    * @throws thrown if a unique collection cannot be found.
    */
-  override def addReleases(user: User, newReleaseIds: Traversable[String]): Future[Unit] = {
+  override def addReleases(user: User, newReleaseIds: Set[String]): Future[Unit] = {
     alterReleases(request(user).PUT, newReleaseIds)(user)
   }
 
@@ -90,11 +89,11 @@ class MusicBrainzClientImpl(val musicBrainzHost: String) extends MusicBrainzClie
    * @param oldReleaseIds The old releases to remove from the user's collection.
    * @throws thrown if a unique collection cannot be found.
    */
-  override def removeReleases(user: User, oldReleaseIds: Traversable[String]): Future[Unit] = {
+  override def removeReleases(user: User, oldReleaseIds: Set[String]): Future[Unit] = {
     alterReleases(request(user).DELETE, oldReleaseIds)(user)
   }
 
-  def alterReleases(partialReq: Req, releaseIds: Traversable[String])(implicit user: User): Future[Unit] = {
+  def alterReleases(partialReq: Req, releaseIds: Set[String])(implicit user: User): Future[Unit] = {
     val alterRelease: String => Future[Unit] = { collectionId =>
       val groups = releaseIds.toList.grouped(RELEASE_PATH_LIMIT)
       val eventualRequests = groups.map { releaseIds =>

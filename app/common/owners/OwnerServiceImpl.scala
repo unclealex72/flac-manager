@@ -34,8 +34,8 @@ class OwnerServiceImpl(val musicBrainzClient: MusicBrainzClient, val users: User
     changeOwnership(user, tags, musicBrainzClient.removeReleases _)
   }
 
-  def changeOwnership(user: User, tags: Seq[Tags], block: (User, Traversable[String]) => Future[Unit]): Unit = {
-    val albumIds = tags.map(_.albumId)
+  def changeOwnership(user: User, tags: Seq[Tags], block: (User, Set[String]) => Future[Unit]): Unit = {
+    val albumIds = tags.map(_.albumId).toSet
     Await.result(block(user, albumIds), timeout)
   }
 

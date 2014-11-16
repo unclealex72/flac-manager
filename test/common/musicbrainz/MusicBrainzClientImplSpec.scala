@@ -25,12 +25,17 @@ package common.musicbrainz
 import org.specs2.mutable._
 
 import scala.collection.JavaConversions._
+import scala.collection.SortedSet
 import scala.io.Source
 
 /**
  * Created by alex on 26/10/14.
  */
 class MusicBrainzClientImplSpec extends Specification {
+
+  implicit def rangeToSet(range: Range): Set[String] = {
+    range.foldLeft(SortedSet.empty[String]) { (rs, r) => rs + f"${r}%03d"}
+  }
 
   "The MusicBrainzClient" should {
 
@@ -58,17 +63,18 @@ class MusicBrainzClientImplSpec extends Specification {
     }
 
     "Send a PUT request for adding releases to a collection" in new Server("ws-two-collections-success/root.txt") {
-      val response = client.addReleases(user, 0 until 150 map (_.toString)).map(logs)
+      val response = client.addReleases(user, 0 until 150).map(logs)
       response must containTheSameElementsAs(expectedResultsForAlteringCollection("PUT", 150)).await
     }
 
     "Send DELETE request for removing releases from a collection" in new Server("ws-two-collections-success/root.txt") {
-      val response = client.removeReleases(user, 0 until 150 map (_.toString)).map(logs)
+      val response = client.removeReleases(user, 0 until 150).map(logs)
       response must containTheSameElementsAs(expectedResultsForAlteringCollection("DELETE", 150)).await
     }
 
     def expectedResultsForAlteringCollection(method: String, releaseCount: Int) = (0 until releaseCount).toList.grouped(100).map { ids =>
-      s"$method:/ws/2/collection/bba2a722-0540-4260-b12d-1eae32760b9d/releases/${ids.mkString(";")}"
+      val formattedIds = ids.map(id => f"${id}%03d")
+      s"$method:/ws/2/collection/bba2a722-0540-4260-b12d-1eae32760b9d/releases/${formattedIds.mkString(";")}"
     }.toList
   }
 
