@@ -29,7 +29,8 @@ import common.message.MessageService
  * @author alex
  *
  */
-abstract class DecoratingFileUtils(val delegate: FileUtils) extends FileUtils with StrictLogging {
+abstract class DecoratingFileUtils(val delegate: FileUtils)(implicit val fileLocationUtils: FileLocationUtils)
+  extends FileUtils with StrictLogging {
 
   def wrap(block: => FileUtils => Unit)(fileLocations: FileLocation*): Unit = {
     before(fileLocations)
@@ -37,7 +38,7 @@ abstract class DecoratingFileUtils(val delegate: FileUtils) extends FileUtils wi
       block(delegate)
     }
     finally {
-      after(fileLocations.filter(exists))
+      after(fileLocations.filter(_.exists))
     }
   }
 
@@ -52,12 +53,8 @@ abstract class DecoratingFileUtils(val delegate: FileUtils) extends FileUtils wi
     delegate.remove(fileLocation)
   }
 
-  override def exists(fileLocation: FileLocation): Boolean = delegate.exists(fileLocation)
-
   override def link(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService): Unit =
     wrap(_.link(fileLocation, linkLocation))(fileLocation, linkLocation)
-
-  override def isDirectory(fileLocation: FileLocation) = delegate.isDirectory(fileLocation)
 
   def before(fileLocations: Seq[FileLocation]): Unit
 

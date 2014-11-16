@@ -26,8 +26,9 @@ package common.files
 
 import java.nio.file.{Path, Paths}
 
+import com.wix.accord.Violation
 import common.configuration.{Directories, User}
-import common.music.Tags
+import common.music.{Tags, TagsService}
 
 /**
  * A class that encapsulates a location of a file within a repository of music
@@ -42,7 +43,7 @@ trait FileLocation {
   /**
    * The base path of the repository.
    */
-  val basePath: Path
+  protected[files] val basePath: Path
 
   /**
    * The location of the file relative to the base path.
@@ -54,16 +55,33 @@ trait FileLocation {
    *
    * @return The absolute path of the file identified by this class.
    */
-  def toPath: Path = {
+  protected[files] def toPath: Path = {
     basePath.resolve(relativePath);
   }
+
+  def toMessage: String = toPath.toString
 
   /**
    * True if this file location should be read only, false otherwise.
    * @return
    */
   def readOnly: Boolean
+
+  def isDirectory(implicit fileLocationUtils: FileLocationUtils): Boolean = fileLocationUtils.isDirectory(this)
+
+  def exists(implicit fileLocationUtils: FileLocationUtils): Boolean = fileLocationUtils.exists(this)
+
+  def lastModified(implicit fileLocationUtils: FileLocationUtils): Long = fileLocationUtils.lastModified(this)
+
+  def readTags(implicit tagsService: TagsService): Either[Set[Violation], Tags] = tagsService.read(toPath)
+
+  def writeTags(tags: Tags)(implicit tagsService: TagsService): Unit = tagsService.write(toPath, tags)
 }
+
+/**
+ * A file location in the temporary directory structure.
+ */
+trait TemporaryFileLocation extends FileLocation
 
 /**
  * A `FileLocation` in the staging repository.
@@ -71,6 +89,9 @@ trait FileLocation {
 trait StagedFlacFileLocation extends FileLocation {
 
   def toFlacFileLocation(tags: Tags): FlacFileLocation
+
+  def isFlacFile(implicit flacFileChecker: FlacFileChecker): Boolean = flacFileChecker.isFlacFile(toPath)
+
 }
 
 /**
@@ -100,8 +121,6 @@ object FileLocationImplicits {
 
   implicit def fileLocationOrdering[FL <: FileLocation]: Ordering[FL] = Ordering.by(_.toPath)
 
-  implicit def asAbsolutePath(fileLocation: FileLocation): Path = fileLocation.toPath
-
   /**
    * An implicit class to add a resolve argument that then means that the FileLocation trait does not
    * need to be parameterised.
@@ -130,9 +149,23 @@ abstract class AbstractFileLocation(
   val basePath = directoryFactory(directories)
 
   override def toString: String = s"$name($relativePath)"
+
+
 }
 
 import common.files.PathImplicits._
+
+case class TemporaryFileLocationImpl(override val relativePath: Path, override val directories: Directories)
+  extends AbstractFileLocation("TemporaryFileLocation", relativePath, false, _.temporaryPath, directories) with TemporaryFileLocation
+
+object TemporaryFileLocation {
+
+  def apply(relativePath: Path)(implicit directories: Directories): TemporaryFileLocation =
+    TemporaryFileLocationImpl(relativePath, directories)
+
+  def create()(implicit fileLocationUtils: FileLocationUtils, directories: Directories): TemporaryFileLocation = fileLocationUtils.createTemporaryFileLocation()
+
+}
 
 sealed abstract class AbstractFlacFileLocation(
                                                 override val name: String,
@@ -238,7 +271,7 @@ object EncodedFileLocation {
  */
 case class DeviceFileLocationImpl(
                                    val user: User, override val relativePath: Path, override val directories: Directories) extends AbstractFileLocation(
-  "OwnedEncodedFlacFileLocation", relativePath, true, _.devicesPath.resolve(user.name), directories) with DeviceFileLocation
+  "DeviceFileLocation", relativePath, true, _.devicesPath.resolve(user.name), directories) with DeviceFileLocation
 
 object DeviceFileLocation {
   def apply(user: User, relativePath: Path)(implicit directories: Directories): DeviceFileLocation =

@@ -22,11 +22,10 @@
  *
  */
 
-package files
+package common.files
 
 import java.nio.file.{Files, Path, Paths}
 
-import common.files.{FileUtilsImpl, TestFileLocation}
 import common.message.MessageTypes._
 import common.message.TestMessageService
 import org.specs2.mock.Mockito
@@ -45,7 +44,7 @@ class FileUtilsImplSpec extends Specification with PathMatchers with Mockito {
     lazy val source = rootDirectory.resolve("source")
     lazy val target = rootDirectory.resolve("target")
     implicit val messageService: TestMessageService = mock[TestMessageService]
-
+    implicit val fileLocationUtils = new FileLocationUtilsImpl()
     def before(rootDirectory: Path): Unit = {}
   }
 
@@ -114,16 +113,16 @@ class FileUtilsImplSpec extends Specification with PathMatchers with Mockito {
   "Checking whether a file is a directory or not" should {
     "return true for a directory" in new fs {
       Files.createDirectories(source.resolve("dir"))
-      fileUtils.isDirectory(TestFileLocation(source, "dir")) must beTrue
+      TestFileLocation(source, "dir").isDirectory must beTrue
     }
     "return false for a file" in new fs {
       Files.createDirectories(source)
       Files.createFile(source.resolve("file"))
-      fileUtils.isDirectory(TestFileLocation(source, "file")) must beFalse
+      TestFileLocation(source, "file").isDirectory must beFalse
     }
     "return false for a file that does not exist" in new fs {
       Files.createDirectories(source)
-      fileUtils.isDirectory(TestFileLocation(source, "nodir")) must beFalse
+      TestFileLocation(source, "nodir").isDirectory must beFalse
     }
   }
 }

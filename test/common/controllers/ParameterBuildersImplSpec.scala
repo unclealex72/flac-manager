@@ -39,11 +39,11 @@ import play.api.test.FakeRequest
 class ParameterBuildersImplSpec extends Specification with Mockito {
 
   trait Context extends Scope {
-    implicit val directories = Directories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"))
+    lazy implicit val directories = Directories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"), Paths.get("/temp"))
     val MTAB = "mtab" -> "some"
-    lazy val fileUtils = mock[FileUtils]
-    fileUtils.isDirectory(any[FileLocation]) answers { fileLocation =>
-      fileLocation.asInstanceOf[FileLocation].toPath.getFileName.toString == "dir"
+    lazy implicit val fileLocationUtils = mock[TestFileLocationUtils]
+    fileLocationUtils.isDirectory(any[FileLocation]) answers { fileLocation =>
+      fileLocation.asInstanceOf[FileLocation].relativePath.getFileName.toString == "dir"
     }
     lazy val users = mock[Users]
     val brian: User = User("Brian", "", "", "")
@@ -52,7 +52,7 @@ class ParameterBuildersImplSpec extends Specification with Mockito {
 
     lazy val directoryMappingService = mock[DirectoryMappingService]
     directoryMappingService.withMtab(MTAB._2) answers (_ => path => Paths.get(path))
-    lazy val parameterBuilders = new ParameterBuildersImpl(users, directoryMappingService, fileUtils)(directories)
+    lazy val parameterBuilders = new ParameterBuildersImpl(users, directoryMappingService)
 
     def bind[P](parameterBuilder: ParameterBuilder[P], params: (String, Any)*): Either[Seq[FormError], P] = {
       val request = FakeRequest().withFormUrlEncodedBody(params.map { case (k, v) => (k, v.toString)}: _*)

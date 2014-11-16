@@ -25,11 +25,12 @@ import java.io.ByteArrayOutputStream
 import java.nio.file.{Files, StandardCopyOption}
 
 import com.google.common.io.ByteStreams
+import io.github.marklister.base64.Base64._
 import org.slf4j.bridge.SLF4JBridgeHandler
 import org.specs2.mutable._
 import tempfs.DefaultTempFileSystem
+
 import scala.sys.process._
-import io.github.marklister.base64.Base64._
 
 /**
  * @author alex
@@ -53,7 +54,7 @@ class JaudioTaggerTagsServiceSpec extends Specification {
       val tempMusicFile = rootDirectory.resolve("tagged.flac")
       Files.copy(flacIn, tempMusicFile, StandardCopyOption.REPLACE_EXISTING)
       flacIn.close
-      val tags = tagsService.read(tempMusicFile)
+      val tags: Tags = tagsService.readTags(tempMusicFile)
       tags.album must be equalTo ("Metal: A Headbanger's Companion")
       tags.albumArtist must be equalTo ("Various Artists")
       tags.albumArtistId must be equalTo ("89ad4ac3-39f7-470e-963a-56509c546377")

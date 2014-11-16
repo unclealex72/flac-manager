@@ -23,7 +23,7 @@ package sync
 
 import java.nio.file.Path
 
-import common.files.{DeviceFileLocation, FileLocation}
+import common.files.{DeviceFileLocation, FileLocation, FileLocationUtils}
 import common.message.MessageTypes._
 import common.message._
 
@@ -39,7 +39,7 @@ import scala.util.Try
  *
  * @author alex
  */
-class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionService, val lastModifiedFactory: LastModifiedFactory)
+class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionService)(implicit val fileLocationUtils: FileLocationUtils)
   extends SynchronisationManager with Messaging {
 
   def synchronise(device: Device, fileLocations: Traversable[DeviceFileLocation])(implicit messageService: MessageService): Try[Unit] = {
@@ -66,7 +66,7 @@ class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionSe
         case (Some(deviceFile), None) => Remove(deviceFile)
         case (None, Some(fileLocation)) => Add(fileLocation)
         case (Some(deviceFile), Some(fileLocation)) =>
-          if (laterThan(lastModifiedFactory(fileLocation), deviceFile.lastModified)) Add(fileLocation) else Keep(deviceFile)
+          if (laterThan(fileLocation.lastModified, deviceFile.lastModified)) Add(fileLocation) else Keep(deviceFile)
       }
     }
     fileActions.foreach(_.broadcast)

@@ -36,13 +36,13 @@ import scala.collection.immutable.SortedSet
  * @author alex
  *
  */
-class DirectoryServiceImpl(implicit directories: Directories) extends DirectoryService with Messaging {
+class DirectoryServiceImpl(implicit fileLocationUtils: FileLocationUtils, directories: Directories) extends DirectoryService with Messaging {
 
 
   override def listFiles[FL <: FileLocation](fileLocations: Traversable[FL])(implicit messageService: MessageService): SortedSet[FL] = {
     fileLocations.foldLeft(SortedSet.empty[FL]) { (allFileLocations, fl) =>
-      val childFileLocations = Files.list(fl).iterator().toSeq.map(p => fl.extendTo(p.getFileName))
-      val (childDirectories, childFiles) = childFileLocations.sorted.partition(fl => Files.isDirectory(fl))
+      val childFileLocations = Files.list(fl.toPath).iterator().toSeq.map(p => fl.extendTo(p.getFileName))
+      val (childDirectories, childFiles) = childFileLocations.sorted.partition(_.isDirectory)
       childFiles.foreach(fl => log(FOUND_FILE(fl)))
       allFileLocations ++ childFiles ++ listFiles(childDirectories)
     }

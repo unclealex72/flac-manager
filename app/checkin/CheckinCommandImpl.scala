@@ -22,7 +22,6 @@
 package checkin
 
 import common.configuration.User
-import common.files.FileLocationImplicits._
 import common.files._
 import common.message.MessageTypes._
 import common.message._
@@ -36,11 +35,10 @@ import scala.collection.{GenTraversableOnce, SortedSet}
  */
 class CheckinCommandImpl(
                           val directoryService: DirectoryService,
-                          val flacFileChecker: FlacFileChecker,
-                          val fileUtils: FileUtils,
                           val ownerService: OwnerService,
-                          val tagsService: TagsService,
-                          val checkinService: CheckinService) extends CheckinCommand with Messaging {
+                          val checkinService: CheckinService)(implicit val flacFileChecker: FlacFileChecker,
+                                                              val tagsService: TagsService, val fileLocationUtils: FileLocationUtils)
+  extends CheckinCommand with Messaging {
 
   override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): Unit = {
     val fileLocations = directoryService.listFiles(locations)
@@ -69,7 +67,7 @@ class CheckinCommandImpl(
 
   def isValidFlacFile: (StagedFlacFileLocation) => FirstStageValidationResult = {
     fl =>
-      if (flacFileChecker.isFlacFile(fl)) FlacFileType(fl) else NonFlacFileType(fl)
+      if (fl.isFlacFile) FlacFileType(fl) else NonFlacFileType(fl)
   }
 
   def isFullyTaggedFlacFile(implicit messageService: MessageService): FirstStageValidationResult => GenTraversableOnce[SecondStageValidationResult] = {
@@ -77,7 +75,7 @@ class CheckinCommandImpl(
       fsvr match {
         case NonFlacFileType(sfl) => Some(NonFlacFileType(sfl))
         case FlacFileType(sfl) => {
-          tagsService.readAndValidate(sfl) match {
+          sfl.readTags match {
             case Left(violations) => {
               log(INVALID_FLAC(sfl))
               None
@@ -93,7 +91,7 @@ class CheckinCommandImpl(
       ssvr match {
         case NonFlacFileType(sfl) => Some(NonFlacFileType(sfl))
         case ValidFlacFile(sfl, fl, tags) => {
-          if (fileUtils.exists(fl)) {
+          if (fl.exists) {
             log(OVERWRITE(sfl, fl))
             None
           }
@@ -189,9 +187,3 @@ object NonUniqueFlacFileMapping {
 
 case class OwnedFlacFile(val stagedFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, owners: Set[User])
   extends FifthStageValidationResult
-
-sealed trait Action
-
-case class Encode(val stagedFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, owners: Set[User]) extends Action
-
-case class Delete(val stagedFileLocation: StagedFlacFileLocation) extends Action

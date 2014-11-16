@@ -96,11 +96,4 @@ class FileUtilsImpl extends FileUtils with Messaging {
     val relativeTarget = parent.relativize(target)
     Files.createSymbolicLink(link, relativeTarget)
   }
-
-  override def isDirectory(fileLocation: FileLocation) = {
-    val path = fileLocation.toPath
-    Files.exists(path) && !Files.isSymbolicLink(path) && Files.isDirectory(path)
-  }
-
-  def exists(fileLocation: FileLocation) = Files.exists(fileLocation.toPath)
 }

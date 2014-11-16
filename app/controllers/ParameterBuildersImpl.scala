@@ -21,20 +21,20 @@
 
 package controllers
 
-import java.nio.file.{Paths, Path}
+import java.nio.file.Path
 
-import common.configuration.{Directories, Users, User}
+import common.configuration.{Directories, User, Users}
 import common.files._
-import play.api.data.{FormError, Form}
 import play.api.data.Forms._
-import play.api.data.validation.{Invalid, ValidationError, Valid, Constraint}
 import play.api.data.validation.Constraints._
+import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
+import play.api.data.{Form, FormError}
 import play.api.mvc.Request
 
 /**
  * Created by alex on 09/11/14.
  */
-class ParameterBuildersImpl(users: Users, directoryMappingService: DirectoryMappingService, fileUtils: FileUtils)(implicit directories: Directories) extends ParameterBuilders {
+class ParameterBuildersImpl(val users: Users, val directoryMappingService: DirectoryMappingService)(implicit val directories: Directories, val fileLocationUtils: FileLocationUtils) extends ParameterBuilders {
 
   class ZeroParameterBuilder[C](constant: C) extends ParameterBuilder[C] {
     override def bindFromRequest()(implicit request: Request[_]): Either[Seq[FormError], C] = Right(constant)
@@ -83,7 +83,7 @@ class ParameterBuildersImpl(users: Users, directoryMappingService: DirectoryMapp
 
   def mtabFileLocationParameterBuilder[FL <: FileLocation](fileLocationBuilder: Path => Option[FL])(mtabParameters: MtabParameters): ParameterBuilder[FileLocationsParameters[FL]] = {
     val mapper = (path: String) =>
-      (fileLocationBuilder compose directoryMappingService.withMtab(mtabParameters.mtab))(path).filter(fileUtils.isDirectory(_))
+      (fileLocationBuilder compose directoryMappingService.withMtab(mtabParameters.mtab))(path).filter(_.isDirectory)
     val applier: Seq[String] => FileLocationsParameters[FL] = paths => FileLocationsParameters(paths.map(mapper).flatten)
     val nonifier: FileLocationsParameters[FL] => Option[Seq[String]] = _ => None
     val fileLocationConstraint: Constraint[String] = Constraint("fileLocation") { path =>

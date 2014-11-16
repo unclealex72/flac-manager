@@ -30,10 +30,10 @@ import common.music.Tags._
  */
 trait TagsService {
 
-  def read(path: Path): Tags
+  this: {def readTags(path: Path): Tags} =>
 
-  def readAndValidate(path: Path): Either[Set[Violation], Tags] = {
-    val tags = read(path)
+  def read(path: Path): Either[Set[Violation], Tags] = {
+    val tags = readTags(path)
     validate(tags) match {
       case Success => Right(tags)
       case Failure(violations) => Left(violations)

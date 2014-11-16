@@ -81,12 +81,4 @@ trait FileUtils {
    */
   def link(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService): Unit
 
-  /**
-   * Return true if the file location points to a directory, false otherwise.
-   * @param fileLocation
-   * @return
-   */
-  def isDirectory(fileLocation: FileLocation): Boolean
-
-  def exists(fileLocation: FileLocation): Boolean
 }

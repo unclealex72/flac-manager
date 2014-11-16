@@ -19,7 +19,7 @@
  * under the License.
  */
 
-package files
+package common.files
 
 import java.nio.file.{Files, Path}
 

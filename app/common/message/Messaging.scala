@@ -52,7 +52,7 @@ object MessageTypes {
       fls.map(fileLocationToString(_)).mkString(", ")
     }
 
-    implicit def fileLocationToString(fileLocation: FileLocation) = fileLocation.toPath.toString
+    implicit def fileLocationToString(fileLocation: FileLocation) = fileLocation.toMessage
 
     implicit def deviceFileToString(deviceFile: DeviceFile) = deviceFile.relativePath
 

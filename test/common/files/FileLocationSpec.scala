@@ -31,9 +31,9 @@ import org.specs2.mutable._
  */
 class FileLocationSpec extends Specification {
 
-  val (stagingPath, flacPath, encodedPath, devicesPath) =
-    (Paths.get("/path", "staging"), Paths.get("/path", "flac"), Paths.get("/path", "encoded"), Paths.get("/path", "devices"))
-  implicit val directories = Directories(flacPath, encodedPath, devicesPath, stagingPath)
+  val (stagingPath, flacPath, encodedPath, devicesPath, tempPath) =
+    (Paths.get("/path", "staging"), Paths.get("/path", "flac"), Paths.get("/path", "encoded"), Paths.get("/path", "devices"), Paths.get("/path", "temp"))
+  implicit val directories = Directories(flacPath, encodedPath, devicesPath, stagingPath, tempPath)
 
   "Pattern matching using StagedFlacFileLocation" should {
     "match a valid staging path" in {

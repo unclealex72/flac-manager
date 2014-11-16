@@ -58,4 +58,11 @@ case class Directories(
                          *
                          * @return the top level path where new and altered FLAC files are staged
                          */
-                        stagingPath: Path)
+                        stagingPath: Path,
+
+                        /**
+                         * Gets the top level path where temporary files are created.
+                         *
+                         * @return the top level path where temporary files are created
+                         */
+                        temporaryPath: Path)

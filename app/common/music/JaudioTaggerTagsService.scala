@@ -23,25 +23,12 @@ package common.music
 
 import java.nio.file.Path
 
-import org.jaudiotagger.audio.{AudioFileIO, AudioFile}
+import org.jaudiotagger.audio.{AudioFile, AudioFileIO}
+import org.jaudiotagger.tag.FieldKey.{ALBUM => J_ALBUM, ALBUM_ARTIST => J_ALBUM_ARTIST, ALBUM_ARTIST_SORT => J_ALBUM_ARTIST_SORT, AMAZON_ID => J_AMAZON_ID, ARTIST => J_ARTIST, ARTIST_SORT => J_ARTIST_SORT, DISC_NO => J_DISC_NO, DISC_TOTAL => J_DISC_TOTAL, MUSICBRAINZ_ARTISTID => J_MUSICBRAINZ_ARTISTID, MUSICBRAINZ_RELEASEARTISTID => J_MUSICBRAINZ_RELEASEARTISTID, MUSICBRAINZ_RELEASEID => J_MUSICBRAINZ_RELEASEID, MUSICBRAINZ_TRACK_ID => J_MUSICBRAINZ_TRACK_ID, TITLE => J_TITLE, TRACK => J_TRACK, TRACK_TOTAL => J_TRACK_TOTAL}
 import org.jaudiotagger.tag.datatype.Artwork
-import org.jaudiotagger.tag.{FieldKey, Tag}
 import org.jaudiotagger.tag.id3.{FixedID3v23Tag, ID3v23Tag}
-import org.jaudiotagger.tag.FieldKey.{ALBUM => J_ALBUM}
-import org.jaudiotagger.tag.FieldKey.{ALBUM_ARTIST => J_ALBUM_ARTIST}
-import org.jaudiotagger.tag.FieldKey.{ALBUM_ARTIST_SORT => J_ALBUM_ARTIST_SORT}
-import org.jaudiotagger.tag.FieldKey.{AMAZON_ID => J_AMAZON_ID}
-import org.jaudiotagger.tag.FieldKey.{ARTIST => J_ARTIST}
-import org.jaudiotagger.tag.FieldKey.{ARTIST_SORT => J_ARTIST_SORT}
-import org.jaudiotagger.tag.FieldKey.{DISC_NO => J_DISC_NO}
-import org.jaudiotagger.tag.FieldKey.{DISC_TOTAL => J_DISC_TOTAL}
-import org.jaudiotagger.tag.FieldKey.{MUSICBRAINZ_ARTISTID => J_MUSICBRAINZ_ARTISTID}
-import org.jaudiotagger.tag.FieldKey.{MUSICBRAINZ_RELEASEARTISTID => J_MUSICBRAINZ_RELEASEARTISTID}
-import org.jaudiotagger.tag.FieldKey.{MUSICBRAINZ_RELEASEID => J_MUSICBRAINZ_RELEASEID}
-import org.jaudiotagger.tag.FieldKey.{MUSICBRAINZ_TRACK_ID => J_MUSICBRAINZ_TRACK_ID}
-import org.jaudiotagger.tag.FieldKey.{TITLE => J_TITLE}
-import org.jaudiotagger.tag.FieldKey.{TRACK => J_TRACK}
-import org.jaudiotagger.tag.FieldKey.{TRACK_TOTAL => J_TRACK_TOTAL}
+import org.jaudiotagger.tag.{FieldKey, Tag}
+
 import scala.util.Try
 
 /**
@@ -50,7 +37,7 @@ import scala.util.Try
  */
 class JaudioTaggerTagsService extends TagsService {
 
-  override def read(path: Path): Tags = {
+  def readTags(path: Path): Tags = {
     val audioFile = loadAudioFile(path)
     val tag = audioFile.getTag
     implicit def get[V](singleTag: SingleTag[V]): V = singleTag.get(tag)
