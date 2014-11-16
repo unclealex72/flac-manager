@@ -64,7 +64,7 @@ object MessageTypes {
   /**
    * The key for producing an encoding message.
    */
-  case class ENCODE(fileLocation: FileLocation)(implicit messageService: MessageService) extends MessageType("encode", fileLocation)
+  case class ENCODE(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService) extends MessageType("encode", sourceFileLocation, targetFileLocation)
 
   /**
    * The key for producing a delete message.

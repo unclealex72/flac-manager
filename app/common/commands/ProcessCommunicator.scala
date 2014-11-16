@@ -38,7 +38,7 @@ class ProcessCommunicator {
   var stdout: Option[BufferedReader] = None
   var stderr: Option[BufferedReader] = None
 
-  def apply(): ProcessIO = {
+  def toProcessIO: ProcessIO = {
     new ProcessIO(
       os => {
         stdin = Some(new BufferedWriter(new OutputStreamWriter(os)))
@@ -72,5 +72,7 @@ class ProcessCommunicator {
  */
 object ProcessCommunicator {
 
-  implicit def processCommunicatorToProcessIO(pc: ProcessCommunicator): ProcessIO = pc.apply
+  def apply(): ProcessCommunicator = new ProcessCommunicator
+
+  implicit def processCommunicatorToProcessIO(pc: ProcessCommunicator): ProcessIO = pc.toProcessIO
 }

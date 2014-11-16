@@ -23,9 +23,7 @@ package sync
 
 import java.nio.file.Path
 
-import common.files.FileLocation
-
-import scala.util.Try
+import common.files.DeviceFileLocation
 
 /**
  * Created by alex on 28/10/14.
@@ -84,7 +82,7 @@ trait Device {
    * @throws java.io.IOException
    * Signals that an I/O exception has occurred.
    */
-  def add(fileLocation: FileLocation): Unit
+  def add(deviceFileLocation: DeviceFileLocation): Unit
 
   /**
    * Subclasses need to override this method to include any device logic that

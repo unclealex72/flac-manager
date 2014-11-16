@@ -2,21 +2,32 @@ package checkin
 
 import common.configuration.{Directories, User}
 import common.files._
-import common.message.MessageService
-import common.music.Tags
+import common.message.MessageTypes._
+import common.message.{MessageService, Messaging}
+import common.music.{Tags, TagsService}
 
 /**
  * Created by alex on 16/11/14.
  */
-class CheckinServiceImpl(val fileUtils: FileUtils)(implicit val fileLocationUtils: FileLocationUtils, val directories: Directories)
-  extends CheckinService {
+class CheckinServiceImpl(val fileUtils: FileUtils)
+                        (implicit val fileLocationUtils: FileLocationUtils, val directories: Directories, val tagsService: TagsService, val mp3Encoder: Mp3Encoder)
+  extends CheckinService with Messaging {
 
   def delete(location: StagedFlacFileLocation)(implicit messageService: MessageService): Unit = {
     fileUtils.remove(location)
   }
 
   def encode(stagedFlacFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, users: Set[User])(implicit messageService: MessageService): Unit = {
-    val tfl = TemporaryFileLocation.create()
+    val tempEncodedLocation = TemporaryFileLocation.create()
+    val encodedFileLocation = flacFileLocation.toEncodedFileLocation
+    log(ENCODE(stagedFlacFileLocation, encodedFileLocation))
+    stagedFlacFileLocation.encodeTo(tempEncodedLocation)
+    tempEncodedLocation.writeTags(tags)
+    fileUtils.move(tempEncodedLocation, encodedFileLocation)
+    users.foreach { user =>
+      fileUtils.link(encodedFileLocation, encodedFileLocation.toDeviceFileLocation(user))
+    }
+    fileUtils.move(stagedFlacFileLocation, flacFileLocation)
   }
 
   override def checkin(action: Action)(implicit messagingService: MessageService): Unit = {

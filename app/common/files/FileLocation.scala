@@ -26,6 +26,7 @@ package common.files
 
 import java.nio.file.{Path, Paths}
 
+import checkin.Mp3Encoder
 import com.wix.accord.Violation
 import common.configuration.{Directories, User}
 import common.music.{Tags, TagsService}
@@ -88,6 +89,10 @@ trait TemporaryFileLocation extends FileLocation
  */
 trait StagedFlacFileLocation extends FileLocation {
 
+  def encodeTo(targetFileLocation: FileLocation)(implicit mp3Encoder: Mp3Encoder): Unit = {
+    mp3Encoder.encode(this.toPath, targetFileLocation.toPath)
+  }
+
   def toFlacFileLocation(tags: Tags): FlacFileLocation
 
   def isFlacFile(implicit flacFileChecker: FlacFileChecker): Boolean = flacFileChecker.isFlacFile(toPath)
@@ -114,7 +119,10 @@ trait EncodedFileLocation extends FileLocation {
 /**
  * A `FileLocation` in the devices repository.
  */
-trait DeviceFileLocation extends FileLocation
+trait DeviceFileLocation extends FileLocation {
+
+  def path: Path = toPath
+}
 
 
 object FileLocationImplicits {
