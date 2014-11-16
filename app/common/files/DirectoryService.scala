@@ -24,9 +24,10 @@
 
 package common.files
 
+import common.files.FileLocationImplicits._
 import common.message.MessageService
 
-import scala.collection.SortedSet
+import scala.collection.{SortedMap, SortedSet}
 
 /**
  * An interface for classes that resolve directories and find FLAC files under
@@ -51,6 +52,9 @@ trait DirectoryService {
    * @return All music files found under the given directories.
    * @throws IOException
    */
-  def listFiles[FL <: FileLocation](directories: Traversable[FL])(implicit messageService: MessageService): SortedSet[FL]
+  def listFiles[FL <: FileLocation](directories: Traversable[FL])(implicit messageService: MessageService): SortedSet[FL] =
+    groupFiles(directories).foldLeft(SortedSet.empty[FL])(_ ++ _._2)
+
+  def groupFiles[FL <: FileLocation](directories: Traversable[FL])(implicit messageService: MessageService): SortedMap[FL, SortedSet[FL]]
 
 }

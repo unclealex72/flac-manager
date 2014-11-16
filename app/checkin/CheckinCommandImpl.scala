@@ -28,7 +28,7 @@ import common.message._
 import common.music.{Tags, TagsService}
 import common.owners.OwnerService
 
-import scala.collection.{GenTraversableOnce, SortedSet}
+import scala.collection.GenTraversableOnce
 
 /**
  * Created by alex on 12/11/14.
@@ -48,7 +48,7 @@ class CheckinCommandImpl(
     }
   }
 
-  def validate(fileLocations: SortedSet[StagedFlacFileLocation])(implicit messageService: MessageService): Set[Action] = {
+  def validate(fileLocations: Traversable[StagedFlacFileLocation])(implicit messageService: MessageService): Set[Action] = {
     val firstStageValidationResults = fileLocations.map(isValidFlacFile)
     val secondStageValidationResults = firstStageValidationResults.par.flatMap(isFullyTaggedFlacFile).seq
     val thirdStageValidationResults = secondStageValidationResults.flatMap(doesNotOverwriteFlacFile)

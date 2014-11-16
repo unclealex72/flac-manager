@@ -1,5 +1,6 @@
 package checkin
 
+import common.changes.{Change, ChangeDao}
 import common.configuration.{Directories, User}
 import common.files._
 import common.message.MessageTypes._
@@ -9,7 +10,7 @@ import common.music.{Tags, TagsService}
 /**
  * Created by alex on 16/11/14.
  */
-class CheckinServiceImpl(val fileUtils: FileUtils)
+class CheckinServiceImpl(val fileUtils: FileUtils, changeDao: ChangeDao)
                         (implicit val fileLocationUtils: FileLocationUtils, val directories: Directories, val tagsService: TagsService, val mp3Encoder: Mp3Encoder)
   extends CheckinService with Messaging {
 
@@ -25,7 +26,9 @@ class CheckinServiceImpl(val fileUtils: FileUtils)
     tempEncodedLocation.writeTags(tags)
     fileUtils.move(tempEncodedLocation, encodedFileLocation)
     users.foreach { user =>
-      fileUtils.link(encodedFileLocation, encodedFileLocation.toDeviceFileLocation(user))
+      val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
+      fileUtils.link(encodedFileLocation, deviceFileLocation)
+      changeDao.store(Change.added(deviceFileLocation))
     }
     fileUtils.move(stagedFlacFileLocation, flacFileLocation)
   }

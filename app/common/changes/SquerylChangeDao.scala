@@ -40,12 +40,13 @@ class SquerylChangeDao extends ChangeDao with Transactional {
     block(this)
   }
 
-  def store(change: Change): Change = {
+  def store(change: Change): Change = inTransaction {
     changes.insertOrUpdate(change)
     change
   }
 
-  override def getAllChangesSince(user: User, since: DateTime): List[Change] =
+  override def getAllChangesSince(user: User, since: DateTime): List[Change] = inTransaction {
     changes.where(c => c.user === user.name and c.at >= since)
+  }
 
 }

@@ -27,10 +27,13 @@ package common.files
 import java.nio.file.{Files, Path, Paths}
 
 import common.configuration.Directories
+import common.files.FileLocationImplicits._
 import common.message.{MessageService, MessageType}
 import org.specs2.mock._
 import org.specs2.mutable._
 import tempfs.TempFileSystem
+
+import scala.collection.SortedSet
 
 /**
  * @author alex
@@ -71,16 +74,13 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
     }
   }
 
-  "listing files in valid directories" should {
+  "grouping files in valid directories" should {
     "list the files" in new fs {
-      val fileLocations = directoryService.listFiles(Seq(FlacFileLocation("dir.flac"), FlacFileLocation("dir")))
-      fileLocations must contain(exactly(
-        fl("dir.flac", "myfile.flac"),
-        fl("dir.flac", "inner", "myfile.flac"),
-        fl("dir", "your.flac"),
-        fl("dir.flac", "myfile.xml"),
-        fl("dir.flac", "inner", "myfile.xml"),
-        fl("dir", "your.mp3")
+      val fileLocations = directoryService.groupFiles(Seq(FlacFileLocation("dir.flac"), FlacFileLocation("dir")))
+      fileLocations.toSeq must contain(exactly(
+        fl("dir.flac") -> SortedSet(fl("dir.flac", "myfile.flac"), fl("dir.flac", "myfile.xml")),
+        fl("dir.flac", "inner") -> SortedSet(fl("dir.flac", "inner", "myfile.flac"), fl("dir.flac", "inner", "myfile.xml")),
+        fl("dir") -> SortedSet(fl("dir", "your.flac"), fl("dir", "your.mp3"))
       ))
     }
   }

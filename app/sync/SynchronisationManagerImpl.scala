@@ -23,7 +23,7 @@ package sync
 
 import java.nio.file.Path
 
-import common.files.{DeviceFileLocation, FileLocation, FileLocationUtils}
+import common.files.{DeviceFileLocation, FileLocationUtils}
 import common.message.MessageTypes._
 import common.message._
 
@@ -107,10 +107,10 @@ sealed trait FileAction extends Messaging {
   def execute(device: Device): Unit
 }
 
-case class Add(fileLocation: FileLocation) extends FileAction {
-  def broadcast(implicit messageService: MessageService) = log(SYNC_ADD(fileLocation))
+case class Add(deviceFileLocation: DeviceFileLocation) extends FileAction {
+  def broadcast(implicit messageService: MessageService) = log(SYNC_ADD(deviceFileLocation))
 
-  def execute(device: Device) = device.add(fileLocation)
+  def execute(device: Device) = device.add(deviceFileLocation)
 }
 
 case class Remove(deviceFile: DeviceFile) extends FileAction {

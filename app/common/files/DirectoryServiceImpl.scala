@@ -31,20 +31,20 @@ import common.message.MessageTypes._
 import common.message._
 
 import scala.collection.JavaConversions._
-import scala.collection.immutable.SortedSet
+import scala.collection.{SortedMap, SortedSet}
 /**
  * @author alex
  *
  */
 class DirectoryServiceImpl(implicit fileLocationUtils: FileLocationUtils, directories: Directories) extends DirectoryService with Messaging {
 
-
-  override def listFiles[FL <: FileLocation](fileLocations: Traversable[FL])(implicit messageService: MessageService): SortedSet[FL] = {
-    fileLocations.foldLeft(SortedSet.empty[FL]) { (allFileLocations, fl) =>
+  override def groupFiles[FL <: FileLocation](fileLocations: Traversable[FL])(implicit messageService: MessageService): SortedMap[FL, SortedSet[FL]] = {
+    fileLocations.foldLeft(SortedMap.empty[FL, SortedSet[FL]]) { (allFileLocations, fl) =>
       val childFileLocations = Files.list(fl.toPath).iterator().toSeq.map(p => fl.extendTo(p.getFileName))
       val (childDirectories, childFiles) = childFileLocations.sorted.partition(_.isDirectory)
       childFiles.foreach(fl => log(FOUND_FILE(fl)))
-      allFileLocations ++ childFiles ++ listFiles(childDirectories)
+      val sortedChildFiles = childFiles.foldLeft(SortedSet.empty[FL])(_ + _)
+      (allFileLocations + (fl -> sortedChildFiles)) ++ groupFiles(childDirectories)
     }
 
   }

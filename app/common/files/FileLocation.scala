@@ -121,6 +121,7 @@ trait EncodedFileLocation extends FileLocation {
  */
 trait DeviceFileLocation extends FileLocation {
 
+  def user: User
   def path: Path = toPath
 }
 
@@ -278,7 +279,8 @@ object EncodedFileLocation {
  * @param directories
  */
 case class DeviceFileLocationImpl(
-                                   val user: User, override val relativePath: Path, override val directories: Directories) extends AbstractFileLocation(
+                                   override val user: User, override val relativePath: Path, override val directories: Directories)
+  extends AbstractFileLocation(
   "DeviceFileLocation", relativePath, true, _.devicesPath.resolve(user.name), directories) with DeviceFileLocation
 
 object DeviceFileLocation {

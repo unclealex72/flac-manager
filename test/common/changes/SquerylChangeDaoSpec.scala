@@ -20,20 +20,22 @@
  */
 package common.changes
 
+import java.nio.file.Paths
+
 import com.typesafe.scalalogging.StrictLogging
-import common.configuration.User
+import common.configuration.{Directories, User}
+import common.files._
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
 import org.specs2.mutable._
-import org.squeryl.{SessionFactory, Session}
 import org.squeryl.adapters.H2Adapter
-import sync.DeviceFile
+import org.squeryl.{Session, SessionFactory}
 
 /**
  * @author alex
  *
  */
-class SquerylGameDaoSpec extends Specification with StrictLogging {
+class SquerylChangeDaoSpec extends Specification with StrictLogging {
 
   object Dsl {
 
@@ -41,12 +43,31 @@ class SquerylGameDaoSpec extends Specification with StrictLogging {
 
     implicit def asDateTime(str: String) = df.parseDateTime(str)
 
-    case class DeviceFileBuilder(relativePath: String) {
-      def at(when: DateTime) = DeviceFile(relativePath, relativePath, when.getMillis)
+    implicit class ChangeBuilderA(relativePath: String) {
+      def ownedBy(user: User) = (relativePath, user)
     }
 
-    implicit def asDateTimeBuilder(relativePath: String) = DeviceFileBuilder(relativePath)
+    implicit class ChangeBuilderB(relativePathAndUser: (String, User)) {
+      implicit val directories: Directories = Directories(Paths.get("/"), Paths.get("/"), Paths.get("/"), Paths.get("/"), Paths.get("/"))
 
+      def fileLocationUtils(dateTime: DateTime) = new TestFileLocationUtils {
+        override def isDirectory(fileLocation: FileLocation): Boolean = false
+
+        override def createTemporaryFileLocation()(implicit directories: Directories): TemporaryFileLocation = null
+
+        override def lastModified(fileLocation: FileLocation): Long = dateTime.getMillis
+
+        override def exists(fileLocation: FileLocation): Boolean = false
+      }
+
+      def addedAt(dateTime: DateTime): Change = {
+        Change.added(DeviceFileLocation(relativePathAndUser._2, relativePathAndUser._1))(fileLocationUtils(dateTime))
+      }
+
+      def removedAt(dateTime: DateTime): Change = {
+        Change.removed(DeviceFileLocation(relativePathAndUser._2, relativePathAndUser._1), dateTime)
+      }
+    }
     implicit def asUser(name: String) = User(name, "", "", "")
   }
 
@@ -55,10 +76,10 @@ class SquerylGameDaoSpec extends Specification with StrictLogging {
   val freddie: User = "Freddie"
   val brian: User = "Brian"
 
-  val tearItUpAdded = Change.added("Tear it Up.mp3" at "05/09/1972 09:12:00", brian)
-  val bohemianRhapsodyRemoved = Change.removed("Bohemian Rhapsody.mp3", "05/09/1972 09:12:30", freddie)
-  val myFairyKingAdded = Change.added("My Fairy King.mp3" at "05/09/1972 09:13:00", freddie)
-  val weWillRockYouRemoved = Change.removed("We Will Rock You.mp3", "05/09/1972 09:13:30", brian)
+  val tearItUpAdded = "Tear it Up.mp3" ownedBy brian addedAt "05/09/1972 09:12:00"
+  val bohemianRhapsodyRemoved = "Bohemian Rhapsody.mp3" ownedBy freddie removedAt "05/09/1972 09:12:30"
+  val myFairyKingAdded = "My Fairy King.mp3" ownedBy freddie addedAt "05/09/1972 09:13:00"
+  val weWillRockYouRemoved = "We Will Rock You.mp3" ownedBy brian removedAt "05/09/1972 09:13:30"
 
   "Getting all changes since a specific time for a user" should {
     "retrieve only changes for a user since a specific time" in txn { changeDao =>
@@ -79,8 +100,8 @@ class SquerylGameDaoSpec extends Specification with StrictLogging {
       session.setLogger(logger.debug(_))
       session
     })
-    val gameDao = new SquerylChangeDao()
-    gameDao.tx { changeDao =>
+    val changeDao = new SquerylChangeDao()
+    changeDao.tx { changeDao =>
       ChangeSchema.create
       block(changeDao)
     }

@@ -20,11 +20,10 @@
  */
 package common.changes
 
-import common.configuration.User
+import common.files.{DeviceFileLocation, FileLocationUtils}
 import common.joda.JodaDateTime
 import org.joda.time.DateTime
 import org.squeryl.KeyedEntity
-import sync.DeviceFile
 
 /**
  * A persistable unit that represents a change to a user's encoded repository.
@@ -64,11 +63,12 @@ case class Change(
 
 object Change {
 
-  def added(deviceFile: DeviceFile, user: User): Change = apply(deviceFile.relativePath, JodaDateTime(deviceFile.lastModified), user, "added")
+  def added(deviceFileLocation: DeviceFileLocation)(implicit fileLocationUtils: FileLocationUtils): Change =
+    apply("added", deviceFileLocation, JodaDateTime(deviceFileLocation.lastModified))
 
-  def removed(relativePath: String, at: DateTime, user: User): Change = apply(relativePath, at, user, "removed")
+  def removed(deviceFileLocation: DeviceFileLocation, at: DateTime): Change = apply("removed", deviceFileLocation, at)
 
-  private def apply(relativePath: String, at: DateTime, user: User, action: String): Change = {
-    Change(0, relativePath, at, user.name, action)
+  private def apply(action: String, deviceFileLocation: DeviceFileLocation, at: DateTime): Change = {
+    Change(0, deviceFileLocation.relativePath.toString, at, deviceFileLocation.user.name, action)
   }
 }
