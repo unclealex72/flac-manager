@@ -30,7 +30,7 @@ import org.joda.time.DateTime
  * @author alex
  *
  */
-class SquerylChangeDao extends ChangeDao with Transactional {
+class SquerylChangeDao extends ChangeDao {
 
   /**
    * Run code within a transaction.
