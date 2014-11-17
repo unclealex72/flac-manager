@@ -29,10 +29,10 @@ import common.message.MessageService
  * @author alex
  *
  */
-abstract class DecoratingFileUtils(val delegate: FileUtils)(implicit val fileLocationUtils: FileLocationExtensions)
-  extends FileUtils with StrictLogging {
+abstract class DecoratingFileSystem(val delegate: FileSystem)(implicit val fileLocationUtils: FileLocationExtensions)
+  extends FileSystem with StrictLogging {
 
-  def wrap(block: => FileUtils => Unit)(fileLocations: FileLocation*): Unit = {
+  def wrap(block: => FileSystem => Unit)(fileLocations: FileLocation*): Unit = {
     before(fileLocations)
     try {
       block(delegate)

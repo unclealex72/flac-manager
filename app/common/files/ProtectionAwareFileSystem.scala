@@ -37,7 +37,7 @@ import scala.collection.JavaConversions._
  * @author alex
  *
  */
-class ProtectionAwareFileUtils(override val delegate: FileUtils)(override implicit val fileLocationUtils: FileLocationExtensions) extends DecoratingFileUtils(delegate) with StrictLogging {
+class ProtectionAwareFileSystem(override val delegate: FileSystem)(override implicit val fileLocationUtils: FileLocationExtensions) extends DecoratingFileSystem(delegate) with StrictLogging {
 
   def before(fileLocations: Seq[FileLocation]): Unit = alterWritable(_ => true, fileLocations)
 

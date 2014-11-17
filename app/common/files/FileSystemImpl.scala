@@ -39,7 +39,7 @@ import scala.util.Try
  * @author alex
  *
  */
-class FileUtilsImpl extends FileUtils with Messaging {
+class FileSystemImpl extends FileSystem with Messaging {
 
   override def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
     log(MOVE(sourceFileLocation, targetFileLocation))

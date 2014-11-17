@@ -33,7 +33,7 @@ import common.message.MessageService
  * @author alex
  *
  */
-trait FileUtils {
+trait FileSystem {
 
   /**
    * Move a path from a source directory to a target directory using an atomic

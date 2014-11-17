@@ -36,9 +36,9 @@ import tempfs.TempFileSystem
  * @author alex
  *
  */
-class FileUtilsImplSpec extends Specification with PathMatchers with Mockito {
+class FileSystemImplSpec extends Specification with PathMatchers with Mockito {
 
-  val fileUtils = new FileUtilsImpl
+  val fileUtils = new FileSystemImpl
 
   trait fs extends TempFileSystem {
     lazy val source = rootDirectory.resolve("source")
