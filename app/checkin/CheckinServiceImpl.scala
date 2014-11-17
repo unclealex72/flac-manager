@@ -11,7 +11,7 @@ import common.music.{Tags, TagsService}
  * Created by alex on 16/11/14.
  */
 class CheckinServiceImpl(val fileUtils: FileUtils, changeDao: ChangeDao)
-                        (implicit val fileLocationUtils: FileLocationUtils, val directories: Directories, val tagsService: TagsService, val mp3Encoder: Mp3Encoder)
+                        (implicit val fileLocationUtils: FileLocationExtensions, val directories: Directories, val tagsService: TagsService, val mp3Encoder: Mp3Encoder)
   extends CheckinService with Messaging {
 
   def delete(location: StagedFlacFileLocation)(implicit messageService: MessageService): Unit = {

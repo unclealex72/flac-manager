@@ -154,7 +154,7 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
 
 }
 
-class MapLastModified(m: Map[DeviceFileLocation, String]) extends TestFileLocationUtils {
+class MapLastModified(m: Map[DeviceFileLocation, String]) extends TestFileLocationExtensions {
 
   import sync.Implicits._
 

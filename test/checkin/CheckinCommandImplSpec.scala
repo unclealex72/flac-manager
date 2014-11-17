@@ -47,7 +47,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     lazy val ownerService = mock[OwnerService]
     lazy implicit val tagsService = mock[TagsService]
     lazy implicit val messageService = mock[TestMessageService]
-    lazy implicit val fileLocationUtils = mock[TestFileLocationUtils]
+    lazy implicit val fileLocationUtils = mock[TestFileLocationExtensions]
     lazy val checkinService = mock[CheckinService]
     lazy val checkinCommand = new CheckinCommandImpl(directoryService, ownerService, checkinService)
 

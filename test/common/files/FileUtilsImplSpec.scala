@@ -44,7 +44,7 @@ class FileUtilsImplSpec extends Specification with PathMatchers with Mockito {
     lazy val source = rootDirectory.resolve("source")
     lazy val target = rootDirectory.resolve("target")
     implicit val messageService: TestMessageService = mock[TestMessageService]
-    implicit val fileLocationUtils = new FileLocationUtilsImpl()
+    implicit val fileLocationUtils = new FileLocationExtensionsImpl()
     def before(rootDirectory: Path): Unit = {}
   }
 

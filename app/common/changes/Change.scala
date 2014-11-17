@@ -20,7 +20,7 @@
  */
 package common.changes
 
-import common.files.{DeviceFileLocation, FileLocationUtils}
+import common.files.{DeviceFileLocation, FileLocationExtensions}
 import common.joda.JodaDateTime
 import org.joda.time.DateTime
 import org.squeryl.KeyedEntity
@@ -63,7 +63,7 @@ case class Change(
 
 object Change {
 
-  def added(deviceFileLocation: DeviceFileLocation)(implicit fileLocationUtils: FileLocationUtils): Change =
+  def added(deviceFileLocation: DeviceFileLocation)(implicit fileLocationUtils: FileLocationExtensions): Change =
     apply("added", deviceFileLocation, JodaDateTime(deviceFileLocation.lastModified))
 
   def removed(deviceFileLocation: DeviceFileLocation, at: DateTime): Change = apply("removed", deviceFileLocation, at)

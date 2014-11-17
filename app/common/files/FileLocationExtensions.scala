@@ -6,7 +6,7 @@ import common.configuration.Directories
  * A trait that wraps Path like functionality for FileLocations
  * Created by alex on 16/11/14.
  */
-trait FileLocationUtils {
+trait FileLocationExtensions {
 
   /**
    * Return true if the file location points to a directory, false otherwise.

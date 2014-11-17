@@ -5,7 +5,7 @@ import common.configuration.Directories
 /**
  * Created by alex on 16/11/14.
  */
-trait TestFileLocationUtils extends FileLocationUtils {
+trait TestFileLocationExtensions extends FileLocationExtensions {
 
   /**
    * Return true if the file location points to a directory, false otherwise.

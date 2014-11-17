@@ -50,7 +50,7 @@ class SquerylChangeDaoSpec extends Specification with StrictLogging {
     implicit class ChangeBuilderB(relativePathAndUser: (String, User)) {
       implicit val directories: Directories = Directories(Paths.get("/"), Paths.get("/"), Paths.get("/"), Paths.get("/"), Paths.get("/"))
 
-      def fileLocationUtils(dateTime: DateTime) = new TestFileLocationUtils {
+      def fileLocationUtils(dateTime: DateTime) = new TestFileLocationExtensions {
         override def isDirectory(fileLocation: FileLocation): Boolean = false
 
         override def createTemporaryFileLocation()(implicit directories: Directories): TemporaryFileLocation = null

@@ -1,7 +1,7 @@
 package checkout
 
 import common.configuration.Directories
-import common.files.{DirectoryService, FileLocationUtils, FileUtils, FlacFileLocation}
+import common.files.{DirectoryService, FileLocationExtensions, FileUtils, FlacFileLocation}
 import common.message.MessageTypes._
 import common.message.{MessageService, Messaging}
 
@@ -11,7 +11,7 @@ import scala.collection.SortedSet
  * Created by alex on 16/11/14.
  */
 class CheckoutCommandImpl(val fileUtils: FileUtils, val directoryService: DirectoryService, val checkoutService: CheckoutService)
-                         (implicit val directories: Directories, fileLocationUtils: FileLocationUtils) extends CheckoutCommand with Messaging {
+                         (implicit val directories: Directories, fileLocationUtils: FileLocationExtensions) extends CheckoutCommand with Messaging {
 
   type Validation = Either[Unit, Seq[FlacFileLocation]]
 

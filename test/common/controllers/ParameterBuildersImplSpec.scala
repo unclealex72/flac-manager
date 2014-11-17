@@ -41,7 +41,7 @@ class ParameterBuildersImplSpec extends Specification with Mockito {
   trait Context extends Scope {
     lazy implicit val directories = Directories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"), Paths.get("/temp"))
     val MTAB = "mtab" -> "some"
-    lazy implicit val fileLocationUtils = mock[TestFileLocationUtils]
+    lazy implicit val fileLocationUtils = mock[TestFileLocationExtensions]
     fileLocationUtils.isDirectory(any[FileLocation]) answers { fileLocation =>
       fileLocation.asInstanceOf[FileLocation].relativePath.getFileName.toString == "dir"
     }

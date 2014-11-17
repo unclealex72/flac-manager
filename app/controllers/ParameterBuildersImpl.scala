@@ -34,7 +34,7 @@ import play.api.mvc.Request
 /**
  * Created by alex on 09/11/14.
  */
-class ParameterBuildersImpl(val users: Users, val directoryMappingService: DirectoryMappingService)(implicit val directories: Directories, val fileLocationUtils: FileLocationUtils) extends ParameterBuilders {
+class ParameterBuildersImpl(val users: Users, val directoryMappingService: DirectoryMappingService)(implicit val directories: Directories, val fileLocationUtils: FileLocationExtensions) extends ParameterBuilders {
 
   class ZeroParameterBuilder[C](constant: C) extends ParameterBuilder[C] {
     override def bindFromRequest()(implicit request: Request[_]): Either[Seq[FormError], C] = Right(constant)

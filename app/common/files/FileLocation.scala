@@ -68,11 +68,11 @@ trait FileLocation {
    */
   def readOnly: Boolean
 
-  def isDirectory(implicit fileLocationUtils: FileLocationUtils): Boolean = fileLocationUtils.isDirectory(this)
+  def isDirectory(implicit fileLocationUtils: FileLocationExtensions): Boolean = fileLocationUtils.isDirectory(this)
 
-  def exists(implicit fileLocationUtils: FileLocationUtils): Boolean = fileLocationUtils.exists(this)
+  def exists(implicit fileLocationUtils: FileLocationExtensions): Boolean = fileLocationUtils.exists(this)
 
-  def lastModified(implicit fileLocationUtils: FileLocationUtils): Long = fileLocationUtils.lastModified(this)
+  def lastModified(implicit fileLocationUtils: FileLocationExtensions): Long = fileLocationUtils.lastModified(this)
 
   def readTags(implicit tagsService: TagsService): Either[Set[Violation], Tags] = tagsService.read(toPath)
 
@@ -172,7 +172,7 @@ object TemporaryFileLocation {
   def apply(relativePath: Path)(implicit directories: Directories): TemporaryFileLocation =
     TemporaryFileLocationImpl(relativePath, directories)
 
-  def create()(implicit fileLocationUtils: FileLocationUtils, directories: Directories): TemporaryFileLocation = fileLocationUtils.createTemporaryFileLocation()
+  def create()(implicit fileLocationUtils: FileLocationExtensions, directories: Directories): TemporaryFileLocation = fileLocationUtils.createTemporaryFileLocation()
 
 }
 

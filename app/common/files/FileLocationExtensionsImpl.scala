@@ -7,7 +7,7 @@ import common.configuration.Directories
 /**
  * Created by alex on 16/11/14.
  */
-class FileLocationUtilsImpl extends FileLocationUtils {
+class FileLocationExtensionsImpl extends FileLocationExtensions {
 
   implicit val fileLocationToPath: FileLocation => Path = _.toPath
 
