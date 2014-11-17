@@ -1,6 +1,7 @@
 package checkout
 
 import common.configuration.Directories
+import common.files.FileLocationImplicits._
 import common.files.{DirectoryService, FileLocationExtensions, FileSystem, FlacFileLocation}
 import common.message.MessageTypes._
 import common.message.{MessageService, Messaging}
