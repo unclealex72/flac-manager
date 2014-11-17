@@ -94,7 +94,7 @@ object MessageTypes {
   /**
    * The key for producing an overwrite message.
    */
-  case class OVERWRITE(stagedFlacFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation)(implicit messageService: MessageService) extends MessageType("overwrite", stagedFlacFileLocation, flacFileLocation)
+  case class OVERWRITE(source: FileLocation, target: FileLocation)(implicit messageService: MessageService) extends MessageType("overwrite", source, target)
 
   /**
    * The key for producing non unique messages.
