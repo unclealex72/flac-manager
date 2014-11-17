@@ -46,7 +46,9 @@ class SquerylChangeDao extends ChangeDao {
   }
 
   override def getAllChangesSince(user: User, since: DateTime): List[Change] = inTransaction {
-    changes.where(c => c.user === user.name and c.at >= since)
+    val latest = from(changes)(c => where(c.at >= since and user.name === c.user) groupBy (c.relativePath) compute (max(c.at)))
+    from(latest, changes)((l, c) =>
+      where(user.name === c.user and l.key === c.relativePath and l.measures === c.at) select (c))
   }
 
 }

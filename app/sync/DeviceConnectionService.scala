@@ -23,11 +23,19 @@ package sync
 
 import java.nio.file.Path
 
+import common.configuration.User
+
 /**
  * A trait used to mount and unmount devices.
  * Created by alex on 29/10/14.
  */
 trait DeviceConnectionService {
+
+  /**
+   * List the users who currently have devices connected to the system.
+   * @return
+   */
+  def listConnectedDevices: Set[User]
 
   /**
    * Mount the device with the given UUID.
