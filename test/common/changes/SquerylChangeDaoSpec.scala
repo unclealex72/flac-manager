@@ -76,15 +76,16 @@ class SquerylChangeDaoSpec extends Specification with StrictLogging {
   val freddie: User = "Freddie"
   val brian: User = "Brian"
 
-  val tearItUpAdded = "Tear it Up.mp3" ownedBy brian addedAt "05/09/1972 09:12:00"
-  val bohemianRhapsodyRemoved = "Bohemian Rhapsody.mp3" ownedBy freddie removedAt "05/09/1972 09:12:30"
-  val myFairyKingAdded = "My Fairy King.mp3" ownedBy freddie addedAt "05/09/1972 09:13:00"
-  val weWillRockYouRemoved = "We Will Rock You.mp3" ownedBy brian removedAt "05/09/1972 09:13:30"
-  val weAreTheChampionsAdded = "We Are The Champions.mp3" ownedBy freddie addedAt "05/09/1972 09:14:00"
-  val weAreTheChampionsRemoved = "We Are The Champions.mp3" ownedBy freddie removedAt "05/09/1972 09:14:30"
-
   "Getting all changes since a specific time for a user" should {
     "retrieve only changes for a user since a specific time" in txn { changeDao =>
+
+      val tearItUpAdded = "Tear it Up.mp3" ownedBy brian addedAt "05/09/1972 09:12:00"
+      val bohemianRhapsodyRemoved = "Bohemian Rhapsody.mp3" ownedBy freddie removedAt "05/09/1972 09:12:30"
+      val myFairyKingAdded = "My Fairy King.mp3" ownedBy freddie addedAt "05/09/1972 09:13:00"
+      val weWillRockYouRemoved = "We Will Rock You.mp3" ownedBy brian removedAt "05/09/1972 09:13:30"
+      val weAreTheChampionsAdded = "We Are The Champions.mp3" ownedBy freddie addedAt "05/09/1972 09:14:00"
+      val weAreTheChampionsRemoved = "We Are The Champions.mp3" ownedBy freddie removedAt "05/09/1972 09:14:30"
+
       Seq(tearItUpAdded, bohemianRhapsodyRemoved, myFairyKingAdded,
         weWillRockYouRemoved, weAreTheChampionsAdded, weAreTheChampionsRemoved).foreach(change => changeDao store change)
       changeDao.getAllChangesSince(freddie, "05/09/1972 09:13:00") must contain(exactly(myFairyKingAdded, weAreTheChampionsRemoved))

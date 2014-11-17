@@ -23,7 +23,7 @@ package common.files
 
 import java.nio.file.Paths
 
-import common.configuration.Directories
+import common.configuration.{Directories, User}
 import org.specs2.mutable._
 
 /**
@@ -66,6 +66,13 @@ class FileLocationSpec extends Specification {
         case _ => None
       }
       result must beNone
+    }
+  }
+
+  "Trying to identify the root path of a user's device repository" should {
+    "correctly resolve to the base of the repository" in {
+      val result = DeviceFileLocation(User("brian", "", "", ""))
+      result.toPath must be equalTo (directories.devicesPath.resolve("brian"))
     }
   }
 }

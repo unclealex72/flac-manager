@@ -3,6 +3,7 @@ package sync
 import java.nio.file.Path
 
 import common.commands.{CommandService, ProcessCommunicator}
+import common.configuration.User
 import common.files.DeviceFileLocation
 
 import scala.sys.process._
@@ -63,4 +64,8 @@ class IpodDevice(override val uuid: String, val commandService: CommandService) 
 
   override def afterUnmount: Unit = {}
 
+}
+
+object IpodDevice {
+  def apply(user: User)(implicit commandService: CommandService): IpodDevice = new IpodDevice(user.uuid, commandService)
 }

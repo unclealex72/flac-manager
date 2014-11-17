@@ -24,6 +24,7 @@ package sync
 import java.nio.file.Path
 
 import common.configuration.User
+import common.message.MessageService
 
 /**
  * A trait used to mount and unmount devices.
@@ -35,7 +36,7 @@ trait DeviceConnectionService {
    * List the users who currently have devices connected to the system.
    * @return
    */
-  def listConnectedDevices: Set[User]
+  def listConnectedDevices()(implicit messageService: MessageService): Set[User]
 
   /**
    * Mount the device with the given UUID.

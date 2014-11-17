@@ -284,6 +284,9 @@ case class DeviceFileLocationImpl(
   "DeviceFileLocation", relativePath, true, _.devicesPath.resolve(user.name), directories) with DeviceFileLocation
 
 object DeviceFileLocation {
+
+  def apply(user: User)(implicit directories: Directories): DeviceFileLocation = apply(user, "")
+
   def apply(user: User, relativePath: Path)(implicit directories: Directories): DeviceFileLocation =
     DeviceFileLocationImpl(user, relativePath, directories)
 
