@@ -26,15 +26,15 @@ class OwnerServiceImpl(val musicBrainzClient: MusicBrainzClient, val users: User
 
   }
 
-  override def own(user: User, tags: Seq[Tags])(implicit messageService: MessageService): Unit = {
+  override def own(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit = {
     changeOwnership(user, tags, musicBrainzClient.addReleases _)
   }
 
-  override def unown(user: User, tags: Seq[Tags])(implicit messageService: MessageService): Unit = {
+  override def unown(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit = {
     changeOwnership(user, tags, musicBrainzClient.removeReleases _)
   }
 
-  def changeOwnership(user: User, tags: Seq[Tags], block: (User, Set[String]) => Future[Unit]): Unit = {
+  def changeOwnership(user: User, tags: Set[Tags], block: (User, Set[String]) => Future[Unit]): Unit = {
     val albumIds = tags.map(_.albumId).toSet
     Await.result(block(user, albumIds), timeout)
   }

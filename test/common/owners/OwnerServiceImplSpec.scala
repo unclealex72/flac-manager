@@ -54,7 +54,7 @@ class OwnerServiceImplSpec extends Specification with Mockito {
       trackNumber = 5,
       coverArt = CoverArt(Array[Byte](), ""))
     val users = new Users {
-      override def allUsers: Seq[User] = Seq(brian, freddie)
+      override def allUsers: Set[User] = Set(brian, freddie)
     }
 
     lazy implicit val messageService = mock[TestMessageService]
@@ -80,7 +80,7 @@ class OwnerServiceImplSpec extends Specification with Mockito {
   "Adding tracks to a collection" should {
     "delegate to the MusicBrainz client" in new Context {
       musicBrainzClient.addReleases(any[User], any[Set[String]]) returns Future {}
-      ownerService.own(freddie, Seq(tags1, tags2))
+      ownerService.own(freddie, Set(tags1, tags2))
       there was one(musicBrainzClient).addReleases(freddie, Set("6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e"))
       noMoreCallsTo(musicBrainzClient)
     }
@@ -89,7 +89,7 @@ class OwnerServiceImplSpec extends Specification with Mockito {
   "Removing tracks from a collection" should {
     "delegate to the MusicBrainz client" in new Context {
       musicBrainzClient.removeReleases(any[User], any[Set[String]]) returns Future {}
-      ownerService.unown(freddie, Seq(tags1, tags2))
+      ownerService.unown(freddie, Set(tags1, tags2))
       there was one(musicBrainzClient).removeReleases(freddie, Set("6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e"))
       noMoreCallsTo(musicBrainzClient)
     }

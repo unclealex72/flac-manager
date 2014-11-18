@@ -32,7 +32,7 @@ trait OwnerService {
 
   def listCollections()(implicit messageService: MessageService): Tags => Set[User]
 
-  def own(user: User, tags: Seq[Tags])(implicit messageService: MessageService): Unit
+  def own(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit
 
-  def unown(user: User, tags: Seq[Tags])(implicit messageService: MessageService): Unit
+  def unown(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit
 }

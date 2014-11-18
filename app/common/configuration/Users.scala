@@ -27,7 +27,7 @@ package common.configuration
  */
 trait Users {
 
-  def allUsers: Seq[User]
+  def allUsers: Set[User]
 
-  def apply(): Seq[User] = allUsers
+  def apply(): Set[User] = allUsers
 }
