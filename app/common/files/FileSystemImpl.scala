@@ -34,7 +34,7 @@ import scala.util.Try
 
 
 /**
- * The default implementation of {@link FileUtils}.
+ * The default implementation of {@link fileSystem}.
  *
  * @author alex
  *

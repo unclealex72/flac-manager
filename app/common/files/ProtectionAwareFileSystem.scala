@@ -28,16 +28,17 @@ import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 
 import com.typesafe.scalalogging.StrictLogging
+import scaldi.{Injectable, Injector}
 
 import scala.collection.JavaConversions._
 
 /**
- * An implementation of {@link FileUtils} that decorates another {@link FileUtils} and is aware of whether {@link
+ * An implementation of {@link fileSystem} that decorates another {@link fileSystem} and is aware of whether {@link
  * FileLocation}s should be left in a read only or writable state.
  * @author alex
  *
  */
-class ProtectionAwareFileSystem(override val delegate: FileSystem)(override implicit val fileLocationUtils: FileLocationExtensions) extends DecoratingFileSystem(delegate) with StrictLogging {
+class ProtectionAwareFileSystem(override val delegate: FileSystem)(override implicit val fileLocationExtensions: FileLocationExtensions) extends DecoratingFileSystem with StrictLogging {
 
   def before(fileLocations: Seq[FileLocation]): Unit = alterWritable(_ => true, fileLocations)
 
@@ -68,5 +69,13 @@ class ProtectionAwareFileSystem(override val delegate: FileSystem)(override impl
       }
       currentPath = currentPath.getParent();
     }
+  }
+}
+
+object ProtectionAwareFileSystem extends Injectable {
+  def injected(implicit injector: Injector): ProtectionAwareFileSystem = {
+    val delegate: FileSystem = inject[FileSystem](identified by 'rawFileSystem)
+    val fileLocationExtensions: FileLocationExtensions = inject[FileLocationExtensions]
+    new ProtectionAwareFileSystem(delegate)(fileLocationExtensions)
   }
 }

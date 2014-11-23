@@ -35,6 +35,6 @@ object ChangeSchema extends Schema {
   /**
    * Column constraints
    */
-  on(changes)(g => declare(g.id is (autoIncremented)))
+  on(changes)(c => declare(c.id is (autoIncremented)))
 
 }

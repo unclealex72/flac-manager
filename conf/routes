@@ -2,8 +2,12 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
-# POST     /command                   controllers.CommandsController.show
+# Commands
+POST        /checkout                 @controllers.Commands.checkout()
+POST        /checkin                  @controllers.Commands.checkin()
+POST        /sync                     @controllers.Commands.sync()
+POST        /own                      @controllers.Commands.own()
+POST        /unown                    @controllers.Commands.unown()
 
-# Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+# Music files
+GET         /music/:user/*file        @controllers.Music.at(user, file)

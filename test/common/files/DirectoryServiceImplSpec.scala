@@ -26,7 +26,7 @@ package common.files
 
 import java.nio.file.{Files, Path, Paths}
 
-import common.configuration.Directories
+import common.configuration.TestDirectories
 import common.files.FileLocationImplicits._
 import common.message.{MessageService, MessageType}
 import org.specs2.mock._
@@ -43,8 +43,8 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
 
   trait fs extends TempFileSystem {
 
-    lazy implicit val directories = Directories(rootDirectory, rootDirectory, rootDirectory, rootDirectory, rootDirectory)
-    lazy implicit val fileLocationUtils = new FileLocationExtensionsImpl
+    lazy implicit val directories = TestDirectories(rootDirectory, rootDirectory, rootDirectory, rootDirectory, rootDirectory)
+    lazy implicit val fileLocationExtensions = new FileLocationExtensionsImpl
     def fl(path: String, paths: String*): FlacFileLocation = FlacFileLocation(path, paths: _*)
 
     implicit object NullMessageService extends MessageService {

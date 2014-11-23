@@ -21,10 +21,10 @@
 
 package common.commands
 
-import org.specs2.mutable.Specification
+import common.commands.ProcessCommunicator._
+import org.specs2.mutable._
 
 import scala.sys.process._
-import ProcessCommunicator._
 
 /**
  * Created by alex on 29/10/14.
@@ -32,14 +32,20 @@ import ProcessCommunicator._
 class ProcessCommunicatorSpec extends Specification {
   sequential
 
+  trait Context extends After {
+    lazy val processCommunicator = new ProcessCommunicator
+
+    def after = processCommunicator.close
+  }
+
   "The process communicator" should {
-    "be able to read output from an echoing command" in {
+    "be able to read output from an echoing command" in new Context() {
       val commandService = new TempFileCommandService
       val echoCommand = commandService.create("doubleecho.py")
-      val processCommunicator = new ProcessCommunicator
       echoCommand run processCommunicator
       processCommunicator.write("Hello")
       val result = processCommunicator.read
+      println(result)
       processCommunicator.write("QUIT")
       result must contain(exactly("HelloA", "HelloB"))
     }

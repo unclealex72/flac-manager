@@ -53,5 +53,5 @@ class I18nMessageServiceBuilder(printers: Seq[String => Unit], exceptionHandlers
 
 object I18nMessageServiceBuilder {
 
-  def apply: I18nMessageServiceBuilder = new I18nMessageServiceBuilder(Seq(), Seq())
+  def apply(): I18nMessageServiceBuilder = new I18nMessageServiceBuilder(Seq(), Seq())
 }

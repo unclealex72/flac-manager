@@ -2,7 +2,7 @@ package checkin
 
 import java.nio.file.Paths
 
-import common.configuration.{Directories, User}
+import common.configuration.{TestDirectories, User}
 import common.files.FileLocationImplicits._
 import common.files.FileLocationToPathImplicits._
 import common.files._
@@ -22,7 +22,7 @@ import scala.collection.SortedSet
 class CheckinCommandImplSpec extends Specification with Mockito {
 
   trait Context extends Scope {
-    implicit val directories = Directories(Paths.get("/flac"), Paths.get(""), Paths.get(""), Paths.get("/staging"), Paths.get("/temp"))
+    implicit val directories = TestDirectories(Paths.get("/flac"), Paths.get(""), Paths.get(""), Paths.get("/staging"), Paths.get("/temp"))
     val tags = Tags(
       album = "Metal: A Headbanger's Companion",
       albumArtist = "Various Artists",
@@ -47,7 +47,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     lazy val ownerService = mock[OwnerService]
     lazy implicit val tagsService = mock[TagsService]
     lazy implicit val messageService = mock[TestMessageService]
-    lazy implicit val fileLocationUtils = mock[TestFileLocationExtensions]
+    lazy implicit val fileLocationExtensions = mock[TestFileLocationExtensions]
     lazy val checkinService = mock[CheckinService]
     lazy val checkinCommand = new CheckinCommandImpl(directoryService, ownerService, checkinService)
 
@@ -73,7 +73,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       flacFileChecker.isFlacFile(sfl) returns true
       tagsService.read(sfl) returns Right(tags)
       directoryService.listFiles(fileLocations) returns SortedSet(sfl)
-      fileLocationUtils.exists(fl) returns true
+      fileLocationExtensions.exists(fl) returns true
       checkinCommand.checkin(fileLocations)
       there was one(messageService).printMessage(OVERWRITE(sfl, fl))
       andThatsAll()
@@ -89,7 +89,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
         tagsService.read(sfl) returns Right(tags)
       }
       directoryService.listFiles(fileLocations) returns SortedSet(sfl1, sfl2, sfl3)
-      fileLocationUtils.exists(fl) returns false
+      fileLocationExtensions.exists(fl) returns false
       checkinCommand.checkin(fileLocations)
       there was one(messageService).printMessage(NON_UNIQUE(fl, Set(sfl1, sfl2, sfl3)))
       andThatsAll()
@@ -102,7 +102,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     flacFileChecker.isFlacFile(sfl) returns true
     tagsService.read(sfl) returns Right(tags)
     directoryService.listFiles(fileLocations) returns SortedSet(sfl)
-    fileLocationUtils.exists(fl) returns false
+    fileLocationExtensions.exists(fl) returns false
     ownerService.listCollections() returns { fl => Set()}
     checkinCommand.checkin(fileLocations)
     there was one(messageService).printMessage(NOT_OWNED(sfl))
@@ -117,7 +117,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     flacFileChecker.isFlacFile(sfl2) returns false
     tagsService.read(sfl1) returns Right(tags)
     directoryService.listFiles(fileLocations) returns SortedSet(sfl1, sfl2)
-    fileLocationUtils.exists(fl) returns false
+    fileLocationExtensions.exists(fl) returns false
     ownerService.listCollections() returns { fl => Set(brian)}
     checkinCommand.checkin(fileLocations)
     there was one(checkinService).checkin(Encode(sfl1, fl, tags, Set(brian)))

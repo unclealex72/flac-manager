@@ -63,7 +63,7 @@ case class Change(
 
 object Change {
 
-  def added(deviceFileLocation: DeviceFileLocation)(implicit fileLocationUtils: FileLocationExtensions): Change =
+  def added(deviceFileLocation: DeviceFileLocation)(implicit fileLocationExtensions: FileLocationExtensions): Change =
     apply("added", deviceFileLocation, JodaDateTime(deviceFileLocation.lastModified))
 
   def removed(deviceFileLocation: DeviceFileLocation, at: DateTime): Change = apply("removed", deviceFileLocation, at)

@@ -25,12 +25,14 @@ import com.typesafe.scalalogging.StrictLogging
 import common.message.MessageService
 
 /**
- * An implementation of {@link FileUtils} that decorates another {@link FileUtils}
+ * An implementation of {@link fileSystem} that decorates another {@link fileSystem}
  * @author alex
  *
  */
-abstract class DecoratingFileSystem(val delegate: FileSystem)(implicit val fileLocationUtils: FileLocationExtensions)
+abstract class DecoratingFileSystem(implicit val fileLocationExtensions: FileLocationExtensions)
   extends FileSystem with StrictLogging {
+
+  val delegate: FileSystem
 
   def wrap(block: => FileSystem => Unit)(fileLocations: FileLocation*): Unit = {
     before(fileLocations)

@@ -23,7 +23,7 @@ package common.files
 
 import java.nio.file.Paths
 
-import common.configuration.{Directories, User}
+import common.configuration.{TestDirectories, User}
 import org.specs2.mutable._
 
 /**
@@ -33,7 +33,7 @@ class FileLocationSpec extends Specification {
 
   val (stagingPath, flacPath, encodedPath, devicesPath, tempPath) =
     (Paths.get("/path", "staging"), Paths.get("/path", "flac"), Paths.get("/path", "encoded"), Paths.get("/path", "devices"), Paths.get("/path", "temp"))
-  implicit val directories = Directories(flacPath, encodedPath, devicesPath, stagingPath, tempPath)
+  implicit val directories = TestDirectories(flacPath, encodedPath, devicesPath, stagingPath, tempPath)
 
   "Pattern matching using StagedFlacFileLocation" should {
     "match a valid staging path" in {

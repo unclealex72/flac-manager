@@ -23,7 +23,7 @@ package common.controllers
 
 import java.nio.file.Paths
 
-import common.configuration.{Directories, User, Users}
+import common.configuration.{TestDirectories, User, Users}
 import common.files._
 import controllers._
 import org.specs2.matcher.Matcher
@@ -39,10 +39,10 @@ import play.api.test.FakeRequest
 class ParameterBuildersImplSpec extends Specification with Mockito {
 
   trait Context extends Scope {
-    lazy implicit val directories = Directories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"), Paths.get("/temp"))
+    lazy implicit val directories = TestDirectories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"), Paths.get("/temp"))
     val MTAB = "mtab" -> "some"
-    lazy implicit val fileLocationUtils = mock[TestFileLocationExtensions]
-    fileLocationUtils.isDirectory(any[FileLocation]) answers { fileLocation =>
+    lazy implicit val fileLocationExtensions = mock[TestFileLocationExtensions]
+    fileLocationExtensions.isDirectory(any[FileLocation]) answers { fileLocation =>
       fileLocation.asInstanceOf[FileLocation].relativePath.getFileName.toString == "dir"
     }
     lazy val users = mock[Users]
@@ -109,7 +109,13 @@ class ParameterBuildersImplSpec extends Specification with Mockito {
     }
     "accept repository directories" in new Context {
       val result = bind(parameterBuilders.checkoutParametersBuilder, MTAB, "directories[0]" -> directories.flacPath.resolve("dir"))
-      result must beRight(CheckoutParameters(Seq(FlacFileLocation("dir"))))
+      result must beRight(CheckoutParameters(Seq(FlacFileLocation("dir")), false))
+    }
+    "accept an unown parameter" in new Context {
+      val result = bind(
+        parameterBuilders.checkoutParametersBuilder, MTAB,
+        "directories[0]" -> directories.flacPath.resolve("dir"), "unown" -> "true")
+      result must beRight(CheckoutParameters(Seq(FlacFileLocation("dir")), true))
     }
   }
 

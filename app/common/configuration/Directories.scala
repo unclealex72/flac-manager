@@ -31,38 +31,39 @@ import java.nio.file.Path
  * @author alex
  *
  */
-case class Directories(
+trait Directories {
                         /**
                          * Gets the top level path where FLAC files are stored.
                          *
                          * @return the top level path where FLAC files are stored
                          */
-                        flacPath: Path,
+                        val flacPath: Path
 
                         /**
                          * Gets the top level path where symbolic links for devices are created.
                          *
                          * @return the top level path where symbolic links for devices are created
                          */
-                        devicesPath: Path,
+                        val devicesPath: Path
 
                         /**
                          * Gets the top level path where encoded files are stored.
                          *
                          * @return the top level path where encoded files are stored
                          */
-                        encodedPath: Path,
+                        val encodedPath: Path
 
                         /**
                          * Gets the top level path where new and altered FLAC files are staged.
                          *
                          * @return the top level path where new and altered FLAC files are staged
                          */
-                        stagingPath: Path,
+                        val stagingPath: Path
 
                         /**
                          * Gets the top level path where temporary files are created.
                          *
                          * @return the top level path where temporary files are created
                          */
-                        temporaryPath: Path)
+                        val temporaryPath: Path
+}

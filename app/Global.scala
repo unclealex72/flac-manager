@@ -1,0 +1,104 @@
+/**
+ * Copyright 2013 Alex Jones
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with work for additional information
+ * regarding copyright ownership.  The ASF licenses file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
+import checkin._
+import checkout.{CheckoutCommand, CheckoutCommandImpl, CheckoutService, CheckoutServiceImpl}
+import com.typesafe.scalalogging.StrictLogging
+import common.changes.{ChangeDao, SquerylChangeDao}
+import common.commands.{CommandService, TempFileCommandService}
+import common.configuration.{Directories, PlayConfigurationDirectories, PlayConfigurationUsers, Users}
+import common.files._
+import common.message.{I18nMessageServiceBuilder, MessageServiceBuilder}
+import common.music.{JaudioTaggerTagsService, TagsService}
+import common.musicbrainz.{MusicBrainzClient, PlayConfigurationMusicBrainzClient}
+import common.owners.{OwnerService, OwnerServiceImpl}
+import controllers.{Commands, Music, ParameterBuilders, ParameterBuildersImpl}
+import org.squeryl.adapters.{H2Adapter, PostgreSqlAdapter}
+import org.squeryl.internals.DatabaseAdapter
+import org.squeryl.{Session, SessionFactory}
+import own.{OwnCommand, OwnCommandImpl}
+import play.api.db.DB
+import play.api.{Application, GlobalSettings}
+import scaldi.play.ScaldiSupport
+import scaldi.{DynamicModule, Injector}
+import sync._
+
+/**
+ * The [[GlobalSettings]] used to set up Squeryl and Subcut
+ * @author alex
+ *
+ */
+object Global extends GlobalSettings with ScaldiSupport with StrictLogging {
+
+  override def applicationModule: Injector = new DynamicModule {
+    // configuration
+    bind[Users] to injected[PlayConfigurationUsers]
+    bind[Directories] to injected[PlayConfigurationDirectories]
+    // common
+    bind[ChangeDao] to injected[SquerylChangeDao]
+    bind[CommandService] to injected[TempFileCommandService]
+    bind[OwnerService] to injected[OwnerServiceImpl]
+    // MusicBrainz
+    bind[MusicBrainzClient] to injected[PlayConfigurationMusicBrainzClient]
+    // files
+    bind[FileLocationExtensions] to injected[FileLocationExtensionsImpl]
+    bind[FileSystem] identifiedBy 'rawFileSystem to injected[FileSystemImpl]
+    bind[FileSystem] to ProtectionAwareFileSystem.injected(this)
+    bind[DirectoryService] to injected[DirectoryServiceImpl]
+    bind[DirectoryMappingService] to injected[DirectoryMappingServiceImpl]
+    bind[TagsService] to injected[JaudioTaggerTagsService]
+    bind[FlacFileChecker] to injected[FlacFileCheckerImpl]
+    // messages
+    bind[MessageServiceBuilder] to I18nMessageServiceBuilder()
+    // sync
+    bind[SyncCommand] to injected[SyncCommandImpl]
+    bind[DeviceConnectionService] to injected[DeviceConnectionServiceImpl]
+    bind[SynchronisationManager] to injected[SynchronisationManagerImpl]
+    // checkin
+    bind[CheckinCommand] to injected[CheckinCommandImpl]
+    bind[CheckinService] to injected[CheckinServiceImpl]
+    bind[Mp3Encoder] to injected[Mp3EncoderImpl]
+    // checkout
+    bind[CheckoutCommand] to injected[CheckoutCommandImpl]
+    bind[CheckoutService] to injected[CheckoutServiceImpl]
+    // own
+    bind[OwnCommand] to injected[OwnCommandImpl]
+    // controllers
+    bind[ParameterBuilders] to injected[ParameterBuildersImpl]
+    bind[Music] to injected[Music]
+    bind[Commands] to injected[Commands]
+  }
+
+  override def onStart(app: Application) {
+    super.onStart(app)
+    logger info "Setting up database access."
+    // Set up Squeryl database access
+    SessionFactory.concreteFactory = app.configuration.getString("db.default.driver") match {
+      case Some("org.h2.Driver") => Some(() => getSession(new H2Adapter, app))
+      case Some("org.postgresql.Driver") => Some(() => getSession(new PostgreSqlAdapter, app))
+      case _ => sys.error("Database driver must be either org.h2.Driver or org.postgresql.Driver")
+    }
+  }
+
+  def getSession(adapter: DatabaseAdapter, app: Application) = Session.create(DB.getConnection()(app), adapter)
+
+}

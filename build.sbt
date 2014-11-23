@@ -14,7 +14,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
   "joda-time" % "joda-time" % "2.2",
   "org.joda" % "joda-convert" % "1.3.1",
-  "com.escalatesoft.subcut" %% "subcut" % "2.1",
+  "org.scaldi" %% "scaldi-play" % "0.4.1",
   // Validation
   "com.wix" %% "accord-core" % "0.4",
   "org" % "jaudiotagger" % "2.0.3",

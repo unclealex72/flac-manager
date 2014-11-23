@@ -38,13 +38,13 @@ import tempfs.TempFileSystem
  */
 class FileSystemImplSpec extends Specification with PathMatchers with Mockito {
 
-  val fileUtils = new FileSystemImpl
+  val fileSystem = new FileSystemImpl
 
   trait fs extends TempFileSystem {
     lazy val source = rootDirectory.resolve("source")
     lazy val target = rootDirectory.resolve("target")
     implicit val messageService: TestMessageService = mock[TestMessageService]
-    implicit val fileLocationUtils = new FileLocationExtensionsImpl()
+    implicit val fileLocationExtensions = new FileLocationExtensionsImpl()
     def before(rootDirectory: Path): Unit = {}
   }
 
@@ -58,7 +58,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with Mockito {
         Files.createFile(fl.toPath);
       }
       val targetLocation = TestFileLocation(target, "otherdir", "movedme.txt")
-      fileUtils.move(fileToMove, targetLocation)
+      fileSystem.move(fileToMove, targetLocation)
       target.resolve(Paths.get("otherdir", "movedme.txt")) must exist
       target.resolve(Paths.get("otherdir", "movedme.txt")) must not(beADirectory)
       fileToKeep.toPath must exist
@@ -72,7 +72,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with Mockito {
       val targetLocation = TestFileLocation(rootDirectory, "here.txt")
       Files.createFile(targetLocation.toPath);
       val linkLocation = TestFileLocation(rootDirectory, "link.d", "link.txt")
-      fileUtils.link(targetLocation, linkLocation)
+      fileSystem.link(targetLocation, linkLocation)
       linkLocation.toPath must beASymbolicLink
       val symlink = Files.readSymbolicLink(linkLocation.toPath)
       symlink must not(beAbsolute)
@@ -88,7 +88,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with Mockito {
       Files.createDirectories(fileToMove.toPath.getParent())
       Files.createFile(fileToMove.toPath)
       val targetLocation = TestFileLocation(target, "otherdir", "movedme.txt")
-      fileUtils.move(fileToMove, targetLocation)
+      fileSystem.move(fileToMove, targetLocation)
       target.resolve(Paths.get("otherdir", "movedme.txt")) must exist
       target.resolve(Paths.get("otherdir", "movedme.txt")) must not(beADirectory)
       fileToMove.toPath.getParent must not(exist)
@@ -103,7 +103,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with Mockito {
       val fileToCopy = TestFileLocation(source, "dir", "copyme.txt")
       Files.createDirectories(fileToCopy.toPath.getParent)
       Files.createFile(fileToCopy.toPath)
-      fileUtils.copy(fileToCopy, TestFileLocation(target, "otherdir", "copiedme.txt"))
+      fileSystem.copy(fileToCopy, TestFileLocation(target, "otherdir", "copiedme.txt"))
       target.resolve(Paths.get("otherdir", "copiedme.txt")) must exist
       target.resolve(Paths.get("otherdir", "copiedme.txt")) must not(beADirectory)
       fileToCopy.toPath must exist

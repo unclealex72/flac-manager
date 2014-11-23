@@ -48,7 +48,8 @@ class ProcessCommunicator {
       },
       is => {
         stderr = Some(new BufferedReader(new InputStreamReader(is)))
-      })
+      },
+      true)
   }
 
   def write(command: String): Unit = for (in <- stdin) {
@@ -63,6 +64,7 @@ class ProcessCommunicator {
   }
 
   def close: Unit = {
+    read
     Seq(stdin, stdout, stderr).flatten.foreach(BasicIO.close)
   }
 }

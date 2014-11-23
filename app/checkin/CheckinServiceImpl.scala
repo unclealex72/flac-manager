@@ -10,12 +10,12 @@ import common.music.{Tags, TagsService}
 /**
  * Created by alex on 16/11/14.
  */
-class CheckinServiceImpl(val fileUtils: FileSystem, changeDao: ChangeDao)
-                        (implicit val fileLocationUtils: FileLocationExtensions, val directories: Directories, val tagsService: TagsService, val mp3Encoder: Mp3Encoder)
+class CheckinServiceImpl(val fileSystem: FileSystem, changeDao: ChangeDao)
+                        (implicit val fileLocationExtensions: FileLocationExtensions, val directories: Directories, val tagsService: TagsService, val mp3Encoder: Mp3Encoder)
   extends CheckinService with Messaging {
 
   def delete(location: StagedFlacFileLocation)(implicit messageService: MessageService): Unit = {
-    fileUtils.remove(location)
+    fileSystem.remove(location)
   }
 
   def encode(stagedFlacFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, users: Set[User])(implicit messageService: MessageService): Unit = {
@@ -24,13 +24,13 @@ class CheckinServiceImpl(val fileUtils: FileSystem, changeDao: ChangeDao)
     log(ENCODE(stagedFlacFileLocation, encodedFileLocation))
     stagedFlacFileLocation.encodeTo(tempEncodedLocation)
     tempEncodedLocation.writeTags(tags)
-    fileUtils.move(tempEncodedLocation, encodedFileLocation)
+    fileSystem.move(tempEncodedLocation, encodedFileLocation)
     users.foreach { user =>
       val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
-      fileUtils.link(encodedFileLocation, deviceFileLocation)
+      fileSystem.link(encodedFileLocation, deviceFileLocation)
       changeDao.store(Change.added(deviceFileLocation))
     }
-    fileUtils.move(stagedFlacFileLocation, flacFileLocation)
+    fileSystem.move(stagedFlacFileLocation, flacFileLocation)
   }
 
   override def checkin(action: Action)(implicit messagingService: MessageService): Unit = {

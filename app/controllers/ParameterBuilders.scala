@@ -22,8 +22,8 @@
 package controllers
 
 import common.configuration.User
-import common.files.{FileLocation, FlacFileLocation, StagedFlacFileLocation}
-import play.api.data.{FormError, Form}
+import common.files.{FlacFileLocation, StagedFlacFileLocation}
+import play.api.data.FormError
 
 trait ParameterBuilders {
 
@@ -50,6 +50,6 @@ object SyncParameters extends Parameters
 
 case class CheckinParameters(val stagedFileLocations: Seq[StagedFlacFileLocation]) extends Parameters
 
-case class CheckoutParameters(val fileLocations: Seq[FlacFileLocation]) extends Parameters
+case class CheckoutParameters(val fileLocations: Seq[FlacFileLocation], val unown: Boolean) extends Parameters
 
 case class OwnerParameters(val stagedFileLocations: Seq[StagedFlacFileLocation], val owners: Seq[User]) extends Parameters

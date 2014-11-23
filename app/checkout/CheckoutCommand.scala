@@ -28,5 +28,5 @@ import common.message.MessageService
  * Created by alex on 09/11/14.
  */
 trait CheckoutCommand {
-  def checkout(locations: Seq[FlacFileLocation])(implicit messageService: MessageService): Unit
+  def checkout(locations: Seq[FlacFileLocation], unown: Boolean)(implicit messageService: MessageService): Unit
 }

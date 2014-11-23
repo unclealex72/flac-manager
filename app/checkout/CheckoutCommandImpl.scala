@@ -8,13 +8,13 @@ import common.message.{MessageService, Messaging}
 /**
  * Created by alex on 16/11/14.
  */
-class CheckoutCommandImpl(val fileUtils: FileSystem, val directoryService: DirectoryService, val checkoutService: CheckoutService)
-                         (implicit val directories: Directories, fileLocationUtils: FileLocationExtensions) extends CheckoutCommand with Messaging {
+class CheckoutCommandImpl(val fileSystem: FileSystem, val directoryService: DirectoryService, val checkoutService: CheckoutService)
+                         (implicit val directories: Directories, fileLocationExtensions: FileLocationExtensions) extends CheckoutCommand with Messaging {
 
-  override def checkout(locations: Seq[FlacFileLocation])(implicit messageService: MessageService): Unit = {
+  override def checkout(locations: Seq[FlacFileLocation], unown: Boolean)(implicit messageService: MessageService): Unit = {
     val groupedFlacFileLocations = directoryService.groupFiles(locations)
     if (groupedFlacFileLocations.values.flatten.foldLeft(true)(validate)) {
-      checkoutService.checkout(groupedFlacFileLocations)
+      checkoutService.checkout(groupedFlacFileLocations, unown)
     }
   }
 

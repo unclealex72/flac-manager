@@ -2,12 +2,13 @@ package checkout
 
 import java.nio.file.{Path, Paths}
 
-import common.configuration.{Directories, User, Users}
+import common.configuration.{Directories, TestDirectories, User, Users}
 import common.files.FileLocationImplicits._
 import common.files._
 import common.message.MessageService
 import common.music.{CoverArt, Tags, TagsService}
 import common.owners.OwnerService
+import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import org.specs2.specification.Scope
@@ -28,7 +29,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito {
     }
 
     implicit val stringToPath: String => Path = Paths.get(_)
-    implicit val directories: Directories = Directories("/flac", "/devices", "/encoded", "/staging", "/temp")
+    implicit val directories: Directories = TestDirectories("/flac", "/devices", "/encoded", "/staging", "/temp")
 
     object Dsl {
 
@@ -153,11 +154,8 @@ class CheckoutServiceImplSpec extends Specification with Mockito {
     val fileSystem = mock[FileSystem]
     val ownerService = mock[OwnerService]
     val checkoutService = new CheckoutServiceImpl(fileSystem, users, ownerService)
-  }
 
-  "Checking out albums" should {
-    "remove all traces of the album, including ownership" in new Context {
-      checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac))
+    def checkFilesRemoved: MatchResult[Unit] = {
       // check flac files are moved
       there was one(fileSystem).move(aKindOfMagicFlac(OneVision.flac), aKindOfMagicStagedFlac(OneVision.flac))
       there was one(fileSystem).move(aKindOfMagicFlac(AKindOfMagic.flac), aKindOfMagicStagedFlac(AKindOfMagic.flac))
@@ -175,6 +173,14 @@ class CheckoutServiceImplSpec extends Specification with Mockito {
       there was one(fileSystem).remove(briansJazzMp3(FatBottomedGirls.mp3))
       there was one(fileSystem).remove(freddiesJazzMp3(Mustapha.mp3))
       there was one(fileSystem).remove(freddiesJazzMp3(FatBottomedGirls.mp3))
+    }
+
+  }
+
+  "Checking out albums" should {
+    "remove all traces of the album, including ownership if asked for" in new Context {
+      checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac), true)
+      checkFilesRemoved
 
       //check that albums were disowned
       there was one(ownerService).unown(brian, Set(oneVisionTags, mustaphaTags))
@@ -183,4 +189,15 @@ class CheckoutServiceImplSpec extends Specification with Mockito {
       noMoreCallsTo(ownerService)
     }
   }
+
+  "Checking out albums" should {
+    "remove all traces of the album, excluding ownership if not asked for" in new Context {
+      checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac), false)
+      checkFilesRemoved
+
+      noMoreCallsTo(fileSystem)
+      noMoreCallsTo(ownerService)
+    }
+  }
+
 }

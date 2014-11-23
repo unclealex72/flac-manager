@@ -24,6 +24,7 @@
 
 package common.files
 
+import java.io.File
 import java.nio.file.{Path, Paths}
 
 import checkin.Mp3Encoder
@@ -68,11 +69,11 @@ trait FileLocation {
    */
   def readOnly: Boolean
 
-  def isDirectory(implicit fileLocationUtils: FileLocationExtensions): Boolean = fileLocationUtils.isDirectory(this)
+  def isDirectory(implicit fileLocationExtensions: FileLocationExtensions): Boolean = fileLocationExtensions.isDirectory(this)
 
-  def exists(implicit fileLocationUtils: FileLocationExtensions): Boolean = fileLocationUtils.exists(this)
+  def exists(implicit fileLocationExtensions: FileLocationExtensions): Boolean = fileLocationExtensions.exists(this)
 
-  def lastModified(implicit fileLocationUtils: FileLocationExtensions): Long = fileLocationUtils.lastModified(this)
+  def lastModified(implicit fileLocationExtensions: FileLocationExtensions): Long = fileLocationExtensions.lastModified(this)
 
   def readTags(implicit tagsService: TagsService): Either[Set[Violation], Tags] = tagsService.read(toPath)
 
@@ -123,6 +124,10 @@ trait DeviceFileLocation extends FileLocation {
 
   def user: User
   def path: Path = toPath
+
+  def toFile(implicit fileLocationExtensions: FileLocationExtensions): Option[File] = {
+    if (exists && !isDirectory) Some(path.toFile) else None
+  }
 }
 
 
@@ -172,7 +177,7 @@ object TemporaryFileLocation {
   def apply(relativePath: Path)(implicit directories: Directories): TemporaryFileLocation =
     TemporaryFileLocationImpl(relativePath, directories)
 
-  def create()(implicit fileLocationUtils: FileLocationExtensions, directories: Directories): TemporaryFileLocation = fileLocationUtils.createTemporaryFileLocation()
+  def create()(implicit fileLocationExtensions: FileLocationExtensions, directories: Directories): TemporaryFileLocation = fileLocationExtensions.createTemporaryFileLocation()
 
 }
 

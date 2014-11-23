@@ -37,7 +37,7 @@ class CheckinCommandImpl(
                           val directoryService: DirectoryService,
                           val ownerService: OwnerService,
                           val checkinService: CheckinService)(implicit val flacFileChecker: FlacFileChecker,
-                                                              val tagsService: TagsService, val fileLocationUtils: FileLocationExtensions)
+                                                              val tagsService: TagsService, val fileLocationExtensions: FileLocationExtensions)
   extends CheckinCommand with Messaging {
 
   override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): Unit = {

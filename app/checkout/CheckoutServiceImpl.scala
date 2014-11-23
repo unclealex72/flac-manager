@@ -15,10 +15,12 @@ class CheckoutServiceImpl(val fileSystem: FileSystem, val users: Users, val owne
                          (implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService)
   extends CheckoutService {
 
-  override def checkout(flacFileLocationsByParent: SortedMap[FlacFileLocation, SortedSet[FlacFileLocation]])(implicit messageService: MessageService): Unit = {
+  override def checkout(flacFileLocationsByParent: SortedMap[FlacFileLocation, SortedSet[FlacFileLocation]], unown: Boolean)(implicit messageService: MessageService): Unit = {
     val tagsForUsers = flacFileLocationsByParent.foldLeft(Map.empty[User, Set[Tags]])(findTagsAndDeleteFiles)
-    tagsForUsers.foreach { case (user, tagsSet) =>
-      ownerService.unown(user, tagsSet)
+    if (unown) {
+      tagsForUsers.foreach { case (user, tagsSet) =>
+        ownerService.unown(user, tagsSet)
+      }
     }
   }
 

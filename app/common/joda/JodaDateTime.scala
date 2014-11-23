@@ -22,7 +22,10 @@ package common.joda
 
 import java.util.Date
 
+import org.joda.time.format.{DateTimeFormatter, ISODateTimeFormat}
 import org.joda.time.{DateTime => JDateTime}
+
+import scala.util.Try
 
 /**
  * A companion object for Joda DateTime that ensures all created dates have the correct time zone and chronology.
@@ -31,6 +34,7 @@ import org.joda.time.{DateTime => JDateTime}
  */
 object JodaDateTime {
 
+  private val formatter: DateTimeFormatter = ISODateTimeFormat.dateTime()
   /**
    * Create a new date time.
    */
@@ -40,4 +44,12 @@ object JodaDateTime {
    * Create a new date time.
    */
   def apply(d: Date) = new JDateTime(d)
+
+  /**
+   * Parse an ISO8601 formatter
+   * @param s
+   */
+  def apply(s: String): Option[JDateTime] = Try(formatter.parseDateTime(s)).toOption
+
+  def format(dateTime: JDateTime): String = formatter.print(dateTime)
 }

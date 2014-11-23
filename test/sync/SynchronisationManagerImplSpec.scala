@@ -24,7 +24,7 @@ package sync
 import java.nio.file.{Path, Paths}
 import java.text.SimpleDateFormat
 
-import common.configuration.{Directories, User}
+import common.configuration.{Directories, TestDirectories, User}
 import common.files._
 import common.message.MessageTypes._
 import common.message._
@@ -40,7 +40,7 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
   import sync.Implicits._
 
   trait context extends Scope {
-    implicit val directories = Directories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"), Paths.get("/temp"))
+    implicit val directories = TestDirectories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"), Paths.get("/temp"))
     val user: User = User("freddie", "", "", "")
     val deviceConnectionService = mock[DeviceConnectionService]
     implicit val messageService: TestMessageService = mock[TestMessageService]
@@ -50,12 +50,12 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
   "The synchronisation manager" should {
     "Add a music file that is not on the device" in new context {
       val fileLocation: DeviceFileLocation = DeviceFileLocation(user, "b.txt")
-      implicit val fileLocationUtils = MapLastModified(
+      implicit val fileLocationExtensions = MapLastModified(
         fileLocation -> "05/09/1972 10:15:00")
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService)
       val device = mock[Device]
       device.listDeviceFiles returns Set()
-      synchronisationManager.synchroniseFiles(device, fileLocationUtils.fileLocations)
+      synchronisationManager.synchroniseFiles(device, fileLocationExtensions.fileLocations)
       there was one(device).add(fileLocation)
       there was one(messageService).printMessage(SYNC_ADD(fileLocation))
       there were no(device).remove(any[DeviceFile])
@@ -63,12 +63,12 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
     }
 
     "Remove a device file that no longer exists" in new context {
-      implicit val fileLocationUtils = MapLastModified()
+      implicit val fileLocationExtensions = MapLastModified()
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService)
       val device = mock[Device]
       val deviceFile: DeviceFile = DeviceFile(ID, "a.txt", "05/09/1972 09:12:00")
       device.listDeviceFiles returns Set(deviceFile)
-      synchronisationManager.synchroniseFiles(device, fileLocationUtils.fileLocations)
+      synchronisationManager.synchroniseFiles(device, fileLocationExtensions.fileLocations)
       there were no(device).add(any[DeviceFileLocation])
       there was one(device).remove(deviceFile)
       there was one(messageService).printMessage(SYNC_REMOVE(deviceFile))
@@ -77,12 +77,12 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
 
     "Overwrite an outdated device file" in new context {
       val fileLocation = DeviceFileLocation(user, "a.txt")
-      implicit val fileLocationUtils = MapLastModified(fileLocation -> "05/09/1973 09:12:00")
+      implicit val fileLocationExtensions = MapLastModified(fileLocation -> "05/09/1973 09:12:00")
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService)
       val device = mock[Device]
       val deviceFile: DeviceFile = DeviceFile(ID, "a.txt", "05/09/1972 09:12:00")
       device.listDeviceFiles returns Set(deviceFile)
-      synchronisationManager.synchroniseFiles(device, fileLocationUtils.fileLocations)
+      synchronisationManager.synchroniseFiles(device, fileLocationExtensions.fileLocations)
       there was one(device).add(fileLocation)
       there were no(device).remove(any[DeviceFile])
       there was one(messageService).printMessage(SYNC_ADD(fileLocation))
@@ -91,12 +91,12 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
 
     "Keep a device file that is exactly one hour older than a music file" in new context {
       val fileLocation = DeviceFileLocation(user, "a.txt")
-      implicit val fileLocationUtils = MapLastModified(fileLocation -> "05/09/1972 10:12:00")
+      implicit val fileLocationExtensions = MapLastModified(fileLocation -> "05/09/1972 10:12:00")
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService)
       val device = mock[Device]
       val deviceFile: DeviceFile = DeviceFile(ID, "a.txt", "05/09/1972 09:12:00")
       device.listDeviceFiles returns Set(deviceFile)
-      synchronisationManager.synchroniseFiles(device, fileLocationUtils.fileLocations)
+      synchronisationManager.synchroniseFiles(device, fileLocationExtensions.fileLocations)
       there were no(device).add(any[DeviceFileLocation])
       there were no(device).remove(any[DeviceFile])
       there was one(messageService).printMessage(SYNC_KEEP(deviceFile))
@@ -105,12 +105,12 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
 
     "Keep a device file that is exactly one hour newer than a music file" in new context {
       val fileLocation = DeviceFileLocation(user, "a.txt")
-      implicit val fileLocationUtils = MapLastModified(fileLocation -> "05/09/1972 09:12:00")
+      implicit val fileLocationExtensions = MapLastModified(fileLocation -> "05/09/1972 09:12:00")
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService)
       val device = mock[Device]
       val deviceFile: DeviceFile = DeviceFile(ID, "a.txt", "05/09/1972 10:12:00")
       device.listDeviceFiles returns Set(deviceFile)
-      synchronisationManager.synchroniseFiles(device, fileLocationUtils.fileLocations)
+      synchronisationManager.synchroniseFiles(device, fileLocationExtensions.fileLocations)
       there were no(device).add(any[DeviceFileLocation])
       there were no(device).remove(any[DeviceFile])
       there was one(messageService).printMessage(SYNC_KEEP(deviceFile))
@@ -118,11 +118,11 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
     }
 
     "Successfully mount and unmount a device after a successful transfer" in new context {
-      implicit val fileLocationUtils = MapLastModified()
+      implicit val fileLocationExtensions = MapLastModified()
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService)
       val device = mock[Device]
       device.listDeviceFiles returns Set()
-      val result = synchronisationManager.synchronise(device, fileLocationUtils.fileLocations)
+      val result = synchronisationManager.synchronise(device, fileLocationExtensions.fileLocations)
       there was one(deviceConnectionService).mount(anyString)
       there was one(device).beforeMount
       there was one(device).afterMount(any[Path])
@@ -134,11 +134,11 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
     }
 
     "Successfully mount and unmount a device after an unsuccessful transfer" in new context {
-      implicit val fileLocationUtils = MapLastModified()
+      implicit val fileLocationExtensions = MapLastModified()
       val synchronisationManager = new SynchronisationManagerImpl(deviceConnectionService)
       val device = mock[Device]
       device.listDeviceFiles throws new RuntimeException("D'oh!")
-      val result = synchronisationManager.synchronise(device, fileLocationUtils.fileLocations)
+      val result = synchronisationManager.synchronise(device, fileLocationExtensions.fileLocations)
       there was one(deviceConnectionService).mount(anyString)
       there was one(device).beforeMount
       there was one(device).afterMount(any[Path])

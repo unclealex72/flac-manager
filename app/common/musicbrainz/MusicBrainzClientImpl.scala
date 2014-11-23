@@ -26,9 +26,10 @@ package common.musicbrainz
 
 import com.ning.http.client.Realm.{AuthScheme, RealmBuilder}
 import com.typesafe.scalalogging.StrictLogging
-import common.configuration.User
+import common.configuration.{PlayConfiguration, User}
 import dispatch.Defaults._
 import dispatch._
+import play.api.Configuration
 
 import scala.xml.Elem
 
@@ -121,4 +122,15 @@ class MusicBrainzClientImpl(val musicBrainzHost: String) extends MusicBrainzClie
       .addHeader("Accept", "application/xml")
       .<<?(Seq(ID_PARAMETER)) / "ws" / "2" / "collection"
   }
+}
+
+class PlayConfigurationMusicBrainzClient(override val configuration: Configuration) extends PlayConfiguration[MusicBrainzClient](configuration) with MusicBrainzClient {
+  override def load(configuration: Configuration): Option[MusicBrainzClient] =
+    configuration.getString("musicbrainzHost").map(host => new MusicBrainzClientImpl(host))
+
+  override def addReleases(user: User, newReleaseIds: Set[String]): Future[Unit] = result.addReleases(user, newReleaseIds)
+
+  override def removeReleases(user: User, oldReleaseIds: Set[String]): Future[Unit] = result.removeReleases(user, oldReleaseIds)
+
+  override def relasesForOwner(user: User): Future[Traversable[String]] = result.relasesForOwner(user)
 }

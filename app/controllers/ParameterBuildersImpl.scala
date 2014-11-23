@@ -34,7 +34,7 @@ import play.api.mvc.Request
 /**
  * Created by alex on 09/11/14.
  */
-class ParameterBuildersImpl(val users: Users, val directoryMappingService: DirectoryMappingService)(implicit val directories: Directories, val fileLocationUtils: FileLocationExtensions) extends ParameterBuilders {
+class ParameterBuildersImpl(val users: Users, val directoryMappingService: DirectoryMappingService)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions) extends ParameterBuilders {
 
   class ZeroParameterBuilder[C](constant: C) extends ParameterBuilder[C] {
     override def bindFromRequest()(implicit request: Request[_]): Either[Seq[FormError], C] = Right(constant)
@@ -49,13 +49,24 @@ class ParameterBuildersImpl(val users: Users, val directoryMappingService: Direc
     val asParameterBuilder = new SingleParameterBuilder[P](form)
   }
 
-  class MultipleParameterBuilder[P, Q, R](pb1: ParameterBuilder[P], pb2: P => ParameterBuilder[Q], combiner: P => Q => R) extends ParameterBuilder[R] {
+  class DoubleParameterBuilder[P, Q, R](pb1: ParameterBuilder[P], pb2: P => ParameterBuilder[Q], combiner: P => Q => R) extends ParameterBuilder[R] {
     override def bindFromRequest()(implicit request: Request[_]): Either[Seq[FormError], R] =
       for {
         p <- pb1.bindFromRequest().right
         q <- pb2(p).bindFromRequest().right
       } yield combiner(p)(q)
   }
+
+  /**
+   * The model for including a flag as to whether checked out files should be unowned.
+   */
+  case class UnownParameters(unown: Boolean)
+
+  /**
+   * A parameter builder for forms that can contain a flag as to whether checked out files should be unowned.
+   */
+  val unownParamtersBuilder: SingleParameterBuilder[UnownParameters] =
+    Form(mapping("unown" -> boolean)(UnownParameters.apply)(UnownParameters.unapply)).asParameterBuilder
 
   /**
    * The model for including an mtab in a form.
@@ -98,11 +109,17 @@ class ParameterBuildersImpl(val users: Users, val directoryMappingService: Direc
     ).asParameterBuilder
   }
 
-  val checkoutParametersBuilder: ParameterBuilder[CheckoutParameters] = new MultipleParameterBuilder(
-    mtabParameterBuilder, mtabFileLocationParameterBuilder(FlacFileLocation.unapply),
-    (m: MtabParameters) => (flp: FileLocationsParameters[FlacFileLocation]) => CheckoutParameters(flp.fileLocations))
+  val checkoutParametersBuilder: ParameterBuilder[CheckoutParameters] = {
+    val mtabAndFilesParameterBuilder = new DoubleParameterBuilder(
+      mtabParameterBuilder, mtabFileLocationParameterBuilder(FlacFileLocation.unapply),
+      (m: MtabParameters) => (flp: FileLocationsParameters[FlacFileLocation]) => CheckoutParameters(flp.fileLocations, false))
+    new DoubleParameterBuilder(
+      mtabAndFilesParameterBuilder,
+      (cp: CheckoutParameters) => unownParamtersBuilder,
+      (cp: CheckoutParameters) => (u: UnownParameters) => CheckoutParameters(cp.fileLocations, u.unown))
+  }
 
-  val checkinParametersBuilder: ParameterBuilder[CheckinParameters] = new MultipleParameterBuilder(
+  val checkinParametersBuilder: ParameterBuilder[CheckinParameters] = new DoubleParameterBuilder(
     mtabParameterBuilder, mtabFileLocationParameterBuilder(StagedFlacFileLocation.unapply),
     (m: MtabParameters) => (flp: FileLocationsParameters[StagedFlacFileLocation]) => CheckinParameters(flp.fileLocations))
 
@@ -128,7 +145,7 @@ class ParameterBuildersImpl(val users: Users, val directoryMappingService: Direc
       (applier)(nonifier)
   ).asParameterBuilder
 
-  val ownerParametersBuilder: ParameterBuilder[OwnerParameters] = new MultipleParameterBuilder(
+  val ownerParametersBuilder: ParameterBuilder[OwnerParameters] = new DoubleParameterBuilder(
     checkinParametersBuilder,
     (cp: CheckinParameters) => ownerOnlyParametersBuilder,
     (cp: CheckinParameters) => (oop: OwnerOnlyParameters) => OwnerParameters(cp.stagedFileLocations, oop.owners))
