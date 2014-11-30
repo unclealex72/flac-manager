@@ -48,15 +48,15 @@ object MessageTypes {
 
   private object MessageTypeImplicits {
 
-    implicit def fileLocationsToString[FL <: FileLocation](fls: Traversable[FL]) = {
+    implicit def fileLocationsToString[FL <: FileLocation](fls: Traversable[FL]): String = {
       fls.map(fileLocationToString(_)).mkString(", ")
     }
 
-    implicit def fileLocationToString(fileLocation: FileLocation) = fileLocation.toMessage
+    implicit def fileLocationToString(fileLocation: FileLocation): String = fileLocation.toMessage
 
-    implicit def deviceFileToString(deviceFile: DeviceFile) = deviceFile.relativePath
+    implicit def deviceFileToString(deviceFile: DeviceFile): String = deviceFile.relativePath
 
-    implicit def userToString(user: User) = user.name
+    implicit def userToString(user: User): String = user.name
   }
 
   import common.message.MessageTypes.MessageTypeImplicits._
@@ -150,7 +150,7 @@ object MessageTypes {
   /**
    * The key for producing a message to say that a file is being removed from a device.
    */
-  case class SYNC_IGNORE(path: String)(implicit messageService: MessageService) extends MessageType("syncIgnore")
+  case class SYNC_IGNORE(path: String)(implicit messageService: MessageService) extends MessageType("syncIgnore", path)
 
   /**
    * The key for producing a message to say that a file is being added to a device.
@@ -161,11 +161,6 @@ object MessageTypes {
    * The key for producing a message to say that a file has been found.
    */
   case class FOUND_FILE(fileLocation: FileLocation)(implicit messageService: MessageService) extends MessageType("foundFile", fileLocation)
-
-  /**
-   * The key for producing a message to say that a valid track has been found.
-   */
-  case class FOUND_TRACK(implicit messageService: MessageService) extends MessageType("foundTrack")
 
   /**
    * The key for producing a message to say that devices are being searched.

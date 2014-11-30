@@ -1,2 +1,29 @@
+noFiles = Could not find any valid files in {0}
+encode = Encoding {0} to {1}
+delete = Removing {0}
+checkin = Checking in {0}
+checkout = Checking out {0}
+move = Moving {0} to {1}
+invalidFlac = {0} is not a valid FLAC file
+overwrite = {0} would overwrite {1}
+nonUnique = The following files all resolve to {0}: {1}
+link = Linking {0} to {1}
+unlink = Unlinking {0} from {1}
+notOwned = {0} has no owners
+readingCollection = Reading {0}''s collection
+addOwner = Adding {1} as an owner of {0}
+removeOwner = Removing {1} as an owner of {0}
+commitOwnership = Committing ownership changes
+syncKeep = Keeping file {0}
+syncRemove = Removing file {0}
+syncIgnore = Ignoring file {0}
+syncAdd = Adding file {0}
+foundFile = Found file {0}
+lookingForDevices = Looking for connected devices
+sync = Synchronising {0}''s device
+foundDevice = Found {0}''s device
+deviceSynchronised = {0}''s device has been synchronised.
+
+
 # Error messages
 error.directories.invalidPath = The following directories are invalid: {0}

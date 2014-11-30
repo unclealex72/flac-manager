@@ -34,7 +34,7 @@ class I18nMessageServiceBuilder(printers: Seq[String => Unit], exceptionHandlers
   override def build: MessageService = new MessageService() {
 
     override def printMessage(template: MessageType): Unit = {
-      val message = Messages(template.key, template.parameters)
+      val message = Messages(template.key, template.parameters :_*)
       printers.foreach(printer => printer(message))
     }
 
