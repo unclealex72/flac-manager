@@ -20,7 +20,8 @@ class DeviceConnectionServiceImpl(users: Users) extends DeviceConnectionService 
    * @return
    */
   override def listConnectedDevices()(implicit messageService: MessageService): Set[User] = {
-    val connectedDeviceIds = Files.list(Paths.get("/dev", "disks", "by-uuid")).iterator().toSeq.map(_.getFileName.toString)
+    log(LOOKING_FOR_DEVICES())
+    val connectedDeviceIds = Files.list(Paths.get("/dev", "disk", "by-uuid")).iterator().toSeq.map(_.getFileName.toString)
     val connectedUsers = users.allUsers.filter(user => connectedDeviceIds.contains(user.uuid)).toSet
     connectedUsers.foreach(user => log(FOUND_DEVICE(user)))
     connectedUsers

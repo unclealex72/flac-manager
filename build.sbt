@@ -15,11 +15,12 @@ libraryDependencies ++= Seq(
   "joda-time" % "joda-time" % "2.2",
   "org.joda" % "joda-convert" % "1.3.1",
   "org.scaldi" %% "scaldi-play" % "0.4.1",
+  // Musicbrainz REST web client
+  "com.sun.jersey" % "jersey-client" % "1.5",
+  "com.sun.jersey.contribs" % "jersey-apache-client" % "1.5",
   // Validation
   "com.wix" %% "accord-core" % "0.4",
   "org" % "jaudiotagger" % "2.0.3",
-  // HTTP
-  "net.databinder.dispatch" %% "dispatch-core" % "0.11.2",
   jdbc,
   cache,
   "cglib" % "cglib-nodep" % "3.1",

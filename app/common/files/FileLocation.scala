@@ -28,6 +28,7 @@ import java.io.File
 import java.nio.file.{Path, Paths}
 
 import checkin.Mp3Encoder
+import com.typesafe.scalalogging.StrictLogging
 import com.wix.accord.Violation
 import common.configuration.{Directories, User}
 import common.music.{Tags, TagsService}
@@ -199,13 +200,14 @@ sealed abstract class AbstractFlacFileLocation(
 /**
  * A helper object for pattern matching on FileLocations.
  */
-private object Unapply {
+private object Unapply extends StrictLogging {
 
   def apply[F <: FileLocation](basePath: Path, absolutePath: Path, factory: Path => F): Option[F] = {
     if (absolutePath.startsWith(basePath)) {
       Some(factory(basePath.relativize(absolutePath)))
     }
     else {
+      logger.debug(s"Rejecting $absolutePath as it is not a subpath of $basePath")
       None
     }
   }

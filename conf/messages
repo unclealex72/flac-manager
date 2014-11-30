@@ -1,0 +1,2 @@
+# Error messages
+error.directories.invalidPath = The following directories are invalid: {0}

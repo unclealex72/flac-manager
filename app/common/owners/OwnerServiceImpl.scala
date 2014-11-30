@@ -14,12 +14,12 @@ import scala.concurrent.duration._
  */
 class OwnerServiceImpl(val musicBrainzClient: MusicBrainzClient, val users: Users) extends OwnerService with Messaging {
 
-  val timeout: FiniteDuration = 10 seconds
+  val timeout: FiniteDuration = 1000000 seconds
 
   override def listCollections()(implicit messageService: MessageService): Tags => Set[User] = {
     val collectionsByUser = users().map { user =>
       log(READING_COLLECTION(user))
-      val collection = Await.result(musicBrainzClient.relasesForOwner(user), timeout)
+      val collection = musicBrainzClient.relasesForOwner(user)
       user -> collection
     }.toSet
     tags => collectionsByUser.filter(_._2.exists(id => id == tags.albumId)).map(_._1)
@@ -34,9 +34,9 @@ class OwnerServiceImpl(val musicBrainzClient: MusicBrainzClient, val users: User
     changeOwnership(user, tags, musicBrainzClient.removeReleases _)
   }
 
-  def changeOwnership(user: User, tags: Set[Tags], block: (User, Set[String]) => Future[Unit]): Unit = {
+  def changeOwnership(user: User, tags: Set[Tags], block: (User, Set[String]) => Unit): Unit = {
     val albumIds = tags.map(_.albumId).toSet
-    Await.result(block(user, albumIds), timeout)
+    block(user, albumIds)
   }
 
 }

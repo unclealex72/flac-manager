@@ -46,7 +46,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     lazy implicit val flacFileChecker = mock[FlacFileChecker]
     lazy val ownerService = mock[OwnerService]
     lazy implicit val tagsService = mock[TagsService]
-    lazy implicit val messageService = mock[TestMessageService]
+    lazy implicit val messageService = TestMessageService()
     lazy implicit val fileLocationExtensions = mock[TestFileLocationExtensions]
     lazy val checkinService = mock[CheckinService]
     lazy val checkinCommand = new CheckinCommandImpl(directoryService, ownerService, checkinService)
@@ -64,6 +64,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       directoryService.listFiles(fileLocations) returns SortedSet(sfl)
       checkinCommand.checkin(fileLocations)
       there was one(messageService).printMessage(INVALID_FLAC(sfl))
+      there was one(messageService).printMessage(NO_FILES(SortedSet(sfl)))
       andThatsAll()
     }
 
@@ -76,6 +77,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       fileLocationExtensions.exists(fl) returns true
       checkinCommand.checkin(fileLocations)
       there was one(messageService).printMessage(OVERWRITE(sfl, fl))
+      there was one(messageService).printMessage(NO_FILES(SortedSet(sfl)))
       andThatsAll()
     }
 
@@ -92,6 +94,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       fileLocationExtensions.exists(fl) returns false
       checkinCommand.checkin(fileLocations)
       there was one(messageService).printMessage(NON_UNIQUE(fl, Set(sfl1, sfl2, sfl3)))
+      there was one(messageService).printMessage(NO_FILES(SortedSet(sfl1, sfl2, sfl3)))
       andThatsAll()
     }
   }
@@ -106,6 +109,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     ownerService.listCollections() returns { fl => Set()}
     checkinCommand.checkin(fileLocations)
     there was one(messageService).printMessage(NOT_OWNED(sfl))
+    there was one(messageService).printMessage(NO_FILES(SortedSet(sfl)))
     andThatsAll()
   }
 

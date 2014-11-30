@@ -10,8 +10,8 @@ import common.music.{Tags, TagsService}
 /**
  * Created by alex on 16/11/14.
  */
-class CheckinServiceImpl(val fileSystem: FileSystem, changeDao: ChangeDao)
-                        (implicit val fileLocationExtensions: FileLocationExtensions, val directories: Directories, val tagsService: TagsService, val mp3Encoder: Mp3Encoder)
+class CheckinServiceImpl(val fileSystem: FileSystem)
+                        (implicit val changeDao: ChangeDao, val fileLocationExtensions: FileLocationExtensions, val directories: Directories, val tagsService: TagsService, val mp3Encoder: Mp3Encoder)
   extends CheckinService with Messaging {
 
   def delete(location: StagedFlacFileLocation)(implicit messageService: MessageService): Unit = {
@@ -28,7 +28,7 @@ class CheckinServiceImpl(val fileSystem: FileSystem, changeDao: ChangeDao)
     users.foreach { user =>
       val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
       fileSystem.link(encodedFileLocation, deviceFileLocation)
-      changeDao.store(Change.added(deviceFileLocation))
+      Change.added(deviceFileLocation).store
     }
     fileSystem.move(stagedFlacFileLocation, flacFileLocation)
   }

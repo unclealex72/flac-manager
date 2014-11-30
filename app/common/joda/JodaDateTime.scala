@@ -22,17 +22,18 @@ package common.joda
 
 import java.util.Date
 
+import com.typesafe.scalalogging.StrictLogging
 import org.joda.time.format.{DateTimeFormatter, ISODateTimeFormat}
 import org.joda.time.{DateTime => JDateTime}
 
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 /**
  * A companion object for Joda DateTime that ensures all created dates have the correct time zone and chronology.
  * @author alex
  *
  */
-object JodaDateTime {
+object JodaDateTime extends StrictLogging {
 
   private val formatter: DateTimeFormatter = ISODateTimeFormat.dateTime()
   /**
@@ -49,7 +50,12 @@ object JodaDateTime {
    * Parse an ISO8601 formatter
    * @param s
    */
-  def apply(s: String): Option[JDateTime] = Try(formatter.parseDateTime(s)).toOption
+  def apply(s: String): Option[JDateTime] = Try {
+    formatter.parseDateTime(s)
+  } recoverWith { case (t: Throwable) =>
+    logger.error(s"Could not parse $s", t)
+    Failure(t)
+  } toOption
 
   def format(dateTime: JDateTime): String = formatter.print(dateTime)
 }

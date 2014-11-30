@@ -15,12 +15,14 @@ class SyncCommandImpl(
                        val synchronisationManager: SynchronisationManager)(implicit val directories: Directories, val commandService: CommandService)
   extends SyncCommand with Messaging {
 
-  override def synchronise(implicit messageService: MessageService): Unit = deviceConnectionService.listConnectedDevices.foreach { user =>
-    log(SYNCHRONISING(user))
-    val rootDeviceFileLocation = DeviceFileLocation(user)
-    val allDeviceFiles = directoryService.listFiles(Some(rootDeviceFileLocation))
-    val device = IpodDevice(user)
-    synchronisationManager.synchronise(device, allDeviceFiles)
-    log(DEVICE_SYNCHRONISED(user))
+  override def synchronise(implicit messageService: MessageService): Unit = {
+    deviceConnectionService.listConnectedDevices.foreach { user =>
+      log(SYNCHRONISING(user))
+      val rootDeviceFileLocation = DeviceFileLocation(user)
+      val allDeviceFiles = directoryService.listFiles(Some(rootDeviceFileLocation))
+      val device = IpodDevice(user)
+      synchronisationManager.synchronise(device, allDeviceFiles)
+      log(DEVICE_SYNCHRONISED(user))
+    }
   }
 }

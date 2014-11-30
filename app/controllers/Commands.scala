@@ -21,11 +21,13 @@
 
 package controllers
 
+import java.io.{PrintWriter, StringWriter}
+
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
-import com.typesafe.scalalogging.Logger
+import com.typesafe.scalalogging.{StrictLogging, Logger}
 import common.message.MessageTypes._
-import common.message.{MessageService, MessageServiceBuilder}
+import common.message.{Messaging, MessageService, MessageServiceBuilder}
 import org.slf4j.LoggerFactory
 import own.{Own, OwnCommand, Unown}
 import play.api.libs.concurrent.Execution.Implicits._
@@ -39,15 +41,15 @@ import scala.util.Try
  * Created by alex on 06/11/14.
  */
 class Commands(
-                          messageServiceBuilder: MessageServiceBuilder,
-                          parameterBuilders: ParameterBuilders,
-                          syncCommand: SyncCommand,
-                          checkinCommand: CheckinCommand,
-                          checkoutCommand: CheckoutCommand,
-                          ownCommand: OwnCommand
-                          ) extends Controller {
+                messageServiceBuilder: MessageServiceBuilder,
+                parameterBuilders: ParameterBuilders,
+                syncCommand: SyncCommand,
+                checkinCommand: CheckinCommand,
+                checkoutCommand: CheckoutCommand,
+                ownCommand: OwnCommand
+                ) extends Controller with Messaging {
   def sync = command[Parameters](
-    "sync", parameterBuilders.syncParametersBuilder, _ => ms => syncCommand.synchronise(ms))
+    "sync", parameterBuilders.syncParametersBuilder, p => ms => syncCommand.synchronise(ms))
 
   def own = command[OwnerParameters](
     "own", parameterBuilders.ownerParametersBuilder, p => ms => ownCommand.changeOwnership(Own, p.owners, p.stagedFileLocations)(ms))
@@ -72,19 +74,29 @@ class Commands(
    * @return
    */
   def command[P <: Parameters](loggerName: String, parameterBuilder: ParameterBuilder[P], cmd: P => MessageService => Unit) = Action { implicit request =>
-    val logger = Logger(LoggerFactory.getLogger(loggerName))
     val enumerator: (MessageService => Unit) => Enumerator[String] = cmd => Concurrent.unicast[String](onStart = channel => {
       val messageService = messageServiceBuilder.
-        withPrinter(message => logger.info(message)).
-        withPrinter(message => channel.push(message + "\n")).build
-      Try(cmd(messageService)).recover { case e => messageService.exception(e)}
+        withPrinter(message => channel.push(message + "\n")).
+        withExceptionHandler { t =>
+          val writer = new StringWriter
+          t.printStackTrace(new PrintWriter(writer))
+          channel.push(writer.toString + "\n")
+        }.
+        build
+      Try {
+        cmd(messageService)
+      }.recover {
+        case e => messageService.exception(e)
+      }
       channel.eofAndEnd
     })
     parameterBuilder.bindFromRequest match {
-      case Right(parameters) => Ok.chunked(enumerator(cmd(parameters)))
+      case Right(parameters) => Ok.chunked(enumerator { messageService =>
+        cmd(parameters)(messageService)
+      })
       case Left(formErrors) => BadRequest.chunked(enumerator { implicit messageService =>
         formErrors.foreach { formError =>
-          ERROR(formError.key, formError.message, formError.args)
+          log(ERROR(formError.key, formError.message, formError.args))
         }
       })
     }

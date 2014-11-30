@@ -11,3 +11,6 @@ POST        /unown                    @controllers.Commands.unown()
 
 # Music files
 GET         /music/:user/*file        @controllers.Music.at(user, file)
+
+# changes
+GET         /changes/:user/:since     @controllers.Music.changes(user, since)

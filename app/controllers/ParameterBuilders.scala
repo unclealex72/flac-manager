@@ -27,6 +27,12 @@ import play.api.data.FormError
 
 trait ParameterBuilders {
 
+  val UNOWN: String = "unown"
+  val MTAB: String = "mtab"
+  val DIRECTORIES: String = "directories"
+  val USERS: String = "users"
+
+
   val syncParametersBuilder: ParameterBuilder[Parameters]
 
   val checkinParametersBuilder: ParameterBuilder[CheckinParameters]

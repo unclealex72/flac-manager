@@ -57,19 +57,15 @@ class OwnerServiceImplSpec extends Specification with Mockito {
       override def allUsers: Set[User] = Set(brian, freddie)
     }
 
-    lazy implicit val messageService = mock[TestMessageService]
+    lazy implicit val messageService = TestMessageService()
     lazy val musicBrainzClient = mock[MusicBrainzClient]
     lazy val ownerService = new OwnerServiceImpl(musicBrainzClient, users)
   }
 
   "Finding who owns a track" should {
     "correctly identify whose collections it is in" in new Context {
-      musicBrainzClient.relasesForOwner(brian) returns Future {
-        Seq("6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e")
-      }
-      musicBrainzClient.relasesForOwner(freddie) returns Future {
-        Seq.empty
-      }
+      musicBrainzClient.relasesForOwner(brian) returns Seq("6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e")
+      musicBrainzClient.relasesForOwner(freddie) returns Seq.empty
       ownerService.listCollections()(messageService)(tags1) must beEqualTo(Set(brian))
       there was one(messageService).printMessage(READING_COLLECTION(brian))
       there was one(messageService).printMessage(READING_COLLECTION(freddie))
@@ -79,7 +75,6 @@ class OwnerServiceImplSpec extends Specification with Mockito {
 
   "Adding tracks to a collection" should {
     "delegate to the MusicBrainz client" in new Context {
-      musicBrainzClient.addReleases(any[User], any[Set[String]]) returns Future {}
       ownerService.own(freddie, Set(tags1, tags2))
       there was one(musicBrainzClient).addReleases(freddie, Set("6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e"))
       noMoreCallsTo(musicBrainzClient)
@@ -88,7 +83,6 @@ class OwnerServiceImplSpec extends Specification with Mockito {
 
   "Removing tracks from a collection" should {
     "delegate to the MusicBrainz client" in new Context {
-      musicBrainzClient.removeReleases(any[User], any[Set[String]]) returns Future {}
       ownerService.unown(freddie, Set(tags1, tags2))
       there was one(musicBrainzClient).removeReleases(freddie, Set("6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e"))
       noMoreCallsTo(musicBrainzClient)

@@ -23,6 +23,7 @@
  */
 package common.musicbrainz;
 
+import akka.actor.ActorSystem;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
@@ -75,6 +76,7 @@ public class MusicBrainzTestContext {
      */
     private final String rootResource;
 
+    private final ActorSystem actorSystem = ActorSystem.create();
 
     public MusicBrainzTestContext(String rootResource) {
         super();
@@ -200,6 +202,7 @@ public class MusicBrainzTestContext {
     }
 
     public void shutdown() throws Exception {
+        actorSystem.shutdown();
         server.stop();
     }
 

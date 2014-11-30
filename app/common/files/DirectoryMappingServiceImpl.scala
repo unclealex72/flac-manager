@@ -24,12 +24,13 @@ package common.files
 import java.io.IOException
 import java.nio.file.{Paths, Path}
 
+import com.typesafe.scalalogging.StrictLogging
 import common.AbstractStringCellMappingService
 
 /**
  * Created by alex on 06/11/14.
  */
-class DirectoryMappingServiceImpl extends DirectoryMappingService {
+class DirectoryMappingServiceImpl extends DirectoryMappingService with StrictLogging {
 
   /**
    * Resolve a set of client side directories into a map of server side directories.
@@ -46,7 +47,11 @@ class DirectoryMappingServiceImpl extends DirectoryMappingService {
       }
       mtabEntry.map(entry => entry._1.resolve(entry._2.relativize(path))).getOrElse(path)
     }
-    pathBuilder compose asPath
+    str => {
+      val path = pathBuilder(asPath(str))
+      logger.debug(s"Resolved $str to $path")
+      path
+    }
   }
 
   def asPath: String => Path = path => Paths.get(path)
@@ -57,7 +62,7 @@ class DirectoryMappingServiceImpl extends DirectoryMappingService {
 
     override def parseValue(value: String): Option[Path] = Some(value).map(asPath)
 
-    override def generateLines: Traversable[String] = mtab.lines.toSeq
+    override def generateLines: Traversable[String] = mtab.lines.filter(_.contains(":")).toSeq
   }
 
 }

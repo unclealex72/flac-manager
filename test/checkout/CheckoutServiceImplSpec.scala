@@ -2,12 +2,15 @@ package checkout
 
 import java.nio.file.{Path, Paths}
 
+import common.changes.{ChangeMatchers, Change, ChangeDao}
 import common.configuration.{Directories, TestDirectories, User, Users}
 import common.files.FileLocationImplicits._
 import common.files._
 import common.message.MessageService
 import common.music.{CoverArt, Tags, TagsService}
+import common.now.NowService
 import common.owners.OwnerService
+import org.joda.time.DateTime
 import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
@@ -18,7 +21,7 @@ import scala.collection.{SortedMap, SortedSet}
 /**
  * Created by alex on 18/11/14.
  */
-class CheckoutServiceImplSpec extends Specification with Mockito {
+class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatchers {
 
   trait Context extends Scope {
     val freddie: User = User("freddie", "", "", "")
@@ -151,9 +154,13 @@ class CheckoutServiceImplSpec extends Specification with Mockito {
     tagsService.read("/flac/Jazz/01 Mustapha.flac") returns Right(mustaphaTags)
 
     implicit val messageService = mock[MessageService]
+    implicit val changeDao = mock[ChangeDao]
     val fileSystem = mock[FileSystem]
     val ownerService = mock[OwnerService]
-    val checkoutService = new CheckoutServiceImpl(fileSystem, users, ownerService)
+    val nowService = mock[NowService]
+    val now = new DateTime()
+    nowService.now() returns now
+    val checkoutService = new CheckoutServiceImpl(fileSystem, users, ownerService, nowService)
 
     def checkFilesRemoved: MatchResult[Unit] = {
       // check flac files are moved
@@ -173,6 +180,13 @@ class CheckoutServiceImplSpec extends Specification with Mockito {
       there was one(fileSystem).remove(briansJazzMp3(FatBottomedGirls.mp3))
       there was one(fileSystem).remove(freddiesJazzMp3(Mustapha.mp3))
       there was one(fileSystem).remove(freddiesJazzMp3(FatBottomedGirls.mp3))
+      // check that changes are recorded
+      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansAKindOfMagicMp3(OneVision.mp3), now)))
+      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansAKindOfMagicMp3(AKindOfMagic.mp3), now)))
+      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansJazzMp3(Mustapha.mp3), now)))
+      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansJazzMp3(FatBottomedGirls.mp3), now)))
+      there was one(changeDao).store(beTheSameChangeAs(Change.removed(freddiesJazzMp3(Mustapha.mp3), now)))
+      there was one(changeDao).store(beTheSameChangeAs(Change.removed(freddiesJazzMp3(FatBottomedGirls.mp3), now)))
     }
 
   }
@@ -187,6 +201,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito {
       there was one(ownerService).unown(freddie, Set(mustaphaTags))
       noMoreCallsTo(fileSystem)
       noMoreCallsTo(ownerService)
+      noMoreCallsTo(changeDao)
     }
   }
 
@@ -197,6 +212,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito {
 
       noMoreCallsTo(fileSystem)
       noMoreCallsTo(ownerService)
+      noMoreCallsTo(changeDao)
     }
   }
 

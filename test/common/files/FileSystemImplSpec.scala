@@ -43,7 +43,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with Mockito {
   trait fs extends TempFileSystem {
     lazy val source = rootDirectory.resolve("source")
     lazy val target = rootDirectory.resolve("target")
-    implicit val messageService: TestMessageService = mock[TestMessageService]
+    implicit val messageService: TestMessageService = TestMessageService()
     implicit val fileLocationExtensions = new FileLocationExtensionsImpl()
     def before(rootDirectory: Path): Unit = {}
   }

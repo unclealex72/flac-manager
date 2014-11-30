@@ -1,9 +1,11 @@
 package checkout
 
+import common.changes.{Change, ChangeDao}
 import common.configuration.{Directories, User, Users}
-import common.files.{FileLocation, FileLocationExtensions, FileSystem, FlacFileLocation}
+import common.files._
 import common.message.MessageService
 import common.music.{Tags, TagsService}
+import common.now.NowService
 import common.owners.OwnerService
 
 import scala.collection.{SortedMap, SortedSet}
@@ -11,8 +13,8 @@ import scala.collection.{SortedMap, SortedSet}
 /**
  * Created by alex on 17/11/14.
  */
-class CheckoutServiceImpl(val fileSystem: FileSystem, val users: Users, val ownerService: OwnerService)
-                         (implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService)
+class CheckoutServiceImpl(val fileSystem: FileSystem, val users: Users, val ownerService: OwnerService, val nowService: NowService)
+                         (implicit val changeDao: ChangeDao, implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService)
   extends CheckoutService {
 
   override def checkout(flacFileLocationsByParent: SortedMap[FlacFileLocation, SortedSet[FlacFileLocation]], unown: Boolean)(implicit messageService: MessageService): Unit = {
@@ -43,8 +45,12 @@ class CheckoutServiceImpl(val fileSystem: FileSystem, val users: Users, val owne
     }
     flacFileLocations.foreach { flacFileLocation =>
       val encodedFileLocation = flacFileLocation.toEncodedFileLocation
-      val deviceFileLocations: Set[FileLocation] = owners.map { user => encodedFileLocation.toDeviceFileLocation(user)}
-      (deviceFileLocations + encodedFileLocation).foreach(fileSystem.remove(_))
+      val deviceFileLocations: Set[DeviceFileLocation] = owners.map { user => encodedFileLocation.toDeviceFileLocation(user)}
+      deviceFileLocations.foreach { deviceFileLocation =>
+        Change.removed(deviceFileLocation, nowService.now()).store
+      }
+      deviceFileLocations.foreach(fileSystem.remove(_))
+      fileSystem.remove(encodedFileLocation)
       fileSystem.move(flacFileLocation, flacFileLocation.toStagedFlacFileLocation)
     }
     owners.foldLeft(tagsForUsers) { (tagsForUsers, owner) =>

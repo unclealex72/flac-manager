@@ -48,7 +48,7 @@ object MessageTypes {
 
   private object MessageTypeImplicits {
 
-    implicit def fileLocationsToString[FL <: FileLocation](fls: Set[FL]) = {
+    implicit def fileLocationsToString[FL <: FileLocation](fls: Traversable[FL]) = {
       fls.map(fileLocationToString(_)).mkString(", ")
     }
 
@@ -61,6 +61,7 @@ object MessageTypes {
 
   import common.message.MessageTypes.MessageTypeImplicits._
 
+  case class NO_FILES(fileLocations: Traversable[FileLocation])(implicit messageService: MessageService) extends MessageType("noFiles", fileLocations)
   /**
    * The key for producing an encoding message.
    */
@@ -119,7 +120,7 @@ object MessageTypes {
   /**
    * The key for producing add owner messages.
    */
-  case class READING_COLLECTION(user: User)(implicit messageService: MessageService) extends MessageType("addOwner", user)
+  case class READING_COLLECTION(user: User)(implicit messageService: MessageService) extends MessageType("readingCollection", user)
 
   /**
    * The key for producing add owner messages.
@@ -167,6 +168,11 @@ object MessageTypes {
   case class FOUND_TRACK(implicit messageService: MessageService) extends MessageType("foundTrack")
 
   /**
+   * The key for producing a message to say that devices are being searched.
+   */
+  case class LOOKING_FOR_DEVICES(implicit messageService: MessageService) extends MessageType("lookingForDevices")
+
+  /**
    * The key for producing a message to say that a device is being synchronised.
    */
   case class SYNCHRONISING(user: User)(implicit messageService: MessageService) extends MessageType("sync", user)
@@ -185,7 +191,7 @@ object MessageTypes {
    * The key for producing error keys.
    */
   case class ERROR(errorKey: String, errorMessage: String, args: Seq[Any])(implicit messageService: MessageService) extends MessageType(
-    "error." + """\[\d+\]""".r.replaceAllIn(errorKey, "") + ".errorMessage", args.map(_.toString): _*)
+    s"error.${"""\[\d+\]""".r.replaceAllIn(errorKey, "")}.$errorMessage", args.map(_.toString): _*)
 
 }
 

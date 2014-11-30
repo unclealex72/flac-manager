@@ -21,6 +21,8 @@
 
 package common.message
 
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 import play.api.i18n.Messages
 
 /**
@@ -53,5 +55,10 @@ class I18nMessageServiceBuilder(printers: Seq[String => Unit], exceptionHandlers
 
 object I18nMessageServiceBuilder {
 
-  def apply(): I18nMessageServiceBuilder = new I18nMessageServiceBuilder(Seq(), Seq())
+  val logger = LoggerFactory.getLogger("messages")
+  def apply(): MessageServiceBuilder =
+    new I18nMessageServiceBuilder(Seq(), Seq()).
+      withPrinter(message => logger.info(message)).
+      withExceptionHandler(t => logger.error("An unexpected exception occurred.", t))
+
 }

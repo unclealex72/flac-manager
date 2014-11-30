@@ -27,6 +27,7 @@ import org.specs2.mutable._
 import scala.collection.JavaConversions._
 import scala.collection.SortedSet
 import scala.io.Source
+import scala.util.Try
 
 /**
  * Created by alex on 26/10/14.
@@ -40,18 +41,18 @@ class MusicBrainzClientImplSpec extends Specification {
   "The MusicBrainzClient" should {
 
     "Fail if the user does not have any collections" in new Server("ws-no-collections/root.txt") {
-      val response = client.relasesForOwner(user)
-      response must throwA[IllegalStateException].await
+      val response = Try(client.relasesForOwner(user))
+      response must beAFailedTry.withThrowable[IllegalStateException]
     }
 
     "Fail if the user's only collection is not correctly named" in new Server("ws-one-collection/root.txt") {
-      val response = client.relasesForOwner(user)
-      response must throwA[IllegalStateException].await
+      val response = Try(client.relasesForOwner(user))
+      response must beAFailedTry.withThrowable[IllegalStateException]
     }
 
     "Fail if the user has more than one collection and none of them are correctly named" in new Server("ws-two-collections-fail/root.txt") {
-      val response = client.relasesForOwner(user)
-      response must throwA[IllegalStateException].await
+      val response = Try(client.relasesForOwner(user))
+      response must beAFailedTry.withThrowable[IllegalStateException]
     }
 
 
@@ -59,17 +60,17 @@ class MusicBrainzClientImplSpec extends Specification {
       val expectedReleasesUrl = this.getClass.getClassLoader.getResource("expected-releases.txt")
       val expectedReleaseIds = Source.fromURL(expectedReleasesUrl).getLines().toList
       val response = client.relasesForOwner(user)
-      response must containTheSameElementsAs(expectedReleaseIds).await
+      response must containTheSameElementsAs(expectedReleaseIds)
     }
 
     "Send a PUT request for adding releases to a collection" in new Server("ws-two-collections-success/root.txt") {
-      val response = client.addReleases(user, 0 until 150).map(logs)
-      response must containTheSameElementsAs(expectedResultsForAlteringCollection("PUT", 150)).await
+      val response = logs(client.addReleases(user, 0 until 150))
+      response must containTheSameElementsAs(expectedResultsForAlteringCollection("PUT", 150))
     }
 
     "Send DELETE request for removing releases from a collection" in new Server("ws-two-collections-success/root.txt") {
-      val response = client.removeReleases(user, 0 until 150).map(logs)
-      response must containTheSameElementsAs(expectedResultsForAlteringCollection("DELETE", 150)).await
+      val response = logs(client.removeReleases(user, 0 until 150))
+      response must containTheSameElementsAs(expectedResultsForAlteringCollection("DELETE", 150))
     }
 
     def expectedResultsForAlteringCollection(method: String, releaseCount: Int) = (0 until releaseCount).toList.grouped(100).map { ids =>

@@ -6,7 +6,7 @@ import play.api.test.FakeApplication
 /**
  * Created by alex on 20/11/14.
  */
-class ApplicationSpec extends Specification {
+class GlobalSpec extends Specification {
 
   "The application" should {
     "start and stop" in {

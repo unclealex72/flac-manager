@@ -24,14 +24,22 @@
 
 package common.musicbrainz
 
-import com.ning.http.client.Realm.{AuthScheme, RealmBuilder}
+import java.io.InputStream
+import java.lang.annotation.Annotation
+import java.lang.reflect.Type
+import javax.ws.rs.core.{HttpHeaders, MultivaluedMap, MediaType}
+import javax.ws.rs.ext.MessageBodyReader
+
+import com.sun.jersey.api.client.{ClientResponse, ClientRequest, WebResource}
+import com.sun.jersey.api.client.filter.ClientFilter
+import com.sun.jersey.client.apache.ApacheHttpClient
+import com.sun.jersey.client.apache.config.DefaultApacheHttpClientConfig
+import com.sun.jersey.client.apache.config.ApacheHttpClientConfig._
 import com.typesafe.scalalogging.StrictLogging
 import common.configuration.{PlayConfiguration, User}
-import dispatch.Defaults._
-import dispatch._
 import play.api.Configuration
 
-import scala.xml.Elem
+import scala.xml.{XML, Elem}
 
 /**
  * The Class MusicBrainzClientImpl.
@@ -42,17 +50,14 @@ class MusicBrainzClientImpl(val musicBrainzHost: String) extends MusicBrainzClie
 
   case class Collection(id: String, name: String, size: Int)
 
-  override def relasesForOwner(user: User): Future[Traversable[String]] = {
+  override def relasesForOwner(user: User): Traversable[String] = {
     implicit val implicitUser = user
-    for {
-      collection <- defaultCollection
-      ids <- loadCollection(collection)
-    } yield ids
+    loadCollection(defaultCollection)
   }
 
-  def defaultCollection(implicit user: User): Future[Collection] = {
-    def collectionsResponse = Http(request.GET OK as.xml.Elem)
-    collectionsResponse map findDefaultCollection
+  def defaultCollection(implicit user: User): Collection = {
+    def collectionsResponse = MusicBrainzWebResource(user).get(classOf[Elem])
+    findDefaultCollection(user)(collectionsResponse)
   }
 
   def findDefaultCollection(implicit user: User): Elem => Collection = (xml: Elem) => {
@@ -63,15 +68,16 @@ class MusicBrainzClientImpl(val musicBrainzHost: String) extends MusicBrainzClie
     }
   }
 
-  def loadCollection(collection: Collection)(implicit user: User): Future[Traversable[String]] = {
-    val eventualParts = 0 until collection.size by LIMIT map { offset => loadCollection(collection, offset)}
-    Future.sequence(eventualParts).map(_.flatten)
+  def loadCollection(collection: Collection)(implicit user: User): Traversable[String] = {
+    val parts = 0 until collection.size by LIMIT map { offset => loadCollection(collection, offset)}
+    parts.flatten
   }
 
-  def loadCollection(collection: Collection, offset: Int)(implicit user: User): Future[Traversable[String]] = {
-    def collectionResponse =
-      Http((request / collection.id / "releases").GET.<<?(Seq("offset" -> offset.toString, "limit" -> LIMIT.toString)) OK as.xml.Elem)
-    collectionResponse map (releases => (releases \\ "release") map (_ \@ "id"))
+  def loadCollection(collection: Collection, offset: Int)(implicit user: User): Traversable[String] = {
+    val webResource = MusicBrainzWebResource(user)
+    val collectionResponse =
+      webResource.path(collection.id).path("releases").queryParam("offset", offset.toString).queryParam("limit", LIMIT.toString).get(classOf[Elem])
+    collectionResponse \\ "release" map (_ \@ "id")
   }
 
   /**
@@ -80,8 +86,8 @@ class MusicBrainzClientImpl(val musicBrainzHost: String) extends MusicBrainzClie
    * @param newReleaseIds The new releases to add to the user's collection.
    * @throws thrown if a unique collection cannot be found.
    */
-  override def addReleases(user: User, newReleaseIds: Set[String]): Future[Unit] = {
-    alterReleases(request(user).PUT, newReleaseIds)(user)
+  override def addReleases(user: User, newReleaseIds: Set[String]): Unit = {
+    alterReleases(wr => cl => wr.put(cl), newReleaseIds)(user)
   }
 
   /**
@@ -90,47 +96,64 @@ class MusicBrainzClientImpl(val musicBrainzHost: String) extends MusicBrainzClie
    * @param oldReleaseIds The old releases to remove from the user's collection.
    * @throws thrown if a unique collection cannot be found.
    */
-  override def removeReleases(user: User, oldReleaseIds: Set[String]): Future[Unit] = {
-    alterReleases(request(user).DELETE, oldReleaseIds)(user)
+  override def removeReleases(user: User, oldReleaseIds: Set[String]): Unit = {
+    alterReleases(wr => cl => wr.delete(cl), oldReleaseIds)(user)
   }
 
-  def alterReleases(partialReq: Req, releaseIds: Set[String])(implicit user: User): Future[Unit] = {
-    val alterRelease: String => Future[Unit] = { collectionId =>
+  def alterReleases(method: WebResource => Class[String] => String, releaseIds: Set[String])(implicit user: User): Unit = {
+    val alterRelease: String => Unit = { collectionId =>
       val groups = releaseIds.toList.grouped(RELEASE_PATH_LIMIT)
-      val eventualRequests = groups.map { releaseIds =>
-        val req = partialReq / collectionId / "releases" / releaseIds.mkString(";")
-        Http(req OK as.String)
+      groups.foreach { releaseIds =>
+        val webResource = MusicBrainzWebResource(user).path(collectionId).path("releases").path(releaseIds.mkString(";"))
+        method(webResource)(classOf[String])
       }
-      Future.sequence(eventualRequests.toList) map { _ =>}
     }
-    for {
-      collection <- defaultCollection
-      result <- alterRelease(collection.id)} yield result
+    alterRelease(defaultCollection.id)
   }
 
-  def request(implicit user: User) = {
-    host(musicBrainzHost).setRealm(
-      new RealmBuilder()
-        .setPrincipal(user.musicBrainzUserName)
-        .setPassword(user.musicBrainzPassword)
-        .setUsePreemptiveAuth(true)
-        .setRealmName("musicbrainz.org")
-        .setUseAbsoluteURI(false)
-        .setScheme(AuthScheme.DIGEST)
-        .build())
-      .addHeader("User-Agent", USER_AGENT)
-      .addHeader("Accept", "application/xml")
-      .<<?(Seq(ID_PARAMETER)) / "ws" / "2" / "collection"
+  object MusicBrainzWebResource extends MessageBodyReader[Elem] {
+
+    override def isReadable(`type`: Class[_], genericType: Type, annotations: Array[Annotation], mediaType: MediaType): Boolean = {
+      classOf[Elem] == `type`
+    }
+
+    override def readFrom(
+                           `type`: Class[Elem],
+                           genericType: Type,
+                           annotations: Array[Annotation],
+                           mediaType: MediaType,
+                           httpHeaders: MultivaluedMap[String, String],
+                           entityStream: InputStream): Elem = XML.load(entityStream)
+
+    def apply(user: User): WebResource = {
+      val cc = new DefaultApacheHttpClientConfig()
+      cc.getSingletons().add(this)
+      cc.getProperties().put(PROPERTY_PREEMPTIVE_AUTHENTICATION, java.lang.Boolean.TRUE)
+      cc.getState().setCredentials("musicbrainz.org", null, -1, user.musicBrainzUserName, user.musicBrainzPassword)
+      val client = ApacheHttpClient.create(cc)
+      client.addFilter(new MusicBrainzRetryFilter(100, 5))
+      val userAgentClientFilter = new ClientFilter() {
+        override def handle(cr: ClientRequest): ClientResponse = {
+          cr.getHeaders().add(HttpHeaders.USER_AGENT, USER_AGENT)
+          getNext().handle(cr)
+        }
+      }
+      client.addFilter(userAgentClientFilter)
+      client.resource(s"http://${musicBrainzHost}/ws/2/collection")
+    }
+
   }
+
 }
 
 class PlayConfigurationMusicBrainzClient(override val configuration: Configuration) extends PlayConfiguration[MusicBrainzClient](configuration) with MusicBrainzClient {
+
   override def load(configuration: Configuration): Option[MusicBrainzClient] =
     configuration.getString("musicbrainzHost").map(host => new MusicBrainzClientImpl(host))
 
-  override def addReleases(user: User, newReleaseIds: Set[String]): Future[Unit] = result.addReleases(user, newReleaseIds)
+  override def addReleases(user: User, newReleaseIds: Set[String]): Unit = result.addReleases(user, newReleaseIds)
 
-  override def removeReleases(user: User, oldReleaseIds: Set[String]): Future[Unit] = result.removeReleases(user, oldReleaseIds)
+  override def removeReleases(user: User, oldReleaseIds: Set[String]): Unit = result.removeReleases(user, oldReleaseIds)
 
-  override def relasesForOwner(user: User): Future[Traversable[String]] = result.relasesForOwner(user)
+  override def relasesForOwner(user: User): Traversable[String] = result.relasesForOwner(user)
 }

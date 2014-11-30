@@ -43,8 +43,13 @@ class CheckinCommandImpl(
   override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): Unit = {
     val fileLocations = directoryService.listFiles(locations)
     val actions: Set[Action] = validate(fileLocations)
-    if (actions.size == fileLocations.size) {
-      actions.foreach { action => checkinService.checkin(action)}
+    if (actions.isEmpty) {
+      log(NO_FILES(fileLocations.toSet))
+    }
+    else if (actions.size == fileLocations.size) {
+      actions.foreach {
+        action => checkinService.checkin(action)
+      }
     }
   }
 

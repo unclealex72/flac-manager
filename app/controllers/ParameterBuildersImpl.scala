@@ -23,6 +23,7 @@ package controllers
 
 import java.nio.file.Path
 
+import com.typesafe.scalalogging.StrictLogging
 import common.configuration.{Directories, User, Users}
 import common.files._
 import play.api.data.Forms._
@@ -34,7 +35,7 @@ import play.api.mvc.Request
 /**
  * Created by alex on 09/11/14.
  */
-class ParameterBuildersImpl(val users: Users, val directoryMappingService: DirectoryMappingService)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions) extends ParameterBuilders {
+class ParameterBuildersImpl(val users: Users, val directoryMappingService: DirectoryMappingService)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions) extends ParameterBuilders with StrictLogging {
 
   class ZeroParameterBuilder[C](constant: C) extends ParameterBuilder[C] {
     override def bindFromRequest()(implicit request: Request[_]): Either[Seq[FormError], C] = Right(constant)
@@ -66,7 +67,7 @@ class ParameterBuildersImpl(val users: Users, val directoryMappingService: Direc
    * A parameter builder for forms that can contain a flag as to whether checked out files should be unowned.
    */
   val unownParamtersBuilder: SingleParameterBuilder[UnownParameters] =
-    Form(mapping("unown" -> boolean)(UnownParameters.apply)(UnownParameters.unapply)).asParameterBuilder
+    Form(mapping(UNOWN -> boolean)(UnownParameters.apply)(UnownParameters.unapply)).asParameterBuilder
 
   /**
    * The model for including an mtab in a form.
@@ -78,7 +79,7 @@ class ParameterBuildersImpl(val users: Users, val directoryMappingService: Direc
    * A parameter builder for forms containing /etc/mtab.
    */
   val mtabParameterBuilder: SingleParameterBuilder[MtabParameters] =
-    Form(mapping("mtab" -> nonEmptyText)(MtabParameters.apply)(MtabParameters.unapply)).asParameterBuilder
+    Form(mapping(MTAB -> nonEmptyText)(MtabParameters.apply)(MtabParameters.unapply)).asParameterBuilder
 
   /**
    * The model for parameters than include a list of file locations.
@@ -94,7 +95,12 @@ class ParameterBuildersImpl(val users: Users, val directoryMappingService: Direc
 
   def mtabFileLocationParameterBuilder[FL <: FileLocation](fileLocationBuilder: Path => Option[FL])(mtabParameters: MtabParameters): ParameterBuilder[FileLocationsParameters[FL]] = {
     val mapper = (path: String) =>
-      (fileLocationBuilder compose directoryMappingService.withMtab(mtabParameters.mtab))(path).filter(_.isDirectory)
+      (fileLocationBuilder compose directoryMappingService.withMtab(mtabParameters.mtab))(path).filter{ path =>
+        if (path.isDirectory) true else {
+          logger.debug(s"Rejecting $path as it is not a directory.")
+          false
+        }
+      }
     val applier: Seq[String] => FileLocationsParameters[FL] = paths => FileLocationsParameters(paths.map(mapper).flatten)
     val nonifier: FileLocationsParameters[FL] => Option[Seq[String]] = _ => None
     val fileLocationConstraint: Constraint[String] = Constraint("fileLocation") { path =>
@@ -104,7 +110,7 @@ class ParameterBuildersImpl(val users: Users, val directoryMappingService: Direc
       }
     }
     Form(
-      mapping("directories" -> seq(nonEmptyText.verifying(fileLocationConstraint)).verifying(min(Seq(""))))
+      mapping(DIRECTORIES -> seq(nonEmptyText.verifying(fileLocationConstraint)).verifying(min(Seq(""))))
         (applier)(nonifier)
     ).asParameterBuilder
   }
@@ -141,7 +147,7 @@ class ParameterBuildersImpl(val users: Users, val directoryMappingService: Direc
     }
   }
   val ownerOnlyParametersBuilder = Form(
-    mapping("users" -> seq(nonEmptyText.verifying(validUserConstraint)).verifying(min(Seq(""))))
+    mapping(USERS -> seq(nonEmptyText.verifying(validUserConstraint)).verifying(min(Seq(""))))
       (applier)(nonifier)
   ).asParameterBuilder
 

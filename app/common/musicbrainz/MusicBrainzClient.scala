@@ -80,7 +80,7 @@ trait MusicBrainzClient {
    * @return A list of all the MusicBrainz releases owned by the user.
    * @throws thrown if a unique collection cannot be found.
    */
-  def relasesForOwner(user: User): Future[Traversable[String]]
+  def relasesForOwner(user: User): Traversable[String]
 
   /**
    * Add releases to an owner's collection.
@@ -88,7 +88,7 @@ trait MusicBrainzClient {
    * @param newReleaseIds The new releases to add to the user's collection.
    * @throws thrown if a unique collection cannot be found.
    */
-  def addReleases(user: User, newReleaseIds: Set[String]): Future[Unit]
+  def addReleases(user: User, newReleaseIds: Set[String]): Unit
 
   /**
    * Remove releases from an owner's collection.
@@ -96,5 +96,5 @@ trait MusicBrainzClient {
    * @param oldReleaseIds The old releases to remove from the user's collection.
    * @throws thrown if a unique collection cannot be found.
    */
-  def removeReleases(user: User, oldReleaseIds: Set[String]): Future[Unit]
+  def removeReleases(user: User, oldReleaseIds: Set[String]): Unit
 }

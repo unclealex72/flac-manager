@@ -59,6 +59,8 @@ case class Change(
    */
 
   protected def this() = this(0, "", new DateTime(), "", "")
+
+  def store(implicit changeDao: ChangeDao): Unit = changeDao.store(this)
 }
 
 object Change {

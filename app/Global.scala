@@ -30,6 +30,7 @@ import common.files._
 import common.message.{I18nMessageServiceBuilder, MessageServiceBuilder}
 import common.music.{JaudioTaggerTagsService, TagsService}
 import common.musicbrainz.{MusicBrainzClient, PlayConfigurationMusicBrainzClient}
+import common.now.{NowService, NowServiceImpl}
 import common.owners.{OwnerService, OwnerServiceImpl}
 import controllers.{Commands, Music, ParameterBuilders, ParameterBuildersImpl}
 import org.squeryl.adapters.{H2Adapter, PostgreSqlAdapter}
@@ -37,8 +38,9 @@ import org.squeryl.internals.DatabaseAdapter
 import org.squeryl.{Session, SessionFactory}
 import own.{OwnCommand, OwnCommandImpl}
 import play.api.db.DB
+import play.api.libs.concurrent.Akka
 import play.api.{Application, GlobalSettings}
-import scaldi.play.ScaldiSupport
+import scaldi.play.{PlayAppModule, ScaldiSupport}
 import scaldi.{DynamicModule, Injector}
 import sync._
 
@@ -47,19 +49,29 @@ import sync._
  * @author alex
  *
  */
-object Global extends GlobalSettings with ScaldiSupport with StrictLogging {
 
-  override def applicationModule: Injector = new DynamicModule {
-    // configuration
+object Global extends DefaultGlobal
+
+trait DefaultGlobal extends GlobalSettings with ScaldiSupport with StrictLogging {
+
+  class ConfigurationModule extends DynamicModule {
     bind[Users] to injected[PlayConfigurationUsers]
     bind[Directories] to injected[PlayConfigurationDirectories]
-    // common
+  }
+
+  class CommonModule extends DynamicModule {
     bind[ChangeDao] to injected[SquerylChangeDao]
     bind[CommandService] to injected[TempFileCommandService]
     bind[OwnerService] to injected[OwnerServiceImpl]
-    // MusicBrainz
+    bind[NowService] to injected[NowServiceImpl]
+  }
+
+  class MusicBrainzModule extends DynamicModule {
     bind[MusicBrainzClient] to injected[PlayConfigurationMusicBrainzClient]
-    // files
+
+  }
+
+  class FilesModule extends DynamicModule {
     bind[FileLocationExtensions] to injected[FileLocationExtensionsImpl]
     bind[FileSystem] identifiedBy 'rawFileSystem to injected[FileSystemImpl]
     bind[FileSystem] to ProtectionAwareFileSystem.injected(this)
@@ -67,26 +79,43 @@ object Global extends GlobalSettings with ScaldiSupport with StrictLogging {
     bind[DirectoryMappingService] to injected[DirectoryMappingServiceImpl]
     bind[TagsService] to injected[JaudioTaggerTagsService]
     bind[FlacFileChecker] to injected[FlacFileCheckerImpl]
-    // messages
+
+  }
+
+  class MessagesModule extends DynamicModule {
     bind[MessageServiceBuilder] to I18nMessageServiceBuilder()
-    // sync
+  }
+
+  class CommandsModule extends DynamicModule {
     bind[SyncCommand] to injected[SyncCommandImpl]
-    bind[DeviceConnectionService] to injected[DeviceConnectionServiceImpl]
-    bind[SynchronisationManager] to injected[SynchronisationManagerImpl]
-    // checkin
     bind[CheckinCommand] to injected[CheckinCommandImpl]
-    bind[CheckinService] to injected[CheckinServiceImpl]
-    bind[Mp3Encoder] to injected[Mp3EncoderImpl]
-    // checkout
     bind[CheckoutCommand] to injected[CheckoutCommandImpl]
-    bind[CheckoutService] to injected[CheckoutServiceImpl]
-    // own
     bind[OwnCommand] to injected[OwnCommandImpl]
-    // controllers
+  }
+
+  class ControllersModule extends DynamicModule {
     bind[ParameterBuilders] to injected[ParameterBuildersImpl]
     bind[Music] to injected[Music]
     bind[Commands] to injected[Commands]
   }
+
+  class SyncModule extends DynamicModule {
+    bind[DeviceConnectionService] to injected[DeviceConnectionServiceImpl]
+    bind[SynchronisationManager] to injected[SynchronisationManagerImpl]
+  }
+
+  class CheckinModule extends DynamicModule {
+    bind[CheckinService] to injected[CheckinServiceImpl]
+    bind[Mp3Encoder] to injected[Mp3EncoderImpl]
+  }
+
+  class CheckoutModule extends DynamicModule {
+    bind[CheckoutService] to injected[CheckoutServiceImpl]
+  }
+
+  override def applicationModule: Injector = new ConfigurationModule :: new CommonModule :: new MusicBrainzModule ::
+    new FilesModule :: new MessagesModule :: new CommandsModule :: new ControllersModule :: new SyncModule ::
+    new CheckinModule :: new CheckoutModule
 
   override def onStart(app: Application) {
     super.onStart(app)
