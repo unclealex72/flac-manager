@@ -20,3 +20,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.1")
 addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.0.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-mocha" % "1.0.0")
+
+// Release plugin
+
+addSbtPlugin("com.github.gseitz" % "sbt-release" % "0.8.5")

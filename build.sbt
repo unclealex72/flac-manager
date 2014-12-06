@@ -1,4 +1,6 @@
 import play.PlayScala
+import sbtrelease._
+import ReleaseStateTransformations._
 
 name := "flac-manager"
 
@@ -35,3 +37,17 @@ libraryDependencies ++= Seq(
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
 
 unmanagedResourceDirectories in Compile <+= baseDirectory(_ / "resources")
+
+releaseSettings
+
+ReleaseKeys.releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  setNextVersion,
+  commitNextVersion,
+  pushChanges
+)
