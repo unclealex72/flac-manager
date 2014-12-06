@@ -39,7 +39,7 @@ class ProcessCommunicatorSpec extends Specification {
   }
 
   "The process communicator" should {
-    "be able to read output from an echoing command" in new Context() {
+    "be able to read output from an echoing command" in pending("Occasionally hangs") { new Context() {
       val commandService = new TempFileCommandService
       val echoCommand = commandService.create("doubleecho.py")
       echoCommand run processCommunicator
@@ -49,5 +49,5 @@ class ProcessCommunicatorSpec extends Specification {
       processCommunicator.write("QUIT")
       result must contain(exactly("HelloA", "HelloB"))
     }
-  }
+  }}
 }
