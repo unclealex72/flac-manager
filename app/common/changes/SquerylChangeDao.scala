@@ -51,4 +51,7 @@ class SquerylChangeDao extends ChangeDao {
       where(user.name === c.user and l.key === c.relativePath and l.measures === c.at) select (c))
   }
 
+  override def countChanges(): Long = inTransaction {
+    from(changes)(c => compute(count(c.id)))
+  }
 }

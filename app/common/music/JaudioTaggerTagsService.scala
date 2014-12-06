@@ -26,10 +26,7 @@ import java.nio.file.Path
 import org.jaudiotagger.audio.{AudioFile, AudioFileIO}
 import org.jaudiotagger.tag.FieldKey.{ALBUM => J_ALBUM, ALBUM_ARTIST => J_ALBUM_ARTIST, ALBUM_ARTIST_SORT => J_ALBUM_ARTIST_SORT, AMAZON_ID => J_AMAZON_ID, ARTIST => J_ARTIST, ARTIST_SORT => J_ARTIST_SORT, DISC_NO => J_DISC_NO, DISC_TOTAL => J_DISC_TOTAL, MUSICBRAINZ_ARTISTID => J_MUSICBRAINZ_ARTISTID, MUSICBRAINZ_RELEASEARTISTID => J_MUSICBRAINZ_RELEASEARTISTID, MUSICBRAINZ_RELEASEID => J_MUSICBRAINZ_RELEASEID, MUSICBRAINZ_TRACK_ID => J_MUSICBRAINZ_TRACK_ID, TITLE => J_TITLE, TRACK => J_TRACK, TRACK_TOTAL => J_TRACK_TOTAL}
 import org.jaudiotagger.tag.datatype.Artwork
-import org.jaudiotagger.tag.id3.{FixedID3v23Tag, ID3v23Tag}
 import org.jaudiotagger.tag.{FieldKey, Tag}
-
-import scala.util.Try
 
 /**
  * A TagsService that uses JAudioTagger.
@@ -47,7 +44,7 @@ class JaudioTaggerTagsService extends TagsService {
       ALBUM_ARTIST_ID, ALBUM_ID, ARTIST_ID, TRACK_ID, ASIN, TRACK_NUMBER, COVER_ART)
   }
 
-  override def write(path: Path, tags: Tags): Unit = Try {
+  override def write(path: Path, tags: Tags): Unit = {
     val audioFile = loadAudioFile(path)
     implicit val tag = audioFile.getTag
     ALBUM_ARTIST_SORT.set(tags.albumArtistSort)
@@ -74,10 +71,6 @@ class JaudioTaggerTagsService extends TagsService {
     var tag: Tag = audioFile.getTag
     if (tag == null) {
       tag = audioFile.createDefaultTag
-      audioFile.setTag(tag)
-    }
-    if (tag.isInstanceOf[ID3v23Tag]) {
-      tag = new FixedID3v23Tag(tag.asInstanceOf[ID3v23Tag])
       audioFile.setTag(tag)
     }
     audioFile

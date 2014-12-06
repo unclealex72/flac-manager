@@ -25,6 +25,7 @@ import java.nio.file.{Path, Paths}
 import java.text.Normalizer
 
 import common.files.Extension
+import play.api.libs.json.Json
 
 /**
  * Created by alex on 02/11/14.
@@ -166,6 +167,23 @@ case class Tags(
     Paths.get(firstLetter, normalisedAlbumArtistSort, normalisedAlbum, normalisedTitle + "." + extension.extension)
   }
 
+  def toJson = Json.obj(
+    "albumArtistSort" -> albumArtistSort,
+    "albumArtist" -> albumArtist,
+    "album" -> album,
+    "artist" -> artist,
+    "artistSort" -> artistSort,
+    "title" -> title,
+    "totalDiscs" -> totalDiscs,
+    "totalTracks" -> totalTracks,
+    "discNumber" -> discNumber,
+    "albumArtistId" -> albumArtistId,
+    "albumId" -> albumId,
+    "artistId" -> artistId,
+    "trackId" -> trackId,
+    "asin" -> asin,
+    "trackNumber" -> trackNumber,
+    "coverArt" -> coverArt.toJson)
 }
 
 /**

@@ -36,4 +36,10 @@ trait ChangeDao {
   def store(change: Change): Change
 
   def getAllChangesSince(user: User, since: DateTime): List[Change]
+
+  /**
+   * Count all changes.
+   * @return
+   */
+  def countChanges(): Long
 }

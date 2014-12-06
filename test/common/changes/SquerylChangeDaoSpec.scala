@@ -23,7 +23,7 @@ package common.changes
 import java.nio.file.Paths
 
 import com.typesafe.scalalogging.StrictLogging
-import common.configuration.{Directories, TestDirectories, User}
+import common.configuration.{TestDirectories, User}
 import common.files._
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
@@ -51,13 +51,7 @@ class SquerylChangeDaoSpec extends Specification with StrictLogging {
       implicit val directories: TestDirectories = TestDirectories(Paths.get("/"), Paths.get("/"), Paths.get("/"), Paths.get("/"), Paths.get("/"))
 
       def fileLocationExtensions(dateTime: DateTime) = new TestFileLocationExtensions {
-        override def isDirectory(fileLocation: FileLocation): Boolean = false
-
-        override def createTemporaryFileLocation()(implicit directories: Directories): TemporaryFileLocation = null
-
         override def lastModified(fileLocation: FileLocation): Long = dateTime.getMillis
-
-        override def exists(fileLocation: FileLocation): Boolean = false
       }
 
       def addedAt(dateTime: DateTime): Change = {

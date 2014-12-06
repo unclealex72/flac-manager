@@ -12,12 +12,12 @@ trait TestFileLocationExtensions extends FileLocationExtensions {
    * @param fileLocation
    * @return
    */
-  def isDirectory(fileLocation: FileLocation): Boolean
+  def isDirectory(fileLocation: FileLocation): Boolean = false
 
-  def exists(fileLocation: FileLocation): Boolean
+  def exists(fileLocation: FileLocation): Boolean = false
 
-  def createTemporaryFileLocation()(implicit directories: Directories): TemporaryFileLocation
+  def createTemporaryFileLocation(extension: Extension)(implicit directories: Directories): TemporaryFileLocation = null
 
-  def lastModified(fileLocation: FileLocation): Long
+  def lastModified(fileLocation: FileLocation): Long = 0
 
 }

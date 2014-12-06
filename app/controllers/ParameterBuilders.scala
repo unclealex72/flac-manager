@@ -35,6 +35,8 @@ trait ParameterBuilders {
 
   val syncParametersBuilder: ParameterBuilder[Parameters]
 
+  val initialiseParametersBuilder: ParameterBuilder[Parameters]
+
   val checkinParametersBuilder: ParameterBuilder[CheckinParameters]
 
   val checkoutParametersBuilder: ParameterBuilder[CheckoutParameters]
@@ -53,6 +55,8 @@ trait ParameterBuilder[P] {
 sealed trait Parameters
 
 object SyncParameters extends Parameters
+
+object InitialiseParameters extends Parameters
 
 case class CheckinParameters(val stagedFileLocations: Seq[StagedFlacFileLocation]) extends Parameters
 

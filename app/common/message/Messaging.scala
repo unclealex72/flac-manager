@@ -25,7 +25,7 @@
 package common.message
 
 import common.configuration.User
-import common.files.{FileLocation, FlacFileLocation, StagedFlacFileLocation}
+import common.files.{DeviceFileLocation, FileLocation, FlacFileLocation, StagedFlacFileLocation}
 import sync.DeviceFile
 
 /**
@@ -182,6 +182,13 @@ object MessageTypes {
    */
   case class DEVICE_SYNCHRONISED(user: User)(implicit messageService: MessageService) extends MessageType("deviceSynchronised", user)
 
+  /**
+   * The key for producing a message to say that the database is not empty and so initialisation cannot continue.
+   * @param messageService
+   */
+  case class DATABASE_NOT_EMPTY(implicit messageService: MessageService) extends MessageType("databaseNotEmpty")
+
+  case class INITIALISING(deviceFileLocation: DeviceFileLocation)(implicit messageService: MessageService) extends MessageType("initialising", deviceFileLocation)
   /**
    * The key for producing error keys.
    */

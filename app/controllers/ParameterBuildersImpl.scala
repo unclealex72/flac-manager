@@ -131,6 +131,8 @@ class ParameterBuildersImpl(val users: Users, val directoryMappingService: Direc
 
   val syncParametersBuilder: ParameterBuilder[Parameters] = new ZeroParameterBuilder[Parameters](SyncParameters)
 
+  val initialiseParametersBuilder: ParameterBuilder[Parameters] = new ZeroParameterBuilder[Parameters](InitialiseParameters)
+
   /**
    * Build the owners parameter builders.
    * @param owners

@@ -24,7 +24,7 @@ package sync
 import java.nio.file.{Path, Paths}
 import java.text.SimpleDateFormat
 
-import common.configuration.{Directories, TestDirectories, User}
+import common.configuration.{TestDirectories, User}
 import common.files._
 import common.message.MessageTypes._
 import common.message._
@@ -163,17 +163,6 @@ class MapLastModified(m: Map[DeviceFileLocation, String]) extends TestFileLocati
   override def lastModified(fileLocation: FileLocation): Long = {
     m.get(fileLocation.asInstanceOf[DeviceFileLocation]).get
   }
-
-  /**
-   * Return true if the file location points to a directory, false otherwise.
-   * @param fileLocation
-   * @return
-   */
-  override def isDirectory(fileLocation: FileLocation): Boolean = false
-
-  override def createTemporaryFileLocation()(implicit directories: Directories): TemporaryFileLocation = null
-
-  override def exists(fileLocation: FileLocation): Boolean = false
 }
 
 object MapLastModified {

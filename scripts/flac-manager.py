@@ -159,12 +159,20 @@ class Sync(Command):
     def generateParser(self):
         return argparse.ArgumentParser(description='Synchronise any connected devices.')
 
+
+class Initialise(Command):
+    cmd = "initialise"
+
+    def generateParser(self):
+        return argparse.ArgumentParser(description='Initialise the backend database.')
+
 commands = {
     'flacman-checkin': Checkin(),
     'flacman-checkout': Checkout(),
     'flacman-own': Own(),
     'flacman-unown': Unown(),
-    'flacman-sync': Sync()
+    'flacman-sync': Sync(),
+    'flacman-initialise': Initialise()
 }
 
 cmd = os.path.basename(__file__)

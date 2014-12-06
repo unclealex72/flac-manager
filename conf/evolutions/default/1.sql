@@ -1,7 +1,7 @@
 # -- Schema creation
 # --- !Ups
 CREATE TABLE "change" (
-  "relativePath" VARCHAR(128)       NOT NULL,
+  "relativePath" TEXT NOT NULL,
   "at"           TIMESTAMP          NOT NULL,
   "id"           BIGINT PRIMARY KEY NOT NULL,
   "action"       VARCHAR(128)       NOT NULL,

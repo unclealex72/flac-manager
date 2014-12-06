@@ -19,7 +19,7 @@ class CheckinServiceImpl(val fileSystem: FileSystem)
   }
 
   def encode(stagedFlacFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, users: Set[User])(implicit messageService: MessageService): Unit = {
-    val tempEncodedLocation = TemporaryFileLocation.create()
+    val tempEncodedLocation = TemporaryFileLocation.create(MP3)
     val encodedFileLocation = flacFileLocation.toEncodedFileLocation
     log(ENCODE(stagedFlacFileLocation, encodedFileLocation))
     stagedFlacFileLocation.encodeTo(tempEncodedLocation)

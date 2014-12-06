@@ -24,6 +24,10 @@
 
 package common.music
 
+import java.util.Base64
+
+import play.api.libs.json.Json
+
 /**
  * An immutable class that contains information about a cover art picture, namely the image data and its mime type.
  * @author alex
@@ -38,4 +42,7 @@ case class CoverArt(
                      /**
                       * The mime type for the cover art.
                       */
-                     mimeType: String)
+                     mimeType: String) {
+
+  def toJson = Json.obj("mimeType" -> mimeType, "image" -> Base64.getEncoder.encodeToString(imageData))
+}

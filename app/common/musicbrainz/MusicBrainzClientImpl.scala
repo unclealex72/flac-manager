@@ -27,19 +27,19 @@ package common.musicbrainz
 import java.io.InputStream
 import java.lang.annotation.Annotation
 import java.lang.reflect.Type
-import javax.ws.rs.core.{HttpHeaders, MultivaluedMap, MediaType}
+import javax.ws.rs.core.{HttpHeaders, MediaType, MultivaluedMap}
 import javax.ws.rs.ext.MessageBodyReader
 
-import com.sun.jersey.api.client.{ClientResponse, ClientRequest, WebResource}
 import com.sun.jersey.api.client.filter.ClientFilter
+import com.sun.jersey.api.client.{ClientRequest, ClientResponse, WebResource}
 import com.sun.jersey.client.apache.ApacheHttpClient
-import com.sun.jersey.client.apache.config.DefaultApacheHttpClientConfig
 import com.sun.jersey.client.apache.config.ApacheHttpClientConfig._
+import com.sun.jersey.client.apache.config.DefaultApacheHttpClientConfig
 import com.typesafe.scalalogging.StrictLogging
 import common.configuration.{PlayConfiguration, User}
 import play.api.Configuration
 
-import scala.xml.{XML, Elem}
+import scala.xml.{Elem, XML}
 
 /**
  * The Class MusicBrainzClientImpl.
@@ -61,8 +61,12 @@ class MusicBrainzClientImpl(val musicBrainzHost: String) extends MusicBrainzClie
   }
 
   def findDefaultCollection(implicit user: User): Elem => Collection = (xml: Elem) => {
-    val collections = for (collection <- xml \\ "collection") yield
-      Collection(collection \@ "id", (collection \ "name").text, (collection \ "release-list" \@ "count").toInt)
+    logger.debug(s"Looking for default connection\n${xml}")
+    val collections = for {
+      collection <- xml \\ "collection"
+      releaseList <- collection \ "release-list"
+    } yield
+      Collection(collection \@ "id", (collection \ "name").text, (releaseList \@ "count").toInt)
     collections.find(_.name == ALL_MY_MUSIC) getOrElse {
       throw new IllegalStateException(s"User ${user.name} does not have a collection called $ALL_MY_MUSIC")
     }

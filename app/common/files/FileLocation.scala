@@ -126,8 +126,12 @@ trait DeviceFileLocation extends FileLocation {
   def user: User
   def path: Path = toPath
 
-  def toFile(implicit fileLocationExtensions: FileLocationExtensions): Option[File] = {
-    if (exists && !isDirectory) Some(path.toFile) else None
+  def toFlacFileLocation: FlacFileLocation
+
+  def toFile(implicit fileLocationExtensions: FileLocationExtensions): File = path.toFile
+
+  def ifExists(implicit fileLocationExtensions: FileLocationExtensions): Option[DeviceFileLocation] = {
+    if (exists && !isDirectory) Some(this) else None
   }
 }
 
@@ -178,7 +182,8 @@ object TemporaryFileLocation {
   def apply(relativePath: Path)(implicit directories: Directories): TemporaryFileLocation =
     TemporaryFileLocationImpl(relativePath, directories)
 
-  def create()(implicit fileLocationExtensions: FileLocationExtensions, directories: Directories): TemporaryFileLocation = fileLocationExtensions.createTemporaryFileLocation()
+  def create(extension: Extension)(implicit fileLocationExtensions: FileLocationExtensions, directories: Directories): TemporaryFileLocation =
+    fileLocationExtensions.createTemporaryFileLocation(extension)
 
 }
 
@@ -288,7 +293,11 @@ object EncodedFileLocation {
 case class DeviceFileLocationImpl(
                                    override val user: User, override val relativePath: Path, override val directories: Directories)
   extends AbstractFileLocation(
-  "DeviceFileLocation", relativePath, true, _.devicesPath.resolve(user.name), directories) with DeviceFileLocation
+    "DeviceFileLocation", relativePath, true, _.devicesPath.resolve(user.name), directories) with DeviceFileLocation {
+
+  override def toFlacFileLocation: FlacFileLocation = FlacFileLocation(relativePath withExtension FLAC)(directories)
+
+}
 
 object DeviceFileLocation {
 

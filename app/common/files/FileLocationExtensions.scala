@@ -17,7 +17,7 @@ trait FileLocationExtensions {
 
   protected[files] def exists(fileLocation: FileLocation): Boolean
 
-  protected[files] def createTemporaryFileLocation()(implicit directories: Directories): TemporaryFileLocation
+  protected[files] def createTemporaryFileLocation(extension: Extension)(implicit directories: Directories): TemporaryFileLocation
 
   protected[files] def lastModified(fileLocation: FileLocation): Long
 }

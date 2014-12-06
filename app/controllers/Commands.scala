@@ -25,10 +25,9 @@ import java.io.{PrintWriter, StringWriter}
 
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
-import com.typesafe.scalalogging.{StrictLogging, Logger}
 import common.message.MessageTypes._
-import common.message.{Messaging, MessageService, MessageServiceBuilder}
-import org.slf4j.LoggerFactory
+import common.message.{MessageService, MessageServiceBuilder, Messaging}
+import initialise.InitialiseCommand
 import own.{Own, OwnCommand, Unown}
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.iteratee.{Concurrent, Enumerator}
@@ -46,10 +45,14 @@ class Commands(
                 syncCommand: SyncCommand,
                 checkinCommand: CheckinCommand,
                 checkoutCommand: CheckoutCommand,
-                ownCommand: OwnCommand
+                ownCommand: OwnCommand,
+                initialiseCommand: InitialiseCommand
                 ) extends Controller with Messaging {
   def sync = command[Parameters](
     "sync", parameterBuilders.syncParametersBuilder, p => ms => syncCommand.synchronise(ms))
+
+  def initialise = command[Parameters](
+    "initialise", parameterBuilders.initialiseParametersBuilder, p => ms => initialiseCommand.initialiseDb(ms))
 
   def own = command[OwnerParameters](
     "own", parameterBuilders.ownerParametersBuilder, p => ms => ownCommand.changeOwnership(Own, p.owners, p.stagedFileLocations)(ms))

@@ -7,25 +7,40 @@ import common.changes.ChangeDao
 import common.configuration.{Directories, Users}
 import common.files.{DeviceFileLocation, FileLocationExtensions}
 import common.joda.JodaDateTime
+import common.music.TagsService
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{Action, Controller, Result}
 import play.utils.UriEncoding
 
 /**
  * Created by alex on 18/11/14.
  */
-class Music(val users: Users, val changeDao: ChangeDao)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions) extends Controller {
+class Music(val users: Users, val changeDao: ChangeDao)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService) extends Controller {
 
-  def at(username: String, path: String) = Action { implicit request =>
+  def at(username: String, path: String) = musicFile(username, path) { deviceFileLocation =>
+    Ok.chunked(Enumerator.fromFile(deviceFileLocation.toFile))
+  }
+
+  def tags(username: String, path: String) = musicFile(username, path) { deviceFileLocation =>
+    deviceFileLocation.toFlacFileLocation.readTags match {
+      case Left(violations) => {
+        NotFound
+      }
+      case Right(tags) =>
+        Ok(tags.toJson)
+    }
+  }
+
+  def musicFile(username: String, path: String)(resultBuilder: DeviceFileLocation => Result) = Action { implicit request =>
     val decodedPath = UriEncoding.decodePath(path, StandardCharsets.UTF_8.toString)
     val musicFile = for {
       user <- users().find(_.name == username)
-      musicFile <- DeviceFileLocation(user, Paths.get(decodedPath)).toFile
+      musicFile <- DeviceFileLocation(user, Paths.get(decodedPath)).ifExists
     } yield musicFile
     musicFile match {
-      case Some(file) => Ok.chunked(Enumerator.fromFile(file))
+      case Some(deviceFileLocation) => resultBuilder(deviceFileLocation)
       case _ => NotFound
     }
   }

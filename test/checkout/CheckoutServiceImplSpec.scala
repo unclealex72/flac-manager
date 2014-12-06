@@ -2,7 +2,7 @@ package checkout
 
 import java.nio.file.{Path, Paths}
 
-import common.changes.{ChangeMatchers, Change, ChangeDao}
+import common.changes.{Change, ChangeDao, ChangeMatchers}
 import common.configuration.{Directories, TestDirectories, User, Users}
 import common.files.FileLocationImplicits._
 import common.files._
@@ -138,10 +138,6 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
 
     implicit val fileLocationExtensions = new TestFileLocationExtensions {
       override def isDirectory(fileLocation: FileLocation): Boolean = allAlbums.map(_.album).contains(fileLocation)
-
-      override def createTemporaryFileLocation()(implicit directories: Directories): TemporaryFileLocation = null
-
-      override def lastModified(fileLocation: FileLocation): Long = 0
 
       override def exists(fileLocation: FileLocation): Boolean = fileLocation match {
         case StagedFlacFileLocation(_) => false

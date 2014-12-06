@@ -17,8 +17,8 @@ class FileLocationExtensionsImpl extends FileLocationExtensions {
 
   def exists(fileLocation: FileLocation) = Files.exists(fileLocation)
 
-  override def createTemporaryFileLocation()(implicit directories: Directories): TemporaryFileLocation = {
-    val path = Files.createTempFile(directories.temporaryPath, "flac-manager-", ".tmp")
+  override def createTemporaryFileLocation(extension: Extension)(implicit directories: Directories): TemporaryFileLocation = {
+    val path = Files.createTempFile(directories.temporaryPath, "flac-manager-", s".${extension.extension}")
     TemporaryFileLocation(directories.temporaryPath.resolve(path))
   }
 

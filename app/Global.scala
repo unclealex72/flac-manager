@@ -33,14 +33,14 @@ import common.musicbrainz.{MusicBrainzClient, PlayConfigurationMusicBrainzClient
 import common.now.{NowService, NowServiceImpl}
 import common.owners.{OwnerService, OwnerServiceImpl}
 import controllers.{Commands, Music, ParameterBuilders, ParameterBuildersImpl}
+import initialise.{InitialiseCommand, InitialiseCommandImpl}
 import org.squeryl.adapters.{H2Adapter, PostgreSqlAdapter}
 import org.squeryl.internals.DatabaseAdapter
 import org.squeryl.{Session, SessionFactory}
 import own.{OwnCommand, OwnCommandImpl}
 import play.api.db.DB
-import play.api.libs.concurrent.Akka
 import play.api.{Application, GlobalSettings}
-import scaldi.play.{PlayAppModule, ScaldiSupport}
+import scaldi.play.ScaldiSupport
 import scaldi.{DynamicModule, Injector}
 import sync._
 
@@ -91,6 +91,7 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with StrictLogging
     bind[CheckinCommand] to injected[CheckinCommandImpl]
     bind[CheckoutCommand] to injected[CheckoutCommandImpl]
     bind[OwnCommand] to injected[OwnCommandImpl]
+    bind[InitialiseCommand] to injected[InitialiseCommandImpl]
   }
 
   class ControllersModule extends DynamicModule {

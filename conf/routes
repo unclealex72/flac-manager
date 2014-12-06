@@ -3,6 +3,7 @@
 # ~~~~
 
 # Commands
+POST        /initialise              @controllers.Commands.initialise()
 POST        /checkout                 @controllers.Commands.checkout()
 POST        /checkin                  @controllers.Commands.checkin()
 POST        /sync                     @controllers.Commands.sync()
@@ -11,6 +12,6 @@ POST        /unown                    @controllers.Commands.unown()
 
 # Music files
 GET         /music/:user/*file        @controllers.Music.at(user, file)
-
+GET         /tags/:user/*file        @controllers.Music.tags(user, file)
 # changes
 GET         /changes/:user/:since     @controllers.Music.changes(user, since)

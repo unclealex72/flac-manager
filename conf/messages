@@ -23,7 +23,8 @@ lookingForDevices = Looking for connected devices
 sync = Synchronising {0}''s device
 foundDevice = Found {0}''s device
 deviceSynchronised = {0}''s device has been synchronised.
-
+databaseNotEmpty = The database is not empty.
+initialising = Initialising {0}
 
 # Error messages
 error.directories.invalidPath = The following directories are invalid: {0}

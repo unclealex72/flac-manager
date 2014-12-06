@@ -23,14 +23,11 @@
  */
 
 package common.files
-import java.nio.file._
-
 import common.configuration.Directories
 import common.files.FileLocationImplicits._
 import common.message.MessageTypes._
 import common.message._
 
-import scala.collection.JavaConversions._
 import scala.collection.{SortedMap, SortedSet}
 /**
  * @author alex
@@ -40,7 +37,8 @@ class DirectoryServiceImpl(implicit fileLocationExtensions: FileLocationExtensio
 
   override def groupFiles[FL <: FileLocation](fileLocations: Traversable[FL])(implicit messageService: MessageService): SortedMap[FL, SortedSet[FL]] = {
     fileLocations.foldLeft(SortedMap.empty[FL, SortedSet[FL]]) { (allFileLocations, fl) =>
-      val childFileLocations = Files.list(fl.toPath).iterator().toSeq.map(p => fl.extendTo(p.getFileName))
+      val files = fl.toPath.toFile.listFiles().map(_.toPath)
+      val childFileLocations = files.map(p => fl.extendTo(p.getFileName))
       val (childDirectories, childFiles) = childFileLocations.sorted.partition(_.isDirectory)
       childFiles.foreach(fl => log(FOUND_FILE(fl)))
       val sortedChildFiles = childFiles.foldLeft(SortedSet.empty[FL])(_ + _)
