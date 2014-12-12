@@ -1,10 +1,12 @@
 import play.PlayScala
 import sbtrelease._
 import ReleaseStateTransformations._
+import com.typesafe.sbt.SbtNativePackager._
+import NativePackagerKeys._
 
 name := "flac-manager"
 
-version := "6.0-SNAPSHOT"
+version := "6.1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
@@ -37,6 +39,29 @@ libraryDependencies ++= Seq(
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
 
 unmanagedResourceDirectories in Compile <+= baseDirectory(_ / "resources")
+
+// Debian packaging
+
+maintainer := "Alex Jones <alex.jones@unclealex.co.uk>"
+
+packageSummary := "Flac Manager Debian Package"
+
+packageDescription := "Flac Manager Debian Package"
+
+version in Debian := version.value + "build-aj"
+
+debianPackageDependencies := Seq("flac", "lame", "id3v2", "python")
+
+daemonUser in Linux := "music"
+
+daemonGroup in Linux := (daemonUser in Linux).value
+
+mappings in Universal ++= Seq("checkin", "checkout", "initialise", "own", "unown", "sync").map { cmd =>
+  baseDirectory.value / "scripts" / "flac-manager.py" -> s"bin/flacman-$cmd"
+}
+
+
+// Releasing
 
 releaseSettings
 
