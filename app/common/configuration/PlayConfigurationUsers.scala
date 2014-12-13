@@ -2,13 +2,14 @@ package common.configuration
 
 import java.nio.file.Paths
 
+import com.typesafe.scalalogging.StrictLogging
 import play.api.Configuration
 
 /**
  * Get the users using Play configuration
  * Created by alex on 20/11/14.
  */
-case class PlayConfigurationUsers(override val configuration: Configuration) extends PlayConfiguration[Set[User]](configuration) with Users {
+case class PlayConfigurationUsers(override val configuration: Configuration) extends PlayConfiguration[Set[User]](configuration) with Users with StrictLogging {
 
   def load(configuration: Configuration): Option[Set[User]] = {
     configuration.getStringSeq("users").map { usernames =>

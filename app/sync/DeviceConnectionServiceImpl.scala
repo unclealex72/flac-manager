@@ -2,6 +2,7 @@ package sync
 
 import java.nio.file.Path
 
+import com.typesafe.scalalogging.StrictLogging
 import common.configuration.{User, Users}
 import common.message.MessageTypes._
 import common.message.{MessageService, Messaging}
@@ -12,7 +13,7 @@ import scala.sys.process._
  * A device connection service that uses pmount and pumount to mount and unmount devices.
  * Created by alex on 16/11/14.
  */
-class DeviceConnectionServiceImpl(users: Users) extends DeviceConnectionService with Messaging {
+class DeviceConnectionServiceImpl(users: Users) extends DeviceConnectionService with Messaging with StrictLogging {
 
   /**
    * List the users who currently have devices connected to the system.
@@ -22,6 +23,7 @@ class DeviceConnectionServiceImpl(users: Users) extends DeviceConnectionService 
     log(LOOKING_FOR_DEVICES())
     val connectedUsers = users.allUsers.filter { user =>
       val mountPoint = user.mountPoint.toFile
+      logger.info(s"Looking for ${user}'s device at ${mountPoint}")
       mountPoint.isDirectory && mountPoint.list().length != 0
     }.toSet
     connectedUsers.foreach(user => log(FOUND_DEVICE(user)))
