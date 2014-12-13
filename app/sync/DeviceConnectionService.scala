@@ -39,13 +39,6 @@ trait DeviceConnectionService {
   def listConnectedDevices()(implicit messageService: MessageService): Set[User]
 
   /**
-   * Mount the device with the given UUID.
-   * @param s
-   * @return
-   */
-  def mount(uuid: String): Path
-
-  /**
    * Unmount the device at the given path.
    * @param path
    */

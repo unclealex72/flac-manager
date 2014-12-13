@@ -47,7 +47,7 @@ packageDescription := "Flac Manager Debian Package"
 
 version in Debian := ((v: String) => v + (if (v.endsWith("-")) "" else "-") + "build-aj")(version.value)
 
-debianPackageDependencies := Seq("flac", "lame", "python-gpod", "python-pycurl", "python-eyed3")
+debianPackageDependencies := Seq("flac", "lame", "pmount", "python-gpod", "python-pycurl", "python-eyed3")
 
 daemonUser in Linux := "music"
 

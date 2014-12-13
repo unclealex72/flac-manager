@@ -1,5 +1,7 @@
 package common.configuration
 
+import java.nio.file.Paths
+
 import play.api.Configuration
 
 /**
@@ -15,8 +17,8 @@ case class PlayConfigurationUsers(override val configuration: Configuration) ext
         userConfig <- configuration.getConfig(s"user.$username")
         musicbrainzUsername <- userConfig.getString("musicbrainz.username")
         musicbrainzPassword <- userConfig.getString("musicbrainz.password")
-        deviceId <- userConfig.getString("deviceId")
-      } yield User(username, musicbrainzUsername, musicbrainzPassword, deviceId)
+        mountPoint <- userConfig.getString("mountPoint")
+      } yield User(username, musicbrainzUsername, musicbrainzPassword, Paths.get(mountPoint))
       users.toSet
     }.flatMap(users => if (users.size == 0) None else Some(users))
   }

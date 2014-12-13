@@ -24,8 +24,8 @@ import scala.collection.{SortedMap, SortedSet}
 class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatchers {
 
   trait Context extends Scope {
-    val freddie: User = User("freddie", "", "", "")
-    val brian: User = User("brian", "", "", "")
+    val freddie: User = User("freddie", "", "", Paths.get("/"))
+    val brian: User = User("brian", "", "", Paths.get("/"))
 
     val users = new Users {
       override def allUsers: Set[User] = Set(brian, freddie)

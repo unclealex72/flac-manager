@@ -62,7 +62,8 @@ class SquerylChangeDaoSpec extends Specification with StrictLogging {
         Change.removed(DeviceFileLocation(relativePathAndUser._2, relativePathAndUser._1), dateTime)
       }
     }
-    implicit def asUser(name: String) = User(name, "", "", "")
+
+    implicit def asUser(name: String) = User(name, "", "", Paths.get("/"))
   }
 
   import Dsl._

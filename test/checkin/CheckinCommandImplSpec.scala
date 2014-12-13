@@ -40,7 +40,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       totalDiscs = 6,
       totalTracks = 17,
       trackNumber = 3)
-    val brian = User("Brian", "", "", "")
+    val brian: User = User("Brian", "", "", Paths.get("/"))
     val fileLocations = Seq.empty[StagedFlacFileLocation]
     lazy val directoryService = mock[DirectoryService]
     lazy implicit val flacFileChecker = mock[FlacFileChecker]

@@ -11,20 +11,16 @@ import scala.sys.process._
 /**
  * Created by alex on 16/11/14.
  */
-class IpodDevice(override val uuid: String, val commandService: CommandService) extends Device {
+class IpodDevice(override val mountPoint: Path, val commandService: CommandService) extends Device {
 
   val LIST_REGEX = """(.+)\|(.+)\|(.+)""".r
 
-  var mountPath: Option[Path] = None
   var processCommunicator: Option[ProcessCommunicator] = None
 
-  override def beforeMount: Unit = {}
-
-  override def afterMount(mountPath: Path): Unit = {
-    this.mountPath = Some(mountPath)
+  override def afterMount: Unit = {
     val processCommunicator: ProcessCommunicator = ProcessCommunicator()
     this.processCommunicator = Some(processCommunicator)
-    Seq(commandService.syncCommand, mountPath.toString) run processCommunicator
+    Seq(commandService.syncCommand, mountPoint.toString.toString) run processCommunicator
   }
 
   override def listDeviceFiles: Set[DeviceFile] = {
@@ -67,5 +63,5 @@ class IpodDevice(override val uuid: String, val commandService: CommandService) 
 }
 
 object IpodDevice {
-  def apply(user: User)(implicit commandService: CommandService): IpodDevice = new IpodDevice(user.uuid, commandService)
+  def apply(user: User)(implicit commandService: CommandService): IpodDevice = new IpodDevice(user.mountPoint, commandService)
 }

@@ -123,9 +123,7 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       val device = mock[Device]
       device.listDeviceFiles returns Set()
       val result = synchronisationManager.synchronise(device, fileLocationExtensions.fileLocations)
-      there was one(deviceConnectionService).mount(anyString)
-      there was one(device).beforeMount
-      there was one(device).afterMount(any[Path])
+      there was one(device).afterMount
       there was one(deviceConnectionService).unmount(any[Path])
       there was one(device).beforeUnmount
       there was one(device).afterUnmount
@@ -139,9 +137,7 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       val device = mock[Device]
       device.listDeviceFiles throws new RuntimeException("D'oh!")
       val result = synchronisationManager.synchronise(device, fileLocationExtensions.fileLocations)
-      there was one(deviceConnectionService).mount(anyString)
-      there was one(device).beforeMount
-      there was one(device).afterMount(any[Path])
+      there was one(device).afterMount
       there was one(deviceConnectionService).unmount(any[Path])
       there was one(device).beforeUnmount
       there was one(device).afterUnmount

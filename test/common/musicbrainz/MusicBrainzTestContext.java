@@ -56,6 +56,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -89,7 +90,7 @@ public class MusicBrainzTestContext {
 
     MusicBrainzClientImpl musicBrainzClient;
 
-    User user = new User("brian", "Brian", "may", "");
+    User user = new User("brian", "Brian", "may", Paths.get("/"));
 
     List<String> requestLog = new ArrayList<>();
 

@@ -24,6 +24,8 @@
 
 package common.configuration
 
+import java.nio.file.Path
+
 /**
  * A configuration item for a user. Users must also have a MusicBrainz login and own an iPod.
  *
@@ -55,10 +57,8 @@ case class User(
                  musicBrainzPassword: String,
 
                  /**
-                  * Get the unique UUID of this user's iPod. The device will have a symbolic link at
-                  * <code>/dev/disks/by-uuid/UUID</code> that points to where the device is
-                  * located.
+                  * Get the mount point of this user's iPod.
                   *
-                  * @return The unique UUID of the user's iPod.
+                  * @return The mount point of the user's iPod.
                   */
-                 uuid: String)
+                 mountPoint: Path)

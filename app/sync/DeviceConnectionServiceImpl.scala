@@ -1,12 +1,11 @@
 package sync
 
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.Path
 
 import common.configuration.{User, Users}
 import common.message.MessageTypes._
 import common.message.{MessageService, Messaging}
 
-import scala.collection.JavaConversions._
 import scala.sys.process._
 
 /**
@@ -21,15 +20,12 @@ class DeviceConnectionServiceImpl(users: Users) extends DeviceConnectionService 
    */
   override def listConnectedDevices()(implicit messageService: MessageService): Set[User] = {
     log(LOOKING_FOR_DEVICES())
-    val connectedDeviceIds = Files.list(Paths.get("/dev", "disk", "by-uuid")).iterator().toSeq.map(_.getFileName.toString)
-    val connectedUsers = users.allUsers.filter(user => connectedDeviceIds.contains(user.uuid)).toSet
+    val connectedUsers = users.allUsers.filter { user =>
+      val mountPoint = user.mountPoint.toFile
+      mountPoint.isDirectory && mountPoint.list().length != 0
+    }.toSet
     connectedUsers.foreach(user => log(FOUND_DEVICE(user)))
     connectedUsers
-  }
-
-  override def mount(uuid: String): Path = {
-    Seq("pmount", uuid) !< ProcessLogger(_ => {})
-    Paths.get("/media", uuid)
   }
 
   override def unmount(path: Path): Unit = {

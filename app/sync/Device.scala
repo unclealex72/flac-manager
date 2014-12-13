@@ -31,17 +31,9 @@ import common.files.DeviceFileLocation
 trait Device {
 
   /**
-   * The unique disk UUID of this device.
+   * The path where this device is mounted.
    */
-  val uuid: String
-
-  /**
-   * Subclasses need to override this method to contain any device based logic
-   * that needs to be executed before the device is mounted.
-   *
-   * @throws java.io.IOException
-   */
-  def beforeMount: Unit
+  val mountPoint: Path
 
   /**
    * Subclasses need to override this method to contain any device based logic
@@ -52,7 +44,7 @@ trait Device {
    * The path where the device has been mounted.
    * @throws java.io.IOException
    */
-  def afterMount(mountPath: Path): Unit
+  def afterMount: Unit
 
   /**
    * List all the files currently on the device.

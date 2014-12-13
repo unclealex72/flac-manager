@@ -46,8 +46,8 @@ class ParameterBuildersImplSpec extends Specification with Mockito {
       fileLocation.asInstanceOf[FileLocation].relativePath.getFileName.toString == "dir"
     }
     lazy val users = mock[Users]
-    val brian: User = User("Brian", "", "", "")
-    val freddie: User = User("Freddie", "", "", "")
+    val brian: User = User("Brian", "", "", Paths.get("/"))
+    val freddie: User = User("Freddie", "", "", Paths.get("/"))
     users.allUsers returns (Set(brian, freddie))
 
     lazy val directoryMappingService = mock[DirectoryMappingService]

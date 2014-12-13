@@ -1,5 +1,7 @@
 package common.owners
 
+import java.nio.file.Paths
+
 import common.configuration.{User, Users}
 import common.message.MessageTypes._
 import common.message.TestMessageService
@@ -9,16 +11,14 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import org.specs2.specification.Scope
 
-import scala.concurrent._
-
 /**
  * Created by alex on 15/11/14.
  */
 class OwnerServiceImplSpec extends Specification with Mockito {
 
   trait Context extends Scope {
-    val brian = User("Brian", "", "", "")
-    val freddie = User("Freddie", "", "", "")
+    val brian = User("Brian", "", "", Paths.get("/"))
+    val freddie = User("Freddie", "", "", Paths.get("/"))
     val tags1 = Tags(
       album = "Metal: A Headbanger's Companion",
       albumArtist = "Various Artists",

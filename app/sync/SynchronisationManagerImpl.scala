@@ -43,12 +43,11 @@ class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionSe
   extends SynchronisationManager with Messaging {
 
   def synchronise(device: Device, fileLocations: Traversable[DeviceFileLocation])(implicit messageService: MessageService): Try[Unit] = {
-    device.beforeMount
-    val mountPath = mount(device)
-    device.afterMount(mountPath)
+    val mountPoint = device.mountPoint
+    device.afterMount
     val syncResult = synchroniseFiles(device, fileLocations)
     device.beforeUnmount
-    unmount(mountPath)
+    unmount(mountPoint)
     device.afterUnmount
     syncResult
   }
@@ -71,10 +70,6 @@ class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionSe
     }
     fileActions.foreach(_.broadcast)
     fileActions.foreach(_.execute(device))
-  }
-
-  def mount(device: Device): Path = {
-    deviceConnectionService.mount(device.uuid)
   }
 
   /**
