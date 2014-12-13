@@ -2,7 +2,6 @@
 import sys
 import string
 import gpod
-import datetime
 import os
 import eyeD3
 import tempfile
@@ -141,8 +140,7 @@ class ipod_synchroniser(synchroniser):
 
 
 def main(args):
-    ipod_synchroniser(args[0])
-    synchroniser.run()
+    ipod_synchroniser(args[0]).run()
 
 
 if __name__ == "__main__":

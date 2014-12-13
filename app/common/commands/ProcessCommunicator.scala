@@ -23,6 +23,8 @@ package common.commands
 
 import java.io._
 
+import com.typesafe.scalalogging.StrictLogging
+
 import scala.sys.process.{BasicIO, ProcessIO}
 
 /**
@@ -30,7 +32,7 @@ import scala.sys.process.{BasicIO, ProcessIO}
  * end in a line containing only "OK"
  * Created by alex on 29/10/14.
  */
-class ProcessCommunicator {
+class ProcessCommunicator extends StrictLogging {
 
   val OK: String = "OK"
 
@@ -52,14 +54,33 @@ class ProcessCommunicator {
       true)
   }
 
-  def write(command: String): Unit = for (in <- stdin) {
+  def write(command: String): Unit = for (in <- stdin) logStderrOnError {
     in.write(command)
     in.newLine
     in.flush
   }
 
+  def logStderrOnError[V](block: => V) = {
+    try {
+      block
+    }
+    catch {
+      case e: Exception => {
+        for (err <- stderr) {
+          val stderrText = Stream.continually(err.readLine()).takeWhile(l => l != null).mkString("\n")
+          logger.error("Reading failed: " + stderrText)
+        }
+      }
+        throw e
+    }
+  }
+
   def read: Seq[String] = stdout match {
-    case Some(out) => Stream.continually(out.readLine()).takeWhile(l => l != null && l != OK).toSeq
+    case Some(out) => logStderrOnError {
+      val lines = Stream.continually(out.readLine()).takeWhile(l => l != null && l != OK).toSeq
+      lines.foreach(line => logger.debug(line))
+      lines
+    }
     case _ => Seq.empty
   }
 

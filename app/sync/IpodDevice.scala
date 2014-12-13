@@ -1,6 +1,7 @@
 package sync
 
 import java.nio.file.Path
+import java.text.SimpleDateFormat
 
 import common.commands.{CommandService, ProcessCommunicator}
 import common.configuration.User
@@ -20,17 +21,18 @@ class IpodDevice(override val mountPoint: Path, val commandService: CommandServi
   override def afterMount: Unit = {
     val processCommunicator: ProcessCommunicator = ProcessCommunicator()
     this.processCommunicator = Some(processCommunicator)
-    Seq(commandService.syncCommand, mountPoint.toString.toString) run processCommunicator
+    Seq(commandService.syncCommand, mountPoint.toString) run processCommunicator
   }
 
   override def listDeviceFiles: Set[DeviceFile] = {
+    val df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
     processCommunicator match {
       case Some(pc) => {
         pc.write("LIST")
         pc.read.foldLeft(Set.empty[DeviceFile]) { (deviceFiles, str) =>
           str match {
             case LIST_REGEX(id, relativePath, lastModified) => {
-              deviceFiles + DeviceFile(id, relativePath, lastModified.toLong)
+              deviceFiles + DeviceFile(id, relativePath, df.parse(lastModified).getTime())
             }
             case _ => deviceFiles
           }
@@ -41,7 +43,7 @@ class IpodDevice(override val mountPoint: Path, val commandService: CommandServi
   }
 
   override def remove(deviceFile: DeviceFile): Unit =
-    singleLine("REMOVE", deviceFile.relativePath)
+    singleLine("REMOVE", deviceFile.id)
 
   override def add(deviceFileLocation: DeviceFileLocation): Unit =
     singleLine("ADD", deviceFileLocation.relativePath, deviceFileLocation.path)

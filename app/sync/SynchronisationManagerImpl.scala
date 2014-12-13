@@ -27,7 +27,6 @@ import common.files.{DeviceFileLocation, FileLocationExtensions}
 import common.message.MessageTypes._
 import common.message._
 
-import scala.collection.SortedSet
 import scala.concurrent.duration._
 import scala.util.Try
 
@@ -56,7 +55,7 @@ class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionSe
     def unique[K, V]: Map[K, Traversable[V]] => Map[K, V] = m => m.mapValues(_.find(_ => true).get)
     val deviceFilesByRelativePath = unique(device.listDeviceFiles.groupBy(_.relativePath))
     val fileLocationsByRelativePath = unique(fileLocations.groupBy(_.relativePath.toString))
-    val relativePaths = SortedSet[String]() ++ deviceFilesByRelativePath.keys ++ fileLocationsByRelativePath.keys
+    val relativePaths = (deviceFilesByRelativePath.keys ++ fileLocationsByRelativePath.keys).toSeq.sorted
     val fileActions = relativePaths.map { relativePath =>
       val optionalDeviceFile = deviceFilesByRelativePath.get(relativePath)
       val optionalFileLocation = fileLocationsByRelativePath.get(relativePath)
@@ -68,8 +67,10 @@ class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionSe
           if (laterThan(fileLocation.lastModified, deviceFile.lastModified)) Add(fileLocation) else Keep(deviceFile)
       }
     }
-    fileActions.foreach(_.broadcast)
-    fileActions.foreach(_.execute(device))
+    fileActions.foreach { fileAction =>
+      fileAction.broadcast
+      fileAction.execute(device)
+    }
   }
 
   /**
