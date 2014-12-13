@@ -9,6 +9,8 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.11.1"
 
+javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+
 libraryDependencies ++= Seq(
   "org.squeryl" %% "squeryl" % "0.9.6-RC3",
   "postgresql" % "postgresql" % "9.1-901-1.jdbc4",
@@ -47,7 +49,7 @@ packageDescription := "Flac Manager Debian Package"
 
 version in Debian := ((v: String) => v + (if (v.endsWith("-")) "" else "-") + "build-aj")(version.value)
 
-debianPackageDependencies := Seq("flac", "lame", "pmount", "python-gpod", "python-pycurl", "python-eyed3")
+debianPackageDependencies := Seq("java7-runtime-headless", "flac", "lame", "pmount", "python-gpod", "python-pycurl", "python-eyed3", "python-gtk2")
 
 daemonUser in Linux := "music"
 
