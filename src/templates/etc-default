@@ -25,6 +25,9 @@
 # Add additional jvm parameters
 # -Dkey=val
 
+# Configuration file
+-Dconfig.resource=application-prod.conf
+
 # For play applications you may set
 -Dpidfile.path=/var/run/${{app_name}}/play.pid
 

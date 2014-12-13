@@ -1,7 +1,7 @@
+import com.typesafe.sbt.SbtNativePackager.NativePackagerKeys._
+import com.typesafe.sbt.SbtNativePackager._
 import play.PlayScala
 import sbtrelease._
-import com.typesafe.sbt.SbtNativePackager._
-import NativePackagerKeys._
 
 name := "flac-manager"
 
@@ -47,7 +47,7 @@ packageDescription := "Flac Manager Debian Package"
 
 version in Debian := ((v: String) => v + (if (v.endsWith("-")) "" else "-") + "build-aj")(version.value)
 
-debianPackageDependencies := Seq("flac", "lame", "id3v2", "python", "python-pycurl")
+debianPackageDependencies := Seq("flac", "lame", "python-gpod", "python-pycurl", "python-eyed3")
 
 daemonUser in Linux := "music"
 
@@ -63,7 +63,7 @@ mappings in Universal ++= Seq("checkin", "checkout", "initialise", "own", "unown
 releaseSettings
 
 ReleaseKeys.releaseProcess <<= thisProjectRef apply { ref =>
-  import ReleaseStateTransformations._
+  import sbtrelease.ReleaseStateTransformations._
   Seq[ReleaseStep](
   checkSnapshotDependencies,
   inquireVersions,
