@@ -10,6 +10,10 @@ POST        /sync                     @controllers.Commands.sync()
 POST        /own                      @controllers.Commands.own()
 POST        /unown                    @controllers.Commands.unown()
 
+# Configuration
+
+GET         /conf                     @controllers.Conf.configuration()
+
 # Music files
 GET         /music/:user/*file        @controllers.Music.at(user, file)
 GET         /tags/:user/*file        @controllers.Music.tags(user, file)

@@ -32,7 +32,7 @@ import common.music.{JaudioTaggerTagsService, TagsService}
 import common.musicbrainz.{MusicBrainzClient, PlayConfigurationMusicBrainzClient}
 import common.now.{NowService, NowServiceImpl}
 import common.owners.{OwnerService, OwnerServiceImpl}
-import controllers.{Commands, Music, ParameterBuilders, ParameterBuildersImpl}
+import controllers._
 import initialise.{InitialiseCommand, InitialiseCommandImpl}
 import org.squeryl.adapters.{H2Adapter, PostgreSqlAdapter}
 import org.squeryl.internals.DatabaseAdapter
@@ -98,6 +98,7 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with StrictLogging
     bind[ParameterBuilders] to injected[ParameterBuildersImpl]
     bind[Music] to injected[Music]
     bind[Commands] to injected[Commands]
+    bind[Conf] to injected[Conf]
   }
 
   class SyncModule extends DynamicModule {
