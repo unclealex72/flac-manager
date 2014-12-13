@@ -10,6 +10,8 @@
 # ${{daemon_user}}      daemon user
 # -------------------------------------------------
 
+-Dhttp.port=9999
+
 # apply any evolutions
 -DapplyEvolutions.default=true
 

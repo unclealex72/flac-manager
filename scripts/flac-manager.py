@@ -97,6 +97,8 @@ class Command:
     parameters = {}
 
     def execute(self):
+        host = os.environ.get("FLAC_HOST", "localhost")
+        port = os.environ.get("FLAC_PORT", "9999")
         parser = self.generateParser()
         args = parser.parse_args()
         with open ("/etc/mtab", "r") as mtab:
@@ -107,7 +109,7 @@ class Command:
             self.addParameters("user", args.users.split(","))
         if hasattr(args, "unown") and args.unown:
             self.addParameter("unown", "true")
-        url = "http://%s:%d/%s" % ("localhost", 9000, self.cmd)
+        url = "http://%s:%s/%s" % (host, port, self.cmd)
         for line in CurlHTTPStream(url, self.parameters).iter_lines():
             print line
 
