@@ -35,6 +35,10 @@ case class Change(
                    val id: Long,
 
                    /**
+                    * The path of the parent directory for adds
+                    */
+                   val parentRelativePath: Option[String],
+                   /**
                     * The relative path of the file that changed.
                     */
                    val relativePath: String,
@@ -58,7 +62,7 @@ case class Change(
    * Squeryl constructor
    */
 
-  protected def this() = this(0, "", new DateTime(), "", "")
+  protected def this() = this(0, None, "", new DateTime(), "", "")
 
   def store(implicit changeDao: ChangeDao): Unit = changeDao.store(this)
 }
@@ -66,11 +70,13 @@ case class Change(
 object Change {
 
   def added(deviceFileLocation: DeviceFileLocation)(implicit fileLocationExtensions: FileLocationExtensions): Change =
-    apply("added", deviceFileLocation, JodaDateTime(deviceFileLocation.lastModified))
+    apply("added", deviceFileLocation, true, JodaDateTime(deviceFileLocation.lastModified))
 
-  def removed(deviceFileLocation: DeviceFileLocation, at: DateTime): Change = apply("removed", deviceFileLocation, at)
+  def removed(deviceFileLocation: DeviceFileLocation, at: DateTime): Change = apply("removed", deviceFileLocation, false, at)
 
-  private def apply(action: String, deviceFileLocation: DeviceFileLocation, at: DateTime): Change = {
-    Change(0, deviceFileLocation.relativePath.toString, at, deviceFileLocation.user.name, action)
+  private def apply(action: String, deviceFileLocation: DeviceFileLocation, storeParent: Boolean, at: DateTime): Change = {
+    val relativePath = deviceFileLocation.relativePath
+    val parentPath = if (storeParent) Some(relativePath.getParent.toString) else None
+    Change(0, parentPath, relativePath.toString, at, deviceFileLocation.user.name, action)
   }
 }
