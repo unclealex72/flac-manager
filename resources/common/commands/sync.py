@@ -59,7 +59,8 @@ class synchroniser:
         if stdout:
             print message
             sys.stdout.flush()
-        print >> sys.stderr, message
+        else:
+            print >> sys.stderr, message
 
     def flatten_relative_path(self, path):
         return string.replace(path, "/", "_")

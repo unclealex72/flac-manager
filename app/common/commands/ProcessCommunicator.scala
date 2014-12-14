@@ -76,12 +76,20 @@ class ProcessCommunicator extends StrictLogging {
   }
 
   def read: Seq[String] = stdout match {
-    case Some(out) => logStderrOnError {
-      val lines = Stream.continually(out.readLine()).takeWhile(l => l != null && l != OK).toSeq
-      lines.foreach(line => logger.debug(line))
-      lines
+    case Some(out) => blocking {
+      logStderrOnError {
+        Stream.continually({
+          Thread.currentThread().setName("Reading Thread"); out.readLine()
+        }).takeWhile { line =>
+          val eof = line == null || line == OK
+          if (!eof) {
+            logger.debug(line)
+          }
+          !eof
+        }
+      }
     }
-    case _ => Seq.empty
+    case _ => Stream.empty[String]
   }
 
   def close: Unit = {
