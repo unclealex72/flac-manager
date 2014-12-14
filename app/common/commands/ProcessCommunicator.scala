@@ -76,7 +76,7 @@ class ProcessCommunicator extends StrictLogging {
   }
 
   def read: Seq[String] = stdout match {
-    case Some(out) => blocking {
+    case Some(out) =>
       logStderrOnError {
         Stream.continually({
           Thread.currentThread().setName("Reading Thread"); out.readLine()
@@ -88,9 +88,9 @@ class ProcessCommunicator extends StrictLogging {
           !eof
         }
       }
-    }
     case _ => Stream.empty[String]
   }
+
 
   def close: Unit = {
     read
