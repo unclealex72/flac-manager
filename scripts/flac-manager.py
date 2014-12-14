@@ -109,7 +109,7 @@ class Command:
             self.addParameters("user", args.users.split(","))
         if hasattr(args, "unown") and args.unown:
             self.addParameter("unown", "true")
-        url = "http://%s:%s/%s" % (host, port, self.cmd)
+        url = "http://%s:%s/commands/%s" % (host, port, self.cmd)
         for line in CurlHTTPStream(url, self.parameters).iter_lines():
             print line
 

@@ -3,12 +3,12 @@
 # ~~~~
 
 # Commands
-POST        /initialise              @controllers.Commands.initialise()
-POST        /checkout                 @controllers.Commands.checkout()
-POST        /checkin                  @controllers.Commands.checkin()
-POST        /sync                     @controllers.Commands.sync()
-POST        /own                      @controllers.Commands.own()
-POST        /unown                    @controllers.Commands.unown()
+POST        /commands/initialise        @controllers.Commands.initialise()
+POST        /commands/checkout          @controllers.Commands.checkout()
+POST        /commands/checkin           @controllers.Commands.checkin()
+POST        /commands/sync              @controllers.Commands.sync()
+POST        /commands/own               @controllers.Commands.own()
+POST        /commands/unown             @controllers.Commands.unown()
 
 # Configuration
 
