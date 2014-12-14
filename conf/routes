@@ -3,19 +3,21 @@
 # ~~~~
 
 # Commands
-POST        /commands/initialise        @controllers.Commands.initialise()
-POST        /commands/checkout          @controllers.Commands.checkout()
-POST        /commands/checkin           @controllers.Commands.checkin()
-POST        /commands/sync              @controllers.Commands.sync()
-POST        /commands/own               @controllers.Commands.own()
-POST        /commands/unown             @controllers.Commands.unown()
+POST        /commands/initialise         @controllers.Commands.initialise()
+POST        /commands/checkout           @controllers.Commands.checkout()
+POST        /commands/checkin            @controllers.Commands.checkin()
+POST        /commands/sync               @controllers.Commands.sync()
+POST        /commands/own                @controllers.Commands.own()
+POST        /commands/unown              @controllers.Commands.unown()
 
 # Configuration
 
-GET         /conf                     @controllers.Conf.configuration()
+GET         /conf                        @controllers.Conf.configuration()
 
 # Music files
-GET         /music/:user/*file        @controllers.Music.at(user, file)
-GET         /tags/:user/*file        @controllers.Music.tags(user, file)
+GET         /music/:user/*file           @controllers.Music.at(user, file)
+GET         /tags/:user/*file            @controllers.Music.tags(user, file)
+GET         /artwork/:user/*file         @controllers.Music.artwork(user, file)
+
 # changes
-GET         /changes/:user/:since     @controllers.Music.changes(user, since)
+GET         /changes/:user/:since        @controllers.Music.changes(user, since)

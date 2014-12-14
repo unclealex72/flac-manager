@@ -167,23 +167,25 @@ case class Tags(
     Paths.get(firstLetter, normalisedAlbumArtistSort, normalisedAlbum, normalisedTitle + "." + extension.extension)
   }
 
-  def toJson = Json.obj(
-    "albumArtistSort" -> albumArtistSort,
-    "albumArtist" -> albumArtist,
-    "album" -> album,
-    "artist" -> artist,
-    "artistSort" -> artistSort,
-    "title" -> title,
-    "totalDiscs" -> totalDiscs,
-    "totalTracks" -> totalTracks,
-    "discNumber" -> discNumber,
-    "albumArtistId" -> albumArtistId,
-    "albumId" -> albumId,
-    "artistId" -> artistId,
-    "trackId" -> trackId,
-    "asin" -> asin,
-    "trackNumber" -> trackNumber,
-    "coverArt" -> coverArt.toJson)
+  def toJson(includeCoverArt: Boolean) = {
+    val obj = Json.obj(
+      "albumArtistSort" -> albumArtistSort,
+      "albumArtist" -> albumArtist,
+      "album" -> album,
+      "artist" -> artist,
+      "artistSort" -> artistSort,
+      "title" -> title,
+      "totalDiscs" -> totalDiscs,
+      "totalTracks" -> totalTracks,
+      "discNumber" -> discNumber,
+      "albumArtistId" -> albumArtistId,
+      "albumId" -> albumId,
+      "artistId" -> artistId,
+      "trackId" -> trackId,
+      "asin" -> asin,
+      "trackNumber" -> trackNumber)
+    if (includeCoverArt) obj + ("coverArt" -> coverArt.toJson) else obj
+  }
 }
 
 /**

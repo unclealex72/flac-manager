@@ -7,7 +7,8 @@ import common.changes.ChangeDao
 import common.configuration.{Directories, Users}
 import common.files.{DeviceFileLocation, FileLocationExtensions}
 import common.joda.JodaDateTime
-import common.music.TagsService
+import common.music.{Tags, TagsService}
+import play.api.http.HeaderNames
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
@@ -23,14 +24,21 @@ class Music(val users: Users, val changeDao: ChangeDao)(implicit val directories
     Ok.chunked(Enumerator.fromFile(deviceFileLocation.toFile))
   }
 
-  def tags(username: String, path: String) = musicFile(username, path) { deviceFileLocation =>
+  def serveTags(username: String, path: String)(responseBuilder: Tags => Result) = musicFile(username, path) { deviceFileLocation =>
     deviceFileLocation.toFlacFileLocation.readTags match {
       case Left(violations) => {
         NotFound
       }
       case Right(tags) =>
-        Ok(tags.toJson)
+        responseBuilder(tags)
     }
+  }
+
+  def tags(username: String, path: String) = serveTags(username, path)(tags => Ok(tags.toJson(false)))
+
+  def artwork(username: String, path: String) = serveTags(username, path) { tags =>
+    val coverArt = tags.coverArt
+    Ok(coverArt.imageData).withHeaders(HeaderNames.CONTENT_TYPE -> coverArt.mimeType)
   }
 
   def musicFile(username: String, path: String)(resultBuilder: DeviceFileLocation => Result) = Action { implicit request =>
