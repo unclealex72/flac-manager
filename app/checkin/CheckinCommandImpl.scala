@@ -21,6 +21,7 @@
 
 package checkin
 
+import checkin.Action._
 import common.configuration.User
 import common.files._
 import common.message.MessageTypes._
@@ -42,7 +43,7 @@ class CheckinCommandImpl(
 
   override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): Unit = {
     val fileLocations = directoryService.listFiles(locations)
-    val actions: Set[Action] = validate(fileLocations)
+    val actions: Seq[Action] = validate(fileLocations)
     if (actions.isEmpty) {
       log(NO_FILES(fileLocations.toSet))
     }
@@ -53,7 +54,7 @@ class CheckinCommandImpl(
     }
   }
 
-  def validate(fileLocations: Traversable[StagedFlacFileLocation])(implicit messageService: MessageService): Set[Action] = {
+  def validate(fileLocations: Traversable[StagedFlacFileLocation])(implicit messageService: MessageService): Seq[Action] = {
     val firstStageValidationResults = fileLocations.map(isValidFlacFile)
     val secondStageValidationResults = firstStageValidationResults.par.flatMap(isFullyTaggedFlacFile).seq
     val thirdStageValidationResults = secondStageValidationResults.flatMap(doesNotOverwriteFlacFile)
@@ -67,7 +68,7 @@ class CheckinCommandImpl(
     val hasOwners: Tags => Set[User] = ownerService.listCollections()
     val fifthStageValidationResults = fourthStageValidationResults.flatMap(isOwnedFlacFile(hasOwners))
     val actions: Set[Action] = fifthStageValidationResults.map(generateActions)
-    actions
+    actions.toSeq.sorted
   }
 
   def isValidFlacFile: (StagedFlacFileLocation) => FirstStageValidationResult = {

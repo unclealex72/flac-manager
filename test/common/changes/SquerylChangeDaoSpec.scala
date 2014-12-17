@@ -87,7 +87,7 @@ class SquerylChangeDaoSpec extends Specification with StrictLogging {
   "Getting all changes since a specific time for a user" should {
     "retrieve only changes for a user since a specific time" in txn { changeDao => context =>
       changeDao.getAllChangesSince(context.freddie, "05/09/1972 09:13:00") must contain(
-        exactly(context.myFairyKingAdded, context.theNightComesDownAdded, context.funnyHowLoveIsAdded, context.weAreTheChampionsRemoved))
+        exactly(context.weAreTheChampionsRemoved, context.funnyHowLoveIsAdded, context.myFairyKingAdded, context.theNightComesDownAdded).inOrder)
     }
   }
 
@@ -98,7 +98,7 @@ class SquerylChangeDaoSpec extends Specification with StrictLogging {
       changeLogs must contain(exactly(
         ChangelogItem("News of the World", "05/09/1972 09:14:00", "News of the World/We Are The Champions.mp3"),
         ChangelogItem("Queen", "05/09/1972 09:13:00", "Queen/My Fairy King.mp3")
-      ))
+      ).inOrder)
     }
   }
 
