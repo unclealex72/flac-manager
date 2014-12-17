@@ -24,6 +24,7 @@ import common.changes.ChangeSchema._
 import common.changes.SquerylEntryPoint._
 import common.configuration.User
 import org.joda.time.DateTime
+import org.squeryl.dsl.ast.LogicalBoolean
 
 /**
  * The Squeryl implementation of both GameDao and Transactional.
@@ -54,4 +55,30 @@ class SquerylChangeDao extends ChangeDao {
   override def countChanges(): Long = inTransaction {
     from(changes)(c => compute(count(c.id)))
   }
+
+  def isPartOfChangeLog(c: Change, user: User): LogicalBoolean = c.action === "added" and c.user === user.name and c.parentRelativePath.isNotNull
+
+  def changelog(user: User, pageNumber: Int, limit: Int): List[ChangelogItem] = inTransaction {
+    val groupedChanges =
+      from(changes)(c => where(isPartOfChangeLog(c, user))
+        groupBy (c.parentRelativePath)
+        compute(min(c.at), min(c.relativePath)(optionStringTEF)) orderBy(min(c.at) desc, min(c.parentRelativePath) asc)).page(pageNumber * limit, limit)
+    val changelogItems =
+      for {
+        g <- groupedChanges.iterator
+        parentRelativePath <- g.key
+        at <- g.measures._1
+        relativePath <- g.measures._2
+      } yield ChangelogItem(parentRelativePath, at, relativePath)
+    changelogItems.toList
+  }
+
+  def countChangelog(user: User): Long = inTransaction {
+    from(changes)(c =>
+      where(isPartOfChangeLog(c, user))
+        compute (countDistinct(c.parentRelativePath))
+    ).single.measures
+  }
+
+
 }

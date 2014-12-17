@@ -43,8 +43,8 @@ class SquerylChangeDaoSpec extends Specification with StrictLogging {
 
     implicit def asDateTime(str: String) = df.parseDateTime(str)
 
-    implicit class ChangeBuilderA(relativePath: String) {
-      def ownedBy(user: User) = (relativePath, user)
+    implicit class ChangeBuilderA(albumAndTitle: (String, String)) {
+      def ownedBy(user: User) = (Paths.get(albumAndTitle._1, albumAndTitle._2).toString, user)
     }
 
     implicit class ChangeBuilderB(relativePathAndUser: (String, User)) {
@@ -68,29 +68,45 @@ class SquerylChangeDaoSpec extends Specification with StrictLogging {
 
   import Dsl._
 
-  val freddie: User = "Freddie"
-  val brian: User = "Brian"
+
+  class Context {
+
+    val freddie: User = "Freddie"
+    val brian: User = "Brian"
+
+    val tearItUpAdded = ("The Works", "Tear it Up.mp3") ownedBy brian addedAt "05/09/1972 09:12:00"
+    val bohemianRhapsodyRemoved = ("A Night at the Opera", "Bohemian Rhapsody.mp3") ownedBy freddie removedAt "05/09/1972 09:12:30"
+    val myFairyKingAdded = ("Queen", "My Fairy King.mp3") ownedBy freddie addedAt "05/09/1972 09:13:00"
+    val theNightComesDownAdded = ("Queen", "The Night Comes Down.mp3") ownedBy freddie addedAt "05/09/1972 09:13:00"
+    val funnyHowLoveIsAdded = ("Queen II", "Funny How Love Is.mp3") ownedBy freddie addedAt "05/09/1972 09:13:00"
+    val weWillRockYouRemoved = ("News of the World", "We Will Rock You.mp3") ownedBy brian removedAt "05/09/1972 09:13:30"
+    val weAreTheChampionsAdded = ("News of the World", "We Are The Champions.mp3") ownedBy freddie addedAt "05/09/1972 09:14:00"
+    val weAreTheChampionsRemoved = ("News of the World", "We Are The Champions.mp3") ownedBy freddie removedAt "05/09/1972 09:14:30"
+  }
 
   "Getting all changes since a specific time for a user" should {
-    "retrieve only changes for a user since a specific time" in txn { changeDao =>
-
-      val tearItUpAdded = "Tear it Up.mp3" ownedBy brian addedAt "05/09/1972 09:12:00"
-      val bohemianRhapsodyRemoved = "Bohemian Rhapsody.mp3" ownedBy freddie removedAt "05/09/1972 09:12:30"
-      val myFairyKingAdded = "My Fairy King.mp3" ownedBy freddie addedAt "05/09/1972 09:13:00"
-      val weWillRockYouRemoved = "We Will Rock You.mp3" ownedBy brian removedAt "05/09/1972 09:13:30"
-      val weAreTheChampionsAdded = "We Are The Champions.mp3" ownedBy freddie addedAt "05/09/1972 09:14:00"
-      val weAreTheChampionsRemoved = "We Are The Champions.mp3" ownedBy freddie removedAt "05/09/1972 09:14:30"
-
-      Seq(tearItUpAdded, bohemianRhapsodyRemoved, myFairyKingAdded,
-        weWillRockYouRemoved, weAreTheChampionsAdded, weAreTheChampionsRemoved).foreach(change => changeDao store change)
-      changeDao.getAllChangesSince(freddie, "05/09/1972 09:13:00") must contain(exactly(myFairyKingAdded, weAreTheChampionsRemoved))
+    "retrieve only changes for a user since a specific time" in txn { changeDao => context =>
+      changeDao.getAllChangesSince(context.freddie, "05/09/1972 09:13:00") must contain(
+        exactly(context.myFairyKingAdded, context.theNightComesDownAdded, context.funnyHowLoveIsAdded, context.weAreTheChampionsRemoved))
     }
   }
+
+  "Getting the changelog of changes" should {
+    "retrieve at most the number of changes requested in change time order" in txn { changeDao => context =>
+      changeDao.countChangelog(context.freddie) must be equalTo (3)
+      val changeLogs = changeDao.changelog(context.freddie, 0, 2)
+      changeLogs must contain(exactly(
+        ChangelogItem("News of the World", "05/09/1972 09:14:00", "News of the World/We Are The Champions.mp3"),
+        ChangelogItem("Queen", "05/09/1972 09:13:00", "Queen/My Fairy King.mp3")
+      ))
+    }
+  }
+
 
   /**
    * Wrap tests with database creation and transactions
    */
-  def txn[B](block: ChangeDao => B) = {
+  def txn[B](block: ChangeDao => Context => B) = {
     Class forName "org.h2.Driver"
     SessionFactory.concreteFactory = Some(() => {
       val session = Session.create(
@@ -102,7 +118,10 @@ class SquerylChangeDaoSpec extends Specification with StrictLogging {
     val changeDao = new SquerylChangeDao()
     changeDao.tx { changeDao =>
       ChangeSchema.create
-      block(changeDao)
+      val context = new Context()
+      Seq(context.tearItUpAdded, context.bohemianRhapsodyRemoved, context.myFairyKingAdded, context.theNightComesDownAdded, context.funnyHowLoveIsAdded,
+        context.weWillRockYouRemoved, context.weAreTheChampionsAdded, context.weAreTheChampionsRemoved).foreach(change => changeDao store change)
+      block(changeDao)(context)
     }
   }
 

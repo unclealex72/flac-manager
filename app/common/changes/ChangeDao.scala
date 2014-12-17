@@ -29,7 +29,6 @@ import org.joda.time.DateTime
  * @author alex
  */
 trait ChangeDao {
-
   /**
    * Persist a change
    */
@@ -42,4 +41,9 @@ trait ChangeDao {
    * @return
    */
   def countChanges(): Long
+
+  def changelog(user: User, pageNumber: Int, limit: Int): List[ChangelogItem]
+
+  def countChangelog(user: User): Long
+
 }

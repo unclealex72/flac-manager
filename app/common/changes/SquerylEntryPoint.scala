@@ -24,8 +24,8 @@ import java.sql.Timestamp
 
 import common.joda.JodaDateTime
 import org.joda.time.DateTime
-import org.squeryl.{PrimitiveTypeMode, Query}
 import org.squeryl.dsl.{DeOptionizer, NonPrimitiveJdbcMapper, TOptionTimestamp, TTimestamp, TypedExpressionFactory}
+import org.squeryl.{PrimitiveTypeMode, Query}
 
 import scala.collection.SortedSet
 
@@ -56,7 +56,7 @@ object SquerylEntryPoint extends PrimitiveTypeMode {
 
   /**
    * We define this one here to allow working with Option of our new type, this also
-   * allows the 'nvl' function to work  
+   * allows the 'nvl' function to work
    */
   implicit val optionJodaTimeTEF =
     new TypedExpressionFactory[Option[DateTime], TOptionTimestamp]
@@ -66,7 +66,7 @@ object SquerylEntryPoint extends PrimitiveTypeMode {
     }
 
   /**
-   * the following are necessary for the AST lifting  
+   * the following are necessary for the AST lifting
    */
   implicit def jodaTimeToTE(s: DateTime) = jodaTimeTEF.create(s)
 

@@ -99,6 +99,7 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with StrictLogging
     bind[Music] to injected[Music]
     bind[Commands] to injected[Commands]
     bind[Conf] to injected[Conf]
+    bind[Changes] to injected[Changes]
   }
 
   class SyncModule extends DynamicModule {
