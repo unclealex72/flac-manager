@@ -100,7 +100,7 @@ class MusicBrainzClientImpl(val musicBrainzHost: String) extends MusicBrainzClie
     val alterRelease: String => Unit = { collectionId =>
       val groups = releaseIds.toList.grouped(RELEASE_PATH_LIMIT)
       groups.foreach { releaseIds =>
-        val webResource = MusicBrainzWebResource(user).path(collectionId).path("releases").path(releaseIds.mkString(";"))
+        val webResource = MusicBrainzWebResource(user).path(collectionId).path("releases").path(releaseIds.mkString(";")).queryParam(ID_PARAMETER._1, ID_PARAMETER._2)
         method(webResource)(classOf[String])
       }
     }
