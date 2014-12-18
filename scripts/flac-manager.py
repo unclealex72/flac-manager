@@ -106,7 +106,7 @@ class Command:
         if hasattr(args, "directories"):
             self.addParameters("directories", map(lambda p: os.path.abspath(p), args.directories))
         if hasattr(args, "users"):
-            self.addParameters("user", args.users.split(","))
+            self.addParameters("users", args.users.split(","))
         if hasattr(args, "unown") and args.unown:
             self.addParameter("unown", "true")
         url = "http://%s:%s/commands/%s" % (host, port, self.cmd)
