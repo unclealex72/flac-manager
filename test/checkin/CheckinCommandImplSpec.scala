@@ -31,7 +31,7 @@ import org.specs2.mutable._
 import org.specs2.specification.Scope
 
 import scala.collection.SortedSet
-
+import common.commands.CommandType._
 /**
  * Created by alex on 15/11/14.
  */
@@ -78,7 +78,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       flacFileChecker.isFlacFile(sfl) returns true
       tagsService.read(sfl) returns Left(Set())
       directoryService.listFiles(fileLocations) returns SortedSet(sfl)
-      checkinCommand.checkin(fileLocations)
+      checkinCommand.checkin(fileLocations).execute
       there was one(messageService).printMessage(INVALID_FLAC(sfl))
       there was one(messageService).printMessage(NO_FILES(SortedSet(sfl)))
       andThatsAll()
@@ -91,7 +91,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       tagsService.read(sfl) returns Right(tags)
       directoryService.listFiles(fileLocations) returns SortedSet(sfl)
       fileLocationExtensions.exists(fl) returns true
-      checkinCommand.checkin(fileLocations)
+      checkinCommand.checkin(fileLocations).execute
       there was one(messageService).printMessage(OVERWRITE(sfl, fl))
       there was one(messageService).printMessage(NO_FILES(SortedSet(sfl)))
       andThatsAll()
@@ -108,7 +108,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       }
       directoryService.listFiles(fileLocations) returns SortedSet(sfl1, sfl2, sfl3)
       fileLocationExtensions.exists(fl) returns false
-      checkinCommand.checkin(fileLocations)
+      checkinCommand.checkin(fileLocations).execute
       there was one(messageService).printMessage(NON_UNIQUE(fl, Set(sfl1, sfl2, sfl3)))
       there was one(messageService).printMessage(NO_FILES(SortedSet(sfl1, sfl2, sfl3)))
       andThatsAll()
@@ -123,7 +123,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     directoryService.listFiles(fileLocations) returns SortedSet(sfl)
     fileLocationExtensions.exists(fl) returns false
     ownerService.listCollections() returns { fl => Set()}
-    checkinCommand.checkin(fileLocations)
+    checkinCommand.checkin(fileLocations).execute
     there was one(messageService).printMessage(NOT_OWNED(sfl))
     there was one(messageService).printMessage(NO_FILES(SortedSet(sfl)))
     andThatsAll()
@@ -139,9 +139,9 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     directoryService.listFiles(fileLocations) returns SortedSet(sfl1, sfl2)
     fileLocationExtensions.exists(fl) returns false
     ownerService.listCollections() returns { fl => Set(brian)}
-    checkinCommand.checkin(fileLocations)
-    there was one(checkinService).checkin(Seq(Encode(sfl1, fl, tags, Set(brian))))
-    there was one(checkinService).checkin(Seq(Delete(sfl2)))
+    checkinCommand.checkin(fileLocations) returns synchronous {}
+    checkinCommand.checkin(fileLocations).execute
+    there was one(checkinService).checkin(Seq(Encode(sfl1, fl, tags, Set(brian)), Delete(sfl2)))
     andThatsAll()
   }
 

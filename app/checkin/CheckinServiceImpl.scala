@@ -19,6 +19,8 @@ package checkin
 import akka.actor.ActorSystem
 import checkin.actors.CheckinActor
 import checkin.actors.Messages.Actions
+import common.commands.CommandType
+import common.commands.CommandType._
 import common.message.{MessageService, Messaging}
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
@@ -31,7 +33,7 @@ class CheckinServiceImpl(implicit val inj: Injector) extends CheckinService with
   implicit val actorSystem = inject[ActorSystem]
   val checkinActor = injectActorRef[CheckinActor]
 
-  override def checkin(actions: Seq[Action])(implicit messagingService: MessageService): Unit = {
+  override def checkin(actions: Seq[Action])(implicit messagingService: MessageService): CommandType = asynchronous {
     checkinActor ! Actions(actions, messagingService)
   }
 }

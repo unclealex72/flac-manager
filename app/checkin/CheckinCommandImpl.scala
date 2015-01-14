@@ -38,14 +38,16 @@ class CheckinCommandImpl(
                                                               val tagsService: TagsService, val fileLocationExtensions: FileLocationExtensions)
   extends CheckinCommand with Messaging {
 
-  override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandType = asynchronous {
+  override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandType = {
     val fileLocations = directoryService.listFiles(locations)
     val actions: Seq[Action] = validate(fileLocations)
-    if (actions.isEmpty) {
-      log(NO_FILES(fileLocations.toSet))
-    }
-    else if (actions.size == fileLocations.size) {
+    if (actions.size == fileLocations.size) {
       checkinService.checkin(actions)
+    }
+    else synchronous {
+      if (actions.isEmpty) {
+        log(NO_FILES(fileLocations.toSet))
+      }
     }
   }
 
