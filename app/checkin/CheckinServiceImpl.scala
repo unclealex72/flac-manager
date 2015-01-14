@@ -16,45 +16,22 @@
 
 package checkin
 
-import common.changes.{Change, ChangeDao}
-import common.configuration.{Directories, User}
-import common.files._
-import common.message.MessageTypes._
+import akka.actor.ActorSystem
+import checkin.actors.CheckinActor
+import checkin.actors.Messages.Actions
 import common.message.{MessageService, Messaging}
-import common.music.{Tags, TagsService}
+import scaldi.Injector
+import scaldi.akka.AkkaInjectable
 
 /**
  * Created by alex on 16/11/14.
  */
-class CheckinServiceImpl(val fileSystem: FileSystem)
-                        (implicit val changeDao: ChangeDao, val fileLocationExtensions: FileLocationExtensions, val directories: Directories, val tagsService: TagsService, val mp3Encoder: Mp3Encoder)
-  extends CheckinService with Messaging {
+class CheckinServiceImpl(implicit val inj: Injector) extends CheckinService with Messaging with AkkaInjectable {
 
-  def delete(location: StagedFlacFileLocation)(implicit messageService: MessageService): Unit = {
-    fileSystem.remove(location)
-  }
+  implicit val actorSystem = inject[ActorSystem]
+  val checkinActor = injectActorRef[CheckinActor]
 
-  def encode(stagedFlacFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, users: Set[User])(implicit messageService: MessageService): Unit = {
-    val tempEncodedLocation = TemporaryFileLocation.create(MP3)
-    val encodedFileLocation = flacFileLocation.toEncodedFileLocation
-    log(ENCODE(stagedFlacFileLocation, encodedFileLocation))
-    stagedFlacFileLocation.encodeTo(tempEncodedLocation)
-    tempEncodedLocation.writeTags(tags)
-    fileSystem.move(tempEncodedLocation, encodedFileLocation)
-    users.foreach { user =>
-      val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
-      fileSystem.link(encodedFileLocation, deviceFileLocation)
-      Change.added(deviceFileLocation).store
-    }
-    fileSystem.move(stagedFlacFileLocation, flacFileLocation)
-  }
-
-  override def checkin(action: Action)(implicit messagingService: MessageService): Unit = {
-    action match {
-      case Delete(stagedFlacFileLocation) =>
-        delete(stagedFlacFileLocation)
-      case Encode(stagedFlacFileLocation, flacFileLocation, tags, owners) =>
-        encode(stagedFlacFileLocation, flacFileLocation, tags, owners)
-    }
+  override def checkin(actions: Seq[Action])(implicit messagingService: MessageService): Unit = {
+    checkinActor ! Actions(actions, messagingService)
   }
 }

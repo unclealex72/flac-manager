@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Alex Jones
+ * Copyright 2015 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,20 @@
 
 package common.configuration
 
+import java.nio.file.Paths
+
+import com.typesafe.scalalogging.StrictLogging
 import play.api.Configuration
 
 /**
+ * Get the users using Play configuration
  * Created by alex on 20/11/14.
  */
-abstract class PlayConfiguration[T](val configuration: Configuration) {
+case class PlayConfigurationNumberOfEncoders(override val configuration: Configuration) extends PlayConfiguration[Int](configuration) with StrictLogging {
 
-  val optionalResult = load(configuration)
+  def load(configuration: Configuration): Option[Int] = configuration.getInt("encoders")
 
-  lazy val result: T = optionalResult getOrElse default
+  def numberOfEncoders = result
 
-  lazy val default: T = {
-    throw new IllegalArgumentException("Could not read configuration for " + getClass)
-  }
-  def load(configuration: Configuration): Option[T]
+  override lazy val default = Runtime.getRuntime.availableProcessors()
 }

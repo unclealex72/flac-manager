@@ -43,6 +43,8 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
       override def printMessage(template: MessageType): Unit = {}
 
       override def exception(t: Throwable) = {}
+
+      override def finish: Unit = {}
     }
 
     implicit val directoryService = new DirectoryServiceImpl

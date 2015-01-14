@@ -51,6 +51,10 @@ class SquerylChangeDao extends ChangeDao {
     from(changes)(c => compute(count(c.id)))
   }
 
+  override def countChangesSince(user: User, since: DateTime): Long = inTransaction {
+    from(changes)(c => where(user.name === c.user and c.at >= since) compute(count(c.id)))
+  }
+
   def isPartOfChangeLog(c: Change, user: User): LogicalBoolean = c.action === "added" and c.user === user.name and c.parentRelativePath.isNotNull
 
   def changelog(user: User, pageNumber: Int, limit: Int): List[ChangelogItem] = inTransaction {
@@ -68,12 +72,15 @@ class SquerylChangeDao extends ChangeDao {
     changelogItems.toList
   }
 
-  def countChangelog(user: User): Long = inTransaction {
+  def countFilteredChangelog(filter: Change => LogicalBoolean): Long = inTransaction {
     from(changes)(c =>
-      where(isPartOfChangeLog(c, user))
+      where(filter(c))
         compute (countDistinct(c.parentRelativePath))
     ).single.measures
   }
 
+  def countChangelog(user: User): Long = countFilteredChangelog(c => isPartOfChangeLog(c, user))
+
+  def countChangelogSince(user: User, since: DateTime): Long = countFilteredChangelog(c => isPartOfChangeLog(c, user) and c.at >= since)
 
 }

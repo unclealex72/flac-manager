@@ -23,6 +23,8 @@ import common.message.MessageTypes._
 import common.message.{MessageService, Messaging}
 
 import scala.collection.SortedSet
+import common.commands.CommandType
+import common.commands.CommandType._
 
 /**
  * Created by alex on 06/12/14.
@@ -33,7 +35,7 @@ class InitialiseCommandImpl(val users: Users, val directoryService: DirectorySer
   /**
    * Initialise the database with all device files.
    */
-  override def initialiseDb(implicit messageService: MessageService): Unit = {
+  override def initialiseDb(implicit messageService: MessageService): CommandType = synchronous {
     if (changeDao.countChanges() != 0) {
       log(DATABASE_NOT_EMPTY())
     }

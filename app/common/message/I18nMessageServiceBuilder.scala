@@ -23,7 +23,7 @@ import play.api.i18n.Messages
  * A `MessageServiceBuilder` that builds messages using Play's bundle support.
  * Created by alex on 06/11/14.
  */
-class I18nMessageServiceBuilder(printers: Seq[String => Unit], exceptionHandlers: Seq[Throwable => Unit]) extends MessageServiceBuilder {
+class I18nMessageServiceBuilder(printers: Seq[String => Unit], exceptionHandlers: Seq[Throwable => Unit], onFinishes: Seq[() => Unit]) extends MessageServiceBuilder {
 
   override def build: MessageService = new MessageService() {
 
@@ -36,14 +36,21 @@ class I18nMessageServiceBuilder(printers: Seq[String => Unit], exceptionHandlers
       exceptionHandlers.foreach(exceptionHandler => exceptionHandler(t))
     }
 
+    override def finish(): Unit = {
+      onFinishes.foreach(block => block())
+    }
   }
 
   override def withPrinter(printer: String => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(printers :+ printer, exceptionHandlers)
+    new I18nMessageServiceBuilder(printers :+ printer, exceptionHandlers, onFinishes)
   }
 
   override def withExceptionHandler(exceptionHandler: Throwable => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(printers, exceptionHandlers :+ exceptionHandler)
+    new I18nMessageServiceBuilder(printers, exceptionHandlers :+ exceptionHandler, onFinishes)
+  }
+
+  override def withOnFinish(onFinish: () => Unit): MessageServiceBuilder = {
+    new I18nMessageServiceBuilder(printers, exceptionHandlers, onFinishes :+ onFinish)
   }
 }
 
@@ -51,8 +58,9 @@ object I18nMessageServiceBuilder {
 
   val logger = LoggerFactory.getLogger("messages")
   def apply(): MessageServiceBuilder =
-    new I18nMessageServiceBuilder(Seq(), Seq()).
+    new I18nMessageServiceBuilder(Seq(), Seq(), Seq()).
       withPrinter(message => logger.info(message)).
-      withExceptionHandler(t => logger.error("An unexpected exception occurred.", t))
+      withExceptionHandler(t => logger.error("An unexpected exception occurred.", t)).
+      withOnFinish(() => logger.info(s"Commmand has completed."))
 
 }

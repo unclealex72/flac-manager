@@ -17,9 +17,10 @@
 package controllers
 
 import common.changes.ChangeDao
-import common.configuration.Users
+import common.configuration.{User, Users}
 import common.joda.JodaDateTime
-import play.api.libs.json.Json
+import org.joda.time.DateTime
+import play.api.libs.json.{JsNumber, JsValue, Json}
 import play.api.mvc.{Action, Controller}
 
 /**
@@ -27,25 +28,39 @@ import play.api.mvc.{Action, Controller}
  */
 class Changes(val users: Users, val changeDao: ChangeDao) extends Controller {
 
-  def changes(username: String, sinceStr: String) = Action { implicit request =>
+  def since(username: String, sinceStr: String)(jsonBuilder: User => DateTime => JsValue) = Action { implicit request =>
     val parameters = for {
       user <- users().find(_.name == username)
       since <- JodaDateTime(sinceStr)
     } yield (user, since)
     parameters match {
       case Some((user, since)) => {
-        val changes = changeDao.getAllChangesSince(user, since).map { change =>
-          Json.obj(
-            "action" -> change.action,
-            "relativePath" -> change.relativePath,
-            "at" -> JodaDateTime.format(change.at)
-          )
-        }
-        Ok(Json.obj("changes" -> changes))
+        Ok(jsonBuilder(user)(since))
       }
       case _ => NotFound
     }
   }
+
+  def changes(username: String, sinceStr: String) = since(username, sinceStr) { user => since =>
+    val changes = changeDao.getAllChangesSince(user, since).map { change =>
+      Json.obj(
+        "action" -> change.action,
+        "relativePath" -> change.relativePath,
+        "at" -> JodaDateTime.format(change.at)
+      )
+    }
+    Json.obj("changes" -> changes)
+  }
+
+  def countChangelog(username: String, sinceStr: String) = since(username, sinceStr) { user => since =>
+    jsCount(changeDao.countChangelogSince(user, since))
+  }
+
+  def countChanges(username: String, sinceStr: String) = since(username, sinceStr) { user => since =>
+    jsCount(changeDao.countChangesSince(user, since))
+  }
+
+  def jsCount(count: Long) = Json.obj("count" -> count)
 
   def changelog(username: String, page: Int, limit: Int) = Action { implicit request =>
     users().find(_.name == username) match {

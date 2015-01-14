@@ -16,8 +16,7 @@
 
 package common.music
 
-import java.util.Base64
-
+import org.apache.commons.codec.binary.Base64
 import play.api.libs.json.Json
 
 /**
@@ -36,5 +35,5 @@ case class CoverArt(
                       */
                      mimeType: String) {
 
-  def toJson = Json.obj("mimeType" -> mimeType, "image" -> Base64.getEncoder.encodeToString(imageData))
+  def toJson = Json.obj("mimeType" -> mimeType, "image" -> Base64.encodeBase64String(imageData))
 }

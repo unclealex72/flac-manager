@@ -25,6 +25,14 @@ import org.joda.time.DateTime
  */
 trait ChangeDao {
   /**
+   * Count the number of added albums since a given date/time
+   * @param user
+   * @param since
+   * @return
+   */
+  def countChangelogSince(user: User, since: DateTime): Long
+
+  /**
    * Persist a change
    */
   def store(change: Change): Change
@@ -36,6 +44,8 @@ trait ChangeDao {
    * @return
    */
   def countChanges(): Long
+
+  def countChangesSince(user: User, since: DateTime): Long
 
   def changelog(user: User, pageNumber: Int, limit: Int): List[ChangelogItem]
 

@@ -16,18 +16,23 @@
 
 package own
 
+import common.commands.CommandType
+import common.commands.CommandType._
 import common.configuration.User
 import common.files.{DirectoryService, FlacFileChecker, StagedFlacFileLocation}
 import common.message.MessageService
 import common.music.TagsService
 import common.owners.OwnerService
+import play.api.mvc.Result
+
+import scala.concurrent.Future
 
 /**
  * Created by alex on 23/11/14.
  */
 class OwnCommandImpl(val ownerService: OwnerService, directoryService: DirectoryService)(implicit val flacFileChecker: FlacFileChecker, implicit val tagsService: TagsService) extends OwnCommand {
 
-  override def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): Unit = {
+  override def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandType = synchronous {
     val allLocations = directoryService.listFiles(locations)
     val tags = allLocations.filter(_.isFlacFile).flatMap(_.readTags.right.toOption).toSet
     val changeOwnershipFunction: User => Unit = action match {

@@ -140,8 +140,8 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     fileLocationExtensions.exists(fl) returns false
     ownerService.listCollections() returns { fl => Set(brian)}
     checkinCommand.checkin(fileLocations)
-    there was one(checkinService).checkin(Encode(sfl1, fl, tags, Set(brian)))
-    there was one(checkinService).checkin(Delete(sfl2))
+    there was one(checkinService).checkin(Seq(Encode(sfl1, fl, tags, Set(brian))))
+    there was one(checkinService).checkin(Seq(Delete(sfl2)))
     andThatsAll()
   }
 

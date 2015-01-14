@@ -101,12 +101,19 @@ sealed class OptionalStringTag(fieldKey: FieldKey) extends SimpleTag[String](fie
 }
 
 sealed class OptionalIntTag(fieldKey: FieldKey) extends SimpleTag[Int](fieldKey) {
-  def parse(str: String) = str.toInt
+  def parse(str: String) = {
+    try {
+      str.toInt
+    }
+    catch {
+      case e: Exception => -1
+    }
+  }
 }
 
 sealed class StringTag(fieldKey: FieldKey) extends MandatoryTag[String](new OptionalStringTag(fieldKey), "")
 
-sealed class IntTag(fieldKey: FieldKey) extends MandatoryTag[Int](new OptionalIntTag(fieldKey), 0)
+sealed class IntTag(fieldKey: FieldKey) extends MandatoryTag[Int](new OptionalIntTag(fieldKey), -1)
 
 object ALBUM extends StringTag(J_ALBUM)
 

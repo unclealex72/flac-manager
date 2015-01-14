@@ -20,6 +20,8 @@ import java.io.{PrintWriter, StringWriter}
 
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
+import common.commands.CommandType
+import common.commands.CommandType._
 import common.message.MessageTypes._
 import common.message.{MessageService, MessageServiceBuilder, Messaging}
 import initialise.InitialiseCommand
@@ -30,6 +32,7 @@ import play.api.mvc.{Action, Controller}
 import sync.SyncCommand
 
 import scala.util.Try
+
 
 /**
  * Created by alex on 06/11/14.
@@ -71,8 +74,8 @@ class Commands(
    * localhost:9000/command
    * @return
    */
-  def command[P <: Parameters](loggerName: String, parameterBuilder: ParameterBuilder[P], cmd: P => MessageService => Unit) = Action { implicit request =>
-    val enumerator: (MessageService => Unit) => Enumerator[String] = cmd => Concurrent.unicast[String](onStart = channel => {
+  def command[P <: Parameters](loggerName: String, parameterBuilder: ParameterBuilder[P], cmd: P => MessageService => CommandType) = Action { implicit request =>
+    val enumerator: (MessageService => CommandType) => Enumerator[String] = cmd => Concurrent.unicast[String](onStart = channel => {
       val messageService = messageServiceBuilder.
         withPrinter(message => channel.push(message + "\n")).
         withExceptionHandler { t =>
@@ -80,22 +83,31 @@ class Commands(
           t.printStackTrace(new PrintWriter(writer))
           channel.push(writer.toString + "\n")
         }.
+        withOnFinish {
+          channel.eofAndEnd
+        }.
         build
       Try {
-        cmd(messageService)
+        val commandType = cmd(messageService)
+        commandType.execute
+        if (commandType.requiresFinish) {
+          messageService.finish
+        }
       }.recover {
-        case e => messageService.exception(e)
+        case e => {
+          messageService.exception(e)
+          messageService.finish
+        }
       }
-      channel.eofAndEnd
     })
     parameterBuilder.bindFromRequest match {
       case Right(parameters) => Ok.chunked(enumerator { messageService =>
         cmd(parameters)(messageService)
       })
       case Left(formErrors) => BadRequest.chunked(enumerator { implicit messageService =>
-        formErrors.foreach { formError =>
+        synchronous { formErrors.foreach { formError =>
           log(ERROR(formError.key, formError.message, formError.args))
-        }
+        }}
       })
     }
   }

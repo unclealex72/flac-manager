@@ -197,14 +197,14 @@ object Tags {
     tags.artist is notEmpty
     tags.artistSort is notEmpty
     tags.title is notEmpty
-    tags.totalDiscs is notEqualTo(0)
-    tags.totalTracks is notEqualTo(0)
-    tags.discNumber is notEqualTo(0)
+    tags.totalDiscs is >(0)
+    tags.totalTracks is >(0)
+    tags.discNumber is >(0)
     tags.albumArtistId is notEmpty
     tags.artistId is notEmpty
     tags.albumId is notEmpty
     tags.trackId is notEmpty
-    tags.trackNumber is notEqualTo(0)
+    tags.trackNumber is >(0)
     tags.coverArt is notNull
   }
 }

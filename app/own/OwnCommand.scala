@@ -16,6 +16,7 @@
 
 package own
 
+import common.commands.CommandType
 import common.configuration.User
 import common.files.StagedFlacFileLocation
 import common.message.MessageService
@@ -24,7 +25,7 @@ import common.message.MessageService
  * Created by alex on 09/11/14.
  */
 trait OwnCommand {
-  def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): Unit
+  def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandType
 }
 
 sealed trait OwnAction

@@ -17,7 +17,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
   "joda-time" % "joda-time" % "2.2",
   "org.joda" % "joda-convert" % "1.3.1",
-  "org.scaldi" %% "scaldi-play" % "0.4.1",
   // Musicbrainz REST web client
   "com.sun.jersey" % "jersey-client" % "1.5",
   "com.sun.jersey.contribs" % "jersey-apache-client" % "1.5",
@@ -28,12 +27,15 @@ libraryDependencies ++= Seq(
   cache,
   "cglib" % "cglib-nodep" % "3.1",
   "org.mockito" % "mockito-core" % "1.9.5" % "test",
-  "org.specs2" %% "specs2-core" % "2.4.8" % "test",
-  "org.specs2" %% "specs2-mock" % "2.4.8" % "test",
-  "org.specs2" %% "specs2-junit" % "2.4.8" % "test",
   "org.eclipse.jetty" % "jetty-servlet" % "9.3.0.M0" % "test",
   "com.h2database" % "h2" % "1.4.182" % "test"
 )
+
+// Specs2
+libraryDependencies ++= Seq("core", "mock", "junit").map(name => "org.specs2" %% s"specs2-$name" % "2.4.8" % "test")
+
+// Scaldi
+libraryDependencies ++= Seq("play" -> "0.4.1", "akka" -> "0.4").map { case (name, version) => "org.scaldi" %% s"scaldi-$name" % version }
 
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
 

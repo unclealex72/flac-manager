@@ -65,8 +65,8 @@ class ProtectionAwareFileSystem(override val delegate: FileSystem)(override impl
 }
 
 object ProtectionAwareFileSystem extends Injectable {
-  def injected(implicit injector: Injector): ProtectionAwareFileSystem = {
-    val delegate: FileSystem = inject[FileSystem](identified by 'rawFileSystem)
+  def injected(symbol: Symbol)(implicit injector: Injector): ProtectionAwareFileSystem = {
+    val delegate: FileSystem = inject[FileSystem](identified by symbol)
     val fileLocationExtensions: FileLocationExtensions = inject[FileLocationExtensions]
     new ProtectionAwareFileSystem(delegate)(fileLocationExtensions)
   }

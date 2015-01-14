@@ -32,6 +32,7 @@ trait MessageService {
 
   def exception(t: Throwable): Unit
 
+  def finish: Unit
 }
 
 sealed abstract class MessageType(val key: String, val parameters: String*)(implicit messageService: MessageService)
@@ -204,5 +205,7 @@ trait MessageServiceBuilder {
   def withPrinter(printer: String => Unit): MessageServiceBuilder
 
   def withExceptionHandler(handler: Throwable => Unit): MessageServiceBuilder
+
+  def withOnFinish(onFinish: () => Unit): MessageServiceBuilder
 }
 

@@ -16,6 +16,7 @@
 
 package sync
 
+import common.commands.CommandType
 import common.message.MessageService
 
 /**
@@ -23,5 +24,5 @@ import common.message.MessageService
  */
 trait SyncCommand {
 
-  def synchronise(implicit messageService: MessageService): Unit
+  def synchronise(implicit messageService: MessageService): CommandType
 }

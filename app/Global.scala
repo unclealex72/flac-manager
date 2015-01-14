@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+import akka.actor.ActorSystem
 import checkin._
+import checkin.actors.{FileSystemActor, EncodingActor, CheckinActor}
 import checkout.{CheckoutCommand, CheckoutCommandImpl, CheckoutService, CheckoutServiceImpl}
-import com.typesafe.scalalogging.StrictLogging
+import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import common.changes.{ChangeDao, SquerylChangeDao}
 import common.commands.{CommandService, TempFileCommandService}
-import common.configuration.{Directories, PlayConfigurationDirectories, PlayConfigurationUsers, Users}
+import common.configuration._
 import common.files._
 import common.message.{I18nMessageServiceBuilder, MessageServiceBuilder}
 import common.music.{JaudioTaggerTagsService, TagsService}
@@ -32,11 +34,14 @@ import org.squeryl.adapters.{H2Adapter, PostgreSqlAdapter}
 import org.squeryl.internals.DatabaseAdapter
 import org.squeryl.{Session, SessionFactory}
 import own.{OwnCommand, OwnCommandImpl}
+import play.Configuration
 import play.api.db.DB
+import play.api.libs.concurrent.Akka
 import play.api.{Application, GlobalSettings}
 import scaldi.play.ScaldiSupport
-import scaldi.{DynamicModule, Injector}
+import scaldi.{StringIdentifier, TypeTagIdentifier, DynamicModule, Injector}
 import sync._
+import play.api.Play.current
 
 /**
  * The [[GlobalSettings]] used to set up Squeryl and Subcut
@@ -46,11 +51,13 @@ import sync._
 
 object Global extends DefaultGlobal
 
-trait DefaultGlobal extends GlobalSettings with ScaldiSupport with StrictLogging {
+trait DefaultGlobal extends GlobalSettings with ScaldiSupport with LazyLogging {
 
   class ConfigurationModule extends DynamicModule {
     bind[Users] to injected[PlayConfigurationUsers]
     bind[Directories] to injected[PlayConfigurationDirectories]
+    bind[Int] identifiedBy('numberOfConcurrentEncoders) to injected[PlayConfigurationNumberOfEncoders].numberOfEncoders
+
   }
 
   class CommonModule extends DynamicModule {
@@ -68,7 +75,7 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with StrictLogging
   class FilesModule extends DynamicModule {
     bind[FileLocationExtensions] to injected[FileLocationExtensionsImpl]
     bind[FileSystem] identifiedBy 'rawFileSystem to injected[FileSystemImpl]
-    bind[FileSystem] to ProtectionAwareFileSystem.injected(this)
+    bind[FileSystem] to ProtectionAwareFileSystem.injected('rawFileSystem)(this)
     bind[DirectoryService] to injected[DirectoryServiceImpl]
     bind[DirectoryMappingService] to injected[DirectoryMappingServiceImpl]
     bind[TagsService] to injected[JaudioTaggerTagsService]
@@ -102,8 +109,13 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with StrictLogging
   }
 
   class CheckinModule extends DynamicModule {
-    bind[CheckinService] to injected[CheckinServiceImpl]
+    bind[CheckinService] to new CheckinServiceImpl
     bind[Mp3Encoder] to injected[Mp3EncoderImpl]
+    // Actors
+    bind[ActorSystem] to Akka.system
+    binding toProvider new CheckinActor
+    binding toProvider new EncodingActor
+    binding toProvider new FileSystemActor
   }
 
   class CheckoutModule extends DynamicModule {
