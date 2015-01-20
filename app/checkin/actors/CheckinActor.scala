@@ -19,40 +19,65 @@ package checkin.actors
 import akka.actor.Actor
 import akka.routing.RoundRobinPool
 import akka.util.Timeout
-import checkin.actors.Messages.{Completed, EncodeFlacFileLocation, DeleteFileLocation, Actions}
+import checkin.actors.Messages._
 import checkin.{Delete, Encode}
 import com.typesafe.scalalogging.StrictLogging
+import common.changes.{ChangeDao, Change}
+import common.files.{FileLocationExtensions, FileSystem}
+import common.message.MessageService
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
-import akka.pattern.ask
-
-import scala.concurrent.Future
-import play.api.libs.concurrent.Execution.Implicits._
-import scala.concurrent.duration._
 
 class CheckinActor(implicit inj: Injector) extends Actor with AkkaInjectable with StrictLogging {
+
+  val fileSystem = inject[FileSystem]
+  implicit val changeDao = inject[ChangeDao]
+  implicit val fileLocationExtensions = inject[FileLocationExtensions]
+
   val numberOfEncodingActors = inject[Int]('numberOfConcurrentEncoders)
   val encodingProps = injectActorProps[EncodingActor].withRouter(RoundRobinPool(numberOfEncodingActors))
   logger info s"Using $numberOfEncodingActors concurrent encoders"
 
+  var numberOfFilesRemaining = 0
+
   override def receive = {
     case Actions(actions, messageService) => {
-
+      numberOfFilesRemaining = actions.length
       val encodingActor = context.actorOf(encodingProps)
-      implicit val timeout = Timeout(1.day)
 
-      val futures: Seq[Future[Any]] = actions.map {
+      actions.foreach {
         case Delete(stagedFlacFileLocation) => {
-          encodingActor ? DeleteFileLocation(stagedFlacFileLocation, messageService)
+          encodingActor ! DeleteFileLocation(stagedFlacFileLocation, messageService)
         }
         case Encode(stagedFileLocation, flacFileLocation, tags, users) => {
-          encodingActor ? EncodeFlacFileLocation(stagedFileLocation, flacFileLocation, tags, users, messageService)
+          encodingActor ! EncodeFlacFileLocation(stagedFileLocation, flacFileLocation, tags, users, messageService)
         }
       }
+    }
 
-      Future.sequence(futures).onComplete { _ =>
-        messageService.finish
+    case DeleteFileLocation(stagedFlacFileLocation, messageService) => {
+      implicit val _messageService = messageService
+      fileSystem.remove(stagedFlacFileLocation)
+      decreaseFileCount
+    }
+
+    case LinkAndMoveFileLocations(tempEncodedLocation, encodedFileLocation, stagedFlacFileLocation, flacFileLocation, users, messageService) => {
+      implicit val _messageService = messageService
+      fileSystem.move(tempEncodedLocation, encodedFileLocation)
+      users.foreach { user =>
+        val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
+        fileSystem.link(encodedFileLocation, deviceFileLocation)
+        Change.added(deviceFileLocation).store
       }
+      fileSystem.move(stagedFlacFileLocation, flacFileLocation)
+      decreaseFileCount
+    }
+  }
+
+  def decreaseFileCount(implicit messageService: MessageService) = {
+    numberOfFilesRemaining -= 1
+    if (numberOfFilesRemaining == 0) {
+      messageService.finish
     }
   }
 }

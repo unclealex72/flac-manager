@@ -16,9 +16,9 @@
 
 import akka.actor.ActorSystem
 import checkin._
-import checkin.actors.{FileSystemActor, EncodingActor, CheckinActor}
+import checkin.actors.{CheckinActor, EncodingActor}
 import checkout.{CheckoutCommand, CheckoutCommandImpl, CheckoutService, CheckoutServiceImpl}
-import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
+import com.typesafe.scalalogging.LazyLogging
 import common.changes.{ChangeDao, SquerylChangeDao}
 import common.commands.{CommandService, TempFileCommandService}
 import common.configuration._
@@ -34,14 +34,13 @@ import org.squeryl.adapters.{H2Adapter, PostgreSqlAdapter}
 import org.squeryl.internals.DatabaseAdapter
 import org.squeryl.{Session, SessionFactory}
 import own.{OwnCommand, OwnCommandImpl}
-import play.Configuration
+import play.api.Play.current
 import play.api.db.DB
 import play.api.libs.concurrent.Akka
 import play.api.{Application, GlobalSettings}
 import scaldi.play.ScaldiSupport
-import scaldi.{StringIdentifier, TypeTagIdentifier, DynamicModule, Injector}
+import scaldi.{DynamicModule, Injector}
 import sync._
-import play.api.Play.current
 
 /**
  * The [[GlobalSettings]] used to set up Squeryl and Subcut
@@ -115,7 +114,6 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with LazyLogging {
     bind[ActorSystem] to Akka.system
     binding toProvider new CheckinActor
     binding toProvider new EncodingActor
-    binding toProvider new FileSystemActor
   }
 
   class CheckoutModule extends DynamicModule {

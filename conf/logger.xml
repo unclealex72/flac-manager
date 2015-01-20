@@ -20,6 +20,7 @@
     <logger name="common" level="DEBUG" />
     <logger name="messages" level="INFO" />
     <logger name="checkin.actors" level="INFO" />
+    <logger name="akka" level="DEBUG" />
     <root level="INFO">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />

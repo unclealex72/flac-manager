@@ -37,8 +37,6 @@ class EncodingActor(implicit inj: Injector) extends Actor with AkkaInjectable wi
   implicit val directories = inject[Directories]
   implicit val tagsService = inject[TagsService]
 
-  val fileSystemActor = injectActorRef[FileSystemActor]
-
   def receive = {
     case EncodeFlacFileLocation(stagedFlacFileLocation, flacFileLocation, tags, owners, messageService) => {
       implicit val _messageService = messageService
@@ -47,11 +45,10 @@ class EncodingActor(implicit inj: Injector) extends Actor with AkkaInjectable wi
       log(ENCODE(stagedFlacFileLocation, encodedFileLocation))
       stagedFlacFileLocation.encodeTo(tempEncodedLocation)
       tempEncodedLocation.writeTags(tags)
-      fileSystemActor forward
-        LinkAndMoveFileLocations(tempEncodedLocation, encodedFileLocation, stagedFlacFileLocation, flacFileLocation, owners, messageService)
+      sender ! LinkAndMoveFileLocations(tempEncodedLocation, encodedFileLocation, stagedFlacFileLocation, flacFileLocation, owners, messageService)
     }
     case DeleteFileLocation(stagedFlacFileLocation, messageService) => {
-      fileSystemActor forward DeleteFileLocation(stagedFlacFileLocation, messageService)
+      sender ! DeleteFileLocation(stagedFlacFileLocation, messageService)
     }
 
   }
