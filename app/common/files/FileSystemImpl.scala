@@ -17,7 +17,7 @@
 package common.files
 
 
-import java.nio.file.{Files, Path, StandardCopyOption}
+import java.nio.file.{AtomicMoveNotSupportedException, Files, Path, StandardCopyOption}
 
 import common.message.MessageTypes._
 import common.message._
@@ -38,7 +38,7 @@ class FileSystemImpl extends FileSystem with Messaging {
     val sourcePath = sourceFileLocation.toPath
     val targetPath = targetFileLocation.toPath
     Files.createDirectories(targetPath.getParent)
-    Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE)
+    tryAtomicMove(sourcePath, targetPath)
     val currentDirectory = sourcePath.getParent
     remove(sourceFileLocation.basePath, currentDirectory)
   }
@@ -50,9 +50,20 @@ class FileSystemImpl extends FileSystem with Messaging {
     Files.createDirectories(parentTargetPath)
     val tempPath = Files.createTempFile(parentTargetPath, "device-file-", ".tmp")
     Files.copy(sourcePath, tempPath, StandardCopyOption.REPLACE_EXISTING)
-    Files.move(tempPath, targetPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+    tryAtomicMove(tempPath, targetPath, StandardCopyOption.REPLACE_EXISTING)
     val currentDirectory = sourcePath.getParent()
     remove(sourceFileLocation.basePath, currentDirectory)
+  }
+
+  def tryAtomicMove(sourcePath: Path, targetPath: Path, options: StandardCopyOption*): Unit = {
+    try {
+      val optionsWithAtomicMove = options :+ StandardCopyOption.ATOMIC_MOVE
+      Files.move(sourcePath, targetPath, optionsWithAtomicMove: _*)
+    }
+    catch {
+      case e: AtomicMoveNotSupportedException =>
+        Files.move(sourcePath, targetPath, options: _*)
+    }
   }
 
   override def remove(fileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
