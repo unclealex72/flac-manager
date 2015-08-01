@@ -7,7 +7,7 @@ name := "flac-manager"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.11.1"
+scalaVersion := "2.11.7"
 
 javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
@@ -21,6 +21,7 @@ libraryDependencies ++= Seq(
   "com.sun.jersey" % "jersey-client" % "1.5",
   "com.sun.jersey.contribs" % "jersey-apache-client" % "1.5",
   // Validation
+  "org.scalaz" %% "scalaz-core" % "7.1.3",
   "com.wix" %% "accord-core" % "0.4",
   "org" % "jaudiotagger" % "2.0.3",
   jdbc,

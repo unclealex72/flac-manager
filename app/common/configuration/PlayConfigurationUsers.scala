@@ -16,8 +16,6 @@
 
 package common.configuration
 
-import java.nio.file.Paths
-
 import com.typesafe.scalalogging.StrictLogging
 import play.api.Configuration
 
@@ -25,7 +23,7 @@ import play.api.Configuration
  * Get the users using Play configuration
  * Created by alex on 20/11/14.
  */
-case class PlayConfigurationUsers(override val configuration: Configuration) extends PlayConfiguration[Set[User]](configuration) with Users with StrictLogging {
+case class PlayConfigurationUsers(override val configuration: Configuration, val deviceLocator: DeviceLocator) extends PlayConfiguration[Set[User]](configuration) with Users with StrictLogging {
 
   def load(configuration: Configuration): Option[Set[User]] = {
     configuration.getStringSeq("users").map { usernames =>
@@ -34,8 +32,10 @@ case class PlayConfigurationUsers(override val configuration: Configuration) ext
         userConfig <- configuration.getConfig(s"user.$username")
         musicbrainzUsername <- userConfig.getString("musicbrainz.username")
         musicbrainzPassword <- userConfig.getString("musicbrainz.password")
-        mountPoint <- userConfig.getString("mountPoint")
-      } yield User(username, musicbrainzUsername, musicbrainzPassword, Paths.get(mountPoint))
+        devices <- userConfig.getStringSeq("devices")
+      } yield User(
+          username, musicbrainzUsername, musicbrainzPassword,
+          devices.map(deviceLocator.device(username, _)).flatMap(_.toOption))
       users.toSet
     }.flatMap(users => if (users.size == 0) None else Some(users))
   }

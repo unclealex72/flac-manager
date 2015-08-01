@@ -55,10 +55,7 @@ class CheckoutServiceImpl(val fileSystem: FileSystem, val users: Users, val owne
                               tagsForUsers: Map[User, Set[Tags]], directory: FlacFileLocation,
                               firstFlacFileLocation: FlacFileLocation, flacFileLocations: SortedSet[FlacFileLocation])(implicit messageService: MessageService): Map[User, Set[Tags]] = {
     val owners = quickOwners(firstFlacFileLocation)
-    val tags = firstFlacFileLocation.readTags match {
-      case Right(tags) => Some(tags)
-      case _ => None
-    }
+    val tags = firstFlacFileLocation.readTags.toOption
     flacFileLocations.foreach { flacFileLocation =>
       val encodedFileLocation = flacFileLocation.toEncodedFileLocation
       val deviceFileLocations: Set[DeviceFileLocation] = owners.map { user => encodedFileLocation.toDeviceFileLocation(user)}

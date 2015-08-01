@@ -33,26 +33,8 @@ import play.api.test.FakeRequest
  */
 class ParameterBuildersImplSpec extends Specification with Mockito {
 
-  trait Context extends Scope {
-    lazy implicit val directories = TestDirectories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"), Paths.get("/temp"))
-    val MTAB = "mtab" -> "some"
-    lazy implicit val fileLocationExtensions = mock[TestFileLocationExtensions]
-    fileLocationExtensions.isDirectory(any[FileLocation]) answers { fileLocation =>
-      fileLocation.asInstanceOf[FileLocation].relativePath.getFileName.toString == "dir"
-    }
-    lazy val users = mock[Users]
-    val brian: User = User("Brian", "", "", Paths.get("/"))
-    val freddie: User = User("Freddie", "", "", Paths.get("/"))
-    users.allUsers returns (Set(brian, freddie))
-
-    lazy val directoryMappingService = mock[DirectoryMappingService]
-    directoryMappingService.withMtab(MTAB._2) answers (_ => path => Paths.get(path))
-    lazy val parameterBuilders = new ParameterBuildersImpl(users, directoryMappingService)
-
-    def bind[P](parameterBuilder: ParameterBuilder[P], params: (String, Any)*): Either[Seq[FormError], P] = {
-      val request = FakeRequest().withFormUrlEncodedBody(params.map { case (k, v) => (k, v.toString)}: _*)
-      parameterBuilder.bindFromRequest()(request)
-    }
+  def beAFormErrorWithArgs(key: String, message: String, args: Any*): Matcher[FormError] = {
+    beAFormError(key, message) and ((fe: FormError) => fe.args must containTheSameElementsAs(args))
   }
 
   "The sync form" should {
@@ -149,7 +131,24 @@ class ParameterBuildersImplSpec extends Specification with Mockito {
       ((fe: FormError) => fe.message must beEqualTo(message))
   }
 
-  def beAFormErrorWithArgs(key: String, message: String, args: Any*): Matcher[FormError] = {
-    beAFormError(key, message) and ((fe: FormError) => fe.args must containTheSameElementsAs(args))
+  trait Context extends Scope {
+    lazy implicit val directories = TestDirectories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"), Paths.get("/temp"))
+    lazy implicit val fileLocationExtensions = mock[TestFileLocationExtensions]
+    lazy val users = mock[Users]
+    fileLocationExtensions.isDirectory(any[FileLocation]) answers { fileLocation =>
+      fileLocation.asInstanceOf[FileLocation].relativePath.getFileName.toString == "dir"
+    }
+    lazy val directoryMappingService = mock[DirectoryMappingService]
+    lazy val parameterBuilders = new ParameterBuildersImpl(users, directoryMappingService)
+    val MTAB = "mtab" -> "some"
+    users.allUsers returns (Set(brian, freddie))
+    val brian: User = User("Brian", "", "", Seq.empty)
+    directoryMappingService.withMtab(MTAB._2) answers (_ => path => Paths.get(path))
+    val freddie: User = User("Freddie", "", "", Seq.empty)
+
+    def bind[P](parameterBuilder: ParameterBuilder[P], params: (String, Any)*): Either[Seq[FormError], P] = {
+      val request = FakeRequest().withFormUrlEncodedBody(params.map { case (k, v) => (k, v.toString) }: _*)
+      parameterBuilder.bindFromRequest()(request)
+    }
   }
 }

@@ -21,9 +21,11 @@ import java.nio.file.{Path, Paths}
 
 import checkin.Mp3Encoder
 import com.typesafe.scalalogging.StrictLogging
-import com.wix.accord.Violation
 import common.configuration.{Directories, User}
 import common.music.{Tags, TagsService}
+import sync.Device
+
+import scalaz.ValidationNel
 
 /**
  * A class that encapsulates a location of a file within a repository of music
@@ -36,23 +38,13 @@ import common.music.{Tags, TagsService}
  */
 trait FileLocation {
   /**
-   * The base path of the repository.
-   */
-  protected[files] val basePath: Path
-
-  /**
    * The location of the file relative to the base path.
    */
   val relativePath: Path
-
   /**
-   * Resolve this file location to its absolute path.
-   *
-   * @return The absolute path of the file identified by this class.
+   * The base path of the repository.
    */
-  protected[files] def toPath: Path = {
-    basePath.resolve(relativePath);
-  }
+  protected[files] val basePath: Path
 
   def toMessage: String = toPath.toString
 
@@ -68,7 +60,16 @@ trait FileLocation {
 
   def lastModified(implicit fileLocationExtensions: FileLocationExtensions): Long = fileLocationExtensions.lastModified(this)
 
-  def readTags(implicit tagsService: TagsService): Either[Set[Violation], Tags] = tagsService.read(toPath)
+  def readTags(implicit tagsService: TagsService): ValidationNel[String, Tags] = tagsService.read(toPath)
+
+  /**
+   * Resolve this file location to its absolute path.
+   *
+   * @return The absolute path of the file identified by this class.
+   */
+  protected[files] def toPath: Path = {
+    basePath.resolve(relativePath);
+  }
 
   def writeTags(tags: Tags)(implicit tagsService: TagsService): Unit = tagsService.write(toPath, tags)
 }
@@ -103,28 +104,51 @@ trait FlacFileLocation extends FileLocation {
   def toEncodedFileLocation: EncodedFileLocation
 }
 
+trait ToDeviceFileLocation {
+  def toDeviceFileLocation(user: User): DeviceFileLocation
+}
+
+trait ToDeviceFileLocationImpl extends ToDeviceFileLocation {
+  this: {
+    val directories: Directories
+    val relativePath: Path
+  } =>
+
+  override def toDeviceFileLocation(user: User): DeviceFileLocation = DeviceFileLocation(user, relativePath)(directories)
+
+}
+
 /**
  * A `FileLocation` in the encoded repository.
  */
-trait EncodedFileLocation extends FileLocation {
-  def toDeviceFileLocation(user: User): DeviceFileLocation
-}
+trait EncodedFileLocation extends FileLocation with ToDeviceFileLocation
 
 /**
  * A `FileLocation` in the devices repository.
  */
 trait DeviceFileLocation extends FileLocation {
 
-  def user: User
-  def path: Path = toPath
+  val user: String
 
   def toFlacFileLocation: FlacFileLocation
 
+  def toRemovableFileLocation(rootDirectory: Path): RemovableFileLocation
+
   def toFile(implicit fileLocationExtensions: FileLocationExtensions): File = path.toFile
+
+  def path: Path = toPath
 
   def ifExists(implicit fileLocationExtensions: FileLocationExtensions): Option[DeviceFileLocation] = {
     if (exists && !isDirectory) Some(this) else None
   }
+}
+
+trait RemovableFileLocation extends FileLocation with ToDeviceFileLocation {
+
+  def toFile(implicit fileLocationExtensions: FileLocationExtensions): File = path.toFile
+
+  def path: Path = toPath
+
 }
 
 
@@ -190,7 +214,7 @@ sealed abstract class AbstractFlacFileLocation(
 
   def toEncodedFileLocation: EncodedFileLocation = EncodedFileLocation(relativePath withExtension MP3)
 
-  def toOwnedEncodedFileLocation(user: User): DeviceFileLocation = DeviceFileLocation(user, relativePath withExtension MP3)
+  def toOwnedEncodedFileLocation(device: Device): DeviceFileLocation = DeviceFileLocation(device.owner, relativePath withExtension MP3)
 
 }
 
@@ -227,11 +251,11 @@ case class StagedFlacFileLocationImpl(
 
 object StagedFlacFileLocation {
 
-  def apply(relativePath: Path)(implicit directories: Directories): StagedFlacFileLocation =
-    StagedFlacFileLocationImpl(relativePath, directories)
-
   def apply(path: String, paths: String*)(implicit directories: Directories): StagedFlacFileLocation =
     StagedFlacFileLocation(Paths.get(path, paths: _*))
+
+  def apply(relativePath: Path)(implicit directories: Directories): StagedFlacFileLocation =
+    StagedFlacFileLocationImpl(relativePath, directories)
 
   def unapply(absolutePath: Path)(implicit directories: Directories): Option[StagedFlacFileLocation] =
     Unapply(directories.stagingPath, absolutePath, p => StagedFlacFileLocation(p))
@@ -248,14 +272,14 @@ case class FlacFileLocationImpl(
 
 object FlacFileLocation {
 
-  def apply(relativePath: Path)(implicit directories: Directories): FlacFileLocation =
-    FlacFileLocationImpl(relativePath, directories)
-
   def apply(path: String, paths: String*)(implicit directories: Directories): FlacFileLocation =
     FlacFileLocation(Paths.get(path, paths: _*))
 
   def unapply(absolutePath: Path)(implicit directories: Directories): Option[FlacFileLocation] =
     Unapply(directories.flacPath, absolutePath, p => FlacFileLocation(p))
+
+  def apply(relativePath: Path)(implicit directories: Directories): FlacFileLocation =
+    FlacFileLocationImpl(relativePath, directories)
 }
 
 /**
@@ -265,15 +289,14 @@ object FlacFileLocation {
  */
 case class EncodedFileLocationImpl(
                                     override val relativePath: Path, override val directories: Directories) extends AbstractFileLocation(
-  "EncodedFlacFileLocation", relativePath, true, _.encodedPath, directories) with EncodedFileLocation {
-  override def toDeviceFileLocation(user: User): DeviceFileLocation = DeviceFileLocation(user, relativePath)(directories)
+  "EncodedFlacFileLocation", relativePath, true, _.encodedPath, directories) with EncodedFileLocation with ToDeviceFileLocationImpl {
 }
 
 object EncodedFileLocation {
 
-  def apply(relativePath: Path)(implicit directories: Directories): EncodedFileLocation = EncodedFileLocationImpl(relativePath, directories)
-
   def apply(path: String, paths: String*)(implicit directories: Directories): EncodedFileLocation = EncodedFileLocation(Paths.get(path, paths: _*))
+
+  def apply(relativePath: Path)(implicit directories: Directories): EncodedFileLocation = EncodedFileLocationImpl(relativePath, directories)
 
 }
 
@@ -283,21 +306,44 @@ object EncodedFileLocation {
  * @param directories
  */
 case class DeviceFileLocationImpl(
-                                   override val user: User, override val relativePath: Path, override val directories: Directories)
+                                   override val user: String, override val relativePath: Path, override val directories: Directories)
   extends AbstractFileLocation(
-    "DeviceFileLocation", relativePath, true, _.devicesPath.resolve(user.name), directories) with DeviceFileLocation {
+    "DeviceFileLocation", relativePath, true, _.devicesPath.resolve(user), directories) with DeviceFileLocation {
 
   override def toFlacFileLocation: FlacFileLocation = FlacFileLocation(relativePath withExtension FLAC)(directories)
+
+  override def toRemovableFileLocation(rootDirectory: Path): RemovableFileLocation = RemovableFileLocation(rootDirectory, relativePath)(directories)
 
 }
 
 object DeviceFileLocation {
 
-  def apply(user: User)(implicit directories: Directories): DeviceFileLocation = apply(user, "")
+  def apply(user: User)(implicit directories: Directories): DeviceFileLocation = apply(user.name)
 
-  def apply(user: User, relativePath: Path)(implicit directories: Directories): DeviceFileLocation =
-    DeviceFileLocationImpl(user, relativePath, directories)
+  def apply(user: String)(implicit directories: Directories): DeviceFileLocation = apply(user, "")
+
+  def apply(user: User, relativePath: Path)(implicit directories: Directories): DeviceFileLocation = apply(user.name, relativePath)
 
   def apply(user: User, path: String, paths: String*)(implicit directories: Directories): DeviceFileLocation =
+    apply(user.name, path, paths: _*)
+
+  def apply(user: String, path: String, paths: String*)(implicit directories: Directories): DeviceFileLocation =
     DeviceFileLocation(user, Paths.get(path, paths: _*))
+
+  def apply(user: String, relativePath: Path)(implicit directories: Directories): DeviceFileLocation =
+    DeviceFileLocationImpl(user, relativePath, directories)
+}
+
+case class RemovableFileLocationImpl(val rootDirectory: Path, override val relativePath: Path, override val directories: Directories) extends AbstractFileLocation(
+  "RemovableFileLocation", relativePath, true, _ => rootDirectory, directories) with RemovableFileLocation with ToDeviceFileLocationImpl
+
+object RemovableFileLocation {
+
+  def apply(rootDirectory: Path)(implicit directories: Directories): RemovableFileLocation = apply(rootDirectory, "")
+
+  def apply(rootDirectory: Path, path: String, paths: String*)(implicit directories: Directories): RemovableFileLocation =
+    RemovableFileLocation(rootDirectory, Paths.get(path, paths: _*))
+
+  def apply(rootDirectory: Path, relativePath: Path)(implicit directories: Directories): RemovableFileLocation =
+    RemovableFileLocationImpl(rootDirectory, relativePath, directories)
 }

@@ -36,7 +36,7 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
 
   trait context extends Scope {
     implicit val directories = TestDirectories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"), Paths.get("/temp"))
-    val user: User = User("freddie", "", "", "")
+    val user: User = User("freddie", "", "", Seq.empty)
     val deviceConnectionService = mock[DeviceConnectionService]
     implicit val messageService = TestMessageService()
     val ID = "ID"

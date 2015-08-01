@@ -20,9 +20,9 @@ syncIgnore = Ignoring file {0}
 syncAdd = Adding file {0}
 foundFile = Found file {0}
 lookingForDevices = Looking for connected devices
-sync = Synchronising {0}''s device
-foundDevice = Found {0}''s device
-deviceSynchronised = {0}''s device has been synchronised.
+sync = Synchronising {0}''s {1} device
+foundDevice = Found {0}''s {1} device
+deviceSynchronised = {0}''s {1} device has been synchronised.
 databaseNotEmpty = The database is not empty.
 initialising = Initialising {0}
 

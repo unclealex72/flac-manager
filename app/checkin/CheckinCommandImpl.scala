@@ -27,6 +27,7 @@ import common.music.{Tags, TagsService}
 import common.owners.OwnerService
 
 import scala.collection.GenTraversableOnce
+import scalaz.Success
 
 /**
  * Created by alex on 12/11/14.
@@ -79,11 +80,11 @@ class CheckinCommandImpl(
         case NonFlacFileType(sfl) => Some(NonFlacFileType(sfl))
         case FlacFileType(sfl) => {
           sfl.readTags match {
-            case Left(violations) => {
+            case Success(tags) => Some(ValidFlacFile(sfl, sfl.toFlacFileLocation(tags), tags))
+            case _ => {
               log(INVALID_FLAC(sfl))
               None
             }
-            case Right(tags) => Some(ValidFlacFile(sfl, sfl.toFlacFileLocation(tags), tags))
           }
         }
       }

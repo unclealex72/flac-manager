@@ -32,37 +32,29 @@ import org.squeryl.{Session, SessionFactory}
  */
 class SquerylChangeDaoSpec extends Specification with StrictLogging {
 
-  object Dsl {
-
-    val df: DateTimeFormatter = DateTimeFormat.forPattern("dd/MM/yyyy HH:mm:ss")
-
-    implicit def asDateTime(str: String) = df.parseDateTime(str)
-
-    implicit class ChangeBuilderA(albumAndTitle: (String, String)) {
-      def ownedBy(user: User) = (Paths.get(albumAndTitle._1, albumAndTitle._2).toString, user)
+  /**
+   * Wrap tests with database creation and transactions
+   */
+  def txn[B](block: ChangeDao => Context => B) = {
+    Class forName "org.h2.Driver"
+    SessionFactory.concreteFactory = Some(() => {
+      val session = Session.create(
+        java.sql.DriverManager.getConnection("jdbc:h2:mem:", "", ""),
+        new H2Adapter)
+      session.setLogger(logger.debug(_))
+      session
+    })
+    val changeDao = new SquerylChangeDao()
+    changeDao.tx { changeDao =>
+      ChangeSchema.create
+      val context = new Context()
+      Seq(context.tearItUpAdded, context.bohemianRhapsodyRemoved, context.myFairyKingAdded, context.theNightComesDownAdded, context.funnyHowLoveIsAdded,
+        context.weWillRockYouRemoved, context.weAreTheChampionsAdded, context.weAreTheChampionsRemoved).foreach(change => changeDao store change)
+      block(changeDao)(context)
     }
-
-    implicit class ChangeBuilderB(relativePathAndUser: (String, User)) {
-      implicit val directories: TestDirectories = TestDirectories(Paths.get("/"), Paths.get("/"), Paths.get("/"), Paths.get("/"), Paths.get("/"))
-
-      def fileLocationExtensions(dateTime: DateTime) = new TestFileLocationExtensions {
-        override def lastModified(fileLocation: FileLocation): Long = dateTime.getMillis
-      }
-
-      def addedAt(dateTime: DateTime): Change = {
-        Change.added(DeviceFileLocation(relativePathAndUser._2, relativePathAndUser._1))(fileLocationExtensions(dateTime))
-      }
-
-      def removedAt(dateTime: DateTime): Change = {
-        Change.removed(DeviceFileLocation(relativePathAndUser._2, relativePathAndUser._1), dateTime)
-      }
-    }
-
-    implicit def asUser(name: String) = User(name, "", "", Paths.get("/"))
   }
 
   import Dsl._
-
 
   class Context {
 
@@ -98,25 +90,32 @@ class SquerylChangeDaoSpec extends Specification with StrictLogging {
   }
 
 
-  /**
-   * Wrap tests with database creation and transactions
-   */
-  def txn[B](block: ChangeDao => Context => B) = {
-    Class forName "org.h2.Driver"
-    SessionFactory.concreteFactory = Some(() => {
-      val session = Session.create(
-        java.sql.DriverManager.getConnection("jdbc:h2:mem:", "", ""),
-        new H2Adapter)
-      session.setLogger(logger.debug(_))
-      session
-    })
-    val changeDao = new SquerylChangeDao()
-    changeDao.tx { changeDao =>
-      ChangeSchema.create
-      val context = new Context()
-      Seq(context.tearItUpAdded, context.bohemianRhapsodyRemoved, context.myFairyKingAdded, context.theNightComesDownAdded, context.funnyHowLoveIsAdded,
-        context.weWillRockYouRemoved, context.weAreTheChampionsAdded, context.weAreTheChampionsRemoved).foreach(change => changeDao store change)
-      block(changeDao)(context)
+  object Dsl {
+
+    val df: DateTimeFormatter = DateTimeFormat.forPattern("dd/MM/yyyy HH:mm:ss")
+
+    implicit def asDateTime(str: String) = df.parseDateTime(str)
+
+    implicit def asUser(name: String) = User(name, "", "", Seq.empty)
+
+    implicit class ChangeBuilderA(albumAndTitle: (String, String)) {
+      def ownedBy(user: User) = (Paths.get(albumAndTitle._1, albumAndTitle._2).toString, user)
+    }
+
+    implicit class ChangeBuilderB(relativePathAndUser: (String, User)) {
+      implicit val directories: TestDirectories = TestDirectories(Paths.get("/"), Paths.get("/"), Paths.get("/"), Paths.get("/"), Paths.get("/"))
+
+      def addedAt(dateTime: DateTime): Change = {
+        Change.added(DeviceFileLocation(relativePathAndUser._2, relativePathAndUser._1))(fileLocationExtensions(dateTime))
+      }
+
+      def fileLocationExtensions(dateTime: DateTime) = new TestFileLocationExtensions {
+        override def lastModified(fileLocation: FileLocation): Long = dateTime.getMillis
+      }
+
+      def removedAt(dateTime: DateTime): Change = {
+        Change.removed(DeviceFileLocation(relativePathAndUser._2, relativePathAndUser._1), dateTime)
+      }
     }
   }
 

@@ -18,7 +18,9 @@ package common.message
 
 import common.configuration.User
 import common.files.{DeviceFileLocation, FileLocation, FlacFileLocation, StagedFlacFileLocation}
-import sync.DeviceFile
+import sync.{Device, DeviceFile}
+
+import scalaz.ValidationNel
 
 /**
  * An interface for classes that can print internationalised messages to users.
@@ -28,33 +30,21 @@ import sync.DeviceFile
  */
 trait MessageService {
 
-  private[message] def printMessage(template: MessageType): Unit
-
   def exception(t: Throwable): Unit
 
   def finish: Unit
+
+  private[message] def printMessage(template: MessageType): Unit
 }
 
 sealed abstract class MessageType(val key: String, val parameters: String*)(implicit messageService: MessageService)
 
 object MessageTypes {
 
-  private object MessageTypeImplicits {
-
-    implicit def fileLocationsToString[FL <: FileLocation](fls: Traversable[FL]): String = {
-      fls.map(fileLocationToString(_)).mkString(", ")
-    }
-
-    implicit def fileLocationToString(fileLocation: FileLocation): String = fileLocation.toMessage
-
-    implicit def deviceFileToString(deviceFile: DeviceFile): String = deviceFile.relativePath
-
-    implicit def userToString(user: User): String = user.name
-  }
+  case class NO_FILES(fileLocations: Traversable[FileLocation])(implicit messageService: MessageService) extends MessageType("noFiles", fileLocations)
 
   import common.message.MessageTypes.MessageTypeImplicits._
 
-  case class NO_FILES(fileLocations: Traversable[FileLocation])(implicit messageService: MessageService) extends MessageType("noFiles", fileLocations)
   /**
    * The key for producing an encoding message.
    */
@@ -163,17 +153,17 @@ object MessageTypes {
   /**
    * The key for producing a message to say that a device is being synchronised.
    */
-  case class SYNCHRONISING(user: User)(implicit messageService: MessageService) extends MessageType("sync", user)
+  case class SYNCHRONISING(device: Device)(implicit messageService: MessageService) extends MessageType("sync", device.owner, device)
 
   /**
    * The key for producing a message to say that a device has been found.
    */
-  case class FOUND_DEVICE(user: User)(implicit messageService: MessageService) extends MessageType("foundDevice", user)
+  case class FOUND_DEVICE(device: Device)(implicit messageService: MessageService) extends MessageType("foundDevice", device.owner, device)
 
   /**
    * The key for producing a message to say that a device has been synchronised.
    */
-  case class DEVICE_SYNCHRONISED(user: User)(implicit messageService: MessageService) extends MessageType("deviceSynchronised", user)
+  case class DEVICE_SYNCHRONISED(device: Device)(implicit messageService: MessageService) extends MessageType("deviceSynchronised", device.owner, device)
 
   /**
    * The key for producing a message to say that the database is not empty and so initialisation cannot continue.
@@ -182,17 +172,48 @@ object MessageTypes {
   case class DATABASE_NOT_EMPTY(implicit messageService: MessageService) extends MessageType("databaseNotEmpty")
 
   case class INITIALISING(deviceFileLocation: DeviceFileLocation)(implicit messageService: MessageService) extends MessageType("initialising", deviceFileLocation)
+
   /**
    * The key for producing error keys.
    */
   case class ERROR(errorKey: String, errorMessage: String, args: Seq[Any])(implicit messageService: MessageService) extends MessageType(
     s"error.${"""\[\d+\]""".r.replaceAllIn(errorKey, "")}.$errorMessage", args.map(_.toString): _*)
 
+  private object MessageTypeImplicits {
+
+    implicit def fileLocationsToString[FL <: FileLocation](fls: Traversable[FL]): String = {
+      fls.map(fileLocationToString(_)).mkString(", ")
+    }
+
+    implicit def fileLocationToString(fileLocation: FileLocation): String = fileLocation.toMessage
+
+    implicit def deviceFileToString(deviceFile: DeviceFile): String = deviceFile.relativePath
+
+    implicit def userToString(user: User): String = user.name
+
+    implicit def deviceToString(device: Device): String = device.name
+  }
+
 }
 
 trait Messaging {
 
   def log(template: MessageType)(implicit messageService: MessageService) = messageService.printMessage(template)
+
+  implicit class TraversableLoggingImplicits[A](items: Set[A]) {
+    def log(templateFactory: A => MessageType)(implicit messageService: MessageService): Set[A] = {
+      items.foreach(item => Messaging.this.log(templateFactory(item)))
+      items
+    }
+  }
+
+  implicit class FailureLoggingImplicits[F, S, V <: ValidationNel[F, S]](validationNel: V) {
+    def log(templateFactory: Seq[F] => Seq[MessageType])(implicit messageService: MessageService): V = {
+      //logme
+      validationNel
+    }
+  }
+
 }
 
 /**

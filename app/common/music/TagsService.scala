@@ -19,19 +19,26 @@ import java.nio.file.Path
 
 import com.wix.accord._
 import common.music.Tags._
+
+import scalaz.{Failure => ZFailure, NonEmptyList, Success => ZSuccess, ValidationNel}
 /**
  * A trait to add tags to and read tags from files.
  * Created by alex on 02/11/14.
  */
 trait TagsService {
 
-  this: {def readTags(path: Path): Tags} =>
+  this: {
+    def readTags(path: Path): Tags
+  } =>
 
-  def read(path: Path): Either[Set[Violation], Tags] = {
+  def read(path: Path): ValidationNel[String, Tags] = {
     val tags = readTags(path)
     validate(tags) match {
-      case Success => Right(tags)
-      case Failure(violations) => Left(violations)
+      case Success => ZSuccess(tags)
+      case Failure(violations) => {
+        val descriptions = violations.flatMap(_.description)
+        ZFailure(NonEmptyList(descriptions.head, descriptions.tail.toSeq: _*))
+      }
     }
   }
 

@@ -66,7 +66,7 @@ class FileLocationSpec extends Specification {
 
   "Trying to identify the root path of a user's device repository" should {
     "correctly resolve to the base of the repository" in {
-      val result = DeviceFileLocation(User("brian", "", "", Paths.get("/")))
+      val result = DeviceFileLocation(User("brian", "", "", Seq.empty))
       result.toPath must be equalTo (directories.devicesPath.resolve("brian"))
     }
   }

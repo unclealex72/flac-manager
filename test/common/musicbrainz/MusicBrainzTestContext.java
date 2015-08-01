@@ -33,6 +33,8 @@ import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Credential;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.collection.Seq$;
+import sync.Device;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
@@ -48,7 +50,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,21 +71,16 @@ public class MusicBrainzTestContext {
     private final String rootResource;
 
     private final ActorSystem actorSystem = ActorSystem.create();
+    Server server;
+    int port;
+    MusicBrainzClientImpl musicBrainzClient;
+    User user = new User("brian", "Brian", "may", Seq$.MODULE$.<Device>empty());
+    List<String> requestLog = new ArrayList<>();
 
     public MusicBrainzTestContext(String rootResource) {
         super();
         this.rootResource = rootResource;
     }
-
-    Server server;
-
-    int port;
-
-    MusicBrainzClientImpl musicBrainzClient;
-
-    User user = new User("brian", "Brian", "may", Paths.get("/"));
-
-    List<String> requestLog = new ArrayList<>();
 
     public MusicBrainzTestContext setup() throws Exception {
         server = new Server(0);

@@ -19,7 +19,7 @@ package sync
 import java.nio.file.Path
 
 import com.typesafe.scalalogging.StrictLogging
-import common.configuration.{User, Users}
+import common.configuration.Users
 import common.message.MessageTypes._
 import common.message.{MessageService, Messaging}
 
@@ -35,15 +35,13 @@ class DeviceConnectionServiceImpl(users: Users) extends DeviceConnectionService 
    * List the users who currently have devices connected to the system.
    * @return
    */
-  override def listConnectedDevices()(implicit messageService: MessageService): Set[User] = {
+  override def listConnectedDevices(implicit messageService: MessageService): Set[Device] = {
     log(LOOKING_FOR_DEVICES())
-    val connectedUsers = users.allUsers.filter { user =>
-      val mountPoint = user.mountPoint.toFile
-      logger.info(s"Looking for ${user}'s device at ${mountPoint}")
-      mountPoint.isDirectory && mountPoint.list().length != 0
-    }.toSet
-    connectedUsers.foreach(user => log(FOUND_DEVICE(user)))
-    connectedUsers
+    val devices: Set[Device] = for {
+      user <- users.allUsers
+      device <- user.devices if device.isConnected
+    } yield device
+    devices.log((device: Device) => FOUND_DEVICE(device))
   }
 
   override def unmount(path: Path): Unit = {

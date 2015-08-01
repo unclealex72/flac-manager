@@ -16,8 +16,6 @@
 
 package common.owners
 
-import java.nio.file.Paths
-
 import common.configuration.{User, Users}
 import common.message.MessageTypes._
 import common.message.TestMessageService
@@ -33,8 +31,11 @@ import org.specs2.specification.Scope
 class OwnerServiceImplSpec extends Specification with Mockito {
 
   trait Context extends Scope {
-    val brian = User("Brian", "", "", Paths.get("/"))
-    val freddie = User("Freddie", "", "", Paths.get("/"))
+    lazy implicit val messageService = TestMessageService()
+    lazy val musicBrainzClient = mock[MusicBrainzClient]
+    lazy val ownerService = new OwnerServiceImpl(musicBrainzClient, users)
+    val brian = User("Brian", "", "", Seq.empty)
+    val freddie = User("Freddie", "", "", Seq.empty)
     val tags1 = Tags(
       album = "Metal: A Headbanger's Companion",
       albumArtist = "Various Artists",
@@ -72,10 +73,6 @@ class OwnerServiceImplSpec extends Specification with Mockito {
     val users = new Users {
       override def allUsers: Set[User] = Set(brian, freddie)
     }
-
-    lazy implicit val messageService = TestMessageService()
-    lazy val musicBrainzClient = mock[MusicBrainzClient]
-    lazy val ownerService = new OwnerServiceImpl(musicBrainzClient, users)
   }
 
   "Finding who owns a track" should {

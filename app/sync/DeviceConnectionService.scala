@@ -18,7 +18,6 @@ package sync
 
 import java.nio.file.Path
 
-import common.configuration.User
 import common.message.MessageService
 
 /**
@@ -31,7 +30,7 @@ trait DeviceConnectionService {
    * List the users who currently have devices connected to the system.
    * @return
    */
-  def listConnectedDevices()(implicit messageService: MessageService): Set[User]
+  def listConnectedDevices(implicit messageService: MessageService): Set[Device]
 
   /**
    * Unmount the device at the given path.

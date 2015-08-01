@@ -16,7 +16,7 @@
 
 package common.configuration
 
-import java.nio.file.Path
+import sync.Device
 
 /**
  * A configuration item for a user. Users must also have a MusicBrainz login and own an iPod.
@@ -53,4 +53,4 @@ case class User(
                   *
                   * @return The mount point of the user's iPod.
                   */
-                 mountPoint: Path)
+                 devices: Seq[Device])

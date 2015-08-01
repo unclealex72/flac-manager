@@ -42,15 +42,24 @@ import scaldi.play.ScaldiSupport
 import scaldi.{DynamicModule, Injector}
 import sync._
 
-/**
- * The [[GlobalSettings]] used to set up Squeryl and Subcut
- * @author alex
- *
- */
-
-object Global extends DefaultGlobal
-
 trait DefaultGlobal extends GlobalSettings with ScaldiSupport with LazyLogging {
+
+  override def applicationModule: Injector = new ConfigurationModule :: new CommonModule :: new MusicBrainzModule ::
+    new FilesModule :: new MessagesModule :: new CommandsModule :: new ControllersModule :: new SyncModule ::
+    new CheckinModule :: new CheckoutModule
+
+  override def onStart(app: Application) {
+    super.onStart(app)
+    logger info "Setting up database access."
+    // Set up Squeryl database access
+    SessionFactory.concreteFactory = app.configuration.getString("db.default.driver") match {
+      case Some("org.h2.Driver") => Some(() => getSession(new H2Adapter, app))
+      case Some("org.postgresql.Driver") => Some(() => getSession(new PostgreSqlAdapter, app))
+      case _ => sys.error("Database driver must be either org.h2.Driver or org.postgresql.Driver")
+    }
+  }
+
+  def getSession(adapter: DatabaseAdapter, app: Application) = Session.create(DB.getConnection()(app), adapter)
 
   class ConfigurationModule extends DynamicModule {
     bind[Users] to injected[PlayConfigurationUsers]
@@ -105,6 +114,8 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with LazyLogging {
   class SyncModule extends DynamicModule {
     bind[DeviceConnectionService] to injected[DeviceConnectionServiceImpl]
     bind[SynchronisationManager] to injected[SynchronisationManagerImpl]
+    bind[FilesystemDeviceFactory] to injected[FilesystemDeviceFactory]
+    bind[IpodDeviceFactory] to injected[IpodDeviceFactory]
   }
 
   class CheckinModule extends DynamicModule {
@@ -120,21 +131,12 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with LazyLogging {
     bind[CheckoutService] to injected[CheckoutServiceImpl]
   }
 
-  override def applicationModule: Injector = new ConfigurationModule :: new CommonModule :: new MusicBrainzModule ::
-    new FilesModule :: new MessagesModule :: new CommandsModule :: new ControllersModule :: new SyncModule ::
-    new CheckinModule :: new CheckoutModule
-
-  override def onStart(app: Application) {
-    super.onStart(app)
-    logger info "Setting up database access."
-    // Set up Squeryl database access
-    SessionFactory.concreteFactory = app.configuration.getString("db.default.driver") match {
-      case Some("org.h2.Driver") => Some(() => getSession(new H2Adapter, app))
-      case Some("org.postgresql.Driver") => Some(() => getSession(new PostgreSqlAdapter, app))
-      case _ => sys.error("Database driver must be either org.h2.Driver or org.postgresql.Driver")
-    }
-  }
-
-  def getSession(adapter: DatabaseAdapter, app: Application) = Session.create(DB.getConnection()(app), adapter)
-
 }
+
+/**
+ * The [[GlobalSettings]] used to set up Squeryl and Subcut
+ * @author alex
+ *
+ */
+
+object Global extends DefaultGlobal

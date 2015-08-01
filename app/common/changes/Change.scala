@@ -72,6 +72,6 @@ object Change {
   private def apply(action: String, deviceFileLocation: DeviceFileLocation, storeParent: Boolean, at: DateTime): Change = {
     val relativePath = deviceFileLocation.relativePath
     val parentPath = if (storeParent) Some(relativePath.getParent.toString) else None
-    Change(0, parentPath, relativePath.toString, at, deviceFileLocation.user.name, action)
+    Change(0, parentPath, relativePath.toString, at, deviceFileLocation.user, action)
   }
 }

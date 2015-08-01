@@ -20,19 +20,28 @@ import java.nio.file.Path
 import java.text.SimpleDateFormat
 
 import common.commands.{CommandService, ProcessCommunicator}
-import common.configuration.User
 import common.files.DeviceFileLocation
 
 import scala.sys.process._
 
+class IpodDeviceFactory(val commandService: CommandService) {
+
+  def create(owner: String, mountPoint: Path): Device = new IpodDevice(owner, mountPoint, commandService)
+}
 /**
  * Created by alex on 16/11/14.
  */
-class IpodDevice(override val mountPoint: Path, val commandService: CommandService) extends Device {
+class IpodDevice(override val owner: String, override val mountPoint: Path, val commandService: CommandService) extends Device {
 
+  override val name: String = "iPOD"
   val LIST_REGEX = """(.+)\|(.+)\|(.+)""".r
-
   var processCommunicator: Option[ProcessCommunicator] = None
+
+  /**
+   * Look to see if this device is connected.
+   * @return true if the device is connected, false otherwise.
+   */
+  override def isConnected: Boolean = mountPoint.toFile.isDirectory && mountPoint.toFile.list.nonEmpty
 
   override def afterMount: Unit = {
     val processCommunicator: ProcessCommunicator = ProcessCommunicator()
@@ -78,8 +87,4 @@ class IpodDevice(override val mountPoint: Path, val commandService: CommandServi
 
   override def afterUnmount: Unit = {}
 
-}
-
-object IpodDevice {
-  def apply(user: User)(implicit commandService: CommandService): IpodDevice = new IpodDevice(user.mountPoint, commandService)
 }

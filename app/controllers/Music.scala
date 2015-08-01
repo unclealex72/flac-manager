@@ -28,6 +28,8 @@ import play.api.libs.iteratee.Enumerator
 import play.api.mvc.{Action, Controller, Result}
 import play.utils.UriEncoding
 
+import scalaz.{Failure, Success}
+
 /**
  * Created by alex on 18/11/14.
  */
@@ -37,21 +39,16 @@ class Music(val users: Users)(implicit val directories: Directories, val fileLoc
     Ok.chunked(Enumerator.fromFile(deviceFileLocation.toFile))
   }
 
-  def serveTags(username: String, path: String)(responseBuilder: Tags => Result) = musicFile(username, path) { deviceFileLocation =>
-    deviceFileLocation.toFlacFileLocation.readTags match {
-      case Left(violations) => {
-        NotFound
-      }
-      case Right(tags) =>
-        responseBuilder(tags)
-    }
-  }
-
   def tags(username: String, path: String) = serveTags(username, path)(tags => Ok(tags.toJson(false)))
 
-  def artwork(username: String, path: String) = serveTags(username, path) { tags =>
-    val coverArt = tags.coverArt
-    Ok(coverArt.imageData).withHeaders(HeaderNames.CONTENT_TYPE -> coverArt.mimeType)
+  def serveTags(username: String, path: String)(responseBuilder: Tags => Result) = musicFile(username, path) { deviceFileLocation =>
+    deviceFileLocation.toFlacFileLocation.readTags match {
+      case Failure(violations) => {
+        NotFound
+      }
+      case Success(tags) =>
+        responseBuilder(tags)
+    }
   }
 
   def musicFile(username: String, path: String)(resultBuilder: DeviceFileLocation => Result) = Action { implicit request =>
@@ -64,5 +61,10 @@ class Music(val users: Users)(implicit val directories: Directories, val fileLoc
       case Some(deviceFileLocation) => resultBuilder(deviceFileLocation)
       case _ => NotFound
     }
+  }
+
+  def artwork(username: String, path: String) = serveTags(username, path) { tags =>
+    val coverArt = tags.coverArt
+    Ok(coverArt.imageData).withHeaders(HeaderNames.CONTENT_TYPE -> coverArt.mimeType)
   }
 }

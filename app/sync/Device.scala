@@ -26,9 +26,25 @@ import common.files.DeviceFileLocation
 trait Device {
 
   /**
+   * The owner of this device.
+   */
+  val owner: String
+
+  /**
    * The path where this device is mounted.
    */
   val mountPoint: Path
+
+  /**
+   * The name of this device.
+   */
+  val name: String
+
+  /**
+   * Look to see if this device is connected.
+   * @return true if the device is connected, false otherwise.
+   */
+  def isConnected: Boolean
 
   /**
    * Subclasses need to override this method to contain any device based logic

@@ -33,6 +33,7 @@ import org.specs2.mutable._
 import org.specs2.specification.Scope
 
 import scala.collection.{SortedMap, SortedSet}
+import scalaz.Success
 
 /**
  * Created by alex on 18/11/14.
@@ -40,8 +41,8 @@ import scala.collection.{SortedMap, SortedSet}
 class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatchers {
 
   trait Context extends Scope {
-    val freddie: User = User("freddie", "", "", Paths.get("/"))
-    val brian: User = User("brian", "", "", Paths.get("/"))
+    val freddie: User = User("freddie", "", "", Seq.empty)
+    val brian: User = User("brian", "", "", Seq.empty)
 
     val users = new Users {
       override def allUsers: Set[User] = Set(brian, freddie)
@@ -49,42 +50,6 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
 
     implicit val stringToPath: String => Path = Paths.get(_)
     implicit val directories: Directories = TestDirectories("/flac", "/devices", "/encoded", "/staging", "/temp")
-
-    object Dsl {
-
-      implicit class ImplicitAlbumBuilder(title: String) {
-        def tracks(tracks: String*) = {
-          new AlbumBuilder(title, tracks)
-        }
-      }
-
-      case class AlbumBuilder(val title: String, val tracks: Seq[String]) {
-        def using[FL <: FileLocation](factory: Path => FL): Album[FL] = {
-          val album = factory(Paths.get(title))
-          val songs = tracks.foldLeft(Map.empty[String, FL])((fls, track) => fls + (track -> factory(Paths.get(title, track))))
-          Album(album, songs)
-        }
-      }
-
-      case class Album[FL <: FileLocation](album: FL, tracksByTitle: Map[String, FL]) {
-        val tracks = tracksByTitle.values.foldLeft(SortedSet.empty[FL])(_ + _)
-
-        def apply(trackTitle: String): FL = tracksByTitle.get(trackTitle).get
-      }
-
-      implicit def albumToPair[FL <: FileLocation](album: Album[FL]) = (album.album, album.tracks)
-
-      implicit def albumsToMap[FL <: FileLocation](albums: Seq[Album[FL]]) =
-        SortedMap.empty[FL, SortedSet[FL]] ++ albums.map(albumToPair(_))
-
-      implicit def genericAlbum[FL <: FileLocation](album: Album[FL]) = {
-        val newTracks = album.tracksByTitle.map { case (k, v) => k -> v}.toMap
-        Album[FileLocation](album.album, newTracks)
-      }
-    }
-
-    import Dsl._
-
     val oneVisionTags = Tags(
       album = "A Kind of Magic",
       albumArtist = "Queen",
@@ -102,6 +67,8 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
       totalDiscs = 1,
       totalTracks = 10,
       trackNumber = 1)
+
+    import Dsl._
     val mustaphaTags = Tags(
       album = "Jazz",
       albumArtist = "Queen",
@@ -119,39 +86,19 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
       totalDiscs = 1,
       totalTracks = 10,
       trackNumber = 1)
-
-    case class Track(title: String) {
-      def mp3 = s"$title.mp3"
-
-      def flac = s"$title.flac"
-    }
-
-    def OneVision = Track("01 One Vision")
-
-    def AKindOfMagic = Track("02 A Kind of Magic")
-
-    def Mustapha = Track("01 Mustapha")
-
-    def FatBottomedGirls = Track("02 Fat Bottomed Girls")
-
     val aKindOfMagicFlac = "A Kind of Magic" tracks(OneVision.flac, AKindOfMagic.flac) using (p => FlacFileLocation(p))
     val jazzFlac = "Jazz" tracks(Mustapha.flac, FatBottomedGirls.flac) using (p => FlacFileLocation(p))
-
     val aKindOfMagicStagedFlac = "A Kind of Magic" tracks(OneVision.flac, AKindOfMagic.flac) using (p => StagedFlacFileLocation(p))
     val jazzStagedFlac = "Jazz" tracks(Mustapha.flac, FatBottomedGirls.flac) using (p => StagedFlacFileLocation(p))
-
     val aKindOfMagicMp3 = "A Kind of Magic" tracks(OneVision.mp3, AKindOfMagic.mp3) using (p => EncodedFileLocation(p))
     val jazzMp3 = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => EncodedFileLocation(p))
-
     val briansAKindOfMagicMp3 = "A Kind of Magic" tracks(OneVision.mp3, AKindOfMagic.mp3) using (p => DeviceFileLocation(brian, p))
     val briansJazzMp3 = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => DeviceFileLocation(brian, p))
     val freddiesJazzMp3 = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => DeviceFileLocation(freddie, p))
-
     val allAlbums: Seq[Album[FileLocation]] =
       Seq(
         aKindOfMagicFlac, jazzFlac, aKindOfMagicStagedFlac, jazzStagedFlac,
         aKindOfMagicMp3, jazzMp3, briansAKindOfMagicMp3, briansJazzMp3, freddiesJazzMp3)
-
     implicit val fileLocationExtensions = new TestFileLocationExtensions {
       override def isDirectory(fileLocation: FileLocation): Boolean = allAlbums.map(_.album).contains(fileLocation)
 
@@ -160,18 +107,15 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
         case _ => isDirectory(fileLocation) || allAlbums.map(_.tracks).flatten.contains(fileLocation)
       }
     }
-
     implicit val tagsService = mock[TagsService]
-    tagsService.read("/flac/A Kind of Magic/01 One Vision.flac") returns Right(oneVisionTags)
-    tagsService.read("/flac/Jazz/01 Mustapha.flac") returns Right(mustaphaTags)
-
     implicit val messageService = mock[MessageService]
     implicit val changeDao = mock[ChangeDao]
     val fileSystem = mock[FileSystem]
     val ownerService = mock[OwnerService]
     val nowService = mock[NowService]
     val now = new DateTime()
-    nowService.now() returns now
+    tagsService.read("/flac/A Kind of Magic/01 One Vision.flac") returns Success(oneVisionTags)
+    tagsService.read("/flac/Jazz/01 Mustapha.flac") returns Success(mustaphaTags)
     val checkoutService = new CheckoutServiceImpl(fileSystem, users, ownerService, nowService)
 
     def checkFilesRemoved: MatchResult[Unit] = {
@@ -199,6 +143,55 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
       there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansJazzMp3(FatBottomedGirls.mp3), now)))
       there was one(changeDao).store(beTheSameChangeAs(Change.removed(freddiesJazzMp3(Mustapha.mp3), now)))
       there was one(changeDao).store(beTheSameChangeAs(Change.removed(freddiesJazzMp3(FatBottomedGirls.mp3), now)))
+    }
+
+    def OneVision = Track("01 One Vision")
+
+    def AKindOfMagic = Track("02 A Kind of Magic")
+
+    def Mustapha = Track("01 Mustapha")
+
+    def FatBottomedGirls = Track("02 Fat Bottomed Girls")
+
+    nowService.now() returns now
+
+    case class Track(title: String) {
+      def mp3 = s"$title.mp3"
+
+      def flac = s"$title.flac"
+    }
+
+    object Dsl {
+
+      implicit def albumsToMap[FL <: FileLocation](albums: Seq[Album[FL]]) =
+        SortedMap.empty[FL, SortedSet[FL]] ++ albums.map(albumToPair(_))
+
+      implicit def albumToPair[FL <: FileLocation](album: Album[FL]) = (album.album, album.tracks)
+
+      implicit def genericAlbum[FL <: FileLocation](album: Album[FL]) = {
+        val newTracks = album.tracksByTitle.map { case (k, v) => k -> v }.toMap
+        Album[FileLocation](album.album, newTracks)
+      }
+
+      implicit class ImplicitAlbumBuilder(title: String) {
+        def tracks(tracks: String*) = {
+          new AlbumBuilder(title, tracks)
+        }
+      }
+
+      case class AlbumBuilder(val title: String, val tracks: Seq[String]) {
+        def using[FL <: FileLocation](factory: Path => FL): Album[FL] = {
+          val album = factory(Paths.get(title))
+          val songs = tracks.foldLeft(Map.empty[String, FL])((fls, track) => fls + (track -> factory(Paths.get(title, track))))
+          Album(album, songs)
+        }
+      }
+
+      case class Album[FL <: FileLocation](album: FL, tracksByTitle: Map[String, FL]) {
+        val tracks = tracksByTitle.values.foldLeft(SortedSet.empty[FL])(_ + _)
+
+        def apply(trackTitle: String): FL = tracksByTitle.get(trackTitle).get
+      }
     }
 
   }

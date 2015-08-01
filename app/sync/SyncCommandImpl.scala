@@ -16,13 +16,12 @@
 
 package sync
 
-import common.commands.CommandService
+import common.commands.{CommandService, CommandType}
+import common.commands.CommandType._
 import common.configuration.Directories
 import common.files.{DeviceFileLocation, DirectoryService}
 import common.message.MessageTypes._
 import common.message.{MessageService, Messaging}
-import common.commands.CommandType
-import common.commands.CommandType._
 
 /**
  * Created by alex on 16/11/14.
@@ -34,13 +33,12 @@ class SyncCommandImpl(
   extends SyncCommand with Messaging {
 
   override def synchronise(implicit messageService: MessageService): CommandType = synchronous {
-    deviceConnectionService.listConnectedDevices.foreach { user =>
-      log(SYNCHRONISING(user))
-      val rootDeviceFileLocation = DeviceFileLocation(user)
+    deviceConnectionService.listConnectedDevices.foreach { device =>
+      log(SYNCHRONISING(device))
+      val rootDeviceFileLocation = DeviceFileLocation(device.owner)
       val allDeviceFiles = directoryService.listFiles(Some(rootDeviceFileLocation))
-      val device = IpodDevice(user)
       synchronisationManager.synchronise(device, allDeviceFiles)
-      log(DEVICE_SYNCHRONISED(user))
+      log(DEVICE_SYNCHRONISED(device))
     }
   }
 }
