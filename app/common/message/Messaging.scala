@@ -41,9 +41,9 @@ sealed abstract class MessageType(val key: String, val parameters: String*)(impl
 
 object MessageTypes {
 
-  case class NO_FILES(fileLocations: Traversable[FileLocation])(implicit messageService: MessageService) extends MessageType("noFiles", fileLocations)
-
   import common.message.MessageTypes.MessageTypeImplicits._
+
+  case class NO_FILES(fileLocations: Traversable[FileLocation])(implicit messageService: MessageService) extends MessageType("noFiles", fileLocations)
 
   /**
    * The key for producing an encoding message.

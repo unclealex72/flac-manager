@@ -28,17 +28,17 @@ import scala.collection.JavaConversions._
 /**
  * Created by alex on 24/07/15.
  */
-class FilesystemDeviceFactory(val fileSystem: FileSystem)(implicit val messageService: MessageService, val directories: Directories) {
+class FilesystemDeviceFactory(val fileSystem: FileSystem)(implicit val directories: Directories) {
 
   def create(owner: String, mountPoint: Path, subdirectory: String): Device = new FilesystemDevice(owner, mountPoint, subdirectory, fileSystem)
 }
 
-class FilesystemDevice(override val owner: String, override val mountPoint: Path, val subdirectory: String, val fileSystem: FileSystem)(implicit val messageService: MessageService, val directories: Directories) extends Device {
+class FilesystemDevice(override val owner: String, override val mountPoint: Path, val subdirectory: String, val fileSystem: FileSystem)(implicit val directories: Directories) extends Device {
 
   override val name: String = "USB"
   val rootDirectory = mountPoint.resolve(subdirectory)
 
-  override def isConnected = Files.isDirectory(rootDirectory)
+  override def isConnected(implicit messageService: MessageService) = Files.isDirectory(rootDirectory)
 
   /**
    * Add a new file to the device.
@@ -47,7 +47,7 @@ class FilesystemDevice(override val owner: String, override val mountPoint: Path
    * @throws IOException
    * Signals that an I/O exception has occurred.
    */
-  override def add(deviceFileLocation: DeviceFileLocation): Unit = {
+  override def add(deviceFileLocation: DeviceFileLocation)(implicit messageService: MessageService): Unit = {
     fileSystem.copy(deviceFileLocation, deviceFileLocation.toRemovableFileLocation(rootDirectory))
   }
 
@@ -59,7 +59,7 @@ class FilesystemDevice(override val owner: String, override val mountPoint: Path
    * @throws IOException
    * Signals that an I/O exception has occurred.
    */
-  override def listDeviceFiles: Set[DeviceFile] = {
+  override def listDeviceFiles(implicit messageService: MessageService): Set[DeviceFile] = {
     def pathLister(directory: Path): Set[Path] = {
       Files.newDirectoryStream(directory).foldLeft(Set.empty[Path]) { (paths, path) =>
         if (Files.isDirectory(path)) {
@@ -84,7 +84,7 @@ class FilesystemDevice(override val owner: String, override val mountPoint: Path
    *
    * @throws IOException
    */
-  override def afterUnmount: Unit = {
+  override def afterUnmount(implicit messageService: MessageService): Unit = {
     // Do nothing
   }
 
@@ -96,7 +96,7 @@ class FilesystemDevice(override val owner: String, override val mountPoint: Path
    * @throws IOException
    * Signals that an I/O exception has occurred.
    */
-  override def remove(deviceFile: DeviceFile): Unit = {
+  override def remove(deviceFile: DeviceFile)(implicit messageService: MessageService): Unit = {
     val fileLocation = RemovableFileLocation(rootDirectory, deviceFile.relativePath)
     fileSystem.remove(fileLocation)
   }
@@ -109,7 +109,7 @@ class FilesystemDevice(override val owner: String, override val mountPoint: Path
    * The path where the device has been mounted.
    * @throws IOException
    */
-  override def afterMount: Unit = {
+  override def afterMount(implicit messageService: MessageService): Unit = {
     // Do nothing
   }
 
@@ -120,7 +120,7 @@ class FilesystemDevice(override val owner: String, override val mountPoint: Path
    *
    * @throws IOException
    */
-  override def beforeUnmount: Unit = {
+  override def beforeUnmount(implicit messageService: MessageService): Unit = {
     // Do nothing
   }
 }

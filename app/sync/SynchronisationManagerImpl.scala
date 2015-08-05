@@ -93,31 +93,31 @@ class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionSe
 }
 
 sealed trait FileAction extends Messaging {
-  def broadcast(implicit messageService: MessageService): Unit
+  def broadcast: Unit
 
   def execute(device: Device): Unit
 }
 
-case class Add(deviceFileLocation: DeviceFileLocation) extends FileAction {
-  def broadcast(implicit messageService: MessageService) = log(SYNC_ADD(deviceFileLocation))
+case class Add(deviceFileLocation: DeviceFileLocation)(implicit messageService: MessageService) extends FileAction {
+  def broadcast = log(SYNC_ADD(deviceFileLocation))
 
   def execute(device: Device) = device.add(deviceFileLocation)
 }
 
-case class Remove(deviceFile: DeviceFile) extends FileAction {
-  def broadcast(implicit messageService: MessageService) = log(SYNC_REMOVE(deviceFile))
+case class Remove(deviceFile: DeviceFile)(implicit messageService: MessageService) extends FileAction {
+  def broadcast = log(SYNC_REMOVE(deviceFile))
 
   def execute(device: Device) = device.remove(deviceFile)
 }
 
-case class Keep(deviceFile: DeviceFile) extends FileAction {
-  def broadcast(implicit messageService: MessageService) = log(SYNC_KEEP(deviceFile))
+case class Keep(deviceFile: DeviceFile)(implicit messageService: MessageService) extends FileAction {
+  def broadcast = log(SYNC_KEEP(deviceFile))
 
   def execute(device: Device) = {}
 }
 
-case class Ignore(relativePath: String) extends FileAction {
-  def broadcast(implicit messageService: MessageService) = log(SYNC_IGNORE(relativePath))
+case class Ignore(relativePath: String)(implicit messageService: MessageService) extends FileAction {
+  def broadcast = log(SYNC_IGNORE(relativePath))
 
   def execute(device: Device) = {}
 }

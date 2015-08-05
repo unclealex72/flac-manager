@@ -18,6 +18,7 @@ package common.configuration
 
 import java.nio.file.Paths
 
+import common.message.MessageService
 import sync._
 
 import scalaz.{Failure, Success, ValidationNel}

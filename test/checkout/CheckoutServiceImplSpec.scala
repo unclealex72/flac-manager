@@ -97,14 +97,21 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
     val freddiesJazzMp3 = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => DeviceFileLocation(freddie, p))
     val allAlbums: Seq[Album[FileLocation]] =
       Seq(
-        aKindOfMagicFlac, jazzFlac, aKindOfMagicStagedFlac, jazzStagedFlac,
-        aKindOfMagicMp3, jazzMp3, briansAKindOfMagicMp3, briansJazzMp3, freddiesJazzMp3)
+        aKindOfMagicFlac.asInstanceOf[Album[FileLocation]],
+        jazzFlac.asInstanceOf[Album[FileLocation]],
+        aKindOfMagicStagedFlac.asInstanceOf[Album[FileLocation]],
+        jazzStagedFlac.asInstanceOf[Album[FileLocation]],
+        aKindOfMagicMp3.asInstanceOf[Album[FileLocation]],
+        jazzMp3.asInstanceOf[Album[FileLocation]],
+        briansAKindOfMagicMp3.asInstanceOf[Album[FileLocation]],
+        briansJazzMp3.asInstanceOf[Album[FileLocation]],
+        freddiesJazzMp3.asInstanceOf[Album[FileLocation]])
     implicit val fileLocationExtensions = new TestFileLocationExtensions {
       override def isDirectory(fileLocation: FileLocation): Boolean = allAlbums.map(_.album).contains(fileLocation)
 
       override def exists(fileLocation: FileLocation): Boolean = fileLocation match {
         case StagedFlacFileLocation(_) => false
-        case _ => isDirectory(fileLocation) || allAlbums.map(_.tracks).flatten.contains(fileLocation)
+        case _ => isDirectory(fileLocation) || allAlbums.flatMap(a => a.tracks).contains(fileLocation)
       }
     }
     implicit val tagsService = mock[TagsService]
@@ -188,7 +195,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
       }
 
       case class Album[FL <: FileLocation](album: FL, tracksByTitle: Map[String, FL]) {
-        val tracks = tracksByTitle.values.foldLeft(SortedSet.empty[FL])(_ + _)
+        val tracks: SortedSet[FL] = tracksByTitle.values.foldLeft(SortedSet.empty[FL])(_ + _)
 
         def apply(trackTitle: String): FL = tracksByTitle.get(trackTitle).get
       }

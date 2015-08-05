@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat
 
 import common.commands.{CommandService, ProcessCommunicator}
 import common.files.DeviceFileLocation
+import common.message.MessageService
 
 import scala.sys.process._
 
@@ -41,15 +42,15 @@ class IpodDevice(override val owner: String, override val mountPoint: Path, val 
    * Look to see if this device is connected.
    * @return true if the device is connected, false otherwise.
    */
-  override def isConnected: Boolean = mountPoint.toFile.isDirectory && mountPoint.toFile.list.nonEmpty
+  override def isConnected(implicit messageService: MessageService): Boolean = mountPoint.toFile.isDirectory && mountPoint.toFile.list.nonEmpty
 
-  override def afterMount: Unit = {
+  override def afterMount(implicit messageService: MessageService): Unit = {
     val processCommunicator: ProcessCommunicator = ProcessCommunicator()
     this.processCommunicator = Some(processCommunicator)
     Seq(commandService.syncCommand, mountPoint.toString) run processCommunicator
   }
 
-  override def listDeviceFiles: Set[DeviceFile] = {
+  override def listDeviceFiles(implicit messageService: MessageService): Set[DeviceFile] = {
     val df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
     processCommunicator match {
       case Some(pc) => {
@@ -67,10 +68,10 @@ class IpodDevice(override val owner: String, override val mountPoint: Path, val 
     }
   }
 
-  override def remove(deviceFile: DeviceFile): Unit =
+  override def remove(deviceFile: DeviceFile)(implicit messageService: MessageService): Unit =
     singleLine("REMOVE", deviceFile.id)
 
-  override def add(deviceFileLocation: DeviceFileLocation): Unit =
+  override def add(deviceFileLocation: DeviceFileLocation)(implicit messageService: MessageService): Unit =
     singleLine("ADD", deviceFileLocation.relativePath, deviceFileLocation.path)
 
   def singleLine(parts: Any*): Unit = processCommunicator.foreach { pc =>
@@ -78,13 +79,13 @@ class IpodDevice(override val owner: String, override val mountPoint: Path, val 
     pc.read
   }
 
-  override def beforeUnmount: Unit = {
+  override def beforeUnmount(implicit messageService: MessageService): Unit = {
     processCommunicator.foreach { pc =>
       pc.write("QUIT")
       pc.close
     }
   }
 
-  override def afterUnmount: Unit = {}
+  override def afterUnmount(implicit messageService: MessageService): Unit = {}
 
 }

@@ -23,7 +23,7 @@ import play.api.Configuration
  * Get the users using Play configuration
  * Created by alex on 20/11/14.
  */
-case class PlayConfigurationUsers(override val configuration: Configuration, val deviceLocator: DeviceLocator) extends PlayConfiguration[Set[User]](configuration) with Users with StrictLogging {
+case class PlayConfigurationUsers(override val configuration: Configuration, deviceLocator: DeviceLocator) extends PlayConfiguration[Set[User]](configuration) with Users with StrictLogging {
 
   def load(configuration: Configuration): Option[Set[User]] = {
     configuration.getStringSeq("users").map { usernames =>

@@ -19,6 +19,7 @@ package sync
 import java.nio.file.Path
 
 import common.files.DeviceFileLocation
+import common.message.MessageService
 
 /**
  * Created by alex on 28/10/14.
@@ -44,7 +45,7 @@ trait Device {
    * Look to see if this device is connected.
    * @return true if the device is connected, false otherwise.
    */
-  def isConnected: Boolean
+  def isConnected(implicit messageService: MessageService): Boolean
 
   /**
    * Subclasses need to override this method to contain any device based logic
@@ -55,7 +56,7 @@ trait Device {
    * The path where the device has been mounted.
    * @throws java.io.IOException
    */
-  def afterMount: Unit
+  def afterMount(implicit messageService: MessageService): Unit
 
   /**
    * List all the files currently on the device.
@@ -65,7 +66,7 @@ trait Device {
    * @throws java.io.IOException
    * Signals that an I/O exception has occurred.
    */
-  def listDeviceFiles: Set[DeviceFile]
+  def listDeviceFiles(implicit messageService: MessageService): Set[DeviceFile]
 
   /**
    * Remove a file from the device.
@@ -75,7 +76,7 @@ trait Device {
    * @throws java.io.IOException
    * Signals that an I/O exception has occurred.
    */
-  def remove(deviceFile: DeviceFile): Unit
+  def remove(deviceFile: DeviceFile)(implicit messageService: MessageService): Unit
 
   /**
    * Add a new file to the device.
@@ -85,7 +86,7 @@ trait Device {
    * @throws java.io.IOException
    * Signals that an I/O exception has occurred.
    */
-  def add(deviceFileLocation: DeviceFileLocation): Unit
+  def add(deviceFileLocation: DeviceFileLocation)(implicit messageService: MessageService): Unit
 
   /**
    * Subclasses need to override this method to include any device logic that
@@ -94,7 +95,7 @@ trait Device {
    *
    * @throws java.io.IOException
    */
-  def beforeUnmount: Unit
+  def beforeUnmount(implicit messageService: MessageService): Unit
 
   /**
    * Subclasses need to extend this method to include any logic that needs to be
@@ -102,6 +103,6 @@ trait Device {
    *
    * @throws java.io.IOException
    */
-  def afterUnmount: Unit
+  def afterUnmount(implicit messageService: MessageService): Unit
 
 }

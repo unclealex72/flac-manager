@@ -116,6 +116,7 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with LazyLogging {
     bind[SynchronisationManager] to injected[SynchronisationManagerImpl]
     bind[FilesystemDeviceFactory] to injected[FilesystemDeviceFactory]
     bind[IpodDeviceFactory] to injected[IpodDeviceFactory]
+    bind[DeviceLocator] to injected[DeviceLocatorImpl]
   }
 
   class CheckinModule extends DynamicModule {

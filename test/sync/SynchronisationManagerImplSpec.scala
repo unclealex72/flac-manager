@@ -53,7 +53,7 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       synchronisationManager.synchroniseFiles(device, fileLocationExtensions.fileLocations)
       there was one(device).add(fileLocation)
       there was one(messageService).printMessage(SYNC_ADD(fileLocation))
-      there were no(device).remove(any[DeviceFile])
+      there were no(device).remove(any[DeviceFile])(any[MessageService])
       there were noMoreCallsTo(messageService, deviceConnectionService)
     }
 
@@ -64,7 +64,7 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       val deviceFile: DeviceFile = DeviceFile(ID, "a.txt", "05/09/1972 09:12:00")
       device.listDeviceFiles returns Set(deviceFile)
       synchronisationManager.synchroniseFiles(device, fileLocationExtensions.fileLocations)
-      there were no(device).add(any[DeviceFileLocation])
+      there were no(device).add(any[DeviceFileLocation])(any[MessageService])
       there was one(device).remove(deviceFile)
       there was one(messageService).printMessage(SYNC_REMOVE(deviceFile))
       there were noMoreCallsTo(messageService, deviceConnectionService)
@@ -79,7 +79,7 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       device.listDeviceFiles returns Set(deviceFile)
       synchronisationManager.synchroniseFiles(device, fileLocationExtensions.fileLocations)
       there was one(device).add(fileLocation)
-      there were no(device).remove(any[DeviceFile])
+      there were no(device).remove(any[DeviceFile])(any[MessageService])
       there was one(messageService).printMessage(SYNC_ADD(fileLocation))
       there were noMoreCallsTo(messageService, deviceConnectionService)
     }
@@ -92,8 +92,8 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       val deviceFile: DeviceFile = DeviceFile(ID, "a.txt", "05/09/1972 09:12:00")
       device.listDeviceFiles returns Set(deviceFile)
       synchronisationManager.synchroniseFiles(device, fileLocationExtensions.fileLocations)
-      there were no(device).add(any[DeviceFileLocation])
-      there were no(device).remove(any[DeviceFile])
+      there were no(device).add(any[DeviceFileLocation])(any[MessageService])
+      there were no(device).remove(any[DeviceFile])(any[MessageService])
       there was one(messageService).printMessage(SYNC_KEEP(deviceFile))
       there were noMoreCallsTo(messageService, deviceConnectionService)
     }
@@ -106,8 +106,8 @@ class SynchronisationManagerImplSpec extends Specification with Mockito {
       val deviceFile: DeviceFile = DeviceFile(ID, "a.txt", "05/09/1972 10:12:00")
       device.listDeviceFiles returns Set(deviceFile)
       synchronisationManager.synchroniseFiles(device, fileLocationExtensions.fileLocations)
-      there were no(device).add(any[DeviceFileLocation])
-      there were no(device).remove(any[DeviceFile])
+      there were no(device).add(any[DeviceFileLocation])(any[MessageService])
+      there were no(device).remove(any[DeviceFile])(any[MessageService])
       there was one(messageService).printMessage(SYNC_KEEP(deviceFile))
       there were noMoreCallsTo(messageService, deviceConnectionService)
     }
