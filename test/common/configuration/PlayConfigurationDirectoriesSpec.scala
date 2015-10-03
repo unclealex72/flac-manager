@@ -33,7 +33,6 @@ class PlayConfigurationDirectoriesSpec extends Specification {
       def conf =
         """
           |directories.flac=/flac
-          |directories.tmp=/tmp
           |directories.staging=/staging
           |directories.encoded=/encoded
           |directories.devices=/devices
@@ -44,8 +43,6 @@ class PlayConfigurationDirectoriesSpec extends Specification {
       directories.stagingPath must be equalTo Paths.get("/staging")
       directories.encodedPath must be equalTo Paths.get("/encoded")
       directories.devicesPath must be equalTo Paths.get("/devices")
-      directories.temporaryPath must be equalTo Paths.get("/tmp")
-
     }
   }
 }

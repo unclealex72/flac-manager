@@ -29,7 +29,14 @@
 -Dconfig.resource=application-prod.conf
 
 # For play applications you may set
--Dpidfile.path=/var/run/${{app_name}}/play.pid
+
+JAVA_OPTS="-Dpidfile.path=/var/run/${{app_name}}.pid $JAVA_OPTS"
+
+# For rpm/systemv you need to set the PIDFILE env variable as well
+PIDFILE="/var/run/${{app_name}}.pid"
+
+# For play applications you may set
+-Dpidfile.path=/var/run/${{app_name}}.pid
 
 # Turn on JVM debugging, open at the given port
 # -jvm-debug <port>

@@ -16,7 +16,7 @@
 
 package common.configuration
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.{Files, Path, Paths}
 
 import com.typesafe.scalalogging.StrictLogging
 import play.api.Configuration
@@ -29,14 +29,16 @@ case class PlayConfigurationDirectories(override val configuration: Configuratio
   extends PlayConfiguration[Directories](configuration) with Directories {
 
   def load(configuration: Configuration): Option[Directories] = {
-    for {
-      directories <- configuration.getConfig("directories")
-      flacDir <- directories.getString("flac")
-      stagingDir <- directories.getString("staging")
-      encodedDir <- directories.getString("encoded")
-      devicesDir <- directories.getString("devices")
-      tmpDir <- directories.getString("tmp")
-    } yield InternalDirectories(tmpDir, encodedDir, devicesDir, flacDir, stagingDir)
+    configuration.getConfig("directories").flatMap { directories =>
+      val tmpDir = Files.createTempDirectory("flac-manager-").toAbsolutePath.toString
+      for {
+        directories <- configuration.getConfig("directories")
+        flacDir <- directories.getString("flac")
+        stagingDir <- directories.getString("staging")
+        encodedDir <- directories.getString("encoded")
+        devicesDir <- directories.getString("devices")
+      } yield InternalDirectories(tmpDir, encodedDir, devicesDir, flacDir, stagingDir)
+    }
   }
 
   override lazy val temporaryPath = result.temporaryPath
