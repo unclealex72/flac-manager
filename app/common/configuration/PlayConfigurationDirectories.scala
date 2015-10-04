@@ -16,6 +16,7 @@
 
 package common.configuration
 
+import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path, Paths}
 
 import com.typesafe.scalalogging.StrictLogging
@@ -30,7 +31,8 @@ case class PlayConfigurationDirectories(override val configuration: Configuratio
 
   def load(configuration: Configuration): Option[Directories] = {
     configuration.getConfig("directories").flatMap { directories =>
-      val tmpDir = Files.createTempDirectory("flac-manager-").toAbsolutePath.toString
+      val fileAttributes = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxr--r--"))
+      val tmpDir = Files.createTempDirectory("flac-manager-", fileAttributes).toAbsolutePath.toString
       for {
         directories <- configuration.getConfig("directories")
         flacDir <- directories.getString("flac")

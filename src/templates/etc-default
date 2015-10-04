@@ -15,21 +15,6 @@
 # apply any evolutions
 -DapplyEvolutions.default=true
 
-# Setting -Xmx and -Xms in Megabyte
-# -mem 1024
-
-# Setting -X directly (-J is stripped)
-# -J-X
-# -J-Xmx1024
-
-# Add additional jvm parameters
-# -Dkey=val
-
-# Configuration file
--Dconfig.resource=application-prod.conf
-
-# For play applications you may set
-
 JAVA_OPTS="-Dpidfile.path=/var/run/${{app_name}}.pid $JAVA_OPTS"
 
 # For rpm/systemv you need to set the PIDFILE env variable as well
@@ -37,15 +22,3 @@ PIDFILE="/var/run/${{app_name}}.pid"
 
 # For play applications you may set
 -Dpidfile.path=/var/run/${{app_name}}.pid
-
-# Turn on JVM debugging, open at the given port
-# -jvm-debug <port>
-
-# Don't run the java version check
-# -no-version-check
-
-# enabling debug and sending -d as app argument
-# the '--' prevents app-parameter swalloing when
-# using a reserved parameter. See #184
-# -d -- -d
-

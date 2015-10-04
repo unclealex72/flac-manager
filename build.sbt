@@ -1,11 +1,11 @@
-import com.typesafe.sbt.SbtNativePackager.NativePackagerKeys._
-import com.typesafe.sbt.SbtNativePackager._
+import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
 import play.PlayScala
-import sbtrelease._
+import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
+import sbt._
 
 name := "flac-manager"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(JavaServerAppPackaging, PlayScala)
 
 scalaVersion := "2.11.7"
 
@@ -63,22 +63,26 @@ mappings in Universal ++= Seq("checkin", "checkout", "initialise", "own", "unown
 }
 
 
-// Releasing
+javaOptions in Universal ++= Seq(
+  // -J params will be added as jvm parameters
+  //"-J-Xmx64m",
+  //"-J-Xms64m",
 
-releaseSettings
-
-ReleaseKeys.releaseProcess <<= thisProjectRef apply { ref =>
-  import sbtrelease.ReleaseStateTransformations._
-  Seq[ReleaseStep](
-  checkSnapshotDependencies,
-  inquireVersions,
-  runTest,
-  setReleaseVersion,
-  releaseTask(packageBin in Debian in ref),
-  commitReleaseVersion,
-  tagRelease,
-  setNextVersion,
-  commitNextVersion,
-  pushChanges
-  )
-}
+  // others will be added as app parameters
+  "-Dhttp.port=9999",
+  "-DapplyEvolutions.default=true",
+  s"-Dpidfile.path=/var/run/${name.value}/${name.value}.pid"
+)
+/* Releases */
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies, // : ReleaseStep
+  inquireVersions, // : ReleaseStep
+  runTest, // : ReleaseStep
+  setReleaseVersion, // : ReleaseStep
+  commitReleaseVersion, // : ReleaseStep, performs the initial git checks
+  tagRelease, // : ReleaseStep
+  releaseStepCommand("debian:packageBin"), // : ReleaseStep, build deb file.
+  setNextVersion, // : ReleaseStep
+  commitNextVersion, // : ReleaseStep
+  pushChanges // : ReleaseStep, also checks that an upstream branch is properly configured
+)
