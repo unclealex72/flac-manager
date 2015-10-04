@@ -71,6 +71,7 @@ javaOptions in Universal ++= Seq(
   // others will be added as app parameters
   "-Dhttp.port=9999",
   "-DapplyEvolutions.default=true",
+  "-Dconfig.file=/etc/flac-manager/application-prod.conf",
   s"-Dpidfile.path=/var/run/${name.value}/${name.value}.pid"
 )
 /* Releases */
