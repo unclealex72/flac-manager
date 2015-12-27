@@ -30,7 +30,7 @@ import common.now.{NowService, NowServiceImpl}
 import common.owners.{OwnerService, OwnerServiceImpl}
 import controllers._
 import initialise.{InitialiseCommand, InitialiseCommandImpl}
-import org.squeryl.adapters.{H2Adapter, PostgreSqlAdapter}
+import org.squeryl.adapters.{H2Adapter, MySQLInnoDBAdapter}
 import org.squeryl.internals.DatabaseAdapter
 import org.squeryl.{Session, SessionFactory}
 import own.{OwnCommand, OwnCommandImpl}
@@ -54,7 +54,12 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with LazyLogging {
     // Set up Squeryl database access
     SessionFactory.concreteFactory = app.configuration.getString("db.default.driver") match {
       case Some("org.h2.Driver") => Some(() => getSession(new H2Adapter, app))
-      case Some("org.postgresql.Driver") => Some(() => getSession(new PostgreSqlAdapter, app))
+      case Some("com.mysql.jdbc.Driver") => Some(() => {
+        val adapter = new MySQLInnoDBAdapter {
+          override def quoteIdentifier(s: String) = "`" + s + "`"
+        }
+        getSession(adapter, app)
+      })
       case _ => sys.error("Database driver must be either org.h2.Driver or org.postgresql.Driver")
     }
   }
