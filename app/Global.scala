@@ -90,7 +90,7 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with LazyLogging {
     bind[FileSystem] identifiedBy 'rawFileSystem to injected[FileSystemImpl]
     bind[FileSystem] to ProtectionAwareFileSystem.injected('rawFileSystem)(this)
     bind[DirectoryService] to injected[DirectoryServiceImpl]
-    bind[DirectoryMappingService] to injected[DirectoryMappingServiceImpl]
+    bind[DirectoryMappingService] to injected[NoOpDirectoryMappingService]
     bind[TagsService] to injected[JaudioTaggerTagsService]
     bind[FlacFileChecker] to injected[FlacFileCheckerImpl]
 

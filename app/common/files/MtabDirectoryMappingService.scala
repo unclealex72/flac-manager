@@ -24,7 +24,7 @@ import common.AbstractStringCellMappingService
 /**
  * Created by alex on 06/11/14.
  */
-class DirectoryMappingServiceImpl extends DirectoryMappingService with StrictLogging {
+class MtabDirectoryMappingService extends DirectoryMappingService with StrictLogging {
 
   /**
    * Resolve a set of client side directories into a map of server side directories.

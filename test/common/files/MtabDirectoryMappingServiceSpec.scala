@@ -19,22 +19,23 @@ package common.files
 import java.nio.file.Paths
 
 import org.specs2.mutable._
+import org.specs2.specification.Scope
 
 /**
  * Created by alex on 07/11/14.
  */
-class DirectoryMappingServiceImplSpec extends Specification {
+class MtabDirectoryMappingServiceSpec extends Specification {
 
-  val mtab =
+  val clientMtab =
     """
       |gvfsd-fuse /run/user/1000/gvfs fuse.gvfsd-fuse rw,nosuid,nodev 0 0
       |hurst:/media/DATA/home /mnt/home nfs rw,vers=4 0 0
       |hurst:/media/DATA/music /mnt/music nfs rw,vers=4 0 0
     """.stripMargin
 
-  val mapper = new DirectoryMappingServiceImpl().withMtab(mtab)
+  val mapper = new MtabDirectoryMappingService().withMtab(clientMtab)
 
-  "The directory mapping service" should {
+  "The directory mapping service with local music directories " should {
     "Resolve a NFS mounted directory to a local directory" in {
       val localPath = mapper("/mnt/music/flac")
       localPath must be equalTo (Paths.get("/media/DATA/music/flac"))
@@ -42,7 +43,6 @@ class DirectoryMappingServiceImplSpec extends Specification {
     "Resolve a non-NFS mounted directory to itself" in {
       val localPath = mapper("/mnt/muzac/flac")
       localPath must be equalTo (Paths.get("/mnt/muzac/flac"))
-
     }
   }
 }
