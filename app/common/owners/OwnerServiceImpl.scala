@@ -20,21 +20,21 @@ import common.configuration.{User, Users}
 import common.message.MessageTypes._
 import common.message.{MessageService, Messaging}
 import common.music.Tags
-import common.musicbrainz.MusicBrainzClient
+import common.collections.CollectionDao
 
 import scala.concurrent.duration._
 
 /**
  * Created by alex on 15/11/14.
  */
-class OwnerServiceImpl(val musicBrainzClient: MusicBrainzClient, val users: Users) extends OwnerService with Messaging {
+class OwnerServiceImpl(val musicBrainzClient: CollectionDao, val users: Users) extends OwnerService with Messaging {
 
   val timeout: FiniteDuration = 1000000 seconds
 
   override def listCollections()(implicit messageService: MessageService): Tags => Set[User] = {
     val collectionsByUser = users().map { user =>
       log(READING_COLLECTION(user))
-      val collection = musicBrainzClient.relasesForOwner(user)
+      val collection = musicBrainzClient.releasesForOwner(user)
       user -> collection
     }.toSet
     tags => collectionsByUser.filter(_._2.exists(id => id == tags.albumId)).map(_._1)

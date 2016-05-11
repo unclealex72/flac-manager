@@ -15,9 +15,9 @@
  */
 package common.changes
 
-import common.changes.ChangeSchema._
-import common.changes.SquerylEntryPoint._
 import common.configuration.User
+import common.db.SquerylEntryPoint._
+import common.db.FlacManagerSchema._
 import org.joda.time.DateTime
 import org.squeryl.dsl.ast.LogicalBoolean
 

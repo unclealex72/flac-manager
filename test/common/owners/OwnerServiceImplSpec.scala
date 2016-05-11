@@ -20,7 +20,7 @@ import common.configuration.{User, Users}
 import common.message.MessageTypes._
 import common.message.TestMessageService
 import common.music.{CoverArt, Tags}
-import common.musicbrainz.MusicBrainzClient
+import common.collections.CollectionDao
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import org.specs2.specification.Scope
@@ -32,7 +32,7 @@ class OwnerServiceImplSpec extends Specification with Mockito {
 
   trait Context extends Scope {
     lazy implicit val messageService = TestMessageService()
-    lazy val musicBrainzClient = mock[MusicBrainzClient]
+    lazy val musicBrainzClient = mock[CollectionDao]
     lazy val ownerService = new OwnerServiceImpl(musicBrainzClient, users)
     val brian = User("Brian", "", "", Seq.empty)
     val freddie = User("Freddie", "", "", Seq.empty)
@@ -77,8 +77,8 @@ class OwnerServiceImplSpec extends Specification with Mockito {
 
   "Finding who owns a track" should {
     "correctly identify whose collections it is in" in new Context {
-      musicBrainzClient.relasesForOwner(brian) returns Seq("6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e")
-      musicBrainzClient.relasesForOwner(freddie) returns Seq.empty
+      musicBrainzClient.releasesForOwner(brian) returns Seq("6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e")
+      musicBrainzClient.releasesForOwner(freddie) returns Seq.empty
       ownerService.listCollections()(messageService)(tags1) must beEqualTo(Set(brian))
       there was one(messageService).printMessage(READING_COLLECTION(brian))
       there was one(messageService).printMessage(READING_COLLECTION(freddie))

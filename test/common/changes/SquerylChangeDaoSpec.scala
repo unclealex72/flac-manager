@@ -19,6 +19,7 @@ import java.nio.file.Paths
 
 import com.typesafe.scalalogging.StrictLogging
 import common.configuration.{TestDirectories, User}
+import common.db.FlacManagerSchema
 import common.files._
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, DateTimeFormatter}
@@ -46,7 +47,7 @@ class SquerylChangeDaoSpec extends Specification with StrictLogging {
     })
     val changeDao = new SquerylChangeDao()
     changeDao.tx { changeDao =>
-      ChangeSchema.create
+      FlacManagerSchema.create
       val context = new Context()
       Seq(context.tearItUpAdded, context.bohemianRhapsodyRemoved, context.myFairyKingAdded, context.theNightComesDownAdded, context.funnyHowLoveIsAdded,
         context.weWillRockYouRemoved, context.weAreTheChampionsAdded, context.weAreTheChampionsRemoved).foreach(change => changeDao store change)

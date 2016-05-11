@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package common.changes
+package common.db
 
-import common.changes.SquerylEntryPoint._
+import common.changes.Change
+import common.collections.CollectionItem
+import common.db.SquerylEntryPoint._
 import org.squeryl.Schema
 
 /**
@@ -23,13 +25,15 @@ import org.squeryl.Schema
  * @author alex
  *
  */
-object ChangeSchema extends Schema {
+object FlacManagerSchema extends Schema {
 
   val changes = table[Change]("change")
+  val collectionItems = table[CollectionItem]("collectionitem")
 
   /**
    * Column constraints
    */
-  on(changes)(c => declare(c.id is (autoIncremented)))
+  on(changes)(c => declare(c.id is autoIncremented))
+  on(collectionItems)(c => declare(c.id is autoIncremented))
 
 }

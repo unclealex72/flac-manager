@@ -20,12 +20,12 @@ import checkin.actors.{CheckinActor, EncodingActor}
 import checkout.{CheckoutCommand, CheckoutCommandImpl, CheckoutService, CheckoutServiceImpl}
 import com.typesafe.scalalogging.LazyLogging
 import common.changes.{ChangeDao, SquerylChangeDao}
+import common.collections.{CollectionDao, SquerylCollectionDao}
 import common.commands.{CommandService, TempFileCommandService}
 import common.configuration._
 import common.files._
 import common.message.{I18nMessageServiceBuilder, MessageServiceBuilder}
 import common.music.{JaudioTaggerTagsService, TagsService}
-import common.musicbrainz.{MusicBrainzClient, PlayConfigurationMusicBrainzClient}
 import common.now.{NowService, NowServiceImpl}
 import common.owners.{OwnerService, OwnerServiceImpl}
 import controllers._
@@ -44,8 +44,8 @@ import sync._
 
 trait DefaultGlobal extends GlobalSettings with ScaldiSupport with LazyLogging {
 
-  override def applicationModule: Injector = new ConfigurationModule :: new CommonModule :: new MusicBrainzModule ::
-    new FilesModule :: new MessagesModule :: new CommandsModule :: new ControllersModule :: new SyncModule ::
+  override def applicationModule: Injector = new ConfigurationModule :: new CommonModule :: new FilesModule ::
+    new MessagesModule :: new CommandsModule :: new ControllersModule :: new SyncModule ::
     new CheckinModule :: new CheckoutModule
 
   override def onStart(app: Application) {
@@ -75,14 +75,10 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with LazyLogging {
 
   class CommonModule extends DynamicModule {
     bind[ChangeDao] to injected[SquerylChangeDao]
+    bind[CollectionDao] to injected[SquerylCollectionDao]
     bind[CommandService] to injected[TempFileCommandService]
     bind[OwnerService] to injected[OwnerServiceImpl]
     bind[NowService] to injected[NowServiceImpl]
-  }
-
-  class MusicBrainzModule extends DynamicModule {
-    bind[MusicBrainzClient] to injected[PlayConfigurationMusicBrainzClient]
-
   }
 
   class FilesModule extends DynamicModule {
@@ -141,6 +137,7 @@ trait DefaultGlobal extends GlobalSettings with ScaldiSupport with LazyLogging {
 
 /**
  * The [[GlobalSettings]] used to set up Squeryl and Subcut
+ *
  * @author alex
  *
  */

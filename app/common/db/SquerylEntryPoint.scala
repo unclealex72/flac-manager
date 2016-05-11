@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package common.changes
+package common.db
 
 import java.sql.Timestamp
 
 import common.joda.JodaDateTime
 import org.joda.time.DateTime
-import org.squeryl.dsl.{DeOptionizer, NonPrimitiveJdbcMapper, TOptionTimestamp, TTimestamp, TypedExpressionFactory}
+import org.squeryl.dsl._
 import org.squeryl.{PrimitiveTypeMode, Query}
 
 import scala.collection.SortedSet
