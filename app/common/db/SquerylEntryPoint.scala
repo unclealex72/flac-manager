@@ -23,6 +23,7 @@ import org.squeryl.dsl._
 import org.squeryl.{PrimitiveTypeMode, Query}
 
 import scala.collection.SortedSet
+import scala.language.implicitConversions
 
 /**
  * Squeryl persistence

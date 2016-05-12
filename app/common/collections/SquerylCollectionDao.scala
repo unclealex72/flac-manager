@@ -56,6 +56,7 @@ class SquerylCollectionDao extends CollectionDao {
     * @return A list of all the MusicBrainz releases owned by the user.
     */
   override def releasesForOwner(user: User): Traversable[String] = inTransaction {
-    from(collectionItems)(c => where(user.name === c.user) select c.releaseId).distinct.iterator.toSeq
+    val releases: List[String] = from(collectionItems)(c => where(user.name === c.user) select c.releaseId).distinct
+    releases
   }
 }
