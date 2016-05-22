@@ -106,7 +106,7 @@ class Commands(
       })
       case Left(formErrors) => BadRequest.chunked(enumerator { implicit messageService =>
         synchronous { formErrors.foreach { formError =>
-          log(ERROR(formError.key, formError.message, formError.args))
+          log(INVALID_PARAMETERS(formError.key, formError.message, formError.args))
         }}
       })
     }

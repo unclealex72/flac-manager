@@ -16,6 +16,8 @@
 
 package common.message
 
+import java.io.{PrintWriter, StringWriter}
+
 import common.configuration.User
 import common.files.{DeviceFileLocation, FileLocation, FlacFileLocation, StagedFlacFileLocation}
 import sync.{Device, DeviceFile}
@@ -176,8 +178,16 @@ object MessageTypes {
   /**
    * The key for producing error keys.
    */
-  case class ERROR(errorKey: String, errorMessage: String, args: Seq[Any])(implicit messageService: MessageService) extends MessageType(
+  case class INVALID_PARAMETERS(errorKey: String, errorMessage: String, args: Seq[Any])(implicit messageService: MessageService) extends MessageType(
     s"error.${"""\[\d+\]""".r.replaceAllIn(errorKey, "")}.$errorMessage", args.map(_.toString): _*)
+
+  case class EXCEPTION(e: Exception)(implicit messageService: MessageService) extends MessageType("exception", {
+    val stringWriter = new StringWriter
+    val printWriter = new PrintWriter(stringWriter)
+    printWriter.println(e.getMessage)
+    e.printStackTrace(printWriter)
+    stringWriter.toString
+  })
 
   private object MessageTypeImplicits {
 

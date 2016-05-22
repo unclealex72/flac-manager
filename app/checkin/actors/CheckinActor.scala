@@ -22,13 +22,14 @@ import akka.util.Timeout
 import checkin.actors.Messages._
 import checkin.{Delete, Encode}
 import com.typesafe.scalalogging.StrictLogging
-import common.changes.{ChangeDao, Change}
+import common.changes.{Change, ChangeDao}
 import common.files.{FileLocationExtensions, FileSystem}
-import common.message.MessageService
+import common.message.{MessageService, Messaging}
+import common.message.MessageTypes.EXCEPTION
 import scaldi.Injector
 import scaldi.akka.AkkaInjectable
 
-class CheckinActor(implicit inj: Injector) extends Actor with AkkaInjectable with StrictLogging {
+class CheckinActor(implicit inj: Injector) extends Actor with AkkaInjectable with StrictLogging with Messaging {
 
   val fileSystem = inject[FileSystem]
   implicit val changeDao = inject[ChangeDao]
@@ -41,36 +42,49 @@ class CheckinActor(implicit inj: Injector) extends Actor with AkkaInjectable wit
   var numberOfFilesRemaining = 0
 
   override def receive = {
-    case Actions(actions, messageService) => {
+    case Actions(actions, messageService) =>
       numberOfFilesRemaining = actions.length
       val encodingActor = context.actorOf(encodingProps)
 
       actions.foreach {
-        case Delete(stagedFlacFileLocation) => {
+        case Delete(stagedFlacFileLocation) =>
           encodingActor ! DeleteFileLocation(stagedFlacFileLocation, messageService)
-        }
-        case Encode(stagedFileLocation, flacFileLocation, tags, users) => {
+        case Encode(stagedFileLocation, flacFileLocation, tags, users) =>
           encodingActor ! EncodeFlacFileLocation(stagedFileLocation, flacFileLocation, tags, users, messageService)
-        }
       }
-    }
 
-    case DeleteFileLocation(stagedFlacFileLocation, messageService) => {
+    case DeleteFileLocation(stagedFlacFileLocation, messageService) =>
       implicit val _messageService = messageService
-      fileSystem.remove(stagedFlacFileLocation)
+      safely {
+        fileSystem.remove(stagedFlacFileLocation)
+      }
       decreaseFileCount
-    }
 
     case LinkAndMoveFileLocations(tempEncodedLocation, encodedFileLocation, stagedFlacFileLocation, flacFileLocation, users, messageService) => {
       implicit val _messageService = messageService
-      fileSystem.move(tempEncodedLocation, encodedFileLocation)
-      users.foreach { user =>
-        val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
-        fileSystem.link(encodedFileLocation, deviceFileLocation)
-        Change.added(deviceFileLocation).store
+      safely {
+        fileSystem.move(tempEncodedLocation, encodedFileLocation)
+        users.foreach { user =>
+          val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
+          fileSystem.link(encodedFileLocation, deviceFileLocation)
+          Change.added(deviceFileLocation).store
+        }
+        fileSystem.move(stagedFlacFileLocation, flacFileLocation)
       }
-      fileSystem.move(stagedFlacFileLocation, flacFileLocation)
       decreaseFileCount
+    }
+
+    case CheckinFailed(e, stagedFlacFileLocation, messageService) =>
+      implicit val _messageService = messageService
+      decreaseFileCount
+  }
+
+  def safely(block: => Unit)(implicit messageService: MessageService): Unit = {
+    try {
+      block
+    }
+    catch {
+      case e: Exception => log(EXCEPTION(e))
     }
   }
 

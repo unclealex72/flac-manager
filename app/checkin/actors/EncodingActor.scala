@@ -16,12 +16,12 @@
 
 package checkin.actors
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorLogging}
 import checkin.Mp3Encoder
 import checkin.actors.Messages._
 import common.configuration.Directories
 import common.files.{FileLocationExtensions, MP3, TemporaryFileLocation}
-import common.message.MessageTypes.ENCODE
+import common.message.MessageTypes.{ENCODE, EXCEPTION}
 import common.message.Messaging
 import common.music.TagsService
 import scaldi.Injector
@@ -30,7 +30,7 @@ import scaldi.akka.AkkaInjectable
 /**
  * Created by alex on 11/01/15.
  */
-class EncodingActor(implicit inj: Injector) extends Actor with AkkaInjectable with Messaging {
+class EncodingActor(implicit inj: Injector) extends Actor with AkkaInjectable with Messaging with ActorLogging {
 
   implicit val mp3Encoder = inject[Mp3Encoder]
   implicit val fileLocationExtensions = inject[FileLocationExtensions]
@@ -38,18 +38,23 @@ class EncodingActor(implicit inj: Injector) extends Actor with AkkaInjectable wi
   implicit val tagsService = inject[TagsService]
 
   def receive = {
-    case EncodeFlacFileLocation(stagedFlacFileLocation, flacFileLocation, tags, owners, messageService) => {
+    case EncodeFlacFileLocation(stagedFlacFileLocation, flacFileLocation, tags, owners, messageService) =>
       implicit val _messageService = messageService
-      val tempEncodedLocation = TemporaryFileLocation.create(MP3)
-      val encodedFileLocation = flacFileLocation.toEncodedFileLocation
-      log(ENCODE(stagedFlacFileLocation, encodedFileLocation))
-      stagedFlacFileLocation.encodeTo(tempEncodedLocation)
-      tempEncodedLocation.writeTags(tags)
-      sender ! LinkAndMoveFileLocations(tempEncodedLocation, encodedFileLocation, stagedFlacFileLocation, flacFileLocation, owners, messageService)
-    }
-    case DeleteFileLocation(stagedFlacFileLocation, messageService) => {
+      try {
+        val tempEncodedLocation = TemporaryFileLocation.create(MP3)
+        val encodedFileLocation = flacFileLocation.toEncodedFileLocation
+        log(ENCODE(stagedFlacFileLocation, encodedFileLocation))
+        stagedFlacFileLocation.encodeTo(tempEncodedLocation)
+        tempEncodedLocation.writeTags(tags)
+        sender ! LinkAndMoveFileLocations(tempEncodedLocation, encodedFileLocation, stagedFlacFileLocation, flacFileLocation, owners, messageService)
+      }
+      catch {
+        case e: Exception =>
+          log(EXCEPTION(e))
+          sender ! CheckinFailed(stagedFlacFileLocation, e, messageService)
+      }
+    case DeleteFileLocation(stagedFlacFileLocation, messageService) =>
       sender ! DeleteFileLocation(stagedFlacFileLocation, messageService)
-    }
 
   }
 }

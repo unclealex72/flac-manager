@@ -39,5 +39,7 @@ object Messages {
                                        stagedFlacFileLocation: StagedFlacFileLocation,
                                        flacFileLocation: FlacFileLocation, users: Set[User], messageService: MessageService)
 
+  case class CheckinFailed(stagedFlacFileLocation: StagedFlacFileLocation, e: Exception, messageService: MessageService)
+
   object Completed
 }

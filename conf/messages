@@ -28,3 +28,4 @@ initialising = Initialising {0}
 
 # Error messages
 error.directories.invalidPath = The following directories are invalid: {0}
+exception = {0}
