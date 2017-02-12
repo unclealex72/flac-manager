@@ -17,7 +17,7 @@ package common.joda
 
 import java.util.Date
 
-import com.typesafe.scalalogging.StrictLogging
+import logging.ApplicationLogging
 import org.joda.time.format.{DateTimeFormatter, ISODateTimeFormat}
 import org.joda.time.{DateTime => JDateTime}
 
@@ -28,7 +28,7 @@ import scala.util.{Failure, Try}
  * @author alex
  *
  */
-object JodaDateTime extends StrictLogging {
+object JodaDateTime extends ApplicationLogging {
 
   private val formatter: DateTimeFormatter = ISODateTimeFormat.dateTime()
   /**

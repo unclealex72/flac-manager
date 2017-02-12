@@ -15,6 +15,8 @@
  */
 package common.collections
 
+import javax.inject.Inject
+
 import common.configuration.User
 import common.db.FlacManagerSchema._
 import common.db.SquerylEntryPoint._
@@ -24,7 +26,7 @@ import common.db.SquerylEntryPoint._
  * @author alex
  *
  */
-class SquerylCollectionDao extends CollectionDao {
+class SquerylCollectionDao @Inject() extends CollectionDao {
 
   /**
     * Add releases to an owner's collection.

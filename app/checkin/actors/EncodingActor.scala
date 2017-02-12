@@ -16,6 +16,8 @@
 
 package checkin.actors
 
+import javax.inject.Inject
+
 import akka.actor.{Actor, ActorLogging}
 import checkin.Mp3Encoder
 import checkin.actors.Messages._
@@ -24,18 +26,16 @@ import common.files.{FileLocationExtensions, MP3, TemporaryFileLocation}
 import common.message.MessageTypes.{ENCODE, EXCEPTION}
 import common.message.Messaging
 import common.music.TagsService
-import scaldi.Injector
-import scaldi.akka.AkkaInjectable
+import logging.ApplicationLogging
 
 /**
  * Created by alex on 11/01/15.
  */
-class EncodingActor(implicit inj: Injector) extends Actor with AkkaInjectable with Messaging with ActorLogging {
+class EncodingActor @Inject()(implicit val mp3Encoder: Mp3Encoder,
+                              val tagsService: TagsService,
+                              val directories: Directories,
+                              val fileLocationExtensions: FileLocationExtensions) extends Actor with Messaging with ApplicationLogging {
 
-  implicit val mp3Encoder = inject[Mp3Encoder]
-  implicit val fileLocationExtensions = inject[FileLocationExtensions]
-  implicit val directories = inject[Directories]
-  implicit val tagsService = inject[TagsService]
 
   def receive = {
     case EncodeFlacFileLocation(stagedFlacFileLocation, flacFileLocation, tags, owners, messageService) =>

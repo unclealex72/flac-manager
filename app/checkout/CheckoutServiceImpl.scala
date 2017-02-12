@@ -16,6 +16,8 @@
 
 package checkout
 
+import javax.inject.Inject
+
 import common.changes.{Change, ChangeDao}
 import common.configuration.{Directories, User, Users}
 import common.files._
@@ -29,7 +31,7 @@ import scala.collection.{SortedMap, SortedSet}
 /**
  * Created by alex on 17/11/14.
  */
-class CheckoutServiceImpl(val fileSystem: FileSystem, val users: Users, val ownerService: OwnerService, val nowService: NowService)
+class CheckoutServiceImpl @Inject()(val fileSystem: FileSystem, val users: Users, val ownerService: OwnerService, val nowService: NowService)
                          (implicit val changeDao: ChangeDao, implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService)
   extends CheckoutService {
 

@@ -20,7 +20,7 @@ import java.io.File
 import java.nio.file.{Path, Paths}
 
 import checkin.Mp3Encoder
-import com.typesafe.scalalogging.StrictLogging
+import logging.ApplicationLogging
 import common.configuration.{Directories, User}
 import common.music.{Tags, TagsService}
 import sync.Device
@@ -221,7 +221,7 @@ sealed abstract class AbstractFlacFileLocation(
 /**
  * A helper object for pattern matching on FileLocations.
  */
-private object Unapply extends StrictLogging {
+private object Unapply extends ApplicationLogging {
 
   def apply[F <: FileLocation](basePath: Path, absolutePath: Path, factory: Path => F): Option[F] = {
     if (absolutePath.startsWith(basePath)) {

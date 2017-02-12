@@ -16,7 +16,7 @@
 
 package common.files
 
-import com.typesafe.scalalogging.StrictLogging
+import logging.ApplicationLogging
 import common.message.MessageService
 
 /**
@@ -25,7 +25,7 @@ import common.message.MessageService
  *
  */
 abstract class DecoratingFileSystem(implicit val fileLocationExtensions: FileLocationExtensions)
-  extends FileSystem with StrictLogging {
+  extends FileSystem with ApplicationLogging {
 
   val delegate: FileSystem
 

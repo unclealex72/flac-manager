@@ -16,6 +16,8 @@
 
 package sync
 
+import javax.inject.Inject
+
 import common.commands.{CommandService, CommandType}
 import common.commands.CommandType._
 import common.configuration.Directories
@@ -26,7 +28,7 @@ import common.message.{MessageService, Messaging}
 /**
  * Created by alex on 16/11/14.
  */
-class SyncCommandImpl(
+class SyncCommandImpl @Inject()(
                        val deviceConnectionService: DeviceConnectionService,
                        val directoryService: DirectoryService,
                        val synchronisationManager: SynchronisationManager)(implicit val directories: Directories, val commandService: CommandService)

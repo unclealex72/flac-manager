@@ -17,6 +17,7 @@
 package common.configuration
 
 import java.nio.file.Paths
+import javax.inject.Inject
 
 import common.message.MessageService
 import sync._
@@ -31,7 +32,7 @@ trait DeviceLocator {
   def device(user: String, str: String): ValidationNel[String, Device]
 }
 
-class DeviceLocatorImpl(val ipodDeviceFactory: IpodDeviceFactory, val filesystemDeviceFactory: FilesystemDeviceFactory) extends DeviceLocator {
+class DeviceLocatorImpl @Inject()(val ipodDeviceFactory: IpodDeviceFactory, val filesystemDeviceFactory: FilesystemDeviceFactory) extends DeviceLocator {
 
   private val ipod = "ipod:(.+)".r
   private val usb = "usb:(.+?),(.*)".r

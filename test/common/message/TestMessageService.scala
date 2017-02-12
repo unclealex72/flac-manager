@@ -16,7 +16,7 @@
 
 package common.message
 
-import com.typesafe.scalalogging.StrictLogging
+import logging.ApplicationLogging
 import org.mockito.invocation.InvocationOnMock
 import org.specs2.mock.Mockito
 
@@ -28,7 +28,7 @@ trait TestMessageService extends MessageService {
   def printMessage(template: MessageType): Unit
 }
 
-object TestMessageService extends Mockito with StrictLogging {
+object TestMessageService extends Mockito with ApplicationLogging {
 
   def apply(): TestMessageService = {
     val loggingAnswer = (p1: InvocationOnMock) => logger.info(p1.toString)

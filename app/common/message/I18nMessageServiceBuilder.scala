@@ -16,49 +16,53 @@
 
 package common.message
 
+import logging.ApplicationLogging
 import org.slf4j.LoggerFactory
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 
 /**
  * A `MessageServiceBuilder` that builds messages using Play's bundle support.
  * Created by alex on 06/11/14.
  */
-class I18nMessageServiceBuilder(printers: Seq[String => Unit], exceptionHandlers: Seq[Throwable => Unit], onFinishes: Seq[() => Unit]) extends MessageServiceBuilder {
+class I18nMessageServiceBuilder(messagesApi: MessagesApi, printers: Seq[String => Unit], exceptionHandlers: Seq[Throwable => Unit], onFinishes: Seq[() => Unit]) extends MessageServiceBuilder with ApplicationLogging {
 
   override def build: MessageService = new MessageService() {
 
     override def printMessage(template: MessageType): Unit = {
-      val message = Messages(template.key, template.parameters :_*)
+      val message = messagesApi(template.key, template.parameters :_*)
+      logger.debug(message)
       printers.foreach(printer => printer(message))
     }
 
     override def exception(t: Throwable): Unit = {
+      logger.error("An unexpected error occurred.", t)
       exceptionHandlers.foreach(exceptionHandler => exceptionHandler(t))
     }
 
     override def finish(): Unit = {
+      logger.info("Command finished")
       onFinishes.foreach(block => block())
     }
   }
 
   override def withPrinter(printer: String => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(printers :+ printer, exceptionHandlers, onFinishes)
+    new I18nMessageServiceBuilder(messagesApi, printers :+ printer, exceptionHandlers, onFinishes)
   }
 
   override def withExceptionHandler(exceptionHandler: Throwable => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(printers, exceptionHandlers :+ exceptionHandler, onFinishes)
+    new I18nMessageServiceBuilder(messagesApi, printers, exceptionHandlers :+ exceptionHandler, onFinishes)
   }
 
   override def withOnFinish(onFinish: () => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(printers, exceptionHandlers, onFinishes :+ onFinish)
+    new I18nMessageServiceBuilder(messagesApi, printers, exceptionHandlers, onFinishes :+ onFinish)
   }
 }
 
 object I18nMessageServiceBuilder {
 
   val logger = LoggerFactory.getLogger("messages")
-  def apply(): MessageServiceBuilder =
-    new I18nMessageServiceBuilder(Seq(), Seq(), Seq()).
+  def apply(messagesApi: MessagesApi): MessageServiceBuilder =
+    new I18nMessageServiceBuilder(messagesApi, Seq(), Seq(), Seq()).
       withPrinter(message => logger.info(message)).
       withExceptionHandler(t => logger.error("An unexpected exception occurred.", t)).
       withOnFinish(() => logger.info(s"Commmand has completed."))

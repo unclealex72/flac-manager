@@ -16,22 +16,18 @@
 
 package checkin
 
-import akka.actor.ActorSystem
-import checkin.actors.CheckinActor
+import javax.inject.{Inject, Named}
+
+import akka.actor.ActorRef
 import checkin.actors.Messages.Actions
 import common.commands.CommandType
 import common.commands.CommandType._
 import common.message.{MessageService, Messaging}
-import scaldi.Injector
-import scaldi.akka.AkkaInjectable
 
 /**
  * Created by alex on 16/11/14.
  */
-class CheckinServiceImpl(implicit val inj: Injector) extends CheckinService with Messaging with AkkaInjectable {
-
-  implicit val actorSystem = inject[ActorSystem]
-  val checkinActor = injectActorRef[CheckinActor]
+class CheckinServiceImpl @Inject()(@Named("checkin-actor") checkinActor: ActorRef) extends CheckinService with Messaging {
 
   override def checkin(actions: Seq[Action])(implicit messagingService: MessageService): CommandType = asynchronous {
     checkinActor ! Actions(actions, messagingService)

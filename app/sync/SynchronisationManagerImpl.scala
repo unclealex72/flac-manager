@@ -17,6 +17,7 @@
 package sync
 
 import java.nio.file.Path
+import javax.inject.Inject
 
 import common.files.{DeviceFileLocation, FileLocationExtensions}
 import common.message.MessageTypes._
@@ -33,7 +34,7 @@ import scala.util.Try
  *
  * @author alex
  */
-class SynchronisationManagerImpl(val deviceConnectionService: DeviceConnectionService)(implicit val fileLocationExtensions: FileLocationExtensions)
+class SynchronisationManagerImpl @Inject()(val deviceConnectionService: DeviceConnectionService)(implicit val fileLocationExtensions: FileLocationExtensions)
   extends SynchronisationManager with Messaging {
 
   def synchronise(device: Device, fileLocations: Traversable[DeviceFileLocation])(implicit messageService: MessageService): Try[Unit] = {

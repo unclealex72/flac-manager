@@ -17,7 +17,7 @@ package common.changes
 
 import java.nio.file.Paths
 
-import com.typesafe.scalalogging.StrictLogging
+import logging.ApplicationLogging
 import common.configuration.{TestDirectories, User}
 import common.db.FlacManagerSchema
 import common.files._
@@ -31,7 +31,7 @@ import org.squeryl.{Session, SessionFactory}
  * @author alex
  *
  */
-class SquerylChangeDaoSpec extends Specification with StrictLogging {
+class SquerylChangeDaoSpec extends Specification with ApplicationLogging {
 
   /**
    * Wrap tests with database creation and transactions

@@ -18,6 +18,7 @@ package common.files
 
 
 import java.nio.file.{AtomicMoveNotSupportedException, Files, Path, StandardCopyOption}
+import javax.inject.Inject
 
 import common.message.MessageTypes._
 import common.message._
@@ -31,7 +32,7 @@ import scala.util.Try
  * @author alex
  *
  */
-class FileSystemImpl extends FileSystem with Messaging {
+class FileSystemImpl @Inject() extends FileSystem with Messaging {
 
   override def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
     log(MOVE(sourceFileLocation, targetFileLocation))

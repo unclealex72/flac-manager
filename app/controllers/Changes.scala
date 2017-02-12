@@ -16,6 +16,8 @@
 
 package controllers
 
+import javax.inject.{Inject, Singleton}
+
 import common.changes.ChangeDao
 import common.configuration.{User, Users}
 import common.joda.JodaDateTime
@@ -26,7 +28,8 @@ import play.api.mvc.{Action, Controller}
 /**
  * Created by alex on 14/12/14.
  */
-class Changes(val users: Users, val changeDao: ChangeDao) extends Controller {
+@Singleton
+class Changes @Inject()(val users: Users, val changeDao: ChangeDao) extends Controller {
 
   def since(username: String, sinceStr: String)(jsonBuilder: User => DateTime => JsValue) = Action { implicit request =>
     val parameters = for {

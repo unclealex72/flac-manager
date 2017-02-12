@@ -16,14 +16,16 @@
 
 package common.configuration
 
-import com.typesafe.scalalogging.StrictLogging
+import javax.inject.Inject
+
+import logging.ApplicationLogging
 import play.api.Configuration
 
 /**
  * Get the users using Play configuration
  * Created by alex on 20/11/14.
  */
-case class PlayConfigurationUsers(override val configuration: Configuration, deviceLocator: DeviceLocator) extends PlayConfiguration[Set[User]](configuration) with Users with StrictLogging {
+case class PlayConfigurationUsers @Inject()(override val configuration: Configuration, deviceLocator: DeviceLocator) extends PlayConfiguration[Set[User]](configuration) with Users with ApplicationLogging {
 
   def load(configuration: Configuration): Option[Set[User]] = {
     configuration.getStringSeq("users").map { usernames =>

@@ -18,6 +18,7 @@ package sync
 
 import java.io.IOException
 import java.nio.file.{Files, Path}
+import javax.inject.Inject
 
 import common.configuration.Directories
 import common.files.{DeviceFileLocation, FileSystem, RemovableFileLocation}
@@ -28,9 +29,13 @@ import scala.collection.JavaConversions._
 /**
  * Created by alex on 24/07/15.
  */
-class FilesystemDeviceFactory(val fileSystem: FileSystem)(implicit val directories: Directories) {
+trait FilesystemDeviceFactory {
+  def create(owner: String, mountPoint: Path, subdirectory: String): Device
+}
+class FilesystemDeviceFactoryImpl @Inject()(val fileSystem: FileSystem)(implicit val directories: Directories) extends FilesystemDeviceFactory {
 
-  def create(owner: String, mountPoint: Path, subdirectory: String): Device = new FilesystemDevice(owner, mountPoint, subdirectory, fileSystem)
+  override def create(owner: String, mountPoint: Path, subdirectory: String): Device =
+    new FilesystemDevice(owner, mountPoint, subdirectory, fileSystem)
 }
 
 class FilesystemDevice(override val owner: String, override val mountPoint: Path, val subdirectory: String, val fileSystem: FileSystem)(implicit val directories: Directories) extends Device {

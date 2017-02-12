@@ -1,15 +1,14 @@
 import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
-import play.PlayScala
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 import sbt._
 
 name := "flac-manager"
 
-lazy val root = (project in file(".")).enablePlugins(JavaServerAppPackaging, PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.11.7"
 
-javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
 libraryDependencies ++= Seq(
   "org.squeryl" %% "squeryl" % "0.9.6-RC3",
@@ -26,6 +25,8 @@ libraryDependencies ++= Seq(
   "org" % "jaudiotagger" % "2.0.3",
   jdbc,
   cache,
+  evolutions,
+  "net.codingwell" %% "scala-guice" % "4.0.1",
   "cglib" % "cglib-nodep" % "3.1",
   "org.mockito" % "mockito-core" % "1.9.5" % "test",
   "org.eclipse.jetty" % "jetty-servlet" % "9.3.0.M0" % "test",
@@ -34,9 +35,6 @@ libraryDependencies ++= Seq(
 
 // Specs2
 libraryDependencies ++= Seq("core", "mock", "junit").map(name => "org.specs2" %% s"specs2-$name" % "2.4.8" % "test")
-
-// Scaldi
-libraryDependencies ++= Seq("play" -> "0.4.1", "akka" -> "0.4").map { case (name, version) => "org.scaldi" %% s"scaldi-$name" % version }
 
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
 
@@ -52,7 +50,15 @@ packageDescription := "Flac Manager Debian Package"
 
 version in Debian := ((v: String) => v + (if (v.endsWith("-")) "" else "-") + "build-aj")(version.value)
 
-debianPackageDependencies := Seq("java7-runtime-headless", "flac", "lame", "pmount", "python-gpod", "python-pycurl", "python-eyed3", "python-gtk2")
+debianPackageDependencies := Seq(
+  "java8-runtime-headless",
+  "flac",
+  "lame",
+  "pmount",
+  "python-gpod",
+  "python-pycurl",
+  "python-eyed3",
+  "python-gtk2")
 
 daemonUser in Linux := "music"
 
@@ -62,6 +68,10 @@ mappings in Universal ++= Seq("checkin", "checkout", "initialise", "own", "unown
   baseDirectory.value / "scripts" / "flac-manager.py" -> s"bin/flacman-$cmd"
 }
 
+import com.typesafe.sbt.packager.archetypes.systemloader._
+enablePlugins(
+  JavaServerAppPackaging,
+  SystemdPlugin)
 
 javaOptions in Universal ++= Seq(
   // -J params will be added as jvm parameters
@@ -74,6 +84,7 @@ javaOptions in Universal ++= Seq(
   "-Dconfig.file=/etc/flac-manager/application-prod.conf",
   s"-Dpidfile.path=/var/run/${name.value}/${name.value}.pid"
 )
+
 /* Releases */
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies, // : ReleaseStep

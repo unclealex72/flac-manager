@@ -16,6 +16,8 @@
 
 package checkin
 
+import javax.inject.Inject
+
 import checkin.Action._
 import common.commands.CommandType
 import common.commands.CommandType._
@@ -32,7 +34,7 @@ import scalaz.Success
 /**
  * Created by alex on 12/11/14.
  */
-class CheckinCommandImpl(
+class CheckinCommandImpl @Inject()(
                           val directoryService: DirectoryService,
                           val ownerService: OwnerService,
                           val checkinService: CheckinService)(implicit val flacFileChecker: FlacFileChecker,
@@ -42,7 +44,7 @@ class CheckinCommandImpl(
   override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandType = {
     val fileLocations = directoryService.listFiles(locations)
     val actions: Seq[Action] = validate(fileLocations)
-    if (actions.size == fileLocations.size) {
+    if (actions.size == fileLocations.size && actions.nonEmpty) {
       checkinService.checkin(actions)
     }
     else synchronous {

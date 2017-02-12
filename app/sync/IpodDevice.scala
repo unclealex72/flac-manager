@@ -18,6 +18,7 @@ package sync
 
 import java.nio.file.Path
 import java.text.SimpleDateFormat
+import javax.inject.Inject
 
 import common.commands.{CommandService, ProcessCommunicator}
 import common.files.DeviceFileLocation
@@ -25,10 +26,14 @@ import common.message.MessageService
 
 import scala.sys.process._
 
-class IpodDeviceFactory(val commandService: CommandService) {
-
-  def create(owner: String, mountPoint: Path): Device = new IpodDevice(owner, mountPoint, commandService)
+trait IpodDeviceFactory {
+  def create(owner: String, mountPoint: Path): Device
 }
+class IpodDeviceFactoryImpl @Inject()(val commandService: CommandService) extends IpodDeviceFactory {
+
+  override def create(owner: String, mountPoint: Path): Device = new IpodDevice(owner, mountPoint, commandService)
+}
+
 /**
  * Created by alex on 16/11/14.
  */

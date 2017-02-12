@@ -18,13 +18,13 @@ package common.files
 
 import java.nio.file.{Path, Paths}
 
-import com.typesafe.scalalogging.StrictLogging
+import logging.ApplicationLogging
 import common.AbstractStringCellMappingService
 
 /**
  * Created by alex on 06/11/14.
  */
-class MtabDirectoryMappingService extends DirectoryMappingService with StrictLogging {
+class MtabDirectoryMappingService extends DirectoryMappingService with ApplicationLogging {
 
   /**
    * Resolve a set of client side directories into a map of server side directories.

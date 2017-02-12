@@ -17,13 +17,14 @@
 package common.files
 
 import java.nio.file.{Files, Path}
+import javax.inject.Inject
 
 import common.configuration.Directories
 
 /**
  * Created by alex on 16/11/14.
  */
-class FileLocationExtensionsImpl extends FileLocationExtensions {
+class FileLocationExtensionsImpl @Inject() extends FileLocationExtensions {
 
   implicit val fileLocationToPath: FileLocation => Path = _.toPath
 

@@ -17,6 +17,7 @@
 package controllers
 
 import java.io.{PrintWriter, StringWriter}
+import javax.inject.{Inject, Singleton}
 
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
@@ -37,7 +38,8 @@ import scala.util.Try
 /**
  * Created by alex on 06/11/14.
  */
-class Commands(
+@Singleton
+class Commands @Inject()(
                 messageServiceBuilder: MessageServiceBuilder,
                 parameterBuilders: ParameterBuilders,
                 syncCommand: SyncCommand,

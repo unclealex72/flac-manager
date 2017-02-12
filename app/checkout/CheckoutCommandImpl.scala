@@ -16,6 +16,8 @@
 
 package checkout
 
+import javax.inject.Inject
+
 import common.configuration.Directories
 import common.files.{DirectoryService, FileLocationExtensions, FileSystem, FlacFileLocation}
 import common.message.MessageTypes._
@@ -26,7 +28,7 @@ import common.commands.CommandType._
 /**
  * Created by alex on 16/11/14.
  */
-class CheckoutCommandImpl(val fileSystem: FileSystem, val directoryService: DirectoryService, val checkoutService: CheckoutService)
+class CheckoutCommandImpl @Inject()(val fileSystem: FileSystem, val directoryService: DirectoryService, val checkoutService: CheckoutService)
                          (implicit val directories: Directories, fileLocationExtensions: FileLocationExtensions) extends CheckoutCommand with Messaging {
 
   override def checkout(locations: Seq[FlacFileLocation], unown: Boolean)(implicit messageService: MessageService): CommandType = synchronous {

@@ -16,35 +16,31 @@
 
 package checkin.actors
 
-import akka.actor.Actor
-import akka.routing.RoundRobinPool
-import akka.util.Timeout
+import javax.inject.{Inject, Named, Singleton}
+
+import akka.actor.{Actor, ActorRef}
 import checkin.actors.Messages._
 import checkin.{Delete, Encode}
-import com.typesafe.scalalogging.StrictLogging
+import logging.ApplicationLogging
 import common.changes.{Change, ChangeDao}
 import common.files.{FileLocationExtensions, FileSystem}
-import common.message.{MessageService, Messaging}
 import common.message.MessageTypes.EXCEPTION
-import scaldi.Injector
-import scaldi.akka.AkkaInjectable
+import common.message.{MessageService, Messaging}
 
-class CheckinActor(implicit inj: Injector) extends Actor with AkkaInjectable with StrictLogging with Messaging {
+@Singleton
+class CheckinActor @Inject()(
+                              val fileSystem: FileSystem,
+                              @Named("encoding-actor")
+                              val encodingActor: ActorRef)
+                            (implicit val changeDao: ChangeDao,
+                             val fileLocationExtensions: FileLocationExtensions) extends Actor with ApplicationLogging with Messaging {
 
-  val fileSystem = inject[FileSystem]
-  implicit val changeDao = inject[ChangeDao]
-  implicit val fileLocationExtensions = inject[FileLocationExtensions]
-
-  val numberOfEncodingActors = inject[Int]('numberOfConcurrentEncoders)
-  val encodingProps = injectActorProps[EncodingActor].withRouter(RoundRobinPool(numberOfEncodingActors))
-  logger info s"Using $numberOfEncodingActors concurrent encoders"
 
   var numberOfFilesRemaining = 0
 
   override def receive = {
     case Actions(actions, messageService) =>
       numberOfFilesRemaining = actions.length
-      val encodingActor = context.actorOf(encodingProps)
 
       actions.foreach {
         case Delete(stagedFlacFileLocation) =>

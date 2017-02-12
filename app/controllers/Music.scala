@@ -18,6 +18,7 @@ package controllers
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
+import javax.inject.{Inject, Singleton}
 
 import common.configuration.{Directories, Users}
 import common.files.{DeviceFileLocation, FileLocationExtensions}
@@ -33,7 +34,8 @@ import scalaz.{Failure, Success}
 /**
  * Created by alex on 18/11/14.
  */
-class Music(val users: Users)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService) extends Controller {
+@Singleton
+class Music @Inject()(val users: Users)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService) extends Controller {
 
   def at(username: String, path: String) = musicFile(username, path) { deviceFileLocation =>
     Ok.chunked(Enumerator.fromFile(deviceFileLocation.toFile))

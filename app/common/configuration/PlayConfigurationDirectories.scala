@@ -18,15 +18,16 @@ package common.configuration
 
 import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path, Paths}
+import javax.inject.Inject
 
-import com.typesafe.scalalogging.StrictLogging
+import logging.ApplicationLogging
 import play.api.Configuration
 
 /**
  * Get the users using Play configuration
  * Created by alex on 20/11/14.
  */
-case class PlayConfigurationDirectories(override val configuration: Configuration)
+case class PlayConfigurationDirectories @Inject() (override val configuration: Configuration)
   extends PlayConfiguration[Directories](configuration) with Directories {
 
   def load(configuration: Configuration): Option[Directories] = {
@@ -50,7 +51,7 @@ case class PlayConfigurationDirectories(override val configuration: Configuratio
   override lazy val stagingPath = result.stagingPath
 }
 
-case object InternalDirectories extends StrictLogging {
+case object InternalDirectories extends ApplicationLogging {
 
   def apply(tmpDir: String, encodedDir: String, devicesDir: String, flacDir: String, stagingDir: String): Directories = {
     val path: String => Path = str => Paths.get(str).toAbsolutePath

@@ -18,7 +18,7 @@ package common.commands
 
 import java.io._
 
-import com.typesafe.scalalogging.StrictLogging
+import logging.ApplicationLogging
 
 import scala.sys.process.{BasicIO, ProcessIO}
 
@@ -27,7 +27,7 @@ import scala.sys.process.{BasicIO, ProcessIO}
  * end in a line containing only "OK"
  * Created by alex on 29/10/14.
  */
-class ProcessCommunicator extends StrictLogging {
+class ProcessCommunicator extends ApplicationLogging {
 
   val OK: String = "OK"
 

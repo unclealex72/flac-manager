@@ -17,8 +17,9 @@
 package controllers
 
 import java.nio.file.Path
+import javax.inject.Inject
 
-import com.typesafe.scalalogging.StrictLogging
+import logging.ApplicationLogging
 import common.configuration.{Directories, User, Users}
 import common.files._
 import play.api.data.Forms._
@@ -30,7 +31,7 @@ import play.api.mvc.Request
 /**
  * Created by alex on 09/11/14.
  */
-class ParameterBuildersImpl(val users: Users, val directoryMappingService: DirectoryMappingService)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions) extends ParameterBuilders with StrictLogging {
+class ParameterBuildersImpl @Inject()(val users: Users, val directoryMappingService: DirectoryMappingService)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions) extends ParameterBuilders with ApplicationLogging {
 
   class ZeroParameterBuilder[C](constant: C) extends ParameterBuilder[C] {
     override def bindFromRequest()(implicit request: Request[_]): Either[Seq[FormError], C] = Right(constant)

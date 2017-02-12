@@ -15,6 +15,8 @@
  */
 package common.changes
 
+import javax.inject.Inject
+
 import common.configuration.User
 import common.db.SquerylEntryPoint._
 import common.db.FlacManagerSchema._
@@ -26,7 +28,7 @@ import org.squeryl.dsl.ast.LogicalBoolean
  * @author alex
  *
  */
-class SquerylChangeDao extends ChangeDao {
+class SquerylChangeDao @Inject() extends ChangeDao {
 
   /**
    * Run code within a transaction.

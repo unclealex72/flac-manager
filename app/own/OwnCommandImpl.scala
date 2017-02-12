@@ -16,6 +16,8 @@
 
 package own
 
+import javax.inject.Inject
+
 import common.commands.CommandType
 import common.commands.CommandType._
 import common.configuration.User
@@ -27,7 +29,7 @@ import common.owners.OwnerService
 /**
  * Created by alex on 23/11/14.
  */
-class OwnCommandImpl(val ownerService: OwnerService, directoryService: DirectoryService)(implicit val flacFileChecker: FlacFileChecker, implicit val tagsService: TagsService) extends OwnCommand {
+class OwnCommandImpl @Inject()(val ownerService: OwnerService, directoryService: DirectoryService)(implicit val flacFileChecker: FlacFileChecker, implicit val tagsService: TagsService) extends OwnCommand {
 
   override def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandType = synchronous {
     val allLocations = directoryService.listFiles(locations)

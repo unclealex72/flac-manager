@@ -18,9 +18,9 @@ package common.files
 
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
+import javax.inject.{Inject, Named}
 
-import com.typesafe.scalalogging.StrictLogging
-import scaldi.{Injectable, Injector}
+import logging.ApplicationLogging
 
 import scala.collection.JavaConversions._
 
@@ -30,7 +30,7 @@ import scala.collection.JavaConversions._
  * @author alex
  *
  */
-class ProtectionAwareFileSystem(override val delegate: FileSystem)(override implicit val fileLocationExtensions: FileLocationExtensions) extends DecoratingFileSystem with StrictLogging {
+class ProtectionAwareFileSystem @Inject() (@Named("rawFileSystem") val delegate: FileSystem)(override implicit val fileLocationExtensions: FileLocationExtensions) extends DecoratingFileSystem with ApplicationLogging {
 
   def before(fileLocations: Seq[FileLocation]): Unit = alterWritable(_ => true, fileLocations)
 
@@ -45,29 +45,21 @@ class ProtectionAwareFileSystem(override val delegate: FileSystem)(override impl
     val terminatingPath = fileLocation.basePath.getParent
     while (currentPath != null && !currentPath.equals(terminatingPath)) {
       if (Files.exists(currentPath)) {
-        val posixFilePermissions = Files.getPosixFilePermissions(currentPath);
+        val posixFilePermissions = Files.getPosixFilePermissions(currentPath)
         if (allowWritesFactory(fileLocation)) {
-          logger.debug("Setting " + currentPath + " to read and write.");
-          posixFilePermissions.add(PosixFilePermission.OWNER_WRITE);
+          logger.debug("Setting " + currentPath + " to read and write.")
+          posixFilePermissions.add(PosixFilePermission.OWNER_WRITE)
         }
         else {
-          logger.debug("Setting " + currentPath + " to read only.");
+          logger.debug("Setting " + currentPath + " to read only.")
           posixFilePermissions.removeAll(Seq(
             PosixFilePermission.OWNER_WRITE,
             PosixFilePermission.GROUP_WRITE,
-            PosixFilePermission.OTHERS_WRITE));
+            PosixFilePermission.OTHERS_WRITE))
         }
-        Files.setPosixFilePermissions(currentPath, posixFilePermissions);
+        Files.setPosixFilePermissions(currentPath, posixFilePermissions)
       }
-      currentPath = currentPath.getParent();
+      currentPath = currentPath.getParent
     }
-  }
-}
-
-object ProtectionAwareFileSystem extends Injectable {
-  def injected(symbol: Symbol)(implicit injector: Injector): ProtectionAwareFileSystem = {
-    val delegate: FileSystem = inject[FileSystem](identified by symbol)
-    val fileLocationExtensions: FileLocationExtensions = inject[FileLocationExtensions]
-    new ProtectionAwareFileSystem(delegate)(fileLocationExtensions)
   }
 }

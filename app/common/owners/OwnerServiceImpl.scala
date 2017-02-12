@@ -16,6 +16,8 @@
 
 package common.owners
 
+import javax.inject.Inject
+
 import common.configuration.{User, Users}
 import common.message.MessageTypes._
 import common.message.{MessageService, Messaging}
@@ -27,7 +29,7 @@ import scala.concurrent.duration._
 /**
  * Created by alex on 15/11/14.
  */
-class OwnerServiceImpl(val musicBrainzClient: CollectionDao, val users: Users) extends OwnerService with Messaging {
+class OwnerServiceImpl @Inject()(val musicBrainzClient: CollectionDao, val users: Users) extends OwnerService with Messaging {
 
   val timeout: FiniteDuration = 1000000 seconds
 

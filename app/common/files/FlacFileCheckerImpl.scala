@@ -20,6 +20,7 @@ package common.files
 
 import java.io.{FileInputStream, InputStream}
 import java.nio.file.Path
+import javax.inject.Inject
 ;
 
 /**
@@ -27,7 +28,7 @@ import java.nio.file.Path
  * @author alex
  *
  */
-class FlacFileCheckerImpl extends FlacFileChecker {
+class FlacFileCheckerImpl @Inject() extends FlacFileChecker {
 
   val MAGIC_NUMBER = Vector[Byte](0x66, 0x4C, 0x61, 0x43)
 

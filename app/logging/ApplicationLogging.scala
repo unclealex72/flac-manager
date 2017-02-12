@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Alex Jones
+ * Copyright 2017 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package controllers
+package logging
 
-import javax.inject.{Inject, Singleton}
-
-import play.api.Configuration
-import play.api.mvc.{Action, Controller}
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
 /**
- * Created by alex on 13/12/14.
- */
-@Singleton
-class Conf @Inject()(val conf: Configuration) extends Controller{
+  * Created by alex on 12/02/17
+  **/
+trait ApplicationLogging {
 
-  def configuration = Action { implicit request =>
-    Ok(conf.underlying.root().render())
-  }
+  protected val logger: Logger =
+    Logger(LoggerFactory.getLogger("application"))
 }

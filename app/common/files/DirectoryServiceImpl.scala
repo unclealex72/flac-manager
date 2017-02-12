@@ -15,6 +15,8 @@
  */
 
 package common.files
+import javax.inject.Inject
+
 import common.configuration.Directories
 import common.files.FileLocationImplicits._
 import common.message.MessageTypes._
@@ -25,7 +27,7 @@ import scala.collection.{SortedMap, SortedSet}
  * @author alex
  *
  */
-class DirectoryServiceImpl(implicit fileLocationExtensions: FileLocationExtensions, directories: Directories) extends DirectoryService with Messaging {
+class DirectoryServiceImpl @Inject()(implicit fileLocationExtensions: FileLocationExtensions, directories: Directories) extends DirectoryService with Messaging {
 
   override def groupFiles[FL <: FileLocation](fileLocations: Traversable[FL])(implicit messageService: MessageService): SortedMap[FL, SortedSet[FL]] = {
     fileLocations.foldLeft(SortedMap.empty[FL, SortedSet[FL]]) { (allFileLocations, fl) =>

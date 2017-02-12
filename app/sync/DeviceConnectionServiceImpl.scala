@@ -17,8 +17,9 @@
 package sync
 
 import java.nio.file.Path
+import javax.inject.Inject
 
-import com.typesafe.scalalogging.StrictLogging
+import logging.ApplicationLogging
 import common.configuration.Users
 import common.message.MessageTypes._
 import common.message.{MessageService, Messaging}
@@ -29,7 +30,7 @@ import scala.sys.process._
  * A device connection service that uses pmount and pumount to mount and unmount devices.
  * Created by alex on 16/11/14.
  */
-class DeviceConnectionServiceImpl(users: Users) extends DeviceConnectionService with Messaging with StrictLogging {
+class DeviceConnectionServiceImpl @Inject()(users: Users) extends DeviceConnectionService with Messaging with ApplicationLogging {
 
   /**
    * List the users who currently have devices connected to the system.

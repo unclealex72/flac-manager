@@ -16,6 +16,8 @@
 
 package initialise
 
+import javax.inject.Inject
+
 import common.changes.{Change, ChangeDao}
 import common.configuration.{Directories, Users}
 import common.files.{DeviceFileLocation, DirectoryService, FileLocationExtensions}
@@ -29,7 +31,7 @@ import common.commands.CommandType._
 /**
  * Created by alex on 06/12/14.
  */
-class InitialiseCommandImpl(val users: Users, val directoryService: DirectoryService)
+class InitialiseCommandImpl @Inject()(val users: Users, val directoryService: DirectoryService)
                            (implicit val changeDao: ChangeDao, implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions) extends InitialiseCommand with Messaging {
 
   /**
