@@ -1,10 +1,9 @@
-import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
-import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 import sbt._
+import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 name := "flac-manager"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, DebianPlugin, SystemdPlugin)
 
 scalaVersion := "2.11.7"
 
@@ -68,11 +67,6 @@ mappings in Universal ++= Seq("checkin", "checkout", "initialise", "own", "unown
   baseDirectory.value / "scripts" / "flac-manager.py" -> s"bin/flacman-$cmd"
 }
 
-import com.typesafe.sbt.packager.archetypes.systemloader._
-enablePlugins(
-  JavaServerAppPackaging,
-  SystemdPlugin)
-
 javaOptions in Universal ++= Seq(
   // -J params will be added as jvm parameters
   //"-J-Xmx64m",
@@ -82,7 +76,7 @@ javaOptions in Universal ++= Seq(
   "-Dhttp.port=9999",
   "-DapplyEvolutions.default=true",
   "-Dconfig.file=/etc/flac-manager/application-prod.conf",
-  s"-Dpidfile.path=/var/run/${name.value}/${name.value}.pid"
+  s"-Dpidfile.path=/var/run/${packageName.value}/play.pid"
 )
 
 /* Releases */
