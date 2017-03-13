@@ -18,21 +18,28 @@ package initialise
 
 import javax.inject.Inject
 
+import com.typesafe.scalalogging.StrictLogging
 import common.changes.{Change, ChangeDao}
-import common.configuration.{Directories, Users}
+import common.collections.CollectionDao
+import common.commands.CommandType
+import common.commands.CommandType._
+import common.configuration.{Directories, User, Users}
 import common.files.{DeviceFileLocation, DirectoryService, FileLocationExtensions}
 import common.message.MessageTypes._
 import common.message.{MessageService, Messaging}
+import common.music.TagsService
 
 import scala.collection.SortedSet
-import common.commands.CommandType
-import common.commands.CommandType._
+import scalaz.{Failure, Success}
 
 /**
  * Created by alex on 06/12/14.
  */
-class InitialiseCommandImpl @Inject()(val users: Users, val directoryService: DirectoryService)
-                           (implicit val changeDao: ChangeDao, implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions) extends InitialiseCommand with Messaging {
+class InitialiseCommandImpl @Inject()(val users: Users, val directoryService: DirectoryService, val tagsService: TagsService)
+                           (implicit val changeDao: ChangeDao,
+                            val directories: Directories,
+                            val fileLocationExtensions: FileLocationExtensions,
+                            val collectionDao: CollectionDao) extends InitialiseCommand with Messaging with StrictLogging {
 
   /**
    * Initialise the database with all device files.
@@ -42,6 +49,29 @@ class InitialiseCommandImpl @Inject()(val users: Users, val directoryService: Di
       log(DATABASE_NOT_EMPTY())
     }
     else {
+      val initialFiles: Seq[InitialFile] = for {
+        user <- users.allUsers.toSeq
+        deviceFileLocation <- listFiles(user)
+      } yield {
+        log(INITIALISING(deviceFileLocation))
+        val path = deviceFileLocation.path
+        val tags = tagsService.readTags(path)
+        InitialFile(
+          deviceFileLocation,
+          InitialOwn(tags.artistId, user))
+      }
+      val deviceFileLocations = initialFiles.map(_.deviceFileLocation)
+      val ownsByUser: Map[User, Set[InitialOwn]] = initialFiles.map(_.own).toSet.groupBy(_.user)
+      val releasesByUser: Map[User, Set[String]] = ownsByUser.mapValues(_.map(_.releaseId))
+
+      deviceFileLocations.foreach { deviceFileLocation =>
+        Change.added(deviceFileLocation).store
+      }
+
+      releasesByUser.foreach {
+        case (user, releaseIds) =>
+          collectionDao.addReleases(user, releaseIds)
+      }
       users.allUsers.foreach { user =>
         val root = DeviceFileLocation(user)
         val deviceFileLocations: SortedSet[DeviceFileLocation] = directoryService.listFiles(Some(root))
@@ -52,4 +82,12 @@ class InitialiseCommandImpl @Inject()(val users: Users, val directoryService: Di
       }
     }
   }
+
+  def listFiles(user: User)(implicit messageService: MessageService): SortedSet[DeviceFileLocation] = {
+    val root = DeviceFileLocation(user)
+    directoryService.listFiles(Some(root))
+  }
+
+  case class InitialFile(deviceFileLocation: DeviceFileLocation, own: InitialOwn)
+  case class InitialOwn(releaseId: String, user: User)
 }

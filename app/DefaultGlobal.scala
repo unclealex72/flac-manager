@@ -14,33 +14,12 @@
  * limitations under the License.
  */
 
-import akka.actor.ActorSystem
-import checkin._
-import checkin.actors.{CheckinActor, EncodingActor}
-import checkout.{CheckoutCommand, CheckoutCommandImpl, CheckoutService, CheckoutServiceImpl}
-import com.google.inject.{AbstractModule, Provides}
 import com.typesafe.scalalogging.LazyLogging
-import common.changes.{ChangeDao, SquerylChangeDao}
-import common.collections.{CollectionDao, SquerylCollectionDao}
-import common.commands.{CommandService, TempFileCommandService}
-import common.configuration._
-import common.files._
-import common.message.{I18nMessageServiceBuilder, MessageServiceBuilder}
-import common.music.{JaudioTaggerTagsService, TagsService}
-import common.now.{NowService, NowServiceImpl}
-import common.owners.{OwnerService, OwnerServiceImpl}
-import controllers.{ParameterBuilders, ParameterBuildersImpl}
-import initialise.{InitialiseCommand, InitialiseCommandImpl}
-import net.codingwell.scalaguice.ScalaModule
-import org.squeryl.adapters.{H2Adapter, MySQLInnoDBAdapter}
+import org.squeryl.adapters.{H2Adapter, PostgreSqlAdapter}
 import org.squeryl.internals.DatabaseAdapter
 import org.squeryl.{Session, SessionFactory}
-import own.{OwnCommand, OwnCommandImpl}
 import play.api.db.DB
-import play.api.i18n.MessagesApi
-import play.api.libs.concurrent.Akka
 import play.api.{Application, GlobalSettings}
-import sync._
 
 /**
   * Created by alex on 12/02/17
@@ -53,10 +32,8 @@ trait DefaultGlobal extends GlobalSettings with LazyLogging {
     // Set up Squeryl database access
     SessionFactory.concreteFactory = app.configuration.getString("db.default.driver") match {
       case Some("org.h2.Driver") => Some(() => getSession(new H2Adapter, app))
-      case Some("com.mysql.jdbc.Driver") => Some(() => {
-        val adapter = new MySQLInnoDBAdapter {
-          override def quoteIdentifier(s: String) = "`" + s + "`"
-        }
+      case Some("org.postgresql.Driver") => Some(() => {
+        val adapter = new PostgreSqlAdapter
         getSession(adapter, app)
       })
       case _ => sys.error("Database driver must be either org.h2.Driver or org.postgresql.Driver")

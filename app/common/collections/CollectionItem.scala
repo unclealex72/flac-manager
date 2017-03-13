@@ -15,9 +15,6 @@
  */
 package common.collections
 
-import common.files.{DeviceFileLocation, FileLocationExtensions}
-import common.joda.JodaDateTime
-import org.joda.time.DateTime
 import org.squeryl.KeyedEntity
 
 /**
@@ -33,4 +30,5 @@ case class CollectionItem(
    */
 
   protected def this() = this(0, "", "")
+
 }

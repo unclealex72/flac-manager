@@ -27,9 +27,7 @@ import scalaz.{Failure => ZFailure, NonEmptyList, Success => ZSuccess, Validatio
  */
 trait TagsService {
 
-  this: {
-    def readTags(path: Path): Tags
-  } =>
+  def readTags(path: Path): Tags
 
   def read(path: Path): ValidationNel[String, Tags] = {
     val tags = readTags(path)

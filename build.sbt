@@ -11,7 +11,7 @@ javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
 libraryDependencies ++= Seq(
   "org.squeryl" %% "squeryl" % "0.9.6-RC3",
-  "mysql" % "mysql-connector-java" % "5.1.38",
+  "org.postgresql" % "postgresql" % "42.0.0.jre7",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
   "joda-time" % "joda-time" % "2.2",
   "org.joda" % "joda-convert" % "1.3.1",

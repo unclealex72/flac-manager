@@ -16,6 +16,7 @@
 
 package common.collections
 
+import common.changes.Change
 import common.configuration.User
 
 /**
