@@ -34,8 +34,8 @@ class OwnerServiceImplSpec extends Specification with Mockito {
     lazy implicit val messageService = TestMessageService()
     lazy val musicBrainzClient = mock[CollectionDao]
     lazy val ownerService = new OwnerServiceImpl(musicBrainzClient, users)
-    val brian = User("Brian", "", "", Seq.empty)
-    val freddie = User("Freddie", "", "", Seq.empty)
+    val brian = User("Brian")
+    val freddie = User("Freddie")
     val tags1 = Tags(
       album = "Metal: A Headbanger's Companion",
       albumArtist = "Various Artists",

@@ -41,6 +41,5 @@ class TempFileCommandService  @Inject() extends CommandService {
     commandPath.toAbsolutePath.toString
   }
 
-  val syncCommand = create("sync.py")
   val flac2mp3Command = create("flac2mp3.sh")
 }

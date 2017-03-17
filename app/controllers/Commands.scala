@@ -30,7 +30,6 @@ import own.{Own, OwnCommand, Unown}
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.iteratee.{Concurrent, Enumerator}
 import play.api.mvc.{Action, Controller}
-import sync.SyncCommand
 
 import scala.util.Try
 
@@ -42,14 +41,11 @@ import scala.util.Try
 class Commands @Inject()(
                 messageServiceBuilder: MessageServiceBuilder,
                 parameterBuilders: ParameterBuilders,
-                syncCommand: SyncCommand,
                 checkinCommand: CheckinCommand,
                 checkoutCommand: CheckoutCommand,
                 ownCommand: OwnCommand,
                 initialiseCommand: InitialiseCommand
                 ) extends Controller with Messaging {
-  def sync = command[Parameters](
-    "sync", parameterBuilders.syncParametersBuilder, p => ms => syncCommand.synchronise(ms))
 
   def initialise = command[Parameters](
     "initialise", parameterBuilders.initialiseParametersBuilder, p => ms => initialiseCommand.initialiseDb(ms))

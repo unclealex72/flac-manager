@@ -14,34 +14,7 @@
  * limitations under the License.
  */
 
-import akka.actor.ActorSystem
-import checkin._
-import checkin.actors.{CheckinActor, EncodingActor}
-import checkout.{CheckoutCommand, CheckoutCommandImpl, CheckoutService, CheckoutServiceImpl}
-import com.google.inject.{AbstractModule, Provides}
-import com.typesafe.scalalogging.LazyLogging
-import common.changes.{ChangeDao, SquerylChangeDao}
-import common.collections.{CollectionDao, SquerylCollectionDao}
-import common.commands.{CommandService, TempFileCommandService}
-import common.configuration._
-import common.files._
-import common.message.{I18nMessageServiceBuilder, MessageServiceBuilder}
-import common.music.{JaudioTaggerTagsService, TagsService}
-import common.now.{NowService, NowServiceImpl}
-import common.owners.{OwnerService, OwnerServiceImpl}
-import controllers._
-import initialise.{InitialiseCommand, InitialiseCommandImpl}
-import net.codingwell.scalaguice.ScalaModule
-import org.squeryl.adapters.{H2Adapter, MySQLInnoDBAdapter}
-import org.squeryl.internals.DatabaseAdapter
-import org.squeryl.{Session, SessionFactory}
-import own.{OwnCommand, OwnCommandImpl}
-import play.api.Play.current
-import play.api.db.DB
-import play.api.i18n.MessagesApi
-import play.api.libs.concurrent.Akka
-import play.api.{Application, GlobalSettings}
-import sync._
+import play.api.GlobalSettings
 
 
 

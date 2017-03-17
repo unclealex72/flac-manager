@@ -16,8 +16,6 @@
 
 package common.configuration
 
-import sync.Device
-
 /**
  * A configuration item for a user. Users must also have a MusicBrainz login and own an iPod.
  *
@@ -32,25 +30,4 @@ case class User(
                   * @return the user's name that is to be displayed with their devices and to
                   *         be used when changing ownership.
                   */
-                 name: String,
-
-                 /**
-                  * Gets the MusicBrainz user name for this user.
-                  *
-                  * @return the MusicBrainz user name for this user
-                  */
-                 musicBrainzUserName: String,
-
-                 /**
-                  * Gets the MusicBrainz password for this user.
-                  *
-                  * @return the MusicBrainz password for this user
-                  */
-                 musicBrainzPassword: String,
-
-                 /**
-                  * Get the mount point of this user's iPod.
-                  *
-                  * @return The mount point of the user's iPod.
-                  */
-                 devices: Seq[Device])
+                 name: String)

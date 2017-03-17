@@ -23,11 +23,6 @@ package common.commands
 trait CommandService {
 
   /**
-   * The absolute location of the sync.py command.
-   */
-  def syncCommand: String
-
-  /**
    * The absolute location of the flac2mp3.sh command.
    */
   def flac2mp3Command: String

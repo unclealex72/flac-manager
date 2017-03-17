@@ -53,8 +53,6 @@ debianPackageDependencies := Seq(
   "java8-runtime-headless",
   "flac",
   "lame",
-  "pmount",
-  "python-gpod",
   "python-pycurl",
   "python-eyed3",
   "python-gtk2")
@@ -63,7 +61,7 @@ daemonUser in Linux := "music"
 
 daemonGroup in Linux := (daemonUser in Linux).value
 
-mappings in Universal ++= Seq("checkin", "checkout", "initialise", "own", "unown", "sync").map { cmd =>
+mappings in Universal ++= Seq("checkin", "checkout", "initialise", "own", "unown").map { cmd =>
   baseDirectory.value / "scripts" / "flac-manager.py" -> s"bin/flacman-$cmd"
 }
 

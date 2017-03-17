@@ -41,8 +41,8 @@ import scalaz.Success
 class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatchers {
 
   trait Context extends Scope {
-    val freddie: User = User("freddie", "", "", Seq.empty)
-    val brian: User = User("brian", "", "", Seq.empty)
+    val freddie: User = User("freddie")
+    val brian: User = User("brian")
 
     val users = new Users {
       override def allUsers: Set[User] = Set(brian, freddie)

@@ -23,7 +23,6 @@ import checkin.Mp3Encoder
 import logging.ApplicationLogging
 import common.configuration.{Directories, User}
 import common.music.{Tags, TagsService}
-import sync.Device
 
 import scalaz.ValidationNel
 
@@ -68,7 +67,7 @@ trait FileLocation {
    * @return The absolute path of the file identified by this class.
    */
   protected[files] def toPath: Path = {
-    basePath.resolve(relativePath);
+    basePath.resolve(relativePath)
   }
 
   def writeTags(tags: Tags)(implicit tagsService: TagsService): Unit = tagsService.write(toPath, tags)
@@ -114,7 +113,9 @@ trait ToDeviceFileLocationImpl extends ToDeviceFileLocation {
     val relativePath: Path
   } =>
 
-  override def toDeviceFileLocation(user: User): DeviceFileLocation = DeviceFileLocation(user, relativePath)(directories)
+  override def toDeviceFileLocation(user: User): DeviceFileLocation = {
+    DeviceFileLocation(user, relativePath)(directories)
+  }
 
 }
 
@@ -214,7 +215,7 @@ sealed abstract class AbstractFlacFileLocation(
 
   def toEncodedFileLocation: EncodedFileLocation = EncodedFileLocation(relativePath withExtension MP3)
 
-  def toOwnedEncodedFileLocation(device: Device): DeviceFileLocation = DeviceFileLocation(device.owner, relativePath withExtension MP3)
+  def toOwnedEncodedFileLocation(user: User): DeviceFileLocation = DeviceFileLocation(user, relativePath withExtension MP3)
 
 }
 

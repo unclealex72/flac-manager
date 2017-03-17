@@ -141,9 +141,9 @@ class ParameterBuildersImplSpec extends Specification with Mockito {
     lazy val directoryMappingService = mock[DirectoryMappingService]
     lazy val parameterBuilders = new ParameterBuildersImpl(users, directoryMappingService)
     val MTAB = "mtab" -> "some"
-    val brian: User = User("Brian", "", "", Seq.empty)
+    val brian: User = User("Brian")
     directoryMappingService.withMtab(MTAB._2) answers (_ => path => Paths.get(path))
-    val freddie: User = User("Freddie", "", "", Seq.empty)
+    val freddie: User = User("Freddie")
     users.allUsers returns (Set(brian, freddie))
 
     def bind[P](parameterBuilder: ParameterBuilder[P], params: (String, Any)*): Either[Seq[FormError], P] = {

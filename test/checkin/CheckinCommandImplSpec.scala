@@ -66,7 +66,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       totalDiscs = 6,
       totalTracks = 17,
       trackNumber = 3)
-    val brian: User = User("Brian", "", "", Seq.empty)
+    val brian: User = User("Brian")
     val fileLocations = Seq.empty[StagedFlacFileLocation]
 
     def andThatsAll() = {

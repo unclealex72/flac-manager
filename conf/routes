@@ -6,7 +6,6 @@
 POST        /commands/initialise                 controllers.Commands.initialise()
 POST        /commands/checkout                   controllers.Commands.checkout()
 POST        /commands/checkin                    controllers.Commands.checkin()
-POST        /commands/sync                       controllers.Commands.sync()
 POST        /commands/own                        controllers.Commands.own()
 POST        /commands/unown                      controllers.Commands.unown()
 

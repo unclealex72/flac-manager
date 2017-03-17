@@ -20,7 +20,6 @@ import java.io.{PrintWriter, StringWriter}
 
 import common.configuration.User
 import common.files.{DeviceFileLocation, FileLocation, FlacFileLocation, StagedFlacFileLocation}
-import sync.{Device, DeviceFile}
 
 import scalaz.ValidationNel
 
@@ -123,26 +122,6 @@ object MessageTypes {
   case class COMMIT_OWNERSHIP(implicit messageService: MessageService) extends MessageType("commitOwnership")
 
   /**
-   * The key for producing a message to say that a file is being kept on a device.
-   */
-  case class SYNC_KEEP(deviceFile: DeviceFile)(implicit messageService: MessageService) extends MessageType("syncKeep", deviceFile)
-
-  /**
-   * The key for producing a message to say that a file is being removed from a device.
-   */
-  case class SYNC_REMOVE(deviceFile: DeviceFile)(implicit messageService: MessageService) extends MessageType("syncRemove", deviceFile)
-
-  /**
-   * The key for producing a message to say that a file is being removed from a device.
-   */
-  case class SYNC_IGNORE(path: String)(implicit messageService: MessageService) extends MessageType("syncIgnore", path)
-
-  /**
-   * The key for producing a message to say that a file is being added to a device.
-   */
-  case class SYNC_ADD(fileLocation: FileLocation)(implicit messageService: MessageService) extends MessageType("syncAdd", fileLocation)
-
-  /**
    * The key for producing a message to say that a file has been found.
    */
   case class FOUND_FILE(fileLocation: FileLocation)(implicit messageService: MessageService) extends MessageType("foundFile", fileLocation)
@@ -151,21 +130,6 @@ object MessageTypes {
    * The key for producing a message to say that devices are being searched.
    */
   case class LOOKING_FOR_DEVICES(implicit messageService: MessageService) extends MessageType("lookingForDevices")
-
-  /**
-   * The key for producing a message to say that a device is being synchronised.
-   */
-  case class SYNCHRONISING(device: Device)(implicit messageService: MessageService) extends MessageType("sync", device.owner, device)
-
-  /**
-   * The key for producing a message to say that a device has been found.
-   */
-  case class FOUND_DEVICE(device: Device)(implicit messageService: MessageService) extends MessageType("foundDevice", device.owner, device)
-
-  /**
-   * The key for producing a message to say that a device has been synchronised.
-   */
-  case class DEVICE_SYNCHRONISED(device: Device)(implicit messageService: MessageService) extends MessageType("deviceSynchronised", device.owner, device)
 
   /**
    * The key for producing a message to say that the database is not empty and so initialisation cannot continue.
@@ -197,11 +161,7 @@ object MessageTypes {
 
     implicit def fileLocationToString(fileLocation: FileLocation): String = fileLocation.toMessage
 
-    implicit def deviceFileToString(deviceFile: DeviceFile): String = deviceFile.relativePath
-
     implicit def userToString(user: User): String = user.name
-
-    implicit def deviceToString(device: Device): String = device.name
   }
 
 }

@@ -97,7 +97,7 @@ class SquerylChangeDaoSpec extends Specification with ApplicationLogging {
 
     implicit def asDateTime(str: String) = df.parseDateTime(str)
 
-    implicit def asUser(name: String) = User(name, "", "", Seq.empty)
+    implicit def asUser(name: String) = User(name)
 
     implicit class ChangeBuilderA(albumAndTitle: (String, String)) {
       def ownedBy(user: User) = (Paths.get(albumAndTitle._1, albumAndTitle._2).toString, user)
