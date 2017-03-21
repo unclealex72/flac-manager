@@ -14,7 +14,7 @@ POST        /commands/unown                      controllers.Commands.unown()
 GET         /conf                                controllers.Conf.configuration()
 
 # Music files
-GET         /music/:user/*file                   controllers.Music.at(user, file)
+GET         /music/:user/*file                   controllers.Music.music(user, file)
 GET         /tags/:user/*file                    controllers.Music.tags(user, file)
 GET         /artwork/:user/*file                 controllers.Music.artwork(user, file)
 

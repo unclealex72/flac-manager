@@ -37,7 +37,7 @@ import scalaz.{Failure, Success}
 @Singleton
 class Music @Inject()(val users: Users)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService) extends Controller {
 
-  def at(username: String, path: String) = musicFile(username, path) { deviceFileLocation =>
+  def music(username: String, path: String) = musicFile(username, path) { deviceFileLocation =>
     Ok.chunked(Enumerator.fromFile(deviceFileLocation.toFile))
   }
 

@@ -22,45 +22,65 @@ import common.changes.ChangeDao
 import common.configuration.{User, Users}
 import common.joda.JodaDateTime
 import org.joda.time.DateTime
-import play.api.libs.json.{JsNumber, JsValue, Json}
-import play.api.mvc.{Action, Controller}
+import play.api.libs.json.{JsNumber, JsObject, JsValue, Json}
+import play.api.mvc.{Action, Controller, RequestHeader}
+import play.core.routing.ReverseRouteContext
 
 /**
- * Created by alex on 14/12/14.
- */
+  * Created by alex on 14/12/14.
+  */
 @Singleton
 class Changes @Inject()(val users: Users, val changeDao: ChangeDao) extends Controller {
 
-  def since(username: String, sinceStr: String)(jsonBuilder: User => DateTime => JsValue) = Action { implicit request =>
+  def since(username: String, sinceStr: String)(jsonBuilder: RequestHeader => User => DateTime => JsValue) = Action { implicit request =>
     val parameters = for {
       user <- users().find(_.name == username)
       since <- JodaDateTime(sinceStr)
     } yield (user, since)
     parameters match {
       case Some((user, since)) => {
-        Ok(jsonBuilder(user)(since))
+        Ok(jsonBuilder(request)(user)(since))
       }
       case _ => NotFound
     }
   }
 
-  def changes(username: String, sinceStr: String) = since(username, sinceStr) { user => since =>
-    val changes = changeDao.getAllChangesSince(user, since).map { change =>
-      Json.obj(
-        "action" -> change.action,
-        "relativePath" -> change.relativePath,
-        "at" -> JodaDateTime.format(change.at)
-      )
+  def changes(username: String, sinceStr: String) = since(username, sinceStr) { implicit request => { user => since =>
+      val changes = changeDao.getAllChangesSince(user, since).map { change =>
+        val changeObj = Json.obj(
+          "action" -> change.action,
+          "relativePath" -> change.relativePath,
+          "at" -> JodaDateTime.format(change.at)
+        )
+        if (change.action == "added") {
+          changeObj ++ links(username, change.relativePath)
+        }
+        else {
+          changeObj
+        }
+      }
+      Json.obj("changes" -> changes)
     }
-    Json.obj("changes" -> changes)
   }
 
-  def countChangelog(username: String, sinceStr: String) = since(username, sinceStr) { user => since =>
-    jsCount(changeDao.countChangelogSince(user, since))
+  def links(user: String, relativePath: String)(implicit request: RequestHeader): JsObject = {
+    Json.obj(
+      "_links" -> Json.obj(
+        "music" -> routes.Music.music(user, relativePath).absoluteURL(),
+        "tags" -> routes.Music.tags(user, relativePath).absoluteURL(),
+        "artwork" -> routes.Music.tags(user, relativePath).absoluteURL()
+      )
+    )
   }
 
-  def countChanges(username: String, sinceStr: String) = since(username, sinceStr) { user => since =>
-    jsCount(changeDao.countChangesSince(user, since))
+  def countChangelog(username: String, sinceStr: String) = since(username, sinceStr) { implicit request => { user => since =>
+      jsCount(changeDao.countChangelogSince(user, since))
+    }
+  }
+
+  def countChanges(username: String, sinceStr: String) = since(username, sinceStr) { implicit request => { user => since =>
+      jsCount(changeDao.countChangesSince(user, since))
+    }
   }
 
   def jsCount(count: Long) = Json.obj("count" -> count)
@@ -78,7 +98,7 @@ class Changes @Inject()(val users: Users, val changeDao: ChangeDao) extends Cont
                 "parentRelativePath" -> changelogItem.parentRelativePath,
                 "at" -> JodaDateTime.format(changelogItem.at),
                 "relativePath" -> changelogItem.relativePath
-              )
+              ) ++ links(username, changelogItem.relativePath)
             }
           )
         )
@@ -86,5 +106,4 @@ class Changes @Inject()(val users: Users, val changeDao: ChangeDao) extends Cont
       case _ => NotFound
     }
   }
-
 }
