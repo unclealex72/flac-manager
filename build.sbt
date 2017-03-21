@@ -3,6 +3,8 @@ import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 name := "flac-manager"
 
+resolvers += "4thline resolver" at "http://4thline.org/m2"
+
 lazy val root = (project in file(".")).enablePlugins(PlayScala, DebianPlugin, SystemdPlugin)
 
 scalaVersion := "2.11.7"
@@ -27,6 +29,7 @@ libraryDependencies ++= Seq(
   evolutions,
   "net.codingwell" %% "scala-guice" % "4.0.1",
   "cglib" % "cglib-nodep" % "3.1",
+  "org.fourthline.cling" % "cling-core" % "2.1.1",
   "org.mockito" % "mockito-core" % "1.9.5" % "test",
   "org.eclipse.jetty" % "jetty-servlet" % "9.3.0.M0" % "test",
   "com.h2database" % "h2" % "1.4.182" % "test"
