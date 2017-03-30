@@ -164,21 +164,21 @@ case class Tags(
 
   def toJson(includeCoverArt: Boolean) = {
     val obj = Json.obj(
-      "albumArtistSort" -> albumArtistSort,
-      "albumArtist" -> albumArtist,
-      "album" -> album,
-      "artist" -> artist,
-      "artistSort" -> artistSort,
-      "title" -> title,
-      "totalDiscs" -> totalDiscs,
-      "totalTracks" -> totalTracks,
-      "discNumber" -> discNumber,
-      "albumArtistId" -> albumArtistId,
-      "albumId" -> albumId,
-      "artistId" -> artistId,
-      "trackId" -> trackId,
-      "asin" -> asin,
-      "trackNumber" -> trackNumber)
+      "albumArtistSort" -> albumArtistSort, //String
+      "albumArtist" -> albumArtist, //String
+      "album" -> album, //String
+      "artist" -> artist, //String
+      "artistSort" -> artistSort, //String
+      "title" -> title, //String
+      "totalDiscs" -> totalDiscs, //int
+      "totalTracks" -> totalTracks, //int
+      "discNumber" -> discNumber, //int
+      "albumArtistId" -> albumArtistId, //String
+      "albumId" -> albumId, //String
+      "artistId" -> artistId, //String
+      "trackId" -> trackId, //String
+      "asin" -> asin, //Option[String]
+      "trackNumber" -> trackNumber) //Int
     if (includeCoverArt) obj + ("coverArt" -> coverArt.toJson) else obj
   }
 }

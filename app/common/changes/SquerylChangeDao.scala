@@ -59,11 +59,11 @@ class SquerylChangeDao @Inject() extends ChangeDao {
 
   def isPartOfChangeLog(c: Change, user: User): LogicalBoolean = c.action === "added" and c.user === user.name and c.parentRelativePath.isNotNull
 
-  def changelog(user: User, pageNumber: Int, limit: Int): List[ChangelogItem] = inTransaction {
+  def changelog(user: User, since: DateTime): List[ChangelogItem] = inTransaction {
     val groupedChanges =
-      from(changes)(c => where(isPartOfChangeLog(c, user))
+      from(changes)(c => where(isPartOfChangeLog(c, user) and c.at >= since)
         groupBy (c.parentRelativePath)
-        compute(min(c.at), min(c.relativePath)(optionStringTEF)) orderBy(min(c.at) desc, min(c.parentRelativePath) asc)).page(pageNumber * limit, limit)
+        compute(min(c.at), min(c.relativePath)(optionStringTEF)) orderBy(min(c.at) desc, min(c.parentRelativePath) asc))
     val changelogItems =
       for {
         g <- groupedChanges.iterator

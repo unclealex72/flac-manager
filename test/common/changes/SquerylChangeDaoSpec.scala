@@ -81,11 +81,11 @@ class SquerylChangeDaoSpec extends Specification with ApplicationLogging {
 
   "Getting the changelog of changes" should {
     "retrieve at most the number of changes requested in change time order" in txn { changeDao => context =>
-      changeDao.countChangelog(context.freddie) must be equalTo (3)
-      val changeLogs = changeDao.changelog(context.freddie, 0, 2)
+      val changeLogs = changeDao.changelog(context.freddie, "05/09/1972 09:13:00")
       changeLogs must contain(exactly(
         ChangelogItem("News of the World", "05/09/1972 09:14:00", "News of the World/We Are The Champions.mp3"),
-        ChangelogItem("Queen", "05/09/1972 09:13:00", "Queen/My Fairy King.mp3")
+        ChangelogItem("Queen", "05/09/1972 09:13:00", "Queen/My Fairy King.mp3"),
+        ChangelogItem("Queen II", "05/09/1972 09:13:00", "Queen II/Funny How Love Is.mp3")
       ).inOrder)
     }
   }
@@ -95,9 +95,9 @@ class SquerylChangeDaoSpec extends Specification with ApplicationLogging {
 
     val df: DateTimeFormatter = DateTimeFormat.forPattern("dd/MM/yyyy HH:mm:ss")
 
-    implicit def asDateTime(str: String) = df.parseDateTime(str)
+    implicit def asDateTime(str: String): DateTime = df.parseDateTime(str)
 
-    implicit def asUser(name: String) = User(name)
+    implicit def asUser(name: String): User = User(name)
 
     implicit class ChangeBuilderA(albumAndTitle: (String, String)) {
       def ownedBy(user: User) = (Paths.get(albumAndTitle._1, albumAndTitle._2).toString, user)

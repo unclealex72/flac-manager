@@ -54,7 +54,7 @@ class Music @Inject()(val users: Users)(implicit val directories: Directories, v
   }
 
   def musicFile(username: String, path: String)(resultBuilder: DeviceFileLocation => Result) = Action { implicit request =>
-    val decodedPath = UriEncoding.decodePath(path, StandardCharsets.UTF_8.toString)
+    val decodedPath = UriEncoding.decodePath(path, StandardCharsets.UTF_8.toString).replace('+', ' ')
     val musicFile = for {
       user <- users().find(_.name == username)
       musicFile <- DeviceFileLocation(user, Paths.get(decodedPath)).ifExists

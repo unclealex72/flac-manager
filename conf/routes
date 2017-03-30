@@ -19,8 +19,5 @@ GET         /tags/:user/*file                    controllers.Music.tags(user, fi
 GET         /artwork/:user/*file                 controllers.Music.artwork(user, file)
 
 # changes
-GET         /changes/count/:user/:since          controllers.Changes.countChanges(user, since)
 GET         /changes/:user/:since                controllers.Changes.changes(user, since)
-
-GET         /changelog/count/:user/:since        controllers.Changes.countChangelog(user, since)
-GET         /changelog/:user/:page/:limit        controllers.Changes.changelog(user, page: Int, limit: Int)
+GET         /changelog/:user/:since              controllers.Changes.changelog(user, since)

@@ -47,7 +47,7 @@ trait ChangeDao {
 
   def countChangesSince(user: User, since: DateTime): Long
 
-  def changelog(user: User, pageNumber: Int, limit: Int): List[ChangelogItem]
+  def changelog(user: User, since: DateTime): List[ChangelogItem]
 
   def countChangelog(user: User): Long
 
