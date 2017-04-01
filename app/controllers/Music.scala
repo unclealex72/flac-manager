@@ -23,12 +23,14 @@ import javax.inject.{Inject, Singleton}
 import common.configuration.{Directories, User, Users}
 import common.files.{DeviceFileLocation, FileLocationExtensions}
 import common.music.{Tags, TagsService}
+import org.joda.time.DateTime
 import play.api.http.HeaderNames
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.iteratee.Enumerator
-import play.api.mvc.{Action, Controller, Result}
+import play.api.mvc._
 import play.utils.UriEncoding
 
+import scala.util.Try
 import scalaz.{Failure, Success}
 
 /**
@@ -65,7 +67,17 @@ class Music @Inject()(val users: Users)(implicit val directories: Directories, v
       musicFile <- deviceFileLocator(user, Paths.get(decodedPath))
     } yield musicFile
     musicFile match {
-      case Some(deviceFileLocation) => resultBuilder(deviceFileLocation)
+      case Some(deviceFileLocation) => {
+        val lastModified = new DateTime(deviceFileLocation.lastModified)
+        val maybeNotModified = for {
+          ifModifiedSinceValue <-
+            request.headers.get("If-Modified-Since")
+          ifModifiedSinceDate <-
+            Try(ResponseHeader.httpDateFormat.parseDateTime(ifModifiedSinceValue)).toOption
+            if lastModified.isBefore(ifModifiedSinceDate)
+        } yield NotModified
+        maybeNotModified.getOrElse(resultBuilder(deviceFileLocation)).withDateHeaders("Last-Modified" -> lastModified)
+      }
       case _ => NotFound
     }
   }
