@@ -142,6 +142,9 @@ trait DeviceFileLocation extends FileLocation {
   def ifExists(implicit fileLocationExtensions: FileLocationExtensions): Option[DeviceFileLocation] = {
     if (exists && !isDirectory) Some(this) else None
   }
+
+  def firstInDirectory(implicit fileLocationExtensions: FileLocationExtensions): Option[DeviceFileLocation]
+
 }
 
 trait RemovableFileLocation extends FileLocation with ToDeviceFileLocation {
@@ -167,10 +170,12 @@ object FileLocationImplicits {
 
     def extendTo(path: Path): FL = {
       val newRelativePath: Path = fileLocation.relativePath.resolve(path)
-      (if (fileLocation.isInstanceOf[FlacFileLocation]) FlacFileLocationImpl(newRelativePath, directories)
-      else if (fileLocation.isInstanceOf[StagedFlacFileLocation]) StagedFlacFileLocationImpl(newRelativePath, directories)
-      else if (fileLocation.isInstanceOf[EncodedFileLocation]) EncodedFileLocationImpl(newRelativePath, directories)
-      else DeviceFileLocationImpl(fileLocation.asInstanceOf[DeviceFileLocationImpl].user, newRelativePath, directories)).asInstanceOf[FL]
+      (fileLocation match {
+        case _: FlacFileLocation => FlacFileLocationImpl(newRelativePath, directories)
+        case _: StagedFlacFileLocation => StagedFlacFileLocationImpl(newRelativePath, directories)
+        case _: EncodedFileLocation => EncodedFileLocationImpl(newRelativePath, directories)
+        case _ => DeviceFileLocationImpl(fileLocation.asInstanceOf[DeviceFileLocationImpl].user, newRelativePath, directories)
+      }).asInstanceOf[FL]
     }
   }
 }
@@ -315,6 +320,9 @@ case class DeviceFileLocationImpl(
 
   override def toRemovableFileLocation(rootDirectory: Path): RemovableFileLocation = RemovableFileLocation(rootDirectory, relativePath)(directories)
 
+  def firstInDirectory(implicit fileLocationExtensions: FileLocationExtensions): Option[DeviceFileLocation] = {
+    fileLocationExtensions.firstFileIn(this, MP3, path => DeviceFileLocationImpl(user, path, directories))
+  }
 }
 
 object DeviceFileLocation {

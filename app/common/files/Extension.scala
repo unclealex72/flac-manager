@@ -56,6 +56,10 @@ object PathImplicits {
       }.getOrElse(originalFilename)
       parent.resolve(filename)
     }
+
+    def hasExtension(extension: Extension): Boolean = {
+      path.getFileName.toString.endsWith(s".$extension")
+    }
   }
 
 }

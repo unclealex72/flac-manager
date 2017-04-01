@@ -16,6 +16,8 @@
 
 package common.files
 
+import java.nio.file.Path
+
 import common.configuration.Directories
 
 /**
@@ -36,4 +38,6 @@ trait FileLocationExtensions {
   protected[files] def createTemporaryFileLocation(extension: Extension)(implicit directories: Directories): TemporaryFileLocation
 
   protected[files] def lastModified(fileLocation: FileLocation): Long
+
+  protected[files] def firstFileIn[F <: FileLocation](parentFileLocation: F, extension: Extension, builder: Path => F): Option[F]
 }

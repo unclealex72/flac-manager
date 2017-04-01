@@ -17,10 +17,10 @@
 package controllers
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 import javax.inject.{Inject, Singleton}
 
-import common.configuration.{Directories, Users}
+import common.configuration.{Directories, User, Users}
 import common.files.{DeviceFileLocation, FileLocationExtensions}
 import common.music.{Tags, TagsService}
 import play.api.http.HeaderNames
@@ -37,27 +37,32 @@ import scalaz.{Failure, Success}
 @Singleton
 class Music @Inject()(val users: Users)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService) extends Controller {
 
-  def music(username: String, path: String) = musicFile(username, path) { deviceFileLocation =>
+  def music(username: String, path: String) = musicFile(username, path, deviceFileAt) { deviceFileLocation =>
     Ok.chunked(Enumerator.fromFile(deviceFileLocation.toFile))
   }
 
-  def tags(username: String, path: String) = serveTags(username, path)(tags => Ok(tags.toJson(false)))
+  def tags(username: String, path: String) = serveTags(username, path, deviceFileAt)(tags => Ok(tags.toJson(false)))
 
-  def serveTags(username: String, path: String)(responseBuilder: Tags => Result) = musicFile(username, path) { deviceFileLocation =>
+  def serveTags(username: String,
+                path: String,
+                deviceFileLocator: (User, Path) => Option[DeviceFileLocation])
+               (responseBuilder: Tags => Result) = musicFile(username, path, deviceFileLocator) { deviceFileLocation =>
     deviceFileLocation.toFlacFileLocation.readTags match {
-      case Failure(violations) => {
+      case Failure(_) =>
         NotFound
-      }
       case Success(tags) =>
         responseBuilder(tags)
     }
   }
 
-  def musicFile(username: String, path: String)(resultBuilder: DeviceFileLocation => Result) = Action { implicit request =>
+  def musicFile(username: String,
+                path: String,
+                deviceFileLocator: (User, Path) => Option[DeviceFileLocation])
+               (resultBuilder: DeviceFileLocation => Result) = Action { implicit request =>
     val decodedPath = UriEncoding.decodePath(path, StandardCharsets.UTF_8.toString).replace('+', ' ')
     val musicFile = for {
       user <- users().find(_.name == username)
-      musicFile <- DeviceFileLocation(user, Paths.get(decodedPath)).ifExists
+      musicFile <- deviceFileLocator(user, Paths.get(decodedPath))
     } yield musicFile
     musicFile match {
       case Some(deviceFileLocation) => resultBuilder(deviceFileLocation)
@@ -65,8 +70,15 @@ class Music @Inject()(val users: Users)(implicit val directories: Directories, v
     }
   }
 
-  def artwork(username: String, path: String) = serveTags(username, path) { tags =>
+  def artwork(username: String, path: String) = serveTags(username, path, firstDeviceFileIn) { tags =>
     val coverArt = tags.coverArt
     Ok(coverArt.imageData).withHeaders(HeaderNames.CONTENT_TYPE -> coverArt.mimeType)
   }
+
+  def deviceFileAt(user: User, path: Path): Option[DeviceFileLocation] =
+    DeviceFileLocation(user, path).ifExists
+
+  def firstDeviceFileIn(user: User, parentPath: Path): Option[DeviceFileLocation] =
+    DeviceFileLocation(user, parentPath).firstInDirectory
+
 }

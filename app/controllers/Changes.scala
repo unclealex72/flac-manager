@@ -16,6 +16,7 @@
 
 package controllers
 
+import java.nio.file.{Path, Paths}
 import javax.inject.{Inject, Singleton}
 
 import common.changes.ChangeDao
@@ -65,14 +66,15 @@ class Changes @Inject()(val users: Users, val changeDao: ChangeDao) extends Cont
   }
 
   def links(user: String, relativePath: String)(implicit request: RequestHeader): JsObject = {
-    def url(callBuilder: (String, String) => Call): String =
-      callBuilder(user, relativePath).absoluteURL().replace(' ', '+')
+    def url(callBuilder: (String, String) => Call, path: Path): String =
+      callBuilder(user, path.toString).absoluteURL().replace(' ', '+')
 
+    val path = Paths.get(relativePath)
     Json.obj(
       "_links" -> Json.obj(
-        "music" -> url(routes.Music.music),
-        "tags" -> url(routes.Music.tags),
-        "artwork" -> url(routes.Music.artwork)
+        "music" -> url(routes.Music.music, path),
+        "tags" -> url(routes.Music.tags, path),
+        "artwork" -> url(routes.Music.artwork, path.getParent)
       )
     )
   }

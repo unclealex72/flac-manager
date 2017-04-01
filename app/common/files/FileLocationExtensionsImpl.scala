@@ -16,10 +16,13 @@
 
 package common.files
 
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
 import javax.inject.Inject
 
 import common.configuration.Directories
+
+import scala.compat.java8.StreamConverters._
+import common.files.PathImplicits._
 
 /**
  * Created by alex on 16/11/14.
@@ -41,5 +44,21 @@ class FileLocationExtensionsImpl @Inject() extends FileLocationExtensions {
 
   override def lastModified(fileLocation: FileLocation): Long = {
     Files.getLastModifiedTime(fileLocation).toMillis
+  }
+
+  override protected[files] def firstFileIn[F <: FileLocation](
+                                                                parentFileLocation: F,
+                                                                extension: Extension,
+                                                                builder: Path => F): Option[F] = {
+    if (Files.isDirectory(parentFileLocation)) {
+      Files.list(parentFileLocation).toScala[Seq].
+        sortBy(_.getFileName.toString).
+        find(_.hasExtension(extension)).
+        map(path => parentFileLocation.relativePath.resolve(path.getFileName)).
+        map(builder)
+    }
+    else {
+      None
+    }
   }
 }

@@ -15,7 +15,7 @@
  */
 package common.changes
 
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 
 import logging.ApplicationLogging
 import common.configuration.{TestDirectories, User}
@@ -112,6 +112,8 @@ class SquerylChangeDaoSpec extends Specification with ApplicationLogging {
 
       def fileLocationExtensions(dateTime: DateTime) = new TestFileLocationExtensions {
         override def lastModified(fileLocation: FileLocation): Long = dateTime.getMillis
+
+        override def firstFileIn[F <: FileLocation](parentFileLocation: F, extension: Extension, builder: (Path) => F): Option[F] = None
       }
 
       def removedAt(dateTime: DateTime): Change = {

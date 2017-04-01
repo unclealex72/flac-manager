@@ -113,7 +113,10 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
         case StagedFlacFileLocation(_) => false
         case _ => isDirectory(fileLocation) || allAlbums.flatMap(a => a.tracks).contains(fileLocation)
       }
+
+      override def firstFileIn[F <: FileLocation](parentFileLocation: F, extension: Extension, builder: (Path) => F): Option[F] = None
     }
+
     implicit val tagsService = mock[TagsService]
     implicit val messageService = mock[MessageService]
     implicit val changeDao = mock[ChangeDao]
