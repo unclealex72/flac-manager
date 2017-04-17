@@ -25,9 +25,9 @@ import scala.collection.JavaConversions._
   **/
 object MyIpAddress {
 
-  def apply(): String = {
+  def apply(blacklist: String => Boolean): String = {
     val inetAddresses = for {
-      iface <- NetworkInterface.getNetworkInterfaces
+      iface <- NetworkInterface.getNetworkInterfaces if !blacklist(iface.getName)
       inetAddr <- iface.getInetAddresses if !inetAddr.isLoopbackAddress
     } yield {
       inetAddr

@@ -29,28 +29,28 @@ trait Directories {
                          *
                          * @return the top level path where FLAC files are stored
                          */
-                        val flacPath: Path
+                        def flacPath: Path
 
                         /**
                          * Gets the top level path where symbolic links for devices are created.
                          *
                          * @return the top level path where symbolic links for devices are created
                          */
-                        val devicesPath: Path
+                        def devicesPath: Path
 
                         /**
                          * Gets the top level path where encoded files are stored.
                          *
                          * @return the top level path where encoded files are stored
                          */
-                        val encodedPath: Path
+                        def encodedPath: Path
 
                         /**
                          * Gets the top level path where new and altered FLAC files are staged.
                          *
                          * @return the top level path where new and altered FLAC files are staged
                          */
-                        val stagingPath: Path
+                        def stagingPath: Path
 
                         /**
                          * Gets the top level path where temporary files are created.

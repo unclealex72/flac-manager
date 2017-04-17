@@ -16,17 +16,15 @@
 
 package upnp
 
-import java.net.{InetAddress, URI}
+import java.net.URI
 
 import com.typesafe.scalalogging.StrictLogging
-import controllers.routes
 import org.fourthline.cling.binding.annotations
-import org.fourthline.cling.binding.annotations.AnnotationLocalServiceBinder
+import org.fourthline.cling.binding.annotations.{AnnotationLocalServiceBinder, _}
 import org.fourthline.cling.model.meta._
-import org.fourthline.cling.model.types.{DeviceType, UDADeviceType, UDN}
+import org.fourthline.cling.model.types.{UDADeviceType, UDN}
 import org.fourthline.cling.{UpnpService, UpnpServiceImpl}
-import org.fourthline.cling.binding.annotations._
-import play.api.Application
+import play.api.{Application, Mode}
 /**
   * Created by alex on 21/03/17
   * Advertise the flac manager using uPNP.
@@ -38,9 +36,11 @@ object UpnpServer extends StrictLogging {
   def start(app: Application): Unit = {
     val thread = new Thread {
       override def run() {
-        val port = app.configuration.getInt("http.port").getOrElse(9000)
-        val host = MyIpAddress()
-        upnpService.getRegistry.addDevice(createDevice(host, port))
+        val (maybePort, host, suffix) = app.mode match {
+          case Mode.Prod => (app.configuration.getInt("play.server.http.port"), MyIpAddress(_ => false), "")
+          case m => (None, MyIpAddress(nm => nm.contains("docker")), s"-$m")
+        }
+        upnpService.getRegistry.addDevice(createDevice(host, maybePort.getOrElse(9000), suffix))
       }
     }
     thread.setDaemon(false)
@@ -57,14 +57,14 @@ object UpnpServer extends StrictLogging {
     }
   }
 
-  def createDevice(host: String, port: Int): LocalDevice = {
+  def createDevice(host: String, port: Int, suffix: String): LocalDevice = {
     val identity = new DeviceIdentity(UDN.uniqueSystemIdentifier("Flac Manager"))
-    val deviceType = new UDADeviceType("FlacManager", 1)
+    val deviceType = new UDADeviceType("FlacManager" + suffix, 1)
     val presentationURI = new URI(s"http://$host:$port/")
     val deviceDetails = new DeviceDetails(
       "Flac Manager",
       new ManufacturerDetails("Alex Jones"),
-      new ModelDetails("FlacManager", "Device synchronisation server", "v1"),
+      new ModelDetails("FlacManager" + suffix, "Flac Manager Server", "v1"),
       presentationURI)
     val icon = new Icon("image/png", 48, 48, 8, classOf[FlacManager].getClassLoader.getResource("upnp/icon.png"))
     val flacManagerService = new AnnotationLocalServiceBinder().read(classOf[FlacManager])

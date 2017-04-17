@@ -16,20 +16,26 @@
 
 package common.configuration
 
+import java.nio.file.{Files, Path}
 import javax.inject.Inject
 
 import logging.ApplicationLogging
-import play.api.Configuration
+
+import scala.collection.JavaConversions._
 
 /**
  * Get the users using Play configuration
  * Created by alex on 20/11/14.
  */
-case class PlayConfigurationUsers @Inject()(override val configuration: Configuration) extends PlayConfiguration[Set[User]](configuration) with Users with ApplicationLogging {
+case class FileSystemUsers @Inject()(directories: Directories) extends Users with ApplicationLogging {
 
-  def load(configuration: Configuration): Option[Set[User]] = {
-    configuration.getStringSeq("users").map(_.map(User).toSet)
+  val allUsers: Set[User] =
+    Files.newDirectoryStream(directories.devicesPath).toSet.map((dir: Path) => User(dir.getFileName.toString))
+
+  if (allUsers.isEmpty) {
+    throw new IllegalStateException(s"Could not find any user directories under ${directories.devicesPath}")
   }
-
-  override def allUsers = result
+  else {
+    logger.info(s"Found users ${allUsers.map(_.name).mkString(", ")}")
+  }
 }

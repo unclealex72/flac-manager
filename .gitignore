@@ -16,3 +16,4 @@ dist
 /conf/secure
 /sandbox
 .idea
+/env-activator

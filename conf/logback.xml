@@ -17,10 +17,11 @@
 
     <logger name="play" level="INFO" />
     <logger name="application" level="INFO" />
-    <logger name="common" level="DEBUG" />
+    <logger name="common" level="INFO" />
     <logger name="messages" level="INFO" />
     <logger name="checkin.actors" level="INFO" />
-    <logger name="akka" level="DEBUG" />
+    <logger name="akka" level="WARN" />
+    <logger name="org.fourthline" level="ERROR" />
     <root level="INFO">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />

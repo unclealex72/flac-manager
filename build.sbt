@@ -1,3 +1,4 @@
+import com.typesafe.sbt.packager.docker._
 import sbt.Keys._
 import sbt._
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
@@ -38,30 +39,32 @@ lazy val root = (project in file(".")).
     libraryDependencies ++= Seq("core", "mock", "junit").
       map(name => "org.specs2" %% s"specs2-$name" % "2.4.8" % "test"),
     unmanagedResourceDirectories in Compile <+= baseDirectory(_ / "resources"),
-    // Debian packaging
+    // Docker
+    dockerBaseImage := "openjdk:alpine",
+    dockerExposedPorts := Seq(9999),
     maintainer := "Alex Jones <alex.jones@unclealex.co.uk>",
-    packageSummary := "Flac Manager Debian Package",
-    packageDescription := "Flac Manager Debian Package",
-    version in Debian := ((v: String) => v + (if (v.endsWith("-")) "" else "-") + "build-aj")(version.value),
-    daemonUser in Linux := "music",
-    daemonGroup in Linux := (daemonUser in Linux).value,
-    debianPackageDependencies := Seq(
-      "java8-runtime-headless",
-      "flac",
-      "lame"),
-    javaOptions in Universal ++= Seq(
-      // -J params will be added as jvm parameters
-      //"-J-Xmx64m",
-      //"-J-Xms64m",
-
-      // others will be added as app parameters
-      "-Dhttp.port=9999",
-      "-DapplyEvolutions.default=true",
-      "-Dconfig.file=/etc/flac-manager/application-prod.conf",
-      s"-Dpidfile.path=/var/run/${packageName.value}/play.pid"
-    )
+    dockerRepository := Some("unclealex72"),
+    daemonUser in Docker := "music",
+    // Installing packages requires the run commands to be put high up in the list of docker commands
+    dockerCommands := {
+      val commands = dockerCommands.value
+      val (prefixCommands, suffixCommands) = commands.splitAt {
+        val firstRunCommand = commands.indexWhere {
+          case Cmd("FROM", _) => true
+          case _ => false
+        }
+        firstRunCommand + 1
+      }
+      val installPackageCommands = Seq("flac", "lame").map { pkg =>
+        Cmd("RUN", "apk", "add", "--update", "--no-cache", pkg)
+      }
+      val createUserCommands = Seq(Cmd("RUN", "adduser", "-D",  "-u", "1000", "music"))
+      val mkDirCommands = Seq(Cmd("RUN", "mkdir", "-p", "/music"), Cmd("VOLUME", "/music"))
+      prefixCommands ++ installPackageCommands ++ createUserCommands ++ mkDirCommands ++ suffixCommands
+    },
+    javaOptions in Docker ++= Seq("-DapplyEvolutions.default=true")
   ).
-  enablePlugins(PlayScala, DebianPlugin, SystemdPlugin)
+  enablePlugins(PlayScala, DockerPlugin, AshScriptPlugin)
 
 lazy val client = (project in file("client")).
   settings(
@@ -77,11 +80,6 @@ lazy val client = (project in file("client")).
   ).
   enablePlugins(DebianPlugin)
 
-mappings in Universal ++= Seq("checkin", "checkout", "initialise", "own", "unown").map { cmd =>
-  baseDirectory.value / "src" / "main" / "resources" / "flac-manager.py" -> s"bin/flacman-$cmd"
-}
-
-
 /* Releases */
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies, // : ReleaseStep
@@ -90,7 +88,8 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion, // : ReleaseStep
   commitReleaseVersion, // : ReleaseStep, performs the initial git checks
   tagRelease, // : ReleaseStep
-  releaseStepCommand("debian:packageBin"), // : ReleaseStep, build deb file.
+  releaseStepCommand("docker:publish"), // : ReleaseStep, build server docker image.
+  releaseStepCommand("client/debian:packageBin"), // : ReleaseStep, client build deb file.
   setNextVersion, // : ReleaseStep
   commitNextVersion, // : ReleaseStep
   pushChanges // : ReleaseStep, also checks that an upstream branch is properly configured

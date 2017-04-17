@@ -23,54 +23,58 @@ import javax.inject.Inject
 import logging.ApplicationLogging
 import play.api.Configuration
 
+import scalaz._
+import Scalaz._
+import scala.util.Try
+
 /**
  * Get the users using Play configuration
  * Created by alex on 20/11/14.
  */
-case class PlayConfigurationDirectories @Inject() (override val configuration: Configuration)
-  extends PlayConfiguration[Directories](configuration) with Directories {
+case class PlayConfigurationDirectories @Inject() (configuration: Configuration) extends Directories with ApplicationLogging {
 
-  def load(configuration: Configuration): Option[Directories] = {
-    configuration.getConfig("directories").flatMap { directories =>
-      val fileAttributes = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxr--r--"))
-      val tmpDir = Files.createTempDirectory("flac-manager-", fileAttributes).toAbsolutePath.toString
-      for {
-        directories <- configuration.getConfig("directories")
-        flacDir <- directories.getString("flac")
-        stagingDir <- directories.getString("staging")
-        encodedDir <- directories.getString("encoded")
-        devicesDir <- directories.getString("devices")
-      } yield InternalDirectories(tmpDir, encodedDir, devicesDir, flacDir, stagingDir)
-    }
+  val musicDirectory: Path =
+    configuration.getString("directories.music").map(Paths.get(_)).getOrElse(Paths.get("/music"))
+
+  val temporaryPath: Path = {
+    val fileAttributes = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxr--r--"))
+    Files.createTempDirectory("flac-manager-", fileAttributes).toAbsolutePath
   }
 
-  override lazy val temporaryPath = result.temporaryPath
-  override lazy val encodedPath = result.encodedPath
-  override lazy val devicesPath = result.devicesPath
-  override lazy val flacPath = result.flacPath
-  override lazy val stagingPath = result.stagingPath
-}
+  val flacPath: Path = musicDirectory.resolve("flac")
+  val stagingPath: Path = musicDirectory.resolve("staging")
+  val encodedPath: Path = musicDirectory.resolve("encoded")
+  val devicesPath: Path = musicDirectory.resolve("devices")
 
-case object InternalDirectories extends ApplicationLogging {
+  private val directoryValidation: ValidationNel[String, Unit] = {
+    def validateProperty(predicate: Path => Boolean, failureMessage: Path => String): Path => ValidationNel[String, Unit] = { path =>
+      if (Try(predicate(path)).toOption.getOrElse(false)) {
+        Success({})
+      }
+      else {
+        failureMessage(path).failureNel[Unit]
+      }
+    }
+    val exists = validateProperty(Files.exists(_), path => s"$path does not exist")
+    val isDirectory = validateProperty(Files.isDirectory(_), path => s"$path is not a directory")
+    val isWriteable = validateProperty(Files.isWritable, path => s"$path is not writeable")
 
-  def apply(tmpDir: String, encodedDir: String, devicesDir: String, flacDir: String, stagingDir: String): Directories = {
-    val path: String => Path = str => Paths.get(str).toAbsolutePath
-    val directories = new Directories {
-      override val temporaryPath = path(tmpDir)
-      override val encodedPath = path(encodedDir)
-      override val devicesPath = path(devicesDir)
-      override val flacPath = path(flacDir)
-      override val stagingPath = path(stagingDir)
-    }
-    logger.info(s"Configuring directories...")
-    Seq(
-      "temp" -> directories.temporaryPath,
-      "encoded" -> directories.encodedPath,
-      "devices" -> directories.devicesPath,
-      "flac" -> directories.flacPath,
-      "staging" -> directories.stagingPath).foreach { case (k, v) =>
-      logger.info(s"$k: $v")
-    }
-    directories
+    val allValidations = (for {
+      path <- Seq(flacPath, stagingPath, encodedPath, devicesPath)
+      validationFunction <- Seq(exists, isDirectory)
+    } yield {
+      validationFunction(path)
+    }) :+ isWriteable(stagingPath)
+    val empty: ValidationNel[String, Unit] = Success({})
+    allValidations.foldLeft(empty)((acc, v) => (acc |@| v)((_, _) => {}))
+  }
+
+  directoryValidation match {
+    case Success(_) =>
+    case Failure(errors) =>
+      errors.foreach { error =>
+        logger.error(error)
+      }
+      throw new IllegalStateException("The supplied directories were invalid:\n" + errors.toList.mkString("\n"))
   }
 }

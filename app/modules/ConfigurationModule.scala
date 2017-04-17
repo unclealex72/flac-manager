@@ -6,7 +6,7 @@ import net.codingwell.scalaguice.ScalaModule
 
 class ConfigurationModule extends AbstractModule with ScalaModule {
   override def configure(): Unit = {
-    bind[Users].to[PlayConfigurationUsers].asEagerSingleton()
+    bind[Users].to[FileSystemUsers].asEagerSingleton()
     bind[Directories].to[PlayConfigurationDirectories].asEagerSingleton()
   }
 }
