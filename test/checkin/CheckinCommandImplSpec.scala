@@ -48,7 +48,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     lazy implicit val fileLocationExtensions = mock[TestFileLocationExtensions]
     lazy val checkinService = mock[CheckinService]
     lazy val checkinCommand = new CheckinCommandImpl(directoryService, ownerService, checkinService)
-    implicit val directories = TestDirectories(Paths.get("/flac"), Paths.get(""), Paths.get(""), Paths.get("/staging"), Paths.get("/temp"))
+    implicit val directories = TestDirectories(flac = "/flac", staging = "/staging", temp  ="/temp")
     val tags = Tags(
       album = "Metal: A Headbanger's Companion",
       albumArtist = "Various Artists",

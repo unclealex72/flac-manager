@@ -46,51 +46,51 @@ class ParameterBuildersImplSpec extends Specification with Mockito {
 
   "The checkin form" should {
     "require at least one directory" in new Context {
-      val result = bind(parameterBuilders.checkinParametersBuilder, MTAB)
+      val result = bind(parameterBuilders.checkinParametersBuilder, DATUM)
       result must beLeft(contain(beAFormError("directories", "error.min")).exactly(1))
     }
-    "require an mtab" in new Context {
+    "require a datum file" in new Context {
       val result = bind(parameterBuilders.checkinParametersBuilder, "directories[0]" -> directories.stagingPath.resolve("dir"))
-      result must beLeft(contain(beAFormError("mtab", "error.required")).exactly(1))
+      result must beLeft(contain(beAFormError("datum", "error.required")).exactly(1))
     }
     "reject non-staging directories" in new Context {
-      val result = bind(parameterBuilders.checkinParametersBuilder, MTAB, "directories[0]" -> directories.flacPath.resolve("dir"))
+      val result = bind(parameterBuilders.checkinParametersBuilder, DATUM, "directories[0]" -> directories.flacPath.resolve("dir"))
       result must beLeft(contain(beAFormErrorWithArgs("directories[0]", "invalidPath", "/flac/dir")).exactly(1))
     }
     "reject staging files" in new Context {
-      val result = bind(parameterBuilders.checkinParametersBuilder, MTAB, "directories[0]" -> directories.stagingPath.resolve("file"))
+      val result = bind(parameterBuilders.checkinParametersBuilder, DATUM, "directories[0]" -> directories.stagingPath.resolve("file"))
       result must beLeft(contain(beAFormErrorWithArgs("directories[0]", "invalidPath", "/staging/file")).exactly(1))
     }
     "accept staging directories" in new Context {
-      val result = bind(parameterBuilders.checkinParametersBuilder, MTAB, "directories[0]" -> directories.stagingPath.resolve("dir"))
+      val result = bind(parameterBuilders.checkinParametersBuilder, DATUM, "directories[0]" -> directories.stagingPath.resolve("dir"))
       result must beRight(CheckinParameters(Seq(StagedFlacFileLocation("dir"))))
     }
   }
 
   "The checkout form" should {
     "require at least one directory" in new Context {
-      val result = bind(parameterBuilders.checkoutParametersBuilder, MTAB)
+      val result = bind(parameterBuilders.checkoutParametersBuilder, DATUM)
       result must beLeft(contain(beAFormError("directories", "error.min")).exactly(1))
     }
-    "require an mtab" in new Context {
+    "require a datum file" in new Context {
       val result = bind(parameterBuilders.checkoutParametersBuilder, "directories[0]" -> directories.flacPath.resolve("dir"))
-      result must beLeft(contain(beAFormError("mtab", "error.required")).exactly(1))
+      result must beLeft(contain(beAFormError("datum", "error.required")).exactly(1))
     }
     "reject non-repository directories" in new Context {
-      val result = bind(parameterBuilders.checkoutParametersBuilder, MTAB, "directories[0]" -> directories.stagingPath.resolve("dir"))
+      val result = bind(parameterBuilders.checkoutParametersBuilder, DATUM, "directories[0]" -> directories.stagingPath.resolve("dir"))
       result must beLeft(contain(beAFormErrorWithArgs("directories[0]", "invalidPath", "/staging/dir")).exactly(1))
     }
     "reject repository files" in new Context {
-      val result = bind(parameterBuilders.checkoutParametersBuilder, MTAB, "directories[0]" -> directories.flacPath.resolve("file"))
+      val result = bind(parameterBuilders.checkoutParametersBuilder, DATUM, "directories[0]" -> directories.flacPath.resolve("file"))
       result must beLeft(contain(beAFormErrorWithArgs("directories[0]", "invalidPath", "/flac/file")).exactly(1))
     }
     "accept repository directories" in new Context {
-      val result = bind(parameterBuilders.checkoutParametersBuilder, MTAB, "directories[0]" -> directories.flacPath.resolve("dir"))
+      val result = bind(parameterBuilders.checkoutParametersBuilder, DATUM, "directories[0]" -> directories.flacPath.resolve("dir"))
       result must beRight(CheckoutParameters(Seq(FlacFileLocation("dir")), false))
     }
     "accept an unown parameter" in new Context {
       val result = bind(
-        parameterBuilders.checkoutParametersBuilder, MTAB,
+        parameterBuilders.checkoutParametersBuilder, DATUM,
         "directories[0]" -> directories.flacPath.resolve("dir"), "unown" -> "true")
       result must beRight(CheckoutParameters(Seq(FlacFileLocation("dir")), true))
     }
@@ -98,30 +98,30 @@ class ParameterBuildersImplSpec extends Specification with Mockito {
 
   "The owner form" should {
     "require at least one directory" in new Context {
-      val result = bind(parameterBuilders.ownerParametersBuilder, MTAB, "users[0]" -> brian.name)
+      val result = bind(parameterBuilders.ownerParametersBuilder, DATUM, "users[0]" -> brian.name)
       result must beLeft(contain(beAFormError("directories", "error.min")).exactly(1))
     }
-    "require an mtab" in new Context {
+    "require a datum file" in new Context {
       val result = bind(parameterBuilders.ownerParametersBuilder, "directories[0]" -> directories.stagingPath.resolve("dir"), "users[0]" -> brian.name)
-      result must beLeft(contain(beAFormError("mtab", "error.required")).exactly(1))
+      result must beLeft(contain(beAFormError("datum", "error.required")).exactly(1))
     }
     "require a user" in new Context {
-      val result = bind(parameterBuilders.ownerParametersBuilder, MTAB, "directories[0]" -> directories.stagingPath.resolve("dir"))
+      val result = bind(parameterBuilders.ownerParametersBuilder, DATUM, "directories[0]" -> directories.stagingPath.resolve("dir"))
       result must beLeft(contain(beAFormError("users", "error.min")).exactly(1))
     }
     "reject non-staging directories" in new Context {
       val result = bind(parameterBuilders.ownerParametersBuilder,
-        MTAB, "directories[0]" -> directories.flacPath.resolve("dir"), "users[0]" -> brian.name)
+        DATUM, "directories[0]" -> directories.flacPath.resolve("dir"), "users[0]" -> brian.name)
       result must beLeft(contain(beAFormErrorWithArgs("directories[0]", "invalidPath", "/flac/dir")).exactly(1))
     }
     "reject staging files" in new Context {
       val result = bind(parameterBuilders.ownerParametersBuilder,
-        MTAB, "directories[0]" -> directories.stagingPath.resolve("file"), "users[0]" -> brian.name)
+        DATUM, "directories[0]" -> directories.stagingPath.resolve("file"), "users[0]" -> brian.name)
       result must beLeft(contain(beAFormErrorWithArgs("directories[0]", "invalidPath", "/staging/file")).exactly(1))
     }
     "accept staging directories" in new Context {
       val result = bind(parameterBuilders.ownerParametersBuilder,
-        MTAB, "directories[0]" -> directories.stagingPath.resolve("dir"), "users[0]" -> brian.name, "users[1]" -> freddie.name)
+        DATUM, "directories[0]" -> directories.stagingPath.resolve("dir"), "users[0]" -> brian.name, "users[1]" -> freddie.name)
       result must beRight(OwnerParameters(Seq(StagedFlacFileLocation("dir")), Seq(brian, freddie)))
     }
   }
@@ -132,7 +132,13 @@ class ParameterBuildersImplSpec extends Specification with Mockito {
   }
 
   trait Context extends Scope {
-    lazy implicit val directories = TestDirectories(Paths.get("/flac"), Paths.get("/devices"), Paths.get("/encoded"), Paths.get("/staging"), Paths.get("/temp"))
+    lazy implicit val directories = TestDirectories(
+      flac = "/flac",
+      devices = "/devices",
+      encoded = "/encoded",
+      staging = "/staging",
+      temp = "/temp",
+      datum = "/datum")
     lazy implicit val fileLocationExtensions = mock[TestFileLocationExtensions]
     lazy val users = mock[Users]
     fileLocationExtensions.isDirectory(any[FileLocation]) answers { fileLocation =>
@@ -140,11 +146,11 @@ class ParameterBuildersImplSpec extends Specification with Mockito {
     }
     lazy val directoryMappingService = mock[DirectoryMappingService]
     lazy val parameterBuilders = new ParameterBuildersImpl(users, directoryMappingService)
-    val MTAB = "mtab" -> "some"
+    val DATUM = "datum" -> "some"
     val brian: User = User("Brian")
-    directoryMappingService.withMtab(MTAB._2) answers (_ => path => Paths.get(path))
+    directoryMappingService.withDatumFileLocation(DATUM._2) answers (_ => path => Paths.get(path))
     val freddie: User = User("Freddie")
-    users.allUsers returns (Set(brian, freddie))
+    users.allUsers returns Set(brian, freddie)
 
     def bind[P](parameterBuilder: ParameterBuilder[P], params: (String, Any)*): Either[Seq[FormError], P] = {
       val request = FakeRequest().withFormUrlEncodedBody(params.map { case (k, v) => (k, v.toString) }: _*)

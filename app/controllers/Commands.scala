@@ -66,7 +66,7 @@ class Commands @Inject()(
    * Call with:
    *
    * curl --data-urlencode owners[0]=Alex
-   * --data-urlencode mtab@/etc/mtab
+   * --data-urlencode datum=/mnt/.datum
    * --data-urlencode directories[0]=/mnt/flac
    * --data-urlencode directories[1]=/mnt/encoded
    * localhost:9000/command

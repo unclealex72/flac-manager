@@ -57,12 +57,23 @@ case class TestDirectories(
                              *
                              * @return the top level path where temporary files are created
                              */
-                            temporaryPath: Path) extends Directories
+                            temporaryPath: Path,
+                            /**
+                              * Gets the file that is used by clients to work out what relative directory a file is in
+                              * @return
+                              */
+                            datumPath: Path
+                          ) extends Directories
 
 object TestDirectories {
 
-  def apply(flacPath: String, devicesPath: String, encodedPath: String, stagingPath: String, temporaryPath: String): TestDirectories = {
-    val path = (str: String) => Paths.get(str)
-    TestDirectories(path(flacPath), path(devicesPath), path(encodedPath), path(stagingPath), path(temporaryPath))
+  def apply(
+             flac: String = "",
+             devices: String = "",
+             encoded: String = "",
+             staging: String = "",
+             temp: String = "",
+             datum: String = ""): TestDirectories = {
+    TestDirectories(Paths.get(flac), Paths.get(devices), Paths.get(encoded), Paths.get(staging), Paths.get(temp), Paths.get(datum))
   }
 }

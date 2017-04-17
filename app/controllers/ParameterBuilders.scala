@@ -23,7 +23,7 @@ import play.api.data.FormError
 trait ParameterBuilders {
 
   val UNOWN: String = "unown"
-  val MTAB: String = "mtab"
+  val DATUM: String = "datum"
   val DIRECTORIES: String = "directories"
   val USERS: String = "users"
 
@@ -53,8 +53,8 @@ object SyncParameters extends Parameters
 
 object InitialiseParameters extends Parameters
 
-case class CheckinParameters(val stagedFileLocations: Seq[StagedFlacFileLocation]) extends Parameters
+case class CheckinParameters(stagedFileLocations: Seq[StagedFlacFileLocation]) extends Parameters
 
-case class CheckoutParameters(val fileLocations: Seq[FlacFileLocation], val unown: Boolean) extends Parameters
+case class CheckoutParameters(fileLocations: Seq[FlacFileLocation], unown: Boolean) extends Parameters
 
-case class OwnerParameters(val stagedFileLocations: Seq[StagedFlacFileLocation], val owners: Seq[User]) extends Parameters
+case class OwnerParameters(stagedFileLocations: Seq[StagedFlacFileLocation], owners: Seq[User]) extends Parameters

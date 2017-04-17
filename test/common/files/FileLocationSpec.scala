@@ -28,7 +28,7 @@ class FileLocationSpec extends Specification {
 
   val (stagingPath, flacPath, encodedPath, devicesPath, tempPath) =
     (Paths.get("/path", "staging"), Paths.get("/path", "flac"), Paths.get("/path", "encoded"), Paths.get("/path", "devices"), Paths.get("/path", "temp"))
-  implicit val directories = TestDirectories(flacPath, encodedPath, devicesPath, stagingPath, tempPath)
+  implicit val directories = TestDirectories(flacPath, encodedPath, devicesPath, stagingPath, tempPath, Paths.get("/datum"))
 
   "Pattern matching using StagedFlacFileLocation" should {
     "match a valid staging path" in {

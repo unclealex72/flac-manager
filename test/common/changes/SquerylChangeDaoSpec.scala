@@ -104,7 +104,7 @@ class SquerylChangeDaoSpec extends Specification with ApplicationLogging {
     }
 
     implicit class ChangeBuilderB(relativePathAndUser: (String, User)) {
-      implicit val directories: TestDirectories = TestDirectories(Paths.get("/"), Paths.get("/"), Paths.get("/"), Paths.get("/"), Paths.get("/"))
+      implicit val directories: TestDirectories = TestDirectories()
 
       def addedAt(dateTime: DateTime): Change = {
         Change.added(DeviceFileLocation(relativePathAndUser._2, relativePathAndUser._1))(fileLocationExtensions(dateTime))

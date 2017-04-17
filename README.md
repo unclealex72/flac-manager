@@ -18,10 +18,10 @@ Configuration is stored in a file called `~/.flacman.json`
 
     {
       "directories" : {
-        "flacPath" : "The root path of your FLAC music library.",
-        "devicesPath" : "The root path where devices get mounted.",
-        "encodedPath" : "The root path of where encoded files are stored.",
-        "stagingPath" : "The root path of the directory where FLAC paths are ripped before they are checked in to the FLAC music library."
+        "flac" : "The root path of your FLAC music library.",
+        "devices" : "The root path where devices get mounted.",
+        "encoded" : "The root path of where encoded files are stored.",
+        "staging" : "The root path of the directory where FLAC paths are ripped before they are checked in to the FLAC music library."
       },
       "users" : [ {
         "name" : "The user's friendly name.",

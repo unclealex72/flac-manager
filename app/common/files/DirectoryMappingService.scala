@@ -19,16 +19,16 @@ package common.files
 import java.nio.file.Path
 
 /**
- * The trait for services that can resolve NFS mounts on client services
+ * The trait for services that can resolve how directories are mounted on the client
+ * using a known datum file.
  * Created by alex on 06/11/14.
  */
 trait DirectoryMappingService {
 
   /**
    * Resolve a set of client side directories into a map of server side directories.
-   * @param mtab The contents of the client's /etc/mtab file.
-   * @param directories
-   * @return A map of the original directories to the resolved directories
+   * @param datumFileLocation The location of the datum file on the client.
+   * @return A function that converts client paths to server paths
    */
-  def withMtab(mtab: String): String => Path
+  def withDatumFileLocation(datumFileLocation: String): String => Path
 }

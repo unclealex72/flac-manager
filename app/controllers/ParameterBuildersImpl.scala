@@ -66,16 +66,16 @@ class ParameterBuildersImpl @Inject()(val users: Users, val directoryMappingServ
     Form(mapping(UNOWN -> boolean)(UnownParameters.apply)(UnownParameters.unapply)).asParameterBuilder
 
   /**
-   * The model for including an mtab in a form.
-   * @param mtab
+   * The model for including a datum file location in a form.
+   * @param datumFile
    */
-  case class MtabParameters(mtab: String)
+  case class DatumFileParameters(datumFile: String)
 
   /**
-   * A parameter builder for forms containing /etc/mtab.
+   * A parameter builder for forms containing a datum file location.
    */
-  val mtabParameterBuilder: SingleParameterBuilder[MtabParameters] =
-    Form(mapping(MTAB -> nonEmptyText)(MtabParameters.apply)(MtabParameters.unapply)).asParameterBuilder
+  val datumFileParameterBuilder: SingleParameterBuilder[DatumFileParameters] =
+    Form(mapping(DATUM -> nonEmptyText)(DatumFileParameters.apply)(DatumFileParameters.unapply)).asParameterBuilder
 
   /**
    * The model for parameters than include a list of file locations.
@@ -89,9 +89,9 @@ class ParameterBuildersImpl @Inject()(val users: Users, val directoryMappingServ
    */
   implicit val seqByLengthOrdering: Ordering[Seq[String]] = Ordering.by(_.size)
 
-  def mtabFileLocationParameterBuilder[FL <: FileLocation](fileLocationBuilder: Path => Option[FL])(mtabParameters: MtabParameters): ParameterBuilder[FileLocationsParameters[FL]] = {
+  def datumFileLocationParameterBuilder[FL <: FileLocation](fileLocationBuilder: Path => Option[FL])(datumParameters: DatumFileParameters): ParameterBuilder[FileLocationsParameters[FL]] = {
     val mapper = (path: String) =>
-      (fileLocationBuilder compose directoryMappingService.withMtab(mtabParameters.mtab))(path).filter{ path =>
+      (fileLocationBuilder compose directoryMappingService.withDatumFileLocation(datumParameters.datumFile))(path).filter{ path =>
         if (path.isDirectory) true else {
           logger.debug(s"Rejecting $path as it is not a directory.")
           false
@@ -101,8 +101,8 @@ class ParameterBuildersImpl @Inject()(val users: Users, val directoryMappingServ
     val nonifier: FileLocationsParameters[FL] => Option[Seq[String]] = _ => None
     val fileLocationConstraint: Constraint[String] = Constraint("fileLocation") { path =>
       mapper(path) match {
-        case Some(fileLocation) => Valid
         case None => Invalid(Seq(ValidationError("invalidPath", path)))
+        case _ => Valid
       }
     }
     Form(
@@ -112,18 +112,18 @@ class ParameterBuildersImpl @Inject()(val users: Users, val directoryMappingServ
   }
 
   val checkoutParametersBuilder: ParameterBuilder[CheckoutParameters] = {
-    val mtabAndFilesParameterBuilder = new DoubleParameterBuilder(
-      mtabParameterBuilder, mtabFileLocationParameterBuilder(FlacFileLocation.unapply),
-      (m: MtabParameters) => (flp: FileLocationsParameters[FlacFileLocation]) => CheckoutParameters(flp.fileLocations, false))
+    val datumFileAndFilesParameterBuilder = new DoubleParameterBuilder(
+      datumFileParameterBuilder, datumFileLocationParameterBuilder(FlacFileLocation.unapply),
+      (m: DatumFileParameters) => (flp: FileLocationsParameters[FlacFileLocation]) => CheckoutParameters(flp.fileLocations, false))
     new DoubleParameterBuilder(
-      mtabAndFilesParameterBuilder,
+      datumFileAndFilesParameterBuilder,
       (cp: CheckoutParameters) => unownParamtersBuilder,
       (cp: CheckoutParameters) => (u: UnownParameters) => CheckoutParameters(cp.fileLocations, u.unown))
   }
 
   val checkinParametersBuilder: ParameterBuilder[CheckinParameters] = new DoubleParameterBuilder(
-    mtabParameterBuilder, mtabFileLocationParameterBuilder(StagedFlacFileLocation.unapply),
-    (m: MtabParameters) => (flp: FileLocationsParameters[StagedFlacFileLocation]) => CheckinParameters(flp.fileLocations))
+    datumFileParameterBuilder, datumFileLocationParameterBuilder(StagedFlacFileLocation.unapply),
+    (m: DatumFileParameters) => (flp: FileLocationsParameters[StagedFlacFileLocation]) => CheckinParameters(flp.fileLocations))
 
   val syncParametersBuilder: ParameterBuilder[Parameters] = new ZeroParameterBuilder[Parameters](SyncParameters)
 

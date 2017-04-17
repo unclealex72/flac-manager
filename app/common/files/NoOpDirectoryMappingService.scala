@@ -10,9 +10,9 @@ import javax.inject.Inject
 class NoOpDirectoryMappingService @Inject() extends DirectoryMappingService {
   /**
     * Resolve a set of client side directories into a map of server side directories.
-    * @param mtab The contents of the client's /etc/mtab file.
-    * @param directories
-    * @return A map of the original directories to the resolved directories
+    *
+    * @param datumFileLocation The location of the datum file on the client.
+    * @return A function that converts client paths to server paths
     */
-  override def withMtab(mtab: String): (String) => Path = str => Paths.get(str)
+  override def withDatumFileLocation(datumFileLocation: String): (String) => Path = Paths.get(_)
 }

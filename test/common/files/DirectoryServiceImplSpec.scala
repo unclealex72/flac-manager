@@ -35,7 +35,7 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
 
   trait fs extends TempFileSystem {
 
-    lazy implicit val directories = TestDirectories(rootDirectory, rootDirectory, rootDirectory, rootDirectory, rootDirectory)
+    lazy implicit val directories = TestDirectories(rootDirectory, rootDirectory, rootDirectory, rootDirectory, rootDirectory, rootDirectory)
     lazy implicit val fileLocationExtensions = new FileLocationExtensionsImpl
     def fl(path: String, paths: String*): FlacFileLocation = FlacFileLocation(path, paths: _*)
 
