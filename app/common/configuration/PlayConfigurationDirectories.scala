@@ -21,17 +21,21 @@ import java.nio.file.{Files, Path, Paths}
 import javax.inject.Inject
 
 import logging.ApplicationLogging
+import org.apache.commons.io.{FileUtils, IOUtils}
 import play.api.Configuration
 
 import scalaz._
 import Scalaz._
 import scala.util.Try
+import play.api.inject.ApplicationLifecycle
 
+import scala.concurrent.{ExecutionContext, Future}
 /**
  * Get the users using Play configuration
  * Created by alex on 20/11/14.
  */
-case class PlayConfigurationDirectories @Inject() (configuration: Configuration) extends Directories with ApplicationLogging {
+case class PlayConfigurationDirectories @Inject() (configuration: Configuration, lifecycle: ApplicationLifecycle)
+                                                  (implicit ec: ExecutionContext) extends Directories with ApplicationLogging {
 
   val musicDirectory: Path =
     configuration.getString("directories.music").map(Paths.get(_)).getOrElse(Paths.get("/music"))
@@ -41,10 +45,14 @@ case class PlayConfigurationDirectories @Inject() (configuration: Configuration)
     Files.createTempDirectory("flac-manager-", fileAttributes).toAbsolutePath
   }
 
+  val datumPath: Path = musicDirectory.resolve("." + java.util.UUID.randomUUID.toString)
   val flacPath: Path = musicDirectory.resolve("flac")
   val stagingPath: Path = musicDirectory.resolve("staging")
   val encodedPath: Path = musicDirectory.resolve("encoded")
   val devicesPath: Path = musicDirectory.resolve("devices")
+
+  // Create the datum file
+  Files.createFile(datumPath)
 
   private val directoryValidation: ValidationNel[String, Unit] = {
     def validateProperty(predicate: Path => Boolean, failureMessage: Path => String): Path => ValidationNel[String, Unit] = { path =>
@@ -76,5 +84,12 @@ case class PlayConfigurationDirectories @Inject() (configuration: Configuration)
         logger.error(error)
       }
       throw new IllegalStateException("The supplied directories were invalid:\n" + errors.toList.mkString("\n"))
+  }
+
+  lifecycle.addStopHook { () =>
+    Future {
+      Try(FileUtils.deleteDirectory(temporaryPath.toFile))
+      FileUtils.deleteQuietly(datumPath.toFile)
+    }
   }
 }

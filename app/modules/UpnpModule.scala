@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package upnp
+package modules
 
-/**
-  * A trait for UPNP servers. Currently it doesn't need any methods as the only server side
-  * interaction is startup and shutdown.
-  * Created by alex on 17/04/17
-  **/
-trait UpnpServer {
+import com.google.inject.AbstractModule
+import net.codingwell.scalaguice.ScalaModule
+import upnp.{ClingUpnpServer, UpnpServer}
 
+class UpnpModule extends AbstractModule with ScalaModule {
+  override def configure(): Unit = {
+    bind[UpnpServer].to[ClingUpnpServer].asEagerSingleton()
+  }
 }
+

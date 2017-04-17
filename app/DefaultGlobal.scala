@@ -20,7 +20,7 @@ import org.squeryl.internals.DatabaseAdapter
 import org.squeryl.{Session, SessionFactory}
 import play.api.db.DB
 import play.api.{Application, GlobalSettings}
-import upnp.UpnpServer
+import upnp.ClingUpnpServer
 
 /**
   * Created by alex on 12/02/17
@@ -39,13 +39,11 @@ trait DefaultGlobal extends GlobalSettings with LazyLogging {
       })
       case _ => sys.error("Database driver must be either org.h2.Driver or org.postgresql.Driver")
     }
-    UpnpServer.start(app)
   }
 
   def getSession(adapter: DatabaseAdapter, app: Application) = Session.create(DB.getConnection()(app), adapter)
 
   override def onStop(app: Application): Unit = {
     super.onStop(app)
-    UpnpServer.shutdown()
   }
 }

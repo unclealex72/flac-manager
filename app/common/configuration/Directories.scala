@@ -19,43 +19,50 @@ package common.configuration
 import java.nio.file.Path
 
 /**
- * A configuration interface that is used to hold where the various directories are.
- * @author alex
- *
- */
+  * A configuration interface that is used to hold where the various directories are.
+  *
+  * @author alex
+  *
+  */
 trait Directories {
-                        /**
-                         * Gets the top level path where FLAC files are stored.
-                         *
-                         * @return the top level path where FLAC files are stored
-                         */
-                        def flacPath: Path
+  /**
+    * Gets the top level path where FLAC files are stored.
+    *
+    * @return the top level path where FLAC files are stored
+    */
+  def flacPath: Path
 
-                        /**
-                         * Gets the top level path where symbolic links for devices are created.
-                         *
-                         * @return the top level path where symbolic links for devices are created
-                         */
-                        def devicesPath: Path
+  /**
+    * Gets the top level path where symbolic links for devices are created.
+    *
+    * @return the top level path where symbolic links for devices are created
+    */
+  def devicesPath: Path
 
-                        /**
-                         * Gets the top level path where encoded files are stored.
-                         *
-                         * @return the top level path where encoded files are stored
-                         */
-                        def encodedPath: Path
+  /**
+    * Gets the top level path where encoded files are stored.
+    *
+    * @return the top level path where encoded files are stored
+    */
+  def encodedPath: Path
 
-                        /**
-                         * Gets the top level path where new and altered FLAC files are staged.
-                         *
-                         * @return the top level path where new and altered FLAC files are staged
-                         */
-                        def stagingPath: Path
+  /**
+    * Gets the top level path where new and altered FLAC files are staged.
+    *
+    * @return the top level path where new and altered FLAC files are staged
+    */
+  def stagingPath: Path
 
-                        /**
-                         * Gets the top level path where temporary files are created.
-                         *
-                         * @return the top level path where temporary files are created
-                         */
-                        val temporaryPath: Path
+  /**
+    * Gets the top level path where temporary files are created.
+    *
+    * @return the top level path where temporary files are created
+    */
+  def temporaryPath: Path
+
+  /**
+    * Gets the file that is used by clients to work out what relative directory a file is in
+    * @return
+    */
+  def datumPath: Path
 }

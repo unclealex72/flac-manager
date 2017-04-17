@@ -32,6 +32,7 @@ lazy val root = (project in file(".")).
       "net.codingwell" %% "scala-guice" % "4.0.1",
       "cglib" % "cglib-nodep" % "3.1",
       "org.fourthline.cling" % "cling-core" % "2.1.1",
+      "commons-io" % "commons-io" % "2.5",
       "org.mockito" % "mockito-core" % "1.9.5" % "test",
       "org.eclipse.jetty" % "jetty-servlet" % "9.3.0.M0" % "test",
       "com.h2database" % "h2" % "1.4.182" % "test"
