@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+/usr/share/flac-manager-client/bin/flac-manager-client checkin "$@"

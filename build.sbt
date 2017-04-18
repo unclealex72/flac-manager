@@ -10,7 +10,7 @@ resolvers ++= Seq("releases").map(Resolver.sonatypeRepo)
 lazy val root = (project in file(".")).
   settings(
     name := "flac-manager",
-    scalaVersion := "2.11.7",
+    scalaVersion := "2.11.8",
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     libraryDependencies ++= Seq(
       "org.squeryl" %% "squeryl" % "0.9.6-RC3",
@@ -29,6 +29,7 @@ lazy val root = (project in file(".")).
       jdbc,
       cache,
       evolutions,
+      ws,
       "net.codingwell" %% "scala-guice" % "4.0.1",
       "cglib" % "cglib-nodep" % "3.1",
       "org.fourthline.cling" % "cling-core" % "2.1.1",
@@ -70,16 +71,26 @@ lazy val root = (project in file(".")).
 lazy val client = (project in file("client")).
   settings(
     name := "flac-manager-client",
+    scalaVersion := "2.11.8",
+    javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     maintainer := "Alex Jones <alex.jones@unclealex.co.uk>",
-    packageSummary := "Flac Manager Debian Package",
-    packageDescription := "Flac Manager Debian Package",
-    version in Debian := ((v: String) => v + (if (v.endsWith("-")) "" else "-") + "build-aj")(version.value),
-    linuxPackageSymlinks ++= Seq("checkin", "checkout", "initialise", "own", "unown").map { cmd =>
-      LinuxSymlink(s"/usr/bin/flacman-$cmd", "/usr/bin/flac-manager.py")
+    packageSummary := "Flac Manager Client Debian Package",
+    packageDescription := "Flac Manager Client Debian Package",
+    libraryDependencies ++= Seq(
+      "com.typesafe.play" %% "play-ws" % "2.5.12",
+      "com.beachape" %% "enumeratum" % "1.3.6",
+      "com.github.scopt" %% "scopt" % "3.5.0",
+      "org.fourthline.cling" % "cling-core" % "2.1.1",
+      "org.typelevel" %% "cats" % "0.9.0"
+    ),
+    // Remove the /usr/bin/ symlinks
+    linuxPackageSymlinks := linuxPackageSymlinks.value.filterNot { linuxSymlink =>
+      linuxSymlink.link.startsWith("/usr/bin/")
     },
-    debianPackageDependencies := Seq("python-pycurl")
+    version in Debian := ((v: String) => v + (if (v.endsWith("-")) "" else "-") + "build-aj")(version.value),
+    debianPackageDependencies := Seq("java8-runtime-headless")
   ).
-  enablePlugins(DebianPlugin)
+  enablePlugins(DebianPlugin, JavaAppPackaging)
 
 /* Releases */
 releaseProcess := Seq[ReleaseStep](

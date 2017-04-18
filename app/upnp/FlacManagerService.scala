@@ -78,7 +78,7 @@ class FlacManagerService {
 
   @UpnpAction(out = Array(new UpnpOutputArgument(name = "Url")))
   def getUrl(remoteClientInfo: RemoteClientInfo): java.lang.String = {
-    s"http://${remoteClientInfo.getConnection.getLocalAddress}:$port"
+    s"http:/${remoteClientInfo.getConnection.getLocalAddress}:$port"
   }
 
   @UpnpAction(out = Array(new UpnpOutputArgument(name = "DatumFilename")))
