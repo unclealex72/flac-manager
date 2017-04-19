@@ -27,3 +27,4 @@ GET         /changelog/:user/:since              controllers.Changes.changelog(u
 GET         /                                    controllers.Index.index()
 GET         /index.html                          controllers.Default.redirect(to = "/")
 GET         /assets/*file                        controllers.Assets.at(path="/public", file)
+GET         /*file                               controllers.Icons.at(path="/public/images", file)
