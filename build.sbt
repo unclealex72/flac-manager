@@ -2,7 +2,6 @@ import com.typesafe.sbt.packager.docker._
 import sbt.Keys._
 import sbt._
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
-import com.typesafe.sbt.packager.linux._
 
 resolvers += "4thline resolver" at "http://4thline.org/m2"
 resolvers ++= Seq("releases").map(Resolver.sonatypeRepo)
@@ -30,6 +29,7 @@ lazy val root = (project in file(".")).
       cache,
       evolutions,
       ws,
+      "com.vladsch.flexmark" % "flexmark-all" % "0.19.0",
       "net.codingwell" %% "scala-guice" % "4.0.1",
       "cglib" % "cglib-nodep" % "3.1",
       "org.fourthline.cling" % "cling-core" % "2.1.1",

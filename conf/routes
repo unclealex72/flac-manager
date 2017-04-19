@@ -21,3 +21,9 @@ GET         /artwork/:user/*file                 controllers.Music.artwork(user,
 # changes
 GET         /changes/:user/:since                controllers.Changes.changes(user, since)
 GET         /changelog/:user/:since              controllers.Changes.changelog(user, since)
+
+# pretty!
+
+GET         /                                    controllers.Index.index()
+GET         /index.html                          controllers.Default.redirect(to = "/")
+GET         /assets/*file                        controllers.Assets.at(path="/public", file)
