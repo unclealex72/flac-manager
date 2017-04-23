@@ -30,15 +30,15 @@ class TagsSpec extends Specification {
 
   "A track on a single disc" should {
     "not print a disc number suffix" in {
-      SimpleTags("Mötörhead", "Good - Stuff ", 1, 1, 2, "The Ace of Spades").asPath(FLAC) must be equalTo (
-        Paths.get("M", "Motorhead", "Good Stuff", "02 The Ace of Spades.flac"))
+      SimpleTags("Mötörhead", "Good - Stuff ", 1, 1, 2, "The Ace of Spades").asPath(FLAC) must be equalTo
+        Paths.get("M", "Motorhead", "Good Stuff", "02 The Ace of Spades.flac")
     }
   }
 
   "A track on a non-single disc" should {
     "print a disc number suffix" in {
-      SimpleTags("Mötörhead", "Good - Stuff ", 1, 2, 2, "The Ace of Spades").asPath(FLAC) must be equalTo (
-        Paths.get("M", "Motorhead", "Good Stuff 01", "02 The Ace of Spades.flac"))
+      SimpleTags("Mötörhead", "Good - Stuff ", 1, 2, 2, "The Ace of Spades").asPath(FLAC) must be equalTo
+        Paths.get("M", "Motorhead", "Good Stuff 01", "02 The Ace of Spades.flac")
     }
   }
 
@@ -47,7 +47,7 @@ class TagsSpec extends Specification {
       val result = validate(SimpleTags("", "", 0, 0, 0, ""))
       result must beAnInstanceOf[Failure]
       result match {
-        case Success => {}
+        case Success =>
         case Failure(violations: Set[Violation]) => {
           val descriptions = violations.flatMap(_.description)
           descriptions must contain(exactly(

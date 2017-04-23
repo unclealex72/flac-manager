@@ -26,6 +26,7 @@ import common.message.MessageService
  */
 trait OwnCommand {
   def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandType
+
 }
 
 sealed trait OwnAction

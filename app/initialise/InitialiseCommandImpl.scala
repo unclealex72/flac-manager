@@ -30,7 +30,6 @@ import common.message.{MessageService, Messaging}
 import common.music.TagsService
 
 import scala.collection.SortedSet
-import scalaz.{Failure, Success}
 
 /**
  * Created by alex on 06/12/14.

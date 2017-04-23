@@ -18,6 +18,7 @@ package checkout
 
 import java.nio.file.{Path, Paths}
 
+import cats.data.Validated.Valid
 import common.changes.{Change, ChangeDao, ChangeMatchers}
 import common.configuration.{Directories, TestDirectories, User, Users}
 import common.files.FileLocationImplicits._
@@ -33,7 +34,6 @@ import org.specs2.mutable._
 import org.specs2.specification.Scope
 
 import scala.collection.{SortedMap, SortedSet}
-import scalaz.Success
 
 /**
  * Created by alex on 18/11/14.
@@ -49,7 +49,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
     }
 
     implicit val stringToPath: String => Path = Paths.get(_)
-    implicit val directories: Directories = TestDirectories("/flac", "/devices", "/encoded", "/staging", "/temp")
+    implicit val directories: Directories = TestDirectories()
     val oneVisionTags = Tags(
       album = "A Kind of Magic",
       albumArtist = "Queen",
@@ -124,8 +124,8 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
     val ownerService = mock[OwnerService]
     val nowService = mock[NowService]
     val now = new DateTime()
-    tagsService.read("/flac/A Kind of Magic/01 One Vision.flac") returns Success(oneVisionTags)
-    tagsService.read("/flac/Jazz/01 Mustapha.flac") returns Success(mustaphaTags)
+    tagsService.read("/flac/A Kind of Magic/01 One Vision.flac") returns Valid(oneVisionTags)
+    tagsService.read("/flac/Jazz/01 Mustapha.flac") returns Valid(mustaphaTags)
     val checkoutService = new CheckoutServiceImpl(fileSystem, users, ownerService, nowService)
 
     def checkFilesRemoved: MatchResult[Unit] = {

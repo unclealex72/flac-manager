@@ -18,10 +18,9 @@ package common.message
 
 import java.io.{PrintWriter, StringWriter}
 
+import cats.data.ValidatedNel
 import common.configuration.User
 import common.files.{DeviceFileLocation, FileLocation, FlacFileLocation, StagedFlacFileLocation}
-
-import scalaz.ValidationNel
 
 /**
  * An interface for classes that can print internationalised messages to users.
@@ -142,8 +141,8 @@ object MessageTypes {
   /**
    * The key for producing error keys.
    */
-  case class INVALID_PARAMETERS(errorKey: String, errorMessage: String, args: Seq[Any])(implicit messageService: MessageService) extends MessageType(
-    s"error.${"""\[\d+\]""".r.replaceAllIn(errorKey, "")}.$errorMessage", args.map(_.toString): _*)
+  case class INVALID_PARAMETERS(errorMessage: String)
+                               (implicit messageService: MessageService) extends MessageType(errorMessage)
 
   case class EXCEPTION(e: Exception)(implicit messageService: MessageService) extends MessageType("exception", {
     val stringWriter = new StringWriter
@@ -177,7 +176,7 @@ trait Messaging {
     }
   }
 
-  implicit class FailureLoggingImplicits[F, S, V <: ValidationNel[F, S]](validationNel: V) {
+  implicit class InvalidLoggingImplicits[F, S, V <: ValidatedNel[F, S]](validationNel: V) {
     def log(templateFactory: Seq[F] => Seq[MessageType])(implicit messageService: MessageService): V = {
       //logme
       validationNel

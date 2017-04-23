@@ -26,6 +26,7 @@ import org.specs2.mutable._
 import tempfs.TempFileSystem
 
 import scala.collection.SortedSet
+import  common.message.NoOpMessageService._
 
 /**
  * @author alex
@@ -35,17 +36,9 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
 
   trait fs extends TempFileSystem {
 
-    lazy implicit val directories = TestDirectories(rootDirectory, rootDirectory, rootDirectory, rootDirectory, rootDirectory, rootDirectory)
-    lazy implicit val fileLocationExtensions = new FileLocationExtensionsImpl
+    implicit val directories = TestDirectories(rootDirectory, rootDirectory.resolve(".datum"))
+    implicit val fileLocationExtensions = new FileLocationExtensionsImpl
     def fl(path: String, paths: String*): FlacFileLocation = FlacFileLocation(path, paths: _*)
-
-    implicit object NullMessageService extends MessageService {
-      override def printMessage(template: MessageType): Unit = {}
-
-      override def exception(t: Throwable) = {}
-
-      override def finish: Unit = {}
-    }
 
     implicit val directoryService = new DirectoryServiceImpl
 
@@ -60,7 +53,7 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
         Paths.get("dir", "your.flac"),
         Paths.get("dir", "your.mp3"))
       paths.foreach { path =>
-        val fullPath = rootDirectory.resolve(path)
+        val fullPath = rootDirectory.resolve("flac").resolve(path)
         Files.createDirectories(fullPath.getParent)
         Files.createFile(fullPath)
       }

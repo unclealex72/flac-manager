@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package flacman.client
+package client
+import java.nio.file.{FileSystem, FileSystems}
 import java.util.logging.LogManager
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import cats.data.{EitherT, NonEmptyList}
 import cats.instances.future._
+import io.circe.Json
+import json.Parameters
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -37,6 +40,7 @@ object Client extends App {
 
   implicit val system: ActorSystem = ActorSystem()
   implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val fs: FileSystem = FileSystems.getDefault
 
   val isDev: Boolean = !Option(System.getenv("FLAC_DEV")).forall(_.isEmpty)
   if (isDev) {
@@ -45,10 +49,9 @@ object Client extends App {
   val ws = WS()
   try {
     val eventualAction = for {
-      config <- loadConfig()
       serverDetails <- fetchServerDetails()
-      bodyParameters <- createBodyParameters(config, serverDetails)
-      _ <- runCommand(config, serverDetails, bodyParameters)
+      body <- parseParameters(serverDetails)
+      _ <- runCommand(body, serverDetails)
     }  yield {}
     Await.result(eventualAction.value, Duration.Inf) match {
       case Left(messages) => messages.toList.foreach(System.err.println)
@@ -62,16 +65,13 @@ object Client extends App {
 
   type Response[T] = EitherT[Future, NonEmptyList[String], T]
 
-  def loadConfig(): Response[Config] = EitherT(Future.successful(Config(args)))
+  def parseParameters(serverDetails: ServerDetails): Response[Json] =
+    EitherT(Future.successful(ParametersParser(serverDetails.datumFilename, args)))
 
   def fetchServerDetails(): Response[ServerDetails] = EitherT(ServerDetails(isDev))
 
-  def createBodyParameters(config: Config, serverDetails: ServerDetails): Response[Map[String, String]] = EitherT {
-    Future.successful(BodyBuilder(config, serverDetails.datumFilename))
-  }
-
-  def runCommand(config: Config, serverDetails: ServerDetails, bodyParameters: Map[String, String]): Response[Unit] = {
-    EitherT.right(RemoteCommandRunner(ws, config, bodyParameters, serverDetails.uri, System.out))
+  def runCommand(body: Json, serverDetails: ServerDetails): Response[Unit] = {
+    EitherT.right(RemoteCommandRunner(ws, body, serverDetails.uri, System.out))
   }
 
 }

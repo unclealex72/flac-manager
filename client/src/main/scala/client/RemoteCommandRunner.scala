@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package flacman.client
+package client
 
 import java.io.OutputStream
 import java.net.URI
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.scaladsl.Sink
 import akka.util.ByteString
-import play.api.libs.ws.{StreamedBody, StreamedResponse, WSClient}
-import play.api.mvc.MultipartFormData.DataPart
-import play.core.formatters.Multipart
+import io.circe.Json
+import play.api.http.Writeable
+import play.api.libs.ws.{StreamedResponse, WSClient}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,21 +34,18 @@ import scala.concurrent.{ExecutionContext, Future}
   **/
 object RemoteCommandRunner {
 
+  implicit val jsonWriteable: Writeable[Json] =
+    Writeable(json => ByteString(json.noSpaces), Some("application/json"))
+
   def apply(
              ws: WSClient,
-             config: Config,
-             bodyParameters: Map[String, String],
+             body: Json,
              serverUri: URI,
              out: OutputStream)
            (implicit materializer: Materializer, executionContext: ExecutionContext): Future[Unit] = {
-    val commandUri = serverUri.resolve(new URI(s"/commands/${config.command.name}"))
-    val bodyStream = Source(bodyParameters.map(kv => DataPart(kv._1, kv._2)))
-    val boundary = Multipart.randomBoundary()
-    val contentType = s"multipart/form-data; boundary=$boundary"
-    val body = StreamedBody(Multipart.transform(bodyStream, boundary))
+    val commandUri = serverUri.resolve(new URI(s"/commands"))
     val futureResponse: Future[StreamedResponse] =
-      ws.url(commandUri.toString).withMethod("POST").withBody(body).
-        withHeaders("Content-Type" -> contentType).stream()
+      ws.url(commandUri.toString).withMethod("POST").withBody(body).stream()
     futureResponse.flatMap { res =>
       val sink = Sink.foreach[ByteString] { bytes =>
         out.write(bytes.toArray)

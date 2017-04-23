@@ -17,7 +17,7 @@
 package common.configuration
 
 /**
- * A configuration item for a user. Users must also have a MusicBrainz login and own an iPod.
+ * A common.configuration item for a user. Users must also have a MusicBrainz login and own an iPod.
  *
  * @author alex
  *

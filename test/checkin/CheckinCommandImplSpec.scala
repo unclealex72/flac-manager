@@ -18,6 +18,8 @@ package checkin
 
 import java.nio.file.Paths
 
+import cats.data.NonEmptyList
+import cats.data.Validated.{Invalid, Valid}
 import common.commands.CommandType._
 import common.configuration.{TestDirectories, User}
 import common.files.FileLocationImplicits._
@@ -32,7 +34,6 @@ import org.specs2.mutable._
 import org.specs2.specification.Scope
 
 import scala.collection.SortedSet
-import scalaz.{Failure, NonEmptyList, Success}
 
 /**
  * Created by alex on 15/11/14.
@@ -48,7 +49,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     lazy implicit val fileLocationExtensions = mock[TestFileLocationExtensions]
     lazy val checkinService = mock[CheckinService]
     lazy val checkinCommand = new CheckinCommandImpl(directoryService, ownerService, checkinService)
-    implicit val directories = TestDirectories(flac = "/flac", staging = "/staging", temp  ="/temp")
+    implicit val directories = TestDirectories()
     val tags = Tags(
       album = "Metal: A Headbanger's Companion",
       albumArtist = "Various Artists",
@@ -78,7 +79,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     "not allow flac files that are not fully tagged" in new Context {
       val sfl = StagedFlacFileLocation("bad.flac")
       flacFileChecker.isFlacFile(sfl) returns true
-      tagsService.read(sfl) returns Failure(NonEmptyList(""))
+      tagsService.read(sfl) returns Invalid(NonEmptyList.of(""))
       directoryService.listFiles(fileLocations) returns SortedSet(sfl)
       checkinCommand.checkin(fileLocations).execute
       there was one(messageService).printMessage(INVALID_FLAC(sfl))
@@ -90,7 +91,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       val sfl = StagedFlacFileLocation("good.flac")
       val fl = sfl.toFlacFileLocation(tags)
       flacFileChecker.isFlacFile(sfl) returns true
-      tagsService.read(sfl) returns Success(tags)
+      tagsService.read(sfl) returns Valid(tags)
       directoryService.listFiles(fileLocations) returns SortedSet(sfl)
       fileLocationExtensions.exists(fl) returns true
       checkinCommand.checkin(fileLocations).execute
@@ -106,7 +107,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       val fl = sfl1.toFlacFileLocation(tags)
       Seq(sfl1, sfl2, sfl3).foreach { sfl =>
         flacFileChecker.isFlacFile(sfl) returns true
-        tagsService.read(sfl) returns Success(tags)
+        tagsService.read(sfl) returns Valid(tags)
       }
       directoryService.listFiles(fileLocations) returns SortedSet(sfl1, sfl2, sfl3)
       fileLocationExtensions.exists(fl) returns false
@@ -121,7 +122,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     val sfl = StagedFlacFileLocation("good.flac")
     val fl = sfl.toFlacFileLocation(tags)
     flacFileChecker.isFlacFile(sfl) returns true
-    tagsService.read(sfl) returns Success(tags)
+    tagsService.read(sfl) returns Valid(tags)
     directoryService.listFiles(fileLocations) returns SortedSet(sfl)
     fileLocationExtensions.exists(fl) returns false
     ownerService.listCollections() returns { fl => Set()}
@@ -137,7 +138,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     val fl = sfl1.toFlacFileLocation(tags)
     flacFileChecker.isFlacFile(sfl1) returns true
     flacFileChecker.isFlacFile(sfl2) returns false
-    tagsService.read(sfl1) returns Success(tags)
+    tagsService.read(sfl1) returns Valid(tags)
     directoryService.listFiles(fileLocations) returns SortedSet(sfl1, sfl2)
     fileLocationExtensions.exists(fl) returns false
     ownerService.listCollections() returns { fl => Set(brian)}

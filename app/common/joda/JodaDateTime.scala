@@ -47,10 +47,10 @@ object JodaDateTime extends ApplicationLogging {
    */
   def apply(s: String): Option[JDateTime] = Try {
     formatter.parseDateTime(s)
-  } recoverWith { case (t: Throwable) =>
+  }.recoverWith { case (t: Throwable) =>
     logger.error(s"Could not parse $s", t)
     Failure(t)
-  } toOption
+  }.toOption
 
   def format(dateTime: JDateTime): String = formatter.print(dateTime)
 }

@@ -17,21 +17,21 @@
 package common.configuration
 
 import java.nio.file.attribute.PosixFilePermissions
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{FileSystem, Files, Path, Paths}
 import javax.inject.Inject
 
+import cats.data.Validated._
+import cats.data.{NonEmptyList, ValidatedNel}
+import cats.implicits._
 import logging.ApplicationLogging
-import org.apache.commons.io.{FileUtils, IOUtils}
+import org.apache.commons.io.FileUtils
 import play.api.Configuration
-
-import scalaz._
-import Scalaz._
-import scala.util.Try
 import play.api.inject.ApplicationLifecycle
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 /**
- * Get the users using Play configuration
+ * Get the users using Play common.configuration
  * Created by alex on 20/11/14.
  */
 case class PlayConfigurationDirectories @Inject() (configuration: Configuration, lifecycle: ApplicationLifecycle)
@@ -46,21 +46,17 @@ case class PlayConfigurationDirectories @Inject() (configuration: Configuration,
   }
 
   val datumPath: Path = musicDirectory.resolve("." + java.util.UUID.randomUUID.toString)
-  val flacPath: Path = musicDirectory.resolve("flac")
-  val stagingPath: Path = musicDirectory.resolve("staging")
-  val encodedPath: Path = musicDirectory.resolve("encoded")
-  val devicesPath: Path = musicDirectory.resolve("devices")
 
   // Create the datum file
   Files.createFile(datumPath)
 
-  private val directoryValidation: ValidationNel[String, Unit] = {
-    def validateProperty(predicate: Path => Boolean, failureMessage: Path => String): Path => ValidationNel[String, Unit] = { path =>
+  private val directoryValidation: ValidatedNel[String, Unit] = {
+    def validateProperty(predicate: Path => Boolean, failureMessage: Path => String): Path => ValidatedNel[String, Unit] = { path =>
       if (Try(predicate(path)).toOption.getOrElse(false)) {
-        Success({})
+        Valid({})
       }
       else {
-        failureMessage(path).failureNel[Unit]
+        Invalid(NonEmptyList.of(failureMessage(path)))
       }
     }
     val exists = validateProperty(Files.exists(_), path => s"$path does not exist")
@@ -73,14 +69,14 @@ case class PlayConfigurationDirectories @Inject() (configuration: Configuration,
     } yield {
       validationFunction(path)
     }) :+ isWriteable(stagingPath)
-    val empty: ValidationNel[String, Unit] = Success({})
-    allValidations.foldLeft(empty)((acc, v) => (acc |@| v)((_, _) => {}))
+    val empty: ValidatedNel[String, Unit] = Valid({})
+    allValidations.foldLeft(empty)((acc, v) => (acc |@| v).map((_, _) => {}))
   }
 
   directoryValidation match {
-    case Success(_) =>
-    case Failure(errors) =>
-      errors.foreach { error =>
+    case Valid(_) =>
+    case Invalid(errors) =>
+      errors.toList.foreach { error =>
         logger.error(error)
       }
       throw new IllegalStateException("The supplied directories were invalid:\n" + errors.toList.mkString("\n"))

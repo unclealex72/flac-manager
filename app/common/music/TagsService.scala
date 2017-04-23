@@ -17,10 +17,10 @@
 package common.music
 import java.nio.file.Path
 
+import cats.data.Validated.{Invalid, Valid}
+import cats.data.{NonEmptyList, ValidatedNel}
 import com.wix.accord._
 import common.music.Tags._
-
-import scalaz.{Failure => ZFailure, NonEmptyList, Success => ZSuccess, ValidationNel}
 /**
  * A trait to add tags to and read tags from files.
  * Created by alex on 02/11/14.
@@ -29,14 +29,13 @@ trait TagsService {
 
   def readTags(path: Path): Tags
 
-  def read(path: Path): ValidationNel[String, Tags] = {
+  def read(path: Path): ValidatedNel[String, Tags] = {
     val tags = readTags(path)
     validate(tags) match {
-      case Success => ZSuccess(tags)
-      case Failure(violations) => {
+      case Success => Valid(tags)
+      case Failure(violations) =>
         val descriptions = violations.flatMap(_.description)
-        ZFailure(NonEmptyList(descriptions.head, descriptions.tail.toSeq: _*))
-      }
+        Invalid(NonEmptyList.fromListUnsafe(descriptions.toList))
     }
   }
 

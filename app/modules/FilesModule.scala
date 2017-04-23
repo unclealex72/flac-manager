@@ -11,7 +11,6 @@ class FilesModule  extends AbstractModule with ScalaModule {
     bind[FileSystem].annotatedWithName("rawFileSystem").to[FileSystemImpl].asEagerSingleton()
     bind[FileSystem].to[ProtectionAwareFileSystem].asEagerSingleton()
     bind[DirectoryService].to[DirectoryServiceImpl].asEagerSingleton()
-    bind[DirectoryMappingService].to[NoOpDirectoryMappingService].asEagerSingleton()
     bind[TagsService].to[JaudioTaggerTagsService].asEagerSingleton()
     bind[FlacFileChecker].to[FlacFileCheckerImpl].asEagerSingleton()
   }

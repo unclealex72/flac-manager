@@ -24,7 +24,7 @@ import logging.ApplicationLogging
 import scala.collection.JavaConversions._
 
 /**
- * Get the users using Play configuration
+ * Get the users using Play common.configuration
  * Created by alex on 20/11/14.
  */
 case class FileSystemUsers @Inject()(directories: Directories) extends Users with ApplicationLogging {

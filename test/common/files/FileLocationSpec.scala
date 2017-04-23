@@ -16,7 +16,7 @@
 
 package common.files
 
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 
 import common.configuration.{TestDirectories, User}
 import org.specs2.mutable._
@@ -26,10 +26,12 @@ import org.specs2.mutable._
  */
 class FileLocationSpec extends Specification {
 
-  val (stagingPath, flacPath, encodedPath, devicesPath, tempPath) =
-    (Paths.get("/path", "staging"), Paths.get("/path", "flac"), Paths.get("/path", "encoded"), Paths.get("/path", "devices"), Paths.get("/path", "temp"))
-  implicit val directories = TestDirectories(flacPath, encodedPath, devicesPath, stagingPath, tempPath, Paths.get("/datum"))
-
+  implicit val directories = TestDirectories(Paths.get("/path", "temp"), Paths.get("/path", ".datum"))
+  val stagingPath: Path = directories.stagingPath
+  val flacPath: Path = directories.flacPath
+  val encodedPath: Path = directories.encodedPath
+  val devicesPath: Path = directories.devicesPath
+  val tempPath: Path = directories.temporaryPath
   "Pattern matching using StagedFlacFileLocation" should {
     "match a valid staging path" in {
       val result = stagingPath.resolve("hello") match {

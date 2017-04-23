@@ -19,12 +19,11 @@ package common.files
 import java.io.File
 import java.nio.file.{Path, Paths}
 
+import cats.data.ValidatedNel
 import checkin.Mp3Encoder
-import logging.ApplicationLogging
 import common.configuration.{Directories, User}
 import common.music.{Tags, TagsService}
-
-import scalaz.ValidationNel
+import logging.ApplicationLogging
 
 /**
  * A class that encapsulates a location of a file within a repository of music
@@ -59,7 +58,7 @@ trait FileLocation {
 
   def lastModified(implicit fileLocationExtensions: FileLocationExtensions): Long = fileLocationExtensions.lastModified(this)
 
-  def readTags(implicit tagsService: TagsService): ValidationNel[String, Tags] = tagsService.read(toPath)
+  def readTags(implicit tagsService: TagsService): ValidatedNel[String, Tags] = tagsService.read(toPath)
 
   /**
    * Resolve this file location to its absolute path.

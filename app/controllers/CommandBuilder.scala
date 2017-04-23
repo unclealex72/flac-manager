@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package flacman.client
-
-import akka.stream.Materializer
-import play.api.libs.ws.WSClient
-import play.api.libs.ws.ahc.AhcWSClient
+package controllers
+import cats.data.ValidatedNel
+import common.commands.CommandType
+import common.message.MessageService
+import play.api.libs.json.JsValue
 
 /**
-  * An object to hold the WsClient used to talk to the server.
-  * Created by alex on 17/04/17
+  * Created by alex on 23/04/17
   **/
-object WS {
+trait CommandBuilder {
 
-  def apply()(implicit materializer: Materializer): WSClient = AhcWSClient()
+  def apply(jsValue: JsValue): ValidatedNel[String, MessageService => CommandType]
 }

@@ -239,7 +239,7 @@ run() {
   exit $exit_code
 }
 
-# Loads a configuration file full of default command line options for this script.
+# Loads a common.configuration file full of default command line options for this script.
 loadConfigFile() {
   cat "$1" | sed '/^\#/d'
 }
@@ -325,7 +325,7 @@ elif [[ ! "$java_version" > "1.6" ]]; then
   exit 1
 fi
 
-# if configuration files exist, prepend their contents to the java args so it can be processed by this runner
+# if common.configuration files exist, prepend their contents to the java args so it can be processed by this runner
 # a "versioned" config trumps one on the top level
 if [[ -f "$java_opts_config_version" ]]; then
   addConfigOpts $(loadConfigFile "$java_opts_config_version")

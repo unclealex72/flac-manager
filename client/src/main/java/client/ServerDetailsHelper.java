@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package flacman.client;
+package client;
 
 import org.fourthline.cling.controlpoint.ActionCallback;
 import org.fourthline.cling.controlpoint.ControlPoint;

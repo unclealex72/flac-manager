@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
 import javax.inject.{Inject, Singleton}
 
+import cats.data.Validated.{Invalid, Valid}
 import common.configuration.{Directories, User, Users}
 import common.files.{DeviceFileLocation, FileLocationExtensions}
 import common.music.{Tags, TagsService}
@@ -31,7 +32,6 @@ import play.api.mvc._
 import play.utils.UriEncoding
 
 import scala.util.Try
-import scalaz.{Failure, Success}
 
 /**
  * Created by alex on 18/11/14.
@@ -50,9 +50,9 @@ class Music @Inject()(val users: Users)(implicit val directories: Directories, v
                 deviceFileLocator: (User, Path) => Option[DeviceFileLocation])
                (responseBuilder: Tags => Result) = musicFile(username, path, deviceFileLocator) { deviceFileLocation =>
     deviceFileLocation.toFlacFileLocation.readTags match {
-      case Failure(_) =>
+      case Invalid(_) =>
         NotFound
-      case Success(tags) =>
+      case Valid(tags) =>
         responseBuilder(tags)
     }
   }

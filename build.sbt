@@ -6,6 +6,26 @@ import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 resolvers += "4thline resolver" at "http://4thline.org/m2"
 resolvers ++= Seq("releases").map(Resolver.sonatypeRepo)
 
+lazy val testingDependencies = Seq("core", "mock", "junit").
+  map(name => "org.specs2" %% s"specs2-$name" % "2.4.8" % "test")
+
+lazy val shared = (project in file("shared")).
+  settings(
+    name := "flac-manager-shared",
+    scalaVersion := "2.11.8",
+    javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats" % "0.9.0",
+      "com.beachape" %% "enumeratum" % "1.5.12") ++
+    Seq(
+      "io.circe" %% "circe-core",
+      "io.circe" %% "circe-generic",
+      "io.circe" %% "circe-parser"
+    ).map(_ % "0.7.0") ++
+      testingDependencies,
+    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+  )
+
 lazy val root = (project in file(".")).
   settings(
     name := "flac-manager",
@@ -20,8 +40,6 @@ lazy val root = (project in file(".")).
       // Musicbrainz REST web client
       "com.sun.jersey" % "jersey-client" % "1.5",
       "com.sun.jersey.contribs" % "jersey-apache-client" % "1.5",
-      // Validation
-      "org.scalaz" %% "scalaz-core" % "7.1.3",
       "com.wix" %% "accord-core" % "0.4",
       "org" % "jaudiotagger" % "2.0.3",
       "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
@@ -38,8 +56,7 @@ lazy val root = (project in file(".")).
       "org.eclipse.jetty" % "jetty-servlet" % "9.3.0.M0" % "test",
       "com.h2database" % "h2" % "1.4.182" % "test"
     ),
-    libraryDependencies ++= Seq("core", "mock", "junit").
-      map(name => "org.specs2" %% s"specs2-$name" % "2.4.8" % "test"),
+    libraryDependencies ++= testingDependencies,
     unmanagedResourceDirectories in Compile <+= baseDirectory(_ / "resources"),
     // Docker
     dockerBaseImage := "openjdk:alpine",
@@ -66,7 +83,8 @@ lazy val root = (project in file(".")).
     },
     javaOptions in Docker ++= Seq("-DapplyEvolutions.default=true")
   ).
-  enablePlugins(PlayScala, DockerPlugin, AshScriptPlugin)
+  enablePlugins(PlayScala, DockerPlugin, AshScriptPlugin).
+  dependsOn(shared)
 
 lazy val client = (project in file("client")).
   settings(
@@ -81,8 +99,9 @@ lazy val client = (project in file("client")).
       "com.beachape" %% "enumeratum" % "1.3.6",
       "com.github.scopt" %% "scopt" % "3.5.0",
       "org.fourthline.cling" % "cling-core" % "2.1.1",
-      "org.typelevel" %% "cats" % "0.9.0"
-    ),
+      "org.typelevel" %% "cats" % "0.9.0",
+      "com.github.marschall" % "memoryfilesystem" % "0.9.1" % "test"
+    ) ++ testingDependencies,
     // Remove the /usr/bin/ symlinks
     linuxPackageSymlinks := linuxPackageSymlinks.value.filterNot { linuxSymlink =>
       linuxSymlink.link.startsWith("/usr/bin/")
@@ -90,7 +109,8 @@ lazy val client = (project in file("client")).
     version in Debian := ((v: String) => v + (if (v.endsWith("-")) "" else "-") + "build-aj")(version.value),
     debianPackageDependencies := Seq("java8-runtime-headless")
   ).
-  enablePlugins(DebianPlugin, JavaAppPackaging)
+  enablePlugins(DebianPlugin, JavaAppPackaging).
+  dependsOn(shared)
 
 /* Releases */
 releaseProcess := Seq[ReleaseStep](

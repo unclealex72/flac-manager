@@ -18,6 +18,7 @@ package checkin
 
 import javax.inject.Inject
 
+import cats.data.Validated.Valid
 import checkin.Action._
 import common.commands.CommandType
 import common.commands.CommandType._
@@ -29,7 +30,6 @@ import common.music.{Tags, TagsService}
 import common.owners.OwnerService
 
 import scala.collection.GenTraversableOnce
-import scalaz.Success
 
 /**
  * Created by alex on 12/11/14.
@@ -82,7 +82,7 @@ class CheckinCommandImpl @Inject()(
         case NonFlacFileType(sfl) => Some(NonFlacFileType(sfl))
         case FlacFileType(sfl) => {
           sfl.readTags match {
-            case Success(tags) => Some(ValidFlacFile(sfl, sfl.toFlacFileLocation(tags), tags))
+            case Valid(tags) => Some(ValidFlacFile(sfl, sfl.toFlacFileLocation(tags), tags))
             case _ => {
               log(INVALID_FLAC(sfl))
               None

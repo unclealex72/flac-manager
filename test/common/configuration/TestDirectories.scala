@@ -19,39 +19,11 @@ package common.configuration
 import java.nio.file.{Path, Paths}
 
 /**
- * A configuration interface that is used to hold where the various directories are.
+ * A common.configuration interface that is used to hold where the various directories are.
  * @author alex
  *
  */
 case class TestDirectories(
-                            /**
-                             * Gets the top level path where FLAC files are stored.
-                             *
-                             * @return the top level path where FLAC files are stored
-                             */
-                            flacPath: Path,
-
-                            /**
-                             * Gets the top level path where symbolic links for devices are created.
-                             *
-                             * @return the top level path where symbolic links for devices are created
-                             */
-                            devicesPath: Path,
-
-                            /**
-                             * Gets the top level path where encoded files are stored.
-                             *
-                             * @return the top level path where encoded files are stored
-                             */
-                            encodedPath: Path,
-
-                            /**
-                             * Gets the top level path where new and altered FLAC files are staged.
-                             *
-                             * @return the top level path where new and altered FLAC files are staged
-                             */
-                            stagingPath: Path,
-
                             /**
                              * Gets the top level path where temporary files are created.
                              *
@@ -68,12 +40,8 @@ case class TestDirectories(
 object TestDirectories {
 
   def apply(
-             flac: String = "",
-             devices: String = "",
-             encoded: String = "",
-             staging: String = "",
-             temp: String = "",
-             datum: String = ""): TestDirectories = {
-    TestDirectories(Paths.get(flac), Paths.get(devices), Paths.get(encoded), Paths.get(staging), Paths.get(temp), Paths.get(datum))
+             temp: String = "/temp",
+             datum: String = "/datum"): TestDirectories = {
+    TestDirectories(Paths.get(temp), Paths.get(datum))
   }
 }

@@ -17,12 +17,12 @@
 package common.commands
 
 /**
- * A trait used to define whether a command is synchronous (and does not explicitly send a finish message to the message service) or is asynchonous.
+ * A trait used to define whether a command is synchronous (and does not explicitly send a finish message to the message service) or is asynchronous.
  * Created by alex on 14/01/15.
  */
 sealed trait CommandType {
 
-  def execute: Unit
+  def execute(): Unit
 
   def requiresFinish: Boolean
 }
@@ -30,13 +30,13 @@ sealed trait CommandType {
 object CommandType {
 
   private def simpleCommandType(block: => Unit, _requiresFinish: Boolean) = new CommandType {
-    override def execute: Unit = {
+    override def execute(): Unit = {
       block
     }
-    override def requiresFinish = _requiresFinish
+    override def requiresFinish: Boolean = _requiresFinish
   }
 
-  def synchronous(block: => Unit) = simpleCommandType(block, true)
+  def synchronous(block: => Unit): CommandType = simpleCommandType(block, _requiresFinish = true)
 
-  def asynchronous(block: => Unit) = simpleCommandType(block, false)
+  def asynchronous(block: => Unit): CommandType = simpleCommandType(block, _requiresFinish = false)
 }
