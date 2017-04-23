@@ -37,10 +37,11 @@ class ClingUpnpServer @Inject()(
                                (implicit ec: ExecutionContext) extends UpnpServer with StrictLogging {
 
   val upnpService: UpnpService = new UpnpServiceImpl()
-  val (maybePort, suffix) = app.mode match {
-    case Mode.Prod => (configuration.getInt("play.server.http.port"), "")
-    case m => (None, s"$m")
+  val maybePort: Option[Int] = app.mode match {
+    case Mode.Prod => configuration.getInt("play.server.http.port")
+    case _ => None
   }
+  val suffix: String = configuration.getString("upnp.suffix").getOrElse("")
   val port: Int = maybePort.getOrElse(9000)
 
   new UpnpDeviceCreator(suffix, port, directories.datumPath, upnpService).call()

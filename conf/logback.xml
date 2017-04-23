@@ -22,6 +22,7 @@
     <logger name="checkin.actors" level="INFO" />
     <logger name="akka" level="WARN" />
     <logger name="org.fourthline" level="ERROR" />
+    <logger name="org.jaudiotagger" level="ERROR" />
     <root level="INFO">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />

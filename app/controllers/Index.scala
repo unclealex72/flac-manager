@@ -76,6 +76,6 @@ class Index @Inject() extends Controller {
   }
 
   def index = Action { implicit request =>
-    Ok(views.html.index(html)).withHeaders("Content-Type" -> "text/html")
+    Ok(views.html.index(html))
   }
 }

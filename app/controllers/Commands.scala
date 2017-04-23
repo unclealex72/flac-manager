@@ -20,6 +20,7 @@ import java.io.{PrintWriter, StringWriter}
 import java.nio.file.Path
 import javax.inject.{Inject, Singleton}
 
+import akka.stream.scaladsl.Source
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.implicits._
@@ -39,6 +40,7 @@ import own.{Own, OwnCommand, Unown}
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.iteratee.{Concurrent, Enumerator}
 import play.api.libs.json._
+import play.api.libs.streams.Streams
 import play.api.mvc._
 
 import scala.util.Try
@@ -80,14 +82,14 @@ class Commands @Inject()(
       }
     })
     validatedCommandTypeBuilder match {
-      case Valid(commandTypeBuilder) => Ok.chunked(enumerator(commandTypeBuilder))
-      case Invalid(errors) => BadRequest.chunked(enumerator { implicit messageService =>
+      case Valid(commandTypeBuilder) => Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(enumerator(commandTypeBuilder))))
+      case Invalid(errors) => BadRequest.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(enumerator { implicit messageService =>
         synchronous {
           errors.toList.foreach { error =>
             log(INVALID_PARAMETERS(error))
           }
         }
-      })
+      })))
     }
   }
 }

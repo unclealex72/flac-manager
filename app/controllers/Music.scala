@@ -40,7 +40,7 @@ import scala.util.Try
 class Music @Inject()(val users: Users)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService) extends Controller {
 
   def music(username: String, path: String) = musicFile(username, path, deviceFileAt) { deviceFileLocation =>
-    Ok.chunked(Enumerator.fromFile(deviceFileLocation.toFile))
+    Ok.sendFile(deviceFileLocation.toFile)
   }
 
   def tags(username: String, path: String) = serveTags(username, path, deviceFileAt)(tags => Ok(tags.toJson(false)))
