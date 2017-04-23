@@ -29,7 +29,7 @@ class TempFileCommandService  @Inject() extends CommandService {
 
   def create(resourceName: String): String = {
     val commandPath = Files.createTempFile("flacman-", s"-$resourceName")
-    commandPath.toFile.deleteOnExit
+    commandPath.toFile.deleteOnExit()
     val in = getClass.getResourceAsStream(resourceName)
     if (in == null) {
       throw new IllegalStateException(s"Cannot find resource $resourceName")
@@ -37,9 +37,9 @@ class TempFileCommandService  @Inject() extends CommandService {
     Files.copy(in, commandPath, StandardCopyOption.REPLACE_EXISTING)
     val permissions = Sets.newHashSet(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE, GROUP_READ, OTHERS_READ)
     Files.setPosixFilePermissions(commandPath, permissions)
-    in.close
+    in.close()
     commandPath.toAbsolutePath.toString
   }
 
-  val flac2mp3Command = create("flac2mp3.sh")
+  val flac2mp3Command: String = create("flac2mp3.sh")
 }

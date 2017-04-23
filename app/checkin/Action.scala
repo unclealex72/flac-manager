@@ -21,16 +21,34 @@ import common.files.{FlacFileLocation, StagedFlacFileLocation}
 import common.music.Tags
 
 /**
- * Created by alex on 16/11/14.
- */
+  * Describes a change to be made to the music repository.
+  * Created by alex on 16/11/14.
+  */
 sealed trait Action
 
-case class Encode(val stagedFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, owners: Set[User]) extends Action
+/**
+  * A file to be encoded
+  * @param stagedFileLocation The source file location.
+  * @param flacFileLocation The target file location.
+  * @param tags The file's music tags.
+  * @param owners The file's owners.
+  */
+case class Encode(stagedFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, owners: Set[User]) extends Action
 
-case class Delete(val stagedFileLocation: StagedFlacFileLocation) extends Action
+/**
+  * A file to be deleted
+  * @param stagedFileLocation The source file location.
+  */
+case class Delete(stagedFileLocation: StagedFlacFileLocation) extends Action
 
+/**
+  * Used to declare an implicit ordering on actions.
+  */
 object Action {
 
+  /**
+    * An ordering that always make sure deletions are first and encodes are sorted by track.
+    */
   implicit val actingOrdering: Ordering[Action] = new Ordering[Action]() {
     override def compare(x: Action, y: Action): Int = (x, y) match {
       case (Encode(_, _, _, _), Delete(_)) => -1

@@ -86,15 +86,15 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
       totalDiscs = 1,
       totalTracks = 10,
       trackNumber = 1)
-    val aKindOfMagicFlac = "A Kind of Magic" tracks(OneVision.flac, AKindOfMagic.flac) using (p => FlacFileLocation(p))
-    val jazzFlac = "Jazz" tracks(Mustapha.flac, FatBottomedGirls.flac) using (p => FlacFileLocation(p))
-    val aKindOfMagicStagedFlac = "A Kind of Magic" tracks(OneVision.flac, AKindOfMagic.flac) using (p => StagedFlacFileLocation(p))
-    val jazzStagedFlac = "Jazz" tracks(Mustapha.flac, FatBottomedGirls.flac) using (p => StagedFlacFileLocation(p))
-    val aKindOfMagicMp3 = "A Kind of Magic" tracks(OneVision.mp3, AKindOfMagic.mp3) using (p => EncodedFileLocation(p))
-    val jazzMp3 = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => EncodedFileLocation(p))
-    val briansAKindOfMagicMp3 = "A Kind of Magic" tracks(OneVision.mp3, AKindOfMagic.mp3) using (p => DeviceFileLocation(brian, p))
-    val briansJazzMp3 = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => DeviceFileLocation(brian, p))
-    val freddiesJazzMp3 = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => DeviceFileLocation(freddie, p))
+    val aKindOfMagicFlac: Dsl.Album[FlacFileLocation] = "A Kind of Magic" tracks(OneVision.flac, AKindOfMagic.flac) using (p => FlacFileLocation(p))
+    val jazzFlac: Dsl.Album[FlacFileLocation] = "Jazz" tracks(Mustapha.flac, FatBottomedGirls.flac) using (p => FlacFileLocation(p))
+    val aKindOfMagicStagedFlac: Dsl.Album[StagedFlacFileLocation] = "A Kind of Magic" tracks(OneVision.flac, AKindOfMagic.flac) using (p => StagedFlacFileLocation(p))
+    val jazzStagedFlac: Dsl.Album[StagedFlacFileLocation] = "Jazz" tracks(Mustapha.flac, FatBottomedGirls.flac) using (p => StagedFlacFileLocation(p))
+    val aKindOfMagicMp3: Dsl.Album[EncodedFileLocation] = "A Kind of Magic" tracks(OneVision.mp3, AKindOfMagic.mp3) using (p => EncodedFileLocation(p))
+    val jazzMp3: Dsl.Album[EncodedFileLocation] = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => EncodedFileLocation(p))
+    val briansAKindOfMagicMp3: Dsl.Album[DeviceFileLocation] = "A Kind of Magic" tracks(OneVision.mp3, AKindOfMagic.mp3) using (p => DeviceFileLocation(brian, p))
+    val briansJazzMp3: Dsl.Album[DeviceFileLocation] = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => DeviceFileLocation(brian, p))
+    val freddiesJazzMp3: Dsl.Album[DeviceFileLocation] = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => DeviceFileLocation(freddie, p))
     val allAlbums: Seq[Album[FileLocation]] =
       Seq(
         aKindOfMagicFlac.asInstanceOf[Album[FileLocation]],
@@ -117,12 +117,12 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
       override def firstFileIn[F <: FileLocation](parentFileLocation: F, extension: Extension, builder: (Path) => F): Option[F] = None
     }
 
-    implicit val tagsService = mock[TagsService]
-    implicit val messageService = mock[MessageService]
-    implicit val changeDao = mock[ChangeDao]
-    val fileSystem = mock[FileSystem]
-    val ownerService = mock[OwnerService]
-    val nowService = mock[NowService]
+    implicit val tagsService: TagsService = mock[TagsService]
+    implicit val messageService: MessageService = mock[MessageService]
+    implicit val changeDao: ChangeDao = mock[ChangeDao]
+    val fileSystem: FileSystem = mock[FileSystem]
+    val ownerService: OwnerService = mock[OwnerService]
+    val nowService: NowService = mock[NowService]
     val now = new DateTime()
     tagsService.read("/flac/A Kind of Magic/01 One Vision.flac") returns Valid(oneVisionTags)
     tagsService.read("/flac/Jazz/01 Mustapha.flac") returns Valid(mustaphaTags)
@@ -173,23 +173,23 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
 
     object Dsl {
 
-      implicit def albumsToMap[FL <: FileLocation](albums: Seq[Album[FL]]) =
-        SortedMap.empty[FL, SortedSet[FL]] ++ albums.map(albumToPair(_))
+      implicit def albumsToMap[FL <: FileLocation](albums: Seq[Album[FL]]): SortedMap[FL, SortedSet[FL]] =
+        SortedMap.empty[FL, SortedSet[FL]] ++ albums.map(albumToPair)
 
-      implicit def albumToPair[FL <: FileLocation](album: Album[FL]) = (album.album, album.tracks)
+      implicit def albumToPair[FL <: FileLocation](album: Album[FL]): (FL, SortedSet[FL]) = (album.album, album.tracks)
 
-      implicit def genericAlbum[FL <: FileLocation](album: Album[FL]) = {
-        val newTracks = album.tracksByTitle.map { case (k, v) => k -> v }.toMap
+      implicit def genericAlbum[FL <: FileLocation](album: Album[FL]): Album[FileLocation] = {
+        val newTracks = album.tracksByTitle.map { case (k, v) => k -> v }
         Album[FileLocation](album.album, newTracks)
       }
 
       implicit class ImplicitAlbumBuilder(title: String) {
-        def tracks(tracks: String*) = {
-          new AlbumBuilder(title, tracks)
+        def tracks(tracks: String*): AlbumBuilder = {
+          AlbumBuilder(title, tracks)
         }
       }
 
-      case class AlbumBuilder(val title: String, val tracks: Seq[String]) {
+      case class AlbumBuilder(title: String, tracks: Seq[String]) {
         def using[FL <: FileLocation](factory: Path => FL): Album[FL] = {
           val album = factory(Paths.get(title))
           val songs = tracks.foldLeft(Map.empty[String, FL])((fls, track) => fls + (track -> factory(Paths.get(title, track))))
@@ -200,7 +200,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
       case class Album[FL <: FileLocation](album: FL, tracksByTitle: Map[String, FL]) {
         val tracks: SortedSet[FL] = tracksByTitle.values.foldLeft(SortedSet.empty[FL])(_ + _)
 
-        def apply(trackTitle: String): FL = tracksByTitle.get(trackTitle).get
+        def apply(trackTitle: String): FL = tracksByTitle(trackTitle)
       }
     }
 
@@ -208,7 +208,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
 
   "Checking out albums" should {
     "remove all traces of the album, including ownership if asked for" in new Context {
-      checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac), true)
+      checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac), unown = true)
       checkFilesRemoved
 
       //check that albums were disowned
@@ -222,7 +222,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
 
   "Checking out albums" should {
     "remove all traces of the album, excluding ownership if not asked for" in new Context {
-      checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac), false)
+      checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac), unown = false)
       checkFilesRemoved
 
       noMoreCallsTo(fileSystem)

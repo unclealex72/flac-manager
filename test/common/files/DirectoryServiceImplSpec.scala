@@ -42,7 +42,7 @@ class DirectoryServiceImplSpec extends Specification with Mockito {
 
     implicit val directoryService = new DirectoryServiceImpl
 
-    def before(rootDirectory: Path) = {
+    def before(rootDirectory: Path): Unit = {
       val paths = Seq(
         Paths.get("dir.flac", "myfile.flac"),
         Paths.get("dir.flac", "myfile.xml"),

@@ -37,7 +37,7 @@ class EncodingActor @Inject()(implicit val mp3Encoder: Mp3Encoder,
                               val fileLocationExtensions: FileLocationExtensions) extends Actor with Messaging with ApplicationLogging {
 
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case EncodeFlacFileLocation(stagedFlacFileLocation, flacFileLocation, tags, owners, messageService) =>
       implicit val _messageService = messageService
       try {

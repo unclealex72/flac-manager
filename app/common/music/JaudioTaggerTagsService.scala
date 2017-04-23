@@ -59,7 +59,7 @@ class JaudioTaggerTagsService @Inject() extends TagsService {
     ASIN.set(tags.asin)
     TRACK_NUMBER.set(tags.trackNumber)
     COVER_ART.set(tags.coverArt)
-    audioFile.commit
+    audioFile.commit()
   }
 
   def loadAudioFile(path: Path): AudioFile = {
@@ -83,7 +83,7 @@ sealed abstract class SimpleTag[V](fieldKey: FieldKey) extends SingleTag[Option[
 
   def get(tag: Tag): Option[V] = Option(tag.getFirst(fieldKey)).map(v => parse(v))
 
-  def set(value: Option[V])(implicit tag: Tag) = {
+  def set(value: Option[V])(implicit tag: Tag): Unit = {
     value.foreach(value => tag.setField(fieldKey, value.toString))
   }
 
@@ -92,22 +92,22 @@ sealed abstract class SimpleTag[V](fieldKey: FieldKey) extends SingleTag[Option[
 
 sealed abstract class MandatoryTag[V](singleTag: SingleTag[Option[V]], default: V) extends SingleTag[V] {
 
-  def get(tag: Tag) = singleTag.get(tag).getOrElse(default)
+  def get(tag: Tag): V = singleTag.get(tag).getOrElse(default)
 
-  def set(value: V)(implicit tag: Tag) = singleTag.set(Some(value))
+  def set(value: V)(implicit tag: Tag): Unit = singleTag.set(Some(value))
 }
 
 sealed class OptionalStringTag(fieldKey: FieldKey) extends SimpleTag[String](fieldKey) {
-  def parse(str: String) = str
+  def parse(str: String): String = str
 }
 
 sealed class OptionalIntTag(fieldKey: FieldKey) extends SimpleTag[Int](fieldKey) {
-  def parse(str: String) = {
+  def parse(str: String): Int = {
     try {
       str.toInt
     }
     catch {
-      case e: Exception => -1
+      case _: Exception => -1
     }
   }
 }

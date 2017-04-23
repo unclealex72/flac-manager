@@ -38,7 +38,7 @@ class CheckinActor @Inject()(
 
   var numberOfFilesRemaining = 0
 
-  override def receive = {
+  override def receive: PartialFunction[Any, Unit] = {
     case Actions(actions, messageService) =>
       numberOfFilesRemaining = actions.length
 
@@ -56,7 +56,7 @@ class CheckinActor @Inject()(
       }
       decreaseFileCount
 
-    case LinkAndMoveFileLocations(tempEncodedLocation, encodedFileLocation, stagedFlacFileLocation, flacFileLocation, users, messageService) => {
+    case LinkAndMoveFileLocations(tempEncodedLocation, encodedFileLocation, stagedFlacFileLocation, flacFileLocation, users, messageService) =>
       implicit val _messageService = messageService
       safely {
         fileSystem.move(tempEncodedLocation, encodedFileLocation)
@@ -68,9 +68,8 @@ class CheckinActor @Inject()(
         fileSystem.move(stagedFlacFileLocation, flacFileLocation)
       }
       decreaseFileCount
-    }
 
-    case CheckinFailed(e, stagedFlacFileLocation, messageService) =>
+    case CheckinFailed(_, _, messageService) =>
       implicit val _messageService = messageService
       decreaseFileCount
   }
@@ -84,10 +83,10 @@ class CheckinActor @Inject()(
     }
   }
 
-  def decreaseFileCount(implicit messageService: MessageService) = {
+  def decreaseFileCount(implicit messageService: MessageService): Unit = {
     numberOfFilesRemaining -= 1
     if (numberOfFilesRemaining == 0) {
-      messageService.finish
+      messageService.finish()
     }
   }
 }

@@ -18,6 +18,8 @@ package common.files
 
 import java.nio.file.Path
 
+import scala.util.matching.Regex
+
 /**
  * An enumeration of all the known music file extensions.
  * @author alex
@@ -31,7 +33,7 @@ sealed trait Extension {
    */
   def extension: String
 
-  override def toString = extension
+  override def toString: String = extension
 }
 
 case object MP3 extends Extension {
@@ -46,7 +48,7 @@ object PathImplicits {
 
   implicit class WithMp3Extension(path: Path) {
 
-    val FILENAME = """^(.+)\..+?$""".r
+    val FILENAME: Regex = """^(.+)\..+?$""".r
 
     def withExtension(extension: Extension): Path = {
       val parent = path.getParent

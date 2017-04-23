@@ -52,7 +52,7 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     val tempPath = Files.createTempFile(parentTargetPath, "device-file-", ".tmp")
     Files.copy(sourcePath, tempPath, StandardCopyOption.REPLACE_EXISTING)
     tryAtomicMove(tempPath, targetPath, StandardCopyOption.REPLACE_EXISTING)
-    val currentDirectory = sourcePath.getParent()
+    val currentDirectory = sourcePath.getParent
     remove(sourceFileLocation.basePath, currentDirectory)
   }
 
@@ -62,7 +62,7 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
       Files.move(sourcePath, targetPath, optionsWithAtomicMove: _*)
     }
     catch {
-      case e: AtomicMoveNotSupportedException =>
+      case _: AtomicMoveNotSupportedException =>
         Files.move(sourcePath, targetPath, options: _*)
     }
   }
@@ -78,16 +78,16 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     }
     else if (Files.isDirectory(currentPath)) {
       val dir = Files.newDirectoryStream(currentPath)
-      val directoryIsEmpty = !dir.iterator().hasNext()
+      val directoryIsEmpty = !dir.iterator().hasNext
       if (directoryIsEmpty) {
         Files.delete(currentPath)
-        remove(basePath, currentPath.getParent())
+        remove(basePath, currentPath.getParent)
       }
-      dir.close
+      dir.close()
     }
     else {
       Files.deleteIfExists(currentPath)
-      remove(basePath, currentPath.getParent())
+      remove(basePath, currentPath.getParent)
     }
   }
 

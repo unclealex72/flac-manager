@@ -47,7 +47,7 @@ object SquerylEntryPoint extends PrimitiveTypeMode {
      */
     def convertFromJdbc(t: Timestamp) = JodaDateTime(t)
 
-    def convertToJdbc(t: DateTime) = new Timestamp(t.getMillis())
+    def convertToJdbc(t: DateTime) = new Timestamp(t.getMillis)
   }
 
   /**
@@ -58,14 +58,14 @@ object SquerylEntryPoint extends PrimitiveTypeMode {
     new TypedExpressionFactory[Option[DateTime], TOptionTimestamp]
       with DeOptionizer[Timestamp, DateTime, TTimestamp, Option[DateTime], TOptionTimestamp] {
 
-      val deOptionizer = jodaTimeTEF
+      override val deOptionizer: NonPrimitiveJdbcMapper[Timestamp, DateTime, TTimestamp] = jodaTimeTEF
     }
 
   /**
    * the following are necessary for the AST lifting
    */
-  implicit def jodaTimeToTE(s: DateTime) = jodaTimeTEF.create(s)
+  implicit def jodaTimeToTE(s: DateTime): TypedExpression[DateTime, TTimestamp] = jodaTimeTEF.create(s)
 
-  implicit def optionJodaTimeToTE(s: Option[DateTime]) = optionJodaTimeTEF.create(s)
+  implicit def optionJodaTimeToTE(s: Option[DateTime]): TypedExpression[Option[DateTime], TOptionTimestamp] = optionJodaTimeTEF.create(s)
 
 } 

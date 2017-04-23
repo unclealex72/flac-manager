@@ -44,9 +44,9 @@ class SquerylChangeDao @Inject() extends ChangeDao {
   }
 
   override def getAllChangesSince(user: User, since: DateTime): List[Change] = inTransaction {
-    val latest = from(changes)(c => where(c.at >= since and user.name === c.user) groupBy (c.relativePath) compute (max(c.at)))
+    val latest = from(changes)(c => where(c.at >= since and user.name === c.user) groupBy c.relativePath compute max(c.at))
     from(latest, changes)((l, c) =>
-      where(user.name === c.user and l.key === c.relativePath and l.measures === c.at) select (c) orderBy (c.action desc, c.relativePath.asc))
+      where(user.name === c.user and l.key === c.relativePath and l.measures === c.at) select c orderBy (c.action desc, c.relativePath.asc))
   }
 
   override def countChanges(): Long = inTransaction {
@@ -54,7 +54,7 @@ class SquerylChangeDao @Inject() extends ChangeDao {
   }
 
   override def countChangesSince(user: User, since: DateTime): Long = inTransaction {
-    from(changes)(c => where(user.name === c.user and c.at >= since) compute(count(c.id)))
+    from(changes)(c => where(user.name === c.user and c.at >= since) compute count(c.id))
   }
 
   def isPartOfChangeLog(c: Change, user: User): LogicalBoolean = c.action === "added" and c.user === user.name and c.parentRelativePath.isNotNull
@@ -62,7 +62,7 @@ class SquerylChangeDao @Inject() extends ChangeDao {
   def changelog(user: User, since: DateTime): List[ChangelogItem] = inTransaction {
     val groupedChanges =
       from(changes)(c => where(isPartOfChangeLog(c, user) and c.at >= since)
-        groupBy (c.parentRelativePath)
+        groupBy c.parentRelativePath
         compute(min(c.at), min(c.relativePath)(optionStringTEF)) orderBy(min(c.at) desc, min(c.parentRelativePath) asc))
     val changelogItems =
       for {
@@ -77,7 +77,7 @@ class SquerylChangeDao @Inject() extends ChangeDao {
   def countFilteredChangelog(filter: Change => LogicalBoolean): Long = inTransaction {
     from(changes)(c =>
       where(filter(c))
-        compute (countDistinct(c.parentRelativePath))
+        compute countDistinct(c.parentRelativePath)
     ).single.measures
   }
 

@@ -48,7 +48,7 @@ class TagsSpec extends Specification {
       result must beAnInstanceOf[Failure]
       result match {
         case Success =>
-        case Failure(violations: Set[Violation]) => {
+        case Failure(violations: Set[Violation]) =>
           val descriptions = violations.flatMap(_.description)
           descriptions must contain(exactly(
             "totalTracks",
@@ -66,7 +66,6 @@ class TagsSpec extends Specification {
             "trackNumber",
             "totalDiscs",
             "albumArtistSort"))
-        }
       }
       true must beTrue
     }

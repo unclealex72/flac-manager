@@ -22,8 +22,7 @@ lazy val shared = (project in file("shared")).
       "io.circe" %% "circe-generic",
       "io.circe" %% "circe-parser"
     ).map(_ % "0.7.0") ++
-      testingDependencies,
-    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+      testingDependencies
   )
 
 lazy val root = (project in file(".")).
@@ -63,6 +62,7 @@ lazy val root = (project in file(".")).
     dockerExposedPorts := Seq(9999),
     maintainer := "Alex Jones <alex.jones@unclealex.co.uk>",
     dockerRepository := Some("unclealex72"),
+    version in Docker := "latest",
     daemonUser in Docker := "music",
     // Installing packages requires the run commands to be put high up in the list of docker commands
     dockerCommands := {

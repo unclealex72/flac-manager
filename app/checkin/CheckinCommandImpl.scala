@@ -32,7 +32,8 @@ import common.owners.OwnerService
 import scala.collection.GenTraversableOnce
 
 /**
- * Created by alex on 12/11/14.
+  * The command that checks in flac files from the staging directory.
+  * Created by alex on 12/11/14.
  */
 class CheckinCommandImpl @Inject()(
                           val directoryService: DirectoryService,
@@ -59,11 +60,9 @@ class CheckinCommandImpl @Inject()(
     val secondStageValidationResults = firstStageValidationResults.par.flatMap(isFullyTaggedFlacFile).seq
     val thirdStageValidationResults = secondStageValidationResults.flatMap(doesNotOverwriteFlacFile)
     val fourthStageValidationResults = thirdStageValidationResults.foldLeft(Set.empty[FourthStageValidationResult])(isUniqueFlacFile)
-    fourthStageValidationResults.foreach { fsvr =>
-      fsvr match {
-        case NonUniqueFlacFileMapping(fl, sfls) => log(NON_UNIQUE(fl, sfls))
-        case _ => {}
-      }
+    fourthStageValidationResults.foreach {
+      case NonUniqueFlacFileMapping(fl, sfls) => log(NON_UNIQUE(fl, sfls))
+      case _ =>
     }
     val hasOwners: Tags => Set[User] = ownerService.listCollections()
     val fifthStageValidationResults = fourthStageValidationResults.flatMap(isOwnedFlacFile(hasOwners))
@@ -77,86 +76,64 @@ class CheckinCommandImpl @Inject()(
   }
 
   def isFullyTaggedFlacFile(implicit messageService: MessageService): FirstStageValidationResult => GenTraversableOnce[SecondStageValidationResult] = {
-    fsvr =>
-      fsvr match {
-        case NonFlacFileType(sfl) => Some(NonFlacFileType(sfl))
-        case FlacFileType(sfl) => {
-          sfl.readTags match {
-            case Valid(tags) => Some(ValidFlacFile(sfl, sfl.toFlacFileLocation(tags), tags))
-            case _ => {
-              log(INVALID_FLAC(sfl))
-              None
-            }
-          }
-        }
+    case NonFlacFileType(sfl) => Some(NonFlacFileType(sfl))
+    case FlacFileType(sfl) =>
+      sfl.readTags match {
+        case Valid(tags) => Some(ValidFlacFile(sfl, sfl.toFlacFileLocation(tags), tags))
+        case _ =>
+          log(INVALID_FLAC(sfl))
+          None
       }
   }
 
   def doesNotOverwriteFlacFile(implicit messageService: MessageService): SecondStageValidationResult => GenTraversableOnce[ThirdStageValidationResult] = {
-    ssvr =>
-      ssvr match {
-        case NonFlacFileType(sfl) => Some(NonFlacFileType(sfl))
-        case ValidFlacFile(sfl, fl, tags) => {
-          if (fl.exists) {
-            log(OVERWRITE(sfl, fl))
-            None
-          }
-          else {
-            Some(ValidFlacFile(sfl, fl, tags))
-          }
-        }
+    case NonFlacFileType(sfl) => Some(NonFlacFileType(sfl))
+    case ValidFlacFile(sfl, fl, tags) =>
+      if (fl.exists) {
+        log(OVERWRITE(sfl, fl))
+        None
+      }
+      else {
+        Some(ValidFlacFile(sfl, fl, tags))
       }
   }
 
   def isUniqueFlacFile(fsvrs: Set[FourthStageValidationResult], tsvr: ThirdStageValidationResult): Set[FourthStageValidationResult] = {
     tsvr match {
       case NonFlacFileType(sfl) => fsvrs + NonFlacFileType(sfl)
-      case ValidFlacFile(sfl, fl, tags) => {
-        val possiblyAlreadyExstingMapping = fsvrs.find { fsvr =>
-          fsvr match {
-            case ValidFlacFile(osfl, ofl, tags) => fl == ofl
-            case NonUniqueFlacFileMapping(ofl, osfls) => fl == ofl
-            case _ => false
-          }
+      case ValidFlacFile(sfl, fl, tags) =>
+        val possiblyAlreadyExistingMapping = fsvrs.find {
+          case ValidFlacFile(_, ofl, _) => fl == ofl
+          case NonUniqueFlacFileMapping(ofl, _) => fl == ofl
+          case _ => false
         }
-        possiblyAlreadyExstingMapping match {
-          case Some(ValidFlacFile(osfl, ofl, tags)) => {
-            (fsvrs - ValidFlacFile(osfl, ofl, tags)) + NonUniqueFlacFileMapping(fl, (sfl, osfl))
-          }
-          case Some(NonUniqueFlacFileMapping(ofl, sfls)) => {
+        possiblyAlreadyExistingMapping match {
+          case Some(ValidFlacFile(osfl, ofl, myTags)) =>
+            (fsvrs - ValidFlacFile(osfl, ofl, myTags)) + NonUniqueFlacFileMapping(fl, (sfl, osfl))
+          case Some(NonUniqueFlacFileMapping(ofl, sfls)) =>
             (fsvrs - NonUniqueFlacFileMapping(ofl, sfls)) + (NonUniqueFlacFileMapping(ofl, sfls) + sfl)
-          }
           case _ => fsvrs + ValidFlacFile(sfl, fl, tags)
         }
-      }
     }
   }
 
-  def isOwnedFlacFile(hasOwners: Tags => Set[User])(implicit messageService: MessageService): FourthStageValidationResult => GenTraversableOnce[FifthStageValidationResult] = { fsvr =>
-    fsvr match {
-      case ValidFlacFile(sfl, fl, tags) => {
-        val owners = hasOwners(tags)
-        if (owners.isEmpty) {
-          log(NOT_OWNED(sfl))
-          None
-        }
-        else {
-          Some(OwnedFlacFile(sfl, fl, tags, owners))
-        }
-
+  def isOwnedFlacFile(hasOwners: Tags => Set[User])(implicit messageService: MessageService): FourthStageValidationResult => GenTraversableOnce[FifthStageValidationResult] = {
+    case ValidFlacFile(sfl, fl, tags) =>
+      val owners = hasOwners(tags)
+      if (owners.isEmpty) {
+        log(NOT_OWNED(sfl))
+        None
       }
-      case NonFlacFileType(sfl) => Some(NonFlacFileType(sfl))
-      case NonUniqueFlacFileMapping(fl, sfls) => None
-    }
-
+      else {
+        Some(OwnedFlacFile(sfl, fl, tags, owners))
+      }
+    case NonFlacFileType(sfl) => Some(NonFlacFileType(sfl))
+    case NonUniqueFlacFileMapping(_, _) => None
   }
 
   def generateActions: FifthStageValidationResult => Action = {
-    fsvr =>
-      fsvr match {
-        case OwnedFlacFile(sfl, fl, tags, owners) => Encode(sfl, fl, tags, owners)
-        case NonFlacFileType(sfl) => Delete(sfl)
-      }
+    case OwnedFlacFile(sfl, fl, tags, owners) => Encode(sfl, fl, tags, owners)
+    case NonFlacFileType(sfl) => Delete(sfl)
   }
 }
 
@@ -170,16 +147,16 @@ sealed trait FourthStageValidationResult
 
 sealed trait FifthStageValidationResult
 
-case class FlacFileType(val stagedFileLocation: StagedFlacFileLocation)
+case class FlacFileType(stagedFileLocation: StagedFlacFileLocation)
   extends FirstStageValidationResult
 
-case class NonFlacFileType(val stagedFileLocation: StagedFlacFileLocation)
+case class NonFlacFileType(stagedFileLocation: StagedFlacFileLocation)
   extends FirstStageValidationResult with SecondStageValidationResult with ThirdStageValidationResult with FourthStageValidationResult with FifthStageValidationResult
 
-case class ValidFlacFile(val stagedFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags)
+case class ValidFlacFile(stagedFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags)
   extends SecondStageValidationResult with ThirdStageValidationResult with FourthStageValidationResult
 
-case class NonUniqueFlacFileMapping(val flacFileLocation: FlacFileLocation, stagedFileLocations: Set[StagedFlacFileLocation])
+case class NonUniqueFlacFileMapping(flacFileLocation: FlacFileLocation, stagedFileLocations: Set[StagedFlacFileLocation])
   extends FourthStageValidationResult {
   def +(stagedFlacFileLocation: StagedFlacFileLocation): NonUniqueFlacFileMapping =
     NonUniqueFlacFileMapping(flacFileLocation, stagedFileLocations + stagedFlacFileLocation)
@@ -191,5 +168,5 @@ object NonUniqueFlacFileMapping {
   }
 }
 
-case class OwnedFlacFile(val stagedFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, owners: Set[User])
+case class OwnedFlacFile(stagedFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, owners: Set[User])
   extends FifthStageValidationResult

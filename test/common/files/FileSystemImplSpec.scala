@@ -46,7 +46,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with Mockito {
       val fileToMove = TestFileLocation(source, "dir", "moveme.txt")
       val fileToKeep = TestFileLocation(source, "dir", "keepme.txt")
       Seq(fileToMove, fileToKeep).foreach { fl =>
-        Files.createDirectories(fl.toPath.getParent());
+        Files.createDirectories(fl.toPath.getParent)
         Files.createFile(fl.toPath);
       }
       val targetLocation = TestFileLocation(target, "otherdir", "movedme.txt")
@@ -62,13 +62,13 @@ class FileSystemImplSpec extends Specification with PathMatchers with Mockito {
   "Linking to a file" should {
     "create a relative link that points to the original file" in new fs {
       val targetLocation = TestFileLocation(rootDirectory, "here.txt")
-      Files.createFile(targetLocation.toPath);
+      Files.createFile(targetLocation.toPath)
       val linkLocation = TestFileLocation(rootDirectory, "link.d", "link.txt")
       fileSystem.link(targetLocation, linkLocation)
       linkLocation.toPath must beASymbolicLink
       val symlink = Files.readSymbolicLink(linkLocation.toPath)
       symlink must not(beAbsolute)
-      linkLocation.toPath.getParent.resolve(symlink).toAbsolutePath must beTheSameFileAs(targetLocation.toPath.toAbsolutePath())
+      linkLocation.toPath.getParent.resolve(symlink).toAbsolutePath must beTheSameFileAs(targetLocation.toPath.toAbsolutePath)
       there was one(messageService).printMessage(LINK(targetLocation, linkLocation))
     }
   }
@@ -77,7 +77,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with Mockito {
     "move the file and remove all empty directories" in new fs {
       Files.createDirectories(target)
       val fileToMove = TestFileLocation(source, "dir", "moveme.txt")
-      Files.createDirectories(fileToMove.toPath.getParent())
+      Files.createDirectories(fileToMove.toPath.getParent)
       Files.createFile(fileToMove.toPath)
       val targetLocation = TestFileLocation(target, "otherdir", "movedme.txt")
       fileSystem.move(fileToMove, targetLocation)

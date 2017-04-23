@@ -24,7 +24,7 @@ import common.configuration.{User, Users}
 import common.joda.JodaDateTime
 import org.joda.time.DateTime
 import play.api.libs.json.{JsObject, JsValue, Json}
-import play.api.mvc.{Action, Call, Controller, RequestHeader}
+import play.api.mvc._
 
 /**
   * Created by alex on 14/12/14.
@@ -38,14 +38,13 @@ class Changes @Inject()(val users: Users, val changeDao: ChangeDao) extends Cont
       since <- JodaDateTime(sinceStr)
     } yield (user, since)
     parameters match {
-      case Some((user, since)) => {
+      case Some((user, since)) =>
         Ok(jsonBuilder(request)(user)(since))
-      }
       case _ => NotFound
     }
   }
 
-  def changes(username: String, sinceStr: String) = since(username, sinceStr) { implicit request => {
+  def changes(username: String, sinceStr: String): Action[AnyContent] = since(username, sinceStr) { implicit request => {
     user => since =>
       val changes = changeDao.getAllChangesSince(user, since)
       val jsonChanges = changes.map { change =>
@@ -79,7 +78,7 @@ class Changes @Inject()(val users: Users, val changeDao: ChangeDao) extends Cont
     )
   }
 
-  def changelog(username: String, sinceStr: String) = since(username, sinceStr) { implicit request => {
+  def changelog(username: String, sinceStr: String): Action[AnyContent] = since(username, sinceStr) { implicit request => {
     user => since =>
       val changelogCount = changeDao.countChangelog(user)
       val changelog = changeDao.changelog(user, since)

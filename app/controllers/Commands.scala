@@ -70,15 +70,14 @@ class Commands @Inject()(
         build
       Try {
         val commandType = cmd(messageService)
-        commandType.execute
+        commandType.execute()
         if (commandType.requiresFinish) {
-          messageService.finish
+          messageService.finish()
         }
       }.recover {
-        case e => {
+        case e =>
           messageService.exception(e)
-          messageService.finish
-        }
+          messageService.finish()
       }
     })
     validatedCommandTypeBuilder match {

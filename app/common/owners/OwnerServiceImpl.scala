@@ -38,21 +38,21 @@ class OwnerServiceImpl @Inject()(val musicBrainzClient: CollectionDao, val users
       log(READING_COLLECTION(user))
       val collection = musicBrainzClient.releasesForOwner(user)
       user -> collection
-    }.toSet
+    }
     tags => collectionsByUser.filter(_._2.exists(id => id == tags.albumId)).map(_._1)
 
   }
 
   override def own(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit = {
-    changeOwnership(user, tags, musicBrainzClient.addReleases _)
+    changeOwnership(user, tags, musicBrainzClient.addReleases)
   }
 
   override def unown(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit = {
-    changeOwnership(user, tags, musicBrainzClient.removeReleases _)
+    changeOwnership(user, tags, musicBrainzClient.removeReleases)
   }
 
   def changeOwnership(user: User, tags: Set[Tags], block: (User, Set[String]) => Unit): Unit = {
-    val albumIds = tags.map(_.albumId).toSet
+    val albumIds = tags.map(_.albumId)
     block(user, albumIds)
   }
 

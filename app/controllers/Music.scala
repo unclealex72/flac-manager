@@ -39,16 +39,16 @@ import scala.util.Try
 @Singleton
 class Music @Inject()(val users: Users)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService) extends Controller {
 
-  def music(username: String, path: String) = musicFile(username, path, deviceFileAt) { deviceFileLocation =>
+  def music(username: String, path: String): Action[AnyContent] = musicFile(username, path, deviceFileAt) { deviceFileLocation =>
     Ok.sendFile(deviceFileLocation.toFile)
   }
 
-  def tags(username: String, path: String) = serveTags(username, path, deviceFileAt)(tags => Ok(tags.toJson(false)))
+  def tags(username: String, path: String): Action[AnyContent] = serveTags(username, path, deviceFileAt)(tags => Ok(tags.toJson(false)))
 
   def serveTags(username: String,
                 path: String,
                 deviceFileLocator: (User, Path) => Option[DeviceFileLocation])
-               (responseBuilder: Tags => Result) = musicFile(username, path, deviceFileLocator) { deviceFileLocation =>
+               (responseBuilder: Tags => Result): Action[AnyContent] = musicFile(username, path, deviceFileLocator) { deviceFileLocation =>
     deviceFileLocation.toFlacFileLocation.readTags match {
       case Invalid(_) =>
         NotFound
@@ -67,7 +67,7 @@ class Music @Inject()(val users: Users)(implicit val directories: Directories, v
       musicFile <- deviceFileLocator(user, Paths.get(decodedPath))
     } yield musicFile
     musicFile match {
-      case Some(deviceFileLocation) => {
+      case Some(deviceFileLocation) =>
         val lastModified = new DateTime(deviceFileLocation.lastModified)
         val maybeNotModified = for {
           ifModifiedSinceValue <-
@@ -77,12 +77,11 @@ class Music @Inject()(val users: Users)(implicit val directories: Directories, v
             if lastModified.isBefore(ifModifiedSinceDate)
         } yield NotModified
         maybeNotModified.getOrElse(resultBuilder(deviceFileLocation)).withDateHeaders("Last-Modified" -> lastModified)
-      }
       case _ => NotFound
     }
   }
 
-  def artwork(username: String, path: String) = serveTags(username, path, firstDeviceFileIn) { tags =>
+  def artwork(username: String, path: String): Action[AnyContent] = serveTags(username, path, firstDeviceFileIn) { tags =>
     val coverArt = tags.coverArt
     Ok(coverArt.imageData).withHeaders(HeaderNames.CONTENT_TYPE -> coverArt.mimeType)
   }

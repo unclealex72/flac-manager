@@ -30,7 +30,7 @@ class ProcessCommunicatorSpec extends Specification {
   trait Context extends After {
     lazy val processCommunicator = new ProcessCommunicator
 
-    def after = processCommunicator.close
+    def after: Unit = processCommunicator.close()
   }
 
   "The process communicator" should {

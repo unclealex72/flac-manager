@@ -41,13 +41,13 @@ import scala.collection.SortedSet
 class CheckinCommandImplSpec extends Specification with Mockito {
 
   trait Context extends Scope {
-    lazy val directoryService = mock[DirectoryService]
-    lazy implicit val flacFileChecker = mock[FlacFileChecker]
-    lazy val ownerService = mock[OwnerService]
-    lazy implicit val tagsService = mock[TagsService]
+    lazy val directoryService: DirectoryService = mock[DirectoryService]
+    lazy implicit val flacFileChecker: FlacFileChecker = mock[FlacFileChecker]
+    lazy val ownerService: OwnerService = mock[OwnerService]
+    lazy implicit val tagsService: TagsService = mock[TagsService]
     lazy implicit val messageService = TestMessageService()
-    lazy implicit val fileLocationExtensions = mock[TestFileLocationExtensions]
-    lazy val checkinService = mock[CheckinService]
+    lazy implicit val fileLocationExtensions: TestFileLocationExtensions = mock[TestFileLocationExtensions]
+    lazy val checkinService: CheckinService = mock[CheckinService]
     lazy val checkinCommand = new CheckinCommandImpl(directoryService, ownerService, checkinService)
     implicit val directories = TestDirectories()
     val tags = Tags(
@@ -70,7 +70,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
     val brian: User = User("Brian")
     val fileLocations = Seq.empty[StagedFlacFileLocation]
 
-    def andThatsAll() = {
+    def andThatsAll(): Unit = {
       noMoreCallsTo(messageService, checkinService)
     }
   }
@@ -81,7 +81,7 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       flacFileChecker.isFlacFile(sfl) returns true
       tagsService.read(sfl) returns Invalid(NonEmptyList.of(""))
       directoryService.listFiles(fileLocations) returns SortedSet(sfl)
-      checkinCommand.checkin(fileLocations).execute
+      checkinCommand.checkin(fileLocations).execute()
       there was one(messageService).printMessage(INVALID_FLAC(sfl))
       there was one(messageService).printMessage(NO_FILES(SortedSet(sfl)))
       andThatsAll()
@@ -89,12 +89,12 @@ class CheckinCommandImplSpec extends Specification with Mockito {
 
     "not allow flac files that would overwrite an existing file" in new Context {
       val sfl = StagedFlacFileLocation("good.flac")
-      val fl = sfl.toFlacFileLocation(tags)
+      val fl: FlacFileLocation = sfl.toFlacFileLocation(tags)
       flacFileChecker.isFlacFile(sfl) returns true
       tagsService.read(sfl) returns Valid(tags)
       directoryService.listFiles(fileLocations) returns SortedSet(sfl)
       fileLocationExtensions.exists(fl) returns true
-      checkinCommand.checkin(fileLocations).execute
+      checkinCommand.checkin(fileLocations).execute()
       there was one(messageService).printMessage(OVERWRITE(sfl, fl))
       there was one(messageService).printMessage(NO_FILES(SortedSet(sfl)))
       andThatsAll()
@@ -104,14 +104,14 @@ class CheckinCommandImplSpec extends Specification with Mockito {
       val sfl1 = StagedFlacFileLocation("good.flac")
       val sfl2 = StagedFlacFileLocation("bad.flac")
       val sfl3 = StagedFlacFileLocation("ugly.flac")
-      val fl = sfl1.toFlacFileLocation(tags)
+      val fl: FlacFileLocation = sfl1.toFlacFileLocation(tags)
       Seq(sfl1, sfl2, sfl3).foreach { sfl =>
         flacFileChecker.isFlacFile(sfl) returns true
         tagsService.read(sfl) returns Valid(tags)
       }
       directoryService.listFiles(fileLocations) returns SortedSet(sfl1, sfl2, sfl3)
       fileLocationExtensions.exists(fl) returns false
-      checkinCommand.checkin(fileLocations).execute
+      checkinCommand.checkin(fileLocations).execute()
       there was one(messageService).printMessage(NON_UNIQUE(fl, Set(sfl1, sfl2, sfl3)))
       there was one(messageService).printMessage(NO_FILES(SortedSet(sfl1, sfl2, sfl3)))
       andThatsAll()
@@ -120,13 +120,13 @@ class CheckinCommandImplSpec extends Specification with Mockito {
 
   "not allow flac files that don't have an owner" in new Context {
     val sfl = StagedFlacFileLocation("good.flac")
-    val fl = sfl.toFlacFileLocation(tags)
+    val fl: FlacFileLocation = sfl.toFlacFileLocation(tags)
     flacFileChecker.isFlacFile(sfl) returns true
     tagsService.read(sfl) returns Valid(tags)
     directoryService.listFiles(fileLocations) returns SortedSet(sfl)
     fileLocationExtensions.exists(fl) returns false
-    ownerService.listCollections() returns { fl => Set()}
-    checkinCommand.checkin(fileLocations).execute
+    ownerService.listCollections() returns { _ => Set()}
+    checkinCommand.checkin(fileLocations).execute()
     there was one(messageService).printMessage(NOT_OWNED(sfl))
     there was one(messageService).printMessage(NO_FILES(SortedSet(sfl)))
     andThatsAll()
@@ -135,15 +135,15 @@ class CheckinCommandImplSpec extends Specification with Mockito {
   "Allow valid flac files an non-flac files" in new Context {
     val sfl1 = StagedFlacFileLocation("good.flac")
     val sfl2 = StagedFlacFileLocation("bad.flac")
-    val fl = sfl1.toFlacFileLocation(tags)
+    val fl: FlacFileLocation = sfl1.toFlacFileLocation(tags)
     flacFileChecker.isFlacFile(sfl1) returns true
     flacFileChecker.isFlacFile(sfl2) returns false
     tagsService.read(sfl1) returns Valid(tags)
     directoryService.listFiles(fileLocations) returns SortedSet(sfl1, sfl2)
     fileLocationExtensions.exists(fl) returns false
-    ownerService.listCollections() returns { fl => Set(brian)}
+    ownerService.listCollections() returns { _ => Set(brian)}
     checkinCommand.checkin(fileLocations) returns synchronous {}
-    checkinCommand.checkin(fileLocations).execute
+    checkinCommand.checkin(fileLocations).execute()
     there was one(checkinService).checkin(Seq(Encode(sfl1, fl, tags, Set(brian)), Delete(sfl2)))
     andThatsAll()
   }

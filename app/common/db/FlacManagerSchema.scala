@@ -18,7 +18,7 @@ package common.db
 import common.changes.Change
 import common.collections.CollectionItem
 import common.db.SquerylEntryPoint._
-import org.squeryl.Schema
+import org.squeryl.{Schema, Table}
 
 /**
  * The Squeryl schema definition for this application.
@@ -27,8 +27,8 @@ import org.squeryl.Schema
  */
 object FlacManagerSchema extends Schema {
 
-  val changes = table[Change]("change")
-  val collectionItems = table[CollectionItem]("collectionitem")
+  val changes: Table[Change] = table[Change]("change")
+  val collectionItems: Table[CollectionItem] = table[CollectionItem]("collectionitem")
 
   /**
    * Column constraints

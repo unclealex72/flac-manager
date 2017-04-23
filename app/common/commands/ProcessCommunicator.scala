@@ -51,11 +51,11 @@ class ProcessCommunicator extends ApplicationLogging {
 
   def write(command: String): Unit = for (in <- stdin) logStderrOnError {
     in.write(command)
-    in.newLine
-    in.flush
+    in.newLine()
+    in.flush()
   }
 
-  def logStderrOnError[V](block: => V) = {
+  def logStderrOnError[V](block: => V): V = {
     try {
       block
     }
@@ -85,7 +85,7 @@ class ProcessCommunicator extends ApplicationLogging {
   }
 
 
-  def close: Unit = {
+  def close(): Unit = {
     read
     Seq(stdin, stdout, stderr).flatten.foreach(BasicIO.close)
   }

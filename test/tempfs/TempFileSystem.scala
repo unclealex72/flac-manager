@@ -32,7 +32,7 @@ trait TempFileSystem extends After {
 
   def before(rootDirectory: Path): Unit
 
-  def after = {
+  def after: Unit = {
     def removeRecursively(f: File) {
       f.setWritable(true)
       if (f.isDirectory) {

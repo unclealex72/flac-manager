@@ -16,7 +16,7 @@
 
 package common.music
 
-import java.io.ByteArrayOutputStream
+import java.io.{ByteArrayOutputStream, InputStream}
 import java.nio.file.{Files, StandardCopyOption}
 
 import com.google.common.io.ByteStreams
@@ -37,10 +37,10 @@ class JaudioTaggerTagsServiceSpec extends Specification {
   SLF4JBridgeHandler.install()
   val tagsService = new JaudioTaggerTagsService
 
-  val coverIn = getClass.getClassLoader.getResourceAsStream("cover.jpg")
+  val coverIn: InputStream = getClass.getClassLoader.getResourceAsStream("cover.jpg")
   val coverOut = new ByteArrayOutputStream
   ByteStreams.copy(coverIn, coverOut)
-  coverIn.close
+  coverIn.close()
   val coverArt = CoverArt(coverOut.toByteArray, "image/jpeg")
 
   "Reading a tagged file" should {
@@ -50,23 +50,23 @@ class JaudioTaggerTagsServiceSpec extends Specification {
       Files.copy(flacIn, tempMusicFile, StandardCopyOption.REPLACE_EXISTING)
       flacIn.close
       val tags: Tags = tagsService.readTags(tempMusicFile)
-      tags.album must be equalTo ("Metal: A Headbanger's Companion")
-      tags.albumArtist must be equalTo ("Various Artists")
-      tags.albumArtistId must be equalTo ("89ad4ac3-39f7-470e-963a-56509c546377")
-      tags.albumArtistSort must be equalTo ("Various Artists Sort")
-      tags.albumId must be equalTo ("6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e")
-      tags.artist must be equalTo ("Napalm Death")
-      tags.artistId must be equalTo ("ce7bba8b-026b-4aa6-bddb-f98ed6d595e4")
-      tags.artistSort must be equalTo ("Napalm Death Sort")
-      tags.asin must be equalTo (Some("B000Q66HUA"))
-      tags.title must be equalTo ("Suffer The Children")
-      tags.trackId must be equalTo ("5b0ef8e9-9b55-4a3e-aca6-d816d6bbc00f")
-      tags.coverArt.imageData.toBase64 must be equalTo (coverArt.imageData.toBase64)
-      tags.coverArt.mimeType must be equalTo (coverArt.mimeType)
-      tags.discNumber.intValue must be equalTo (1)
-      tags.totalDiscs.intValue must be equalTo (6)
-      tags.totalTracks.intValue must be equalTo (17)
-      tags.trackNumber.intValue must be equalTo (3)
+      tags.album must be equalTo "Metal: A Headbanger's Companion"
+      tags.albumArtist must be equalTo "Various Artists"
+      tags.albumArtistId must be equalTo "89ad4ac3-39f7-470e-963a-56509c546377"
+      tags.albumArtistSort must be equalTo "Various Artists Sort"
+      tags.albumId must be equalTo "6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e"
+      tags.artist must be equalTo "Napalm Death"
+      tags.artistId must be equalTo "ce7bba8b-026b-4aa6-bddb-f98ed6d595e4"
+      tags.artistSort must be equalTo "Napalm Death Sort"
+      tags.asin must be equalTo Some("B000Q66HUA")
+      tags.title must be equalTo "Suffer The Children"
+      tags.trackId must be equalTo "5b0ef8e9-9b55-4a3e-aca6-d816d6bbc00f"
+      tags.coverArt.imageData.toBase64 must be equalTo coverArt.imageData.toBase64
+      tags.coverArt.mimeType must be equalTo coverArt.mimeType
+      tags.discNumber.intValue must be equalTo 1
+      tags.totalDiscs.intValue must be equalTo 6
+      tags.totalTracks.intValue must be equalTo 17
+      tags.trackNumber.intValue must be equalTo 3
     }
   }
 

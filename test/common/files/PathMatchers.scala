@@ -18,7 +18,7 @@ package common.files
 
 import java.nio.file.{Files, Path}
 
-import org.specs2.matcher.{Expectable, Matcher}
+import org.specs2.matcher.{Expectable, MatchResult, Matcher}
 
 /**
  * Specs2 matchers for Paths.
@@ -27,7 +27,7 @@ import org.specs2.matcher.{Expectable, Matcher}
 trait PathMatchers {
 
   val exist = new Matcher[Path] {
-    def apply[S <: Path](s: Expectable[S]) = {
+    def apply[S <: Path](s: Expectable[S]): MatchResult[S] = {
       result(Files.exists(s.value),
         s.description + " exists",
         s.description + " does not exist",
@@ -36,7 +36,7 @@ trait PathMatchers {
   }
 
   val beADirectory = new Matcher[Path] {
-    def apply[S <: Path](s: Expectable[S]) = {
+    def apply[S <: Path](s: Expectable[S]): MatchResult[S] = {
       result(Files.isDirectory(s.value),
         s.description + " is a directory",
         s.description + " is not a directory",
@@ -45,7 +45,7 @@ trait PathMatchers {
   }
 
   def beTheSameFileAs(otherPath: Path) = new Matcher[Path] {
-    def apply[S <: Path](s: Expectable[S]) = {
+    def apply[S <: Path](s: Expectable[S]): MatchResult[S] = {
       result(Files.isSameFile(s.value, otherPath),
         s.description + " is a the same path as " + otherPath,
         s.description + " is not the same path as " + otherPath,
@@ -54,7 +54,7 @@ trait PathMatchers {
   }
 
   val beASymbolicLink = new Matcher[Path] {
-    def apply[S <: Path](s: Expectable[S]) = {
+    def apply[S <: Path](s: Expectable[S]): MatchResult[S] = {
       result(Files.isSymbolicLink(s.value),
         s.description + " is a symbolic link",
         s.description + " is not a symbolic link",
@@ -63,7 +63,7 @@ trait PathMatchers {
   }
 
   val beAbsolute = new Matcher[Path] {
-    def apply[S <: Path](s: Expectable[S]) = {
+    def apply[S <: Path](s: Expectable[S]): MatchResult[S] = {
       result(s.value.isAbsolute,
         s.description + " is absolute",
         s.description + " is relative",

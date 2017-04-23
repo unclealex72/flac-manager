@@ -31,11 +31,11 @@ class FileLocationExtensionsImpl @Inject() extends FileLocationExtensions {
 
   implicit val fileLocationToPath: FileLocation => Path = _.toPath
 
-  override def isDirectory(fileLocation: FileLocation) = {
+  override def isDirectory(fileLocation: FileLocation): Boolean = {
     Files.exists(fileLocation) && !Files.isSymbolicLink(fileLocation) && Files.isDirectory(fileLocation)
   }
 
-  def exists(fileLocation: FileLocation) = Files.exists(fileLocation)
+  def exists(fileLocation: FileLocation): Boolean = Files.exists(fileLocation)
 
   override def createTemporaryFileLocation(extension: Extension)(implicit directories: Directories): TemporaryFileLocation = {
     val path = Files.createTempFile(directories.temporaryPath, "flac-manager-", s".${extension.extension}")

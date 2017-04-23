@@ -30,7 +30,7 @@ import javax.inject.Inject
  */
 class FlacFileCheckerImpl @Inject() extends FlacFileChecker {
 
-  val MAGIC_NUMBER = Vector[Byte](0x66, 0x4C, 0x61, 0x43)
+  val MAGIC_NUMBER: Vector[Byte] = Vector[Byte](0x66, 0x4C, 0x61, 0x43)
 
   /**
    * Check whether a file is a FLAC encoded file or not.
@@ -44,7 +44,7 @@ class FlacFileCheckerImpl @Inject() extends FlacFileChecker {
       isFlacFile(in)
     }
     finally {
-      in.close
+      in.close()
     }
   }
 

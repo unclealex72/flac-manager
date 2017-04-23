@@ -16,7 +16,7 @@
 
 package common.changes
 
-import org.specs2.matcher.MustMatchers
+import org.specs2.matcher.{Matcher, MustMatchers}
 
 /**
  * Matchers for changes.
@@ -24,5 +24,6 @@ import org.specs2.matcher.MustMatchers
  */
 trait ChangeMatchers extends MustMatchers {
 
-  def beTheSameChangeAs = (be_==(_:(String, String, Long, String))) ^^^ ((c: Change) => (c.user, c.action, c.at.getMillis, c.relativePath))
+  def beTheSameChangeAs: Change => Matcher[Change] =
+    (be_==(_:(String, String, Long, String))) ^^^ ((c: Change) => (c.user, c.action, c.at.getMillis, c.relativePath))
 }

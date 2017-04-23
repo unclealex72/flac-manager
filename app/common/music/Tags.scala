@@ -19,8 +19,9 @@ package common.music
 import java.nio.file.{Path, Paths}
 import java.text.Normalizer
 
+import com.wix.accord.transform.ValidationTransform
 import common.files.Extension
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 
 /**
  * Created by alex on 02/11/14.
@@ -32,112 +33,112 @@ case class Tags(
                   *
                   * @return the string used to sort the artist for the album of this track
                   */
-                 val albumArtistSort: String,
+                 albumArtistSort: String,
 
                  /**
                   * Gets the artist for the entire album.
                   *
                   * @return the artist for the entire album
                   */
-                 val albumArtist: String,
+                 albumArtist: String,
 
                  /**
                   * Gets the name of the album for this track.
                   *
                   * @return the name of the album for this track
                   */
-                 val album: String,
+                 album: String,
 
                  /**
                   * Gets the name of the artist who recorded this track.
                   *
                   * @return the name of the artist who recorded this track
                   */
-                 val artist: String,
+                 artist: String,
 
                  /**
                   * Gets the string used to sort the artist who recorded this track.
                   *
                   * @return the string used to sort the artist who recorded this track
                   */
-                 val artistSort: String,
+                 artistSort: String,
 
                  /**
                   * Gets the title of this track.
                   *
                   * @return the title of this track
                   */
-                 val title: String,
+                 title: String,
 
                  /**
                   * Gets the total number of discs included in the release for this track.
                   *
                   * @return the total number of discs included in the release for this track
                   */
-                 val totalDiscs: Int,
+                 totalDiscs: Int,
 
                  /**
                   * Gets the total number of tracks included in the release for this track.
                   *
                   * @return the total number of tracks included in the release for this track
                   */
-                 val totalTracks: Int,
+                 totalTracks: Int,
 
                  /**
                   * Gets the disc number of the disc that contains this track.
                   *
                   * @return the disc number of the disc that contains this track
                   */
-                 val discNumber: Int,
+                 discNumber: Int,
 
                  /**
                   * Gets the MusicBrainz ID of the artist for the album for this track.
                   *
                   * @return the MusicBrainz ID of the artist for the album for this track
                   */
-                 val albumArtistId: String,
+                 albumArtistId: String,
 
                  /**
                   * Gets the MusicBrainz ID of the album for this track.
                   *
                   * @return the MusicBrainz ID of the album for this track
                   */
-                 val albumId: String,
+                 albumId: String,
 
                  /**
                   * Gets the MusicBrainz ID of the artist who recorded this track.
                   *
                   * @return the MusicBrainz ID of the artist who recorded this track
                   */
-                 val artistId: String,
+                 artistId: String,
 
                  /**
                   * Gets the MusicBrainz ID of this track.
                   *
                   * @return the MusicBrainz ID of this track
                   */
-                 val trackId: String,
+                 trackId: String,
 
                  /**
                   * Gets the Amazon identifier for the album of this track.
                   *
                   * @return the Amazon identifier for the album of this track
                   */
-                 val asin: Option[String],
+                 asin: Option[String],
 
                  /**
                   * Gets the number of this track on its album.
                   *
                   * @return the number of this track on its album
                   */
-                 val trackNumber: Int,
+                 trackNumber: Int,
 
                  /**
                   * Gets the cover art for this track.
                   *
                   * @return the cover art for this track
                   */
-                 val coverArt: CoverArt
+                 coverArt: CoverArt
                  ) {
 
   /**
@@ -152,17 +153,17 @@ case class Tags(
       """\s+""".r.replaceAllIn(validCharacters, " ").trim
     }
     val normalisedAlbumArtistSort = normalise(albumArtistSort)
-    val firstLetter = normalisedAlbumArtistSort.substring(0, 1);
+    val firstLetter = normalisedAlbumArtistSort.substring(0, 1)
     val discNumberSuffix: Option[String] = totalDiscs match {
       case 1 => None
-      case _ => Some(f"${discNumber}%02d")
+      case _ => Some(f"$discNumber%02d")
     }
     val normalisedAlbum = normalise(Seq(Some(album), discNumberSuffix).flatten.mkString(" "))
-    val normalisedTitle = normalise(f"${trackNumber}%02d ${title}%s")
+    val normalisedTitle = normalise(f"$trackNumber%02d $title%s")
     Paths.get(firstLetter, normalisedAlbumArtistSort, normalisedAlbum, normalisedTitle + "." + extension.extension)
   }
 
-  def toJson(includeCoverArt: Boolean) = {
+  def toJson(includeCoverArt: Boolean): JsObject = {
     val obj = Json.obj(
       "albumArtistSort" -> albumArtistSort, //String
       "albumArtist" -> albumArtist, //String
@@ -190,7 +191,7 @@ object Tags {
 
   import com.wix.accord.dsl._
 
-  implicit val musicFileValidator = validator[Tags] { tags =>
+  implicit val musicFileValidator: ValidationTransform.TransformedValidator[Tags] = validator[Tags] { tags =>
     tags.albumArtistSort is notEmpty
     tags.albumArtist is notEmpty
     tags.album is notEmpty

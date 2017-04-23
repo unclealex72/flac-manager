@@ -17,7 +17,7 @@
 package common.message
 
 import logging.ApplicationLogging
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 import play.api.i18n.{Messages, MessagesApi}
 
 /**
@@ -60,7 +60,7 @@ class I18nMessageServiceBuilder(messagesApi: MessagesApi, printers: Seq[String =
 
 object I18nMessageServiceBuilder {
 
-  val logger = LoggerFactory.getLogger("messages")
+  val logger: Logger = LoggerFactory.getLogger("messages")
   def apply(messagesApi: MessagesApi): MessageServiceBuilder =
     new I18nMessageServiceBuilder(messagesApi, Seq(), Seq(), Seq()).
       withPrinter(message => logger.info(message)).

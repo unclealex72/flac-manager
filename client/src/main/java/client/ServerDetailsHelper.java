@@ -26,22 +26,33 @@ import scala.Function1;
 import scala.concurrent.Promise;
 
 /**
+ * A class to retrieve the URL and datum filename from a Upnp server. Written in
+ * Java to avoid Scala type inference ugliness
  * Created by alex on 17/04/17
  **/
-public class ServerDetailsHelper {
+class ServerDetailsHelper {
 
+    /**
+     * Execute a Get command
+     * @param controlPoint The Upnp control point
+     * @param service The Upnp service
+     * @param propertyName The name of the property to get.
+     * @param promise A promise to be used to store the result.
+     * @param valueAdaptor A function used to turn a string into the correct type.
+     * @param <T> The type of the returned property.
+     */
     public static <T> void executeGetter(
             ControlPoint controlPoint,
             RemoteService service,
-            String argumentName,
+            String propertyName,
             Promise<T> promise,
             Function1<String, T> valueAdaptor) {
-        final Action<RemoteService> action = service.getAction("Get" + argumentName);
+        final Action<RemoteService> action = service.getAction("Get" + propertyName);
         final ActionInvocation<RemoteService> invocation = new ActionInvocation<>(action);
         controlPoint.execute(new ActionCallback(invocation) {
             @Override
             public void success(ActionInvocation invocation) {
-                String value = invocation.getOutput(argumentName).getValue().toString();
+                String value = invocation.getOutput(propertyName).getValue().toString();
                 promise.success(valueAdaptor.apply(value));
             }
             @Override

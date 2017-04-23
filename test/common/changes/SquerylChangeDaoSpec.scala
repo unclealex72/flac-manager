@@ -36,12 +36,13 @@ class SquerylChangeDaoSpec extends Specification with ApplicationLogging {
   /**
    * Wrap tests with database creation and transactions
    */
-  def txn[B](block: ChangeDao => Context => B) = {
+  def txn[B](block: ChangeDao => Context => B): B = {
     Class forName "org.h2.Driver"
     SessionFactory.concreteFactory = Some(() => {
       val session = Session.create(
         java.sql.DriverManager.getConnection("jdbc:h2:mem:", "", ""),
         new H2Adapter)
+      //noinspection ConvertibleToMethodValue
       session.setLogger(logger.debug(_))
       session
     })
@@ -62,14 +63,14 @@ class SquerylChangeDaoSpec extends Specification with ApplicationLogging {
     val freddie: User = "Freddie"
     val brian: User = "Brian"
 
-    val tearItUpAdded = ("The Works", "Tear it Up.mp3") ownedBy brian addedAt "05/09/1972 09:12:00"
-    val bohemianRhapsodyRemoved = ("A Night at the Opera", "Bohemian Rhapsody.mp3") ownedBy freddie removedAt "05/09/1972 09:12:30"
-    val myFairyKingAdded = ("Queen", "My Fairy King.mp3") ownedBy freddie addedAt "05/09/1972 09:13:00"
-    val theNightComesDownAdded = ("Queen", "The Night Comes Down.mp3") ownedBy freddie addedAt "05/09/1972 09:13:00"
-    val funnyHowLoveIsAdded = ("Queen II", "Funny How Love Is.mp3") ownedBy freddie addedAt "05/09/1972 09:13:00"
-    val weWillRockYouRemoved = ("News of the World", "We Will Rock You.mp3") ownedBy brian removedAt "05/09/1972 09:13:30"
-    val weAreTheChampionsAdded = ("News of the World", "We Are The Champions.mp3") ownedBy freddie addedAt "05/09/1972 09:14:00"
-    val weAreTheChampionsRemoved = ("News of the World", "We Are The Champions.mp3") ownedBy freddie removedAt "05/09/1972 09:14:30"
+    val tearItUpAdded: Change = ("The Works", "Tear it Up.mp3") ownedBy brian addedAt "05/09/1972 09:12:00"
+    val bohemianRhapsodyRemoved: Change = ("A Night at the Opera", "Bohemian Rhapsody.mp3") ownedBy freddie removedAt "05/09/1972 09:12:30"
+    val myFairyKingAdded: Change = ("Queen", "My Fairy King.mp3") ownedBy freddie addedAt "05/09/1972 09:13:00"
+    val theNightComesDownAdded: Change = ("Queen", "The Night Comes Down.mp3") ownedBy freddie addedAt "05/09/1972 09:13:00"
+    val funnyHowLoveIsAdded: Change = ("Queen II", "Funny How Love Is.mp3") ownedBy freddie addedAt "05/09/1972 09:13:00"
+    val weWillRockYouRemoved: Change = ("News of the World", "We Will Rock You.mp3") ownedBy brian removedAt "05/09/1972 09:13:30"
+    val weAreTheChampionsAdded: Change = ("News of the World", "We Are The Champions.mp3") ownedBy freddie addedAt "05/09/1972 09:14:00"
+    val weAreTheChampionsRemoved: Change = ("News of the World", "We Are The Champions.mp3") ownedBy freddie removedAt "05/09/1972 09:14:30"
   }
 
   "Getting all changes since a specific time for a user" should {
@@ -100,7 +101,7 @@ class SquerylChangeDaoSpec extends Specification with ApplicationLogging {
     implicit def asUser(name: String): User = User(name)
 
     implicit class ChangeBuilderA(albumAndTitle: (String, String)) {
-      def ownedBy(user: User) = (Paths.get(albumAndTitle._1, albumAndTitle._2).toString, user)
+      def ownedBy(user: User): (String, User) = (Paths.get(albumAndTitle._1, albumAndTitle._2).toString, user)
     }
 
     implicit class ChangeBuilderB(relativePathAndUser: (String, User)) {

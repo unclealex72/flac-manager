@@ -17,7 +17,7 @@
 package common.music
 
 import org.apache.commons.codec.binary.Base64
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 
 /**
  * An immutable class that contains information about a cover art picture, namely the image data and its mime type.
@@ -35,5 +35,5 @@ case class CoverArt(
                       */
                      mimeType: String) {
 
-  def toJson = Json.obj("mimeType" -> mimeType, "image" -> Base64.encodeBase64String(imageData))
+  def toJson: JsObject = Json.obj("mimeType" -> mimeType, "image" -> Base64.encodeBase64String(imageData))
 }

@@ -32,7 +32,7 @@ class OwnerServiceImplSpec extends Specification with Mockito {
 
   trait Context extends Scope {
     lazy implicit val messageService = TestMessageService()
-    lazy val musicBrainzClient = mock[CollectionDao]
+    lazy val musicBrainzClient: CollectionDao = mock[CollectionDao]
     lazy val ownerService = new OwnerServiceImpl(musicBrainzClient, users)
     val brian = User("Brian")
     val freddie = User("Freddie")

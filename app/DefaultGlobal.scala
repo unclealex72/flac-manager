@@ -23,6 +23,7 @@ import play.api.{Application, GlobalSettings}
 import upnp.ClingUpnpServer
 
 /**
+  * The entry point for the play application.
   * Created by alex on 12/02/17
   **/
 trait DefaultGlobal extends GlobalSettings with LazyLogging {
@@ -41,7 +42,7 @@ trait DefaultGlobal extends GlobalSettings with LazyLogging {
     }
   }
 
-  def getSession(adapter: DatabaseAdapter, app: Application) = Session.create(DB.getConnection()(app), adapter)
+  def getSession(adapter: DatabaseAdapter, app: Application): Session = Session.create(DB.getConnection()(app), adapter)
 
   override def onStop(app: Application): Unit = {
     super.onStop(app)

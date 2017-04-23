@@ -32,7 +32,7 @@ trait MessageService {
 
   def exception(t: Throwable): Unit
 
-  def finish: Unit
+  def finish(): Unit
 
   private[message] def printMessage(template: MessageType): Unit
 }
@@ -167,7 +167,7 @@ object MessageTypes {
 
 trait Messaging {
 
-  def log(template: MessageType)(implicit messageService: MessageService) = messageService.printMessage(template)
+  def log(template: MessageType)(implicit messageService: MessageService): Unit = messageService.printMessage(template)
 
   implicit class TraversableLoggingImplicits[A](items: Set[A]) {
     def log(templateFactory: A => MessageType)(implicit messageService: MessageService): Set[A] = {

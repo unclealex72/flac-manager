@@ -27,31 +27,31 @@ case class Change(
                    /**
                     * The primary key of the change.
                     */
-                   val id: Long,
+                   id: Long,
 
                    /**
                     * The path of the parent directory for adds
                     */
-                   val parentRelativePath: Option[String],
+                   parentRelativePath: Option[String],
                    /**
                     * The relative path of the file that changed.
                     */
-                   val relativePath: String,
+                   relativePath: String,
 
                    /**
                     * The time the change occurred.
                     */
-                   val at: DateTime,
+                   at: DateTime,
 
                    /**
                     * The name of the user whose repository changed.
                     */
-                   val user: String,
+                   user: String,
 
                    /**
                     * The action that happened to the file (added or removed).
                     */
-                   val action: String) extends KeyedEntity[Long] {
+                   action: String) extends KeyedEntity[Long] {
 
   /**
    * Squeryl constructor
@@ -59,15 +59,19 @@ case class Change(
 
   protected def this() = this(0, None, "", new DateTime(), "", "")
 
+  /**
+    * Store this change in the database.
+    * @param changeDao The [[ChangeDao]] that will
+    */
   def store(implicit changeDao: ChangeDao): Unit = changeDao.store(this)
 }
 
 object Change {
 
   def added(deviceFileLocation: DeviceFileLocation)(implicit fileLocationExtensions: FileLocationExtensions): Change =
-    apply("added", deviceFileLocation, true, JodaDateTime(deviceFileLocation.lastModified))
+    apply("added", deviceFileLocation, storeParent = true, JodaDateTime(deviceFileLocation.lastModified))
 
-  def removed(deviceFileLocation: DeviceFileLocation, at: DateTime): Change = apply("removed", deviceFileLocation, false, at)
+  def removed(deviceFileLocation: DeviceFileLocation, at: DateTime): Change = apply("removed", deviceFileLocation, storeParent = false, at)
 
   private def apply(action: String, deviceFileLocation: DeviceFileLocation, storeParent: Boolean, at: DateTime): Change = {
     val relativePath = deviceFileLocation.relativePath

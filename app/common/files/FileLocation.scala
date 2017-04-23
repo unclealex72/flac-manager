@@ -186,7 +186,7 @@ abstract class AbstractFileLocation(
                                      val directoryFactory: Directories => Path,
                                      val directories: Directories) {
 
-  val basePath = directoryFactory(directories)
+  val basePath: Path = directoryFactory(directories)
 
   override def toString: String = s"$name($relativePath)"
 
@@ -342,7 +342,7 @@ object DeviceFileLocation {
     DeviceFileLocationImpl(user, relativePath, directories)
 }
 
-case class RemovableFileLocationImpl(val rootDirectory: Path, override val relativePath: Path, override val directories: Directories) extends AbstractFileLocation(
+case class RemovableFileLocationImpl(rootDirectory: Path, override val relativePath: Path, override val directories: Directories) extends AbstractFileLocation(
   "RemovableFileLocation", relativePath, true, _ => rootDirectory, directories) with RemovableFileLocation with ToDeviceFileLocationImpl
 
 object RemovableFileLocation {

@@ -50,7 +50,6 @@ import org.fourthline.cling.model.types.{Datatype, ErrorCode}
 class FlacManagerService {
 
   private var port: java.lang.Integer = _
-  private var url: java.lang.String = _
   private var datumFilename: java.lang.String = _
 
   @UpnpAction def setPort(

@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package files
+package common.files
 
-import common.files.FlacFileCheckerImpl
 import org.specs2.mutable._
 
 /**

@@ -26,18 +26,18 @@ object Base64 {
 
   implicit class Encoder(b: Array[Byte]) {
     private[this] val zero = Array(0, 0).map(_.toByte)
-    lazy val pad = (3 - b.length % 3) % 3
+    lazy val pad: Int = (3 - b.length % 3) % 3
 
     def toBase64(implicit scheme: B64Scheme = base64): String = {
       def sixBits(x: Array[Byte]): Seq[Int] = {
         val a = (x(0) & 0xfc) >> 2
         val b = ((x(0) & 0x3) << 4) + ((x(1) & 0xf0) >> 4)
         val c = ((x(1) & 0xf) << 2) + ((x(2) & 0xc0) >> 6)
-        val d = (x(2)) & 0x3f
+        val d = x(2) & 0x3f
         Seq(a, b, c, d)
       }
       ((b ++ zero.take(pad)).grouped(3)
-        .flatMap(sixBits(_))
+        .flatMap(sixBits)
         .map(x => scheme.encodeTable(x))
         .toSeq
         .dropRight(pad) :+ "=" * pad)
@@ -46,8 +46,8 @@ object Base64 {
   }
 
   implicit class Decoder(s: String) {
-    lazy val cleanS = s.reverse.dropWhile(_ == '=').reverse
-    lazy val pad = s.length - cleanS.length
+    lazy val cleanS: String = s.reverse.dropWhile(_ == '=').reverse
+    lazy val pad: Int = s.length - cleanS.length
 
     def toByteArray(implicit scheme: B64Scheme = base64): Array[Byte] = {
       def threeBytes(s: Seq[Char]): Array[Byte] = {
