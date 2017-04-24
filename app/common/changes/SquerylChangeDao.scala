@@ -24,9 +24,7 @@ import org.joda.time.DateTime
 import org.squeryl.dsl.ast.LogicalBoolean
 
 /**
- * The Squeryl implementation of both GameDao and Transactional.
- * @author alex
- *
+ * The Squeryl implementation of [[ChangeDao]].
  */
 class SquerylChangeDao @Inject() extends ChangeDao {
 
@@ -38,27 +36,43 @@ class SquerylChangeDao @Inject() extends ChangeDao {
     block(this)
   }
 
+  /**
+    * @inheritdoc
+    */
   def store(change: Change): Change = inTransaction {
     changes.insertOrUpdate(change)
     change
   }
 
+  /**
+    * @inheritdoc
+    */
   override def getAllChangesSince(user: User, since: DateTime): List[Change] = inTransaction {
     val latest = from(changes)(c => where(c.at >= since and user.name === c.user) groupBy c.relativePath compute max(c.at))
     from(latest, changes)((l, c) =>
       where(user.name === c.user and l.key === c.relativePath and l.measures === c.at) select c orderBy (c.action desc, c.relativePath.asc))
   }
 
+  /**
+    * @inheritdoc
+    */
   override def countChanges(): Long = inTransaction {
     from(changes)(c => compute(count(c.id)))
   }
 
+  /**
+    * @inheritdoc
+    */
   override def countChangesSince(user: User, since: DateTime): Long = inTransaction {
     from(changes)(c => where(user.name === c.user and c.at >= since) compute count(c.id))
   }
 
-  def isPartOfChangeLog(c: Change, user: User): LogicalBoolean = c.action === "added" and c.user === user.name and c.parentRelativePath.isNotNull
+  private def isPartOfChangeLog(c: Change, user: User): LogicalBoolean =
+    c.action === "added" and c.user === user.name and c.parentRelativePath.isNotNull
 
+  /**
+    * @inheritdoc
+    */
   def changelog(user: User, since: DateTime): List[ChangelogItem] = inTransaction {
     val groupedChanges =
       from(changes)(c => where(isPartOfChangeLog(c, user) and c.at >= since)
@@ -74,15 +88,21 @@ class SquerylChangeDao @Inject() extends ChangeDao {
     changelogItems.toList
   }
 
-  def countFilteredChangelog(filter: Change => LogicalBoolean): Long = inTransaction {
+  private def countFilteredChangelog(filter: Change => LogicalBoolean): Long = inTransaction {
     from(changes)(c =>
       where(filter(c))
         compute countDistinct(c.parentRelativePath)
     ).single.measures
   }
 
+  /**
+    * @inheritdoc
+    */
   def countChangelog(user: User): Long = countFilteredChangelog(c => isPartOfChangeLog(c, user))
 
+  /**
+    * @inheritdoc
+    */
   def countChangelogSince(user: User, since: DateTime): Long = countFilteredChangelog(c => isPartOfChangeLog(c, user) and c.at >= since)
 
 }
