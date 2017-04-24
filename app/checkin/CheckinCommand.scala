@@ -16,14 +16,22 @@
 
 package checkin
 
-import common.commands.CommandType
+import common.commands.CommandExecution
 import common.files.StagedFlacFileLocation
 import common.message.MessageService
 
 /**
+ * The command that checks in flac files from the staging directory.
  * Created by alex on 09/11/14.
  */
 trait CheckinCommand {
-  def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandType
+
+  /**
+    * Check in a set of staged flac files.
+    * @param locations The files to check in
+    * @param messageService The [[MessageService]] used to report progress.
+    * @return
+    */
+  def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandExecution
 
 }

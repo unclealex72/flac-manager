@@ -20,8 +20,8 @@ import javax.inject.{Inject, Named}
 
 import akka.actor.ActorRef
 import checkin.actors.Messages.Actions
-import common.commands.CommandType
-import common.commands.CommandType._
+import common.commands.CommandExecution
+import common.commands.CommandExecution._
 import common.message.{MessageService, Messaging}
 
 /**
@@ -29,7 +29,7 @@ import common.message.{MessageService, Messaging}
  */
 class CheckinServiceImpl @Inject()(@Named("checkin-actor") checkinActor: ActorRef) extends CheckinService with Messaging {
 
-  override def checkin(actions: Seq[Action])(implicit messagingService: MessageService): CommandType = asynchronous {
+  override def checkin(actions: Seq[Action])(implicit messagingService: MessageService): CommandExecution = asynchronous {
     checkinActor ! Actions(actions, messagingService)
   }
 }
