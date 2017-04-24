@@ -20,7 +20,7 @@ package common.message
   * Created by alex on 23/04/17
   **/
 object NoOpMessageService extends MessageService {
-  override def printMessage(template: MessageType): Unit = {}
+  override def printMessage(template: Message): Unit = {}
 
   override def exception(t: Throwable): Unit = {}
 

@@ -20,7 +20,7 @@ import java.nio.file.{Files, Path, Paths}
 
 import common.configuration.TestDirectories
 import common.files.FileLocationImplicits._
-import common.message.{MessageService, MessageType}
+import common.message.{MessageService, Message}
 import org.specs2.mock._
 import org.specs2.mutable._
 import tempfs.TempFileSystem

@@ -25,7 +25,7 @@ import common.music.Tags
  */
 trait OwnerService {
 
-  def listCollections()(implicit messageService: MessageService): Tags => Set[User]
+  def listCollections(): Tags => Set[User]
 
   def own(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit
 

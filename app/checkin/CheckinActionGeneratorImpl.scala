@@ -63,10 +63,20 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
     }
   }
 
+  /**
+    * Partition a set of [[StagedFlacFileLocation]]s into those that start with a flac magic number and those that don't.
+    * @param fileLocations The file locations to partition.
+    * @return A [[Tuple2]] that contains a sequence of flac files and a sequence of non-flac files.
+    */
   def partitionFlacAndNonFlacFiles(fileLocations: Seq[StagedFlacFileLocation]): (Seq[StagedFlacFileLocation], Seq[StagedFlacFileLocation]) = {
     fileLocations.partition(_.isFlacFile)
   }
 
+  /**
+    * Make sure that there is at least one flac file.
+    * @param fileLocations The file locations to check.
+    * @return The file locations if it is not empty or [[NO_FILES]] otherwise.
+    */
   def checkThereAreSomeFiles(fileLocations: Seq[StagedFlacFileLocation]): ValidatedNel[Message, Seq[StagedFlacFileLocation]] = {
     if (fileLocations.isEmpty) {
       Validated.invalidNel(NO_FILES(fileLocations.toSet))
@@ -76,6 +86,12 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
     }
   }
 
+  /**
+    * Make sure that all flac files are fully tagged.
+    * @param fileLocations The file locations to check.
+    * @return A [[ValidFlacFile]] for each fully tagged flac file and [[INVALID_FLAC]] for each non-fully tagged
+    *         flac file.
+    */
   def checkFullyTaggedFlacFiles(fileLocations: Seq[StagedFlacFileLocation]): ValidatedNel[Message, Seq[ValidFlacFile]] = {
     runValidation(fileLocations) { fileLocation =>
       fileLocation.readTags match {
@@ -85,6 +101,12 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
     }
   }
 
+  /**
+    * Make sure that no flac file overwrites a file that already exists in the flac repository.
+    * @param validFlacFiles The fully tagged flac files to check.
+    * @return The [[ValidFlacFile]]s that do not overwrite an existing flac file or [[OVERWRITE]] for each one
+    *         that does.
+    */
   def checkDoesNotOverwriteExistingFlacFile(validFlacFiles: Seq[ValidFlacFile]): ValidatedNel[Message, Seq[ValidFlacFile]] = {
     runValidation(validFlacFiles) { validFlacFile =>
       if (!validFlacFile.flacFileLocation.exists) {
@@ -96,6 +118,11 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
     }
   }
 
+  /**
+    * Make sure that no two [[ValidFlacFile]]s resolve to the same file in the flac repository.
+    * @param validFlacFiles The set of valid flac files to check.
+    * @return The sequence of valid flac files that are unique or [[NON_UNIQUE]] for each one that isn't.
+    */
   def checkTargetFlacFilesAreUnique(validFlacFiles: Seq[ValidFlacFile]): ValidatedNel[Message, Seq[ValidFlacFile]] = {
     val (uniqueMappings, nonUniqueMappings) =
       validFlacFiles.groupBy(_.flacFileLocation).partition(kv => kv._2.size == 1)
@@ -107,6 +134,11 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
     (uniqueFlacFiles |@| nonUniqueFlacFiles).map((uffs, _) => uffs)
   }
 
+  /**
+    * Make sure that each flac file has at least one owner.
+    * @param validFlacFiles The [[ValidFlacFile]]s to check.
+    * @return A sequence of [[OwnedFlacFile]]s or [[NOT_OWNED]] for those that have no owner.
+    */
   def checkFlacFilesAreOwned(validFlacFiles: Seq[ValidFlacFile]): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
     val hasOwners: Tags => Set[User] = ownerService.listCollections()
     runValidation(validFlacFiles) { validFlacFile =>
@@ -120,6 +152,14 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
     }
   }
 
+  /**
+    * Run a validation step against every member of a sequence and collate the results in a [[ValidatedNel]]
+    * @param as The elements to validate
+    * @param validationStep A function that checks an element is valid and transforms it if need be.
+    * @tparam A The type of the source elements.
+    * @tparam B The type of elements to return.
+    * @return A [[ValidatedNel]] that contains the result of all the validation steps.
+    */
   def runValidation[A, B](as: Seq[A])(validationStep: A => Validated[Message, B]): ValidatedNel[Message, Seq[B]] = {
     val empty: ValidatedNel[Message, Seq[B]] = Valid(Seq.empty)
     as.foldLeft(empty) { (results, a) =>
@@ -128,12 +168,40 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
     }
   }
 
+  /**
+    * A holder for all the information about a valid flac file.
+    * @param stagedFileLocation The location of the flac file in the staging repository.
+    * @param flacFileLocation The location of where the flac file will be in the flac repository.
+    * @param tags The audio information stored in the flac file.
+    */
   case class ValidFlacFile(stagedFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags) {
+
+    /**
+      * Promote this valid flac file in to an owned flac file.
+      * @param owners The set of users who own this flac file.
+      * @return An [[OwnedFlacFile]] that additionally contains this flac file's owners.
+      */
     def ownedBy(owners: Set[User]): OwnedFlacFile =
       OwnedFlacFile(stagedFileLocation, flacFileLocation, tags, owners)
   }
 
-  case class OwnedFlacFile(stagedFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, owners: Set[User]) {
+  /**
+    * A holder for all the information about a valid flac file and who owns it.
+    * @param stagedFileLocation The location of the flac file in the staging repository.
+    * @param flacFileLocation The location of where the flac file will be in the flac repository.
+    * @param tags The audio information stored in the flac file.
+    * @param owners The owners of this flac file.
+    */
+  case class OwnedFlacFile(
+                            stagedFileLocation: StagedFlacFileLocation,
+                            flacFileLocation: FlacFileLocation,
+                            tags: Tags,
+                            owners: Set[User]) {
+
+    /**
+      * Convert this flac file into an [[Encode]] action.
+      * @return An [[Encode]] action that can be used to encode this flac file.
+      */
     def toAction: Action = {
       Encode(stagedFileLocation, flacFileLocation, tags, owners)
     }

@@ -17,7 +17,7 @@
 package common.owners
 
 import common.configuration.{User, Users}
-import common.message.MessageTypes._
+import common.message.Messages._
 import common.message.TestMessageService
 import common.music.{CoverArt, Tags}
 import common.collections.CollectionDao
@@ -79,9 +79,7 @@ class OwnerServiceImplSpec extends Specification with Mockito {
     "correctly identify whose collections it is in" in new Context {
       musicBrainzClient.releasesForOwner(brian) returns Seq("6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e")
       musicBrainzClient.releasesForOwner(freddie) returns Seq.empty
-      ownerService.listCollections()(messageService)(tags1) must beEqualTo(Set(brian))
-      there was one(messageService).printMessage(READING_COLLECTION(brian))
-      there was one(messageService).printMessage(READING_COLLECTION(freddie))
+      ownerService.listCollections()(tags1) must beEqualTo(Set(brian))
       noMoreCallsTo(messageService)
     }
   }

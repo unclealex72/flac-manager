@@ -17,7 +17,7 @@
 package common.commands
 
 /**
- * A trait for providing the absolute file locations of the sync.py and flac2mp3.sh resources.
+ * A trait for providing the absolute file locations of the flac2mp3.sh resource.
  * Created by alex on 27/10/14.
  */
 trait CommandService {

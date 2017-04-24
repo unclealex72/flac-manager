@@ -18,8 +18,8 @@ package own
 
 import javax.inject.Inject
 
-import common.commands.CommandType
-import common.commands.CommandType._
+import common.commands.CommandExecution
+import common.commands.CommandExecution._
 import common.configuration.User
 import common.files.{DirectoryService, FlacFileChecker, StagedFlacFileLocation}
 import common.message.MessageService
@@ -31,7 +31,7 @@ import common.owners.OwnerService
  */
 class OwnCommandImpl @Inject()(val ownerService: OwnerService, directoryService: DirectoryService)(implicit val flacFileChecker: FlacFileChecker, implicit val tagsService: TagsService) extends OwnCommand {
 
-  override def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandType = synchronous {
+  override def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandExecution = synchronous {
     val allLocations = directoryService.listFiles(locations)
     val tags = allLocations.filter(_.isFlacFile).flatMap(_.readTags.toOption).toSet
     val changeOwnershipFunction: User => Unit = action match {

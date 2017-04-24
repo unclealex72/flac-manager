@@ -19,28 +19,26 @@ package checkin
 import javax.inject.Inject
 
 import cats.data.Validated.{Invalid, Valid}
-import cats.data.ValidatedNel
 import checkin.Action._
 import common.commands.CommandExecution
 import common.commands.CommandExecution._
-import common.configuration.User
 import common.files._
-import common.message.Messages._
 import common.message._
-import common.music.{Tags, TagsService}
-import common.owners.OwnerService
-import cats.data._
-import cats.implicits._
 
 /**
-  * The command that checks in flac files from the staging directory.
-  * Created by alex on 12/11/14.
- */
+  * The default implementation of [[CheckinCommand]]
+  * @param directoryService The service used to list flac files.
+  * @param actionGenerator The class that will generate actions from flac files.
+  * @param checkinService The checkin service used to check in the flac files.
+  */
 class CheckinCommandImpl @Inject()(
                                     val directoryService: DirectoryService,
                                     val actionGenerator: CheckinActionGenerator,
                                     val checkinService: CheckinService) extends CheckinCommand with Messaging {
 
+  /**
+    * @inheritdoc
+    */
   override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandExecution = {
     val fileLocations = directoryService.listFiles(locations).toSeq
     actionGenerator.generate(fileLocations) match {

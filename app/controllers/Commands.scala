@@ -27,11 +27,11 @@ import cats.implicits._
 import cats.syntax.either._
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
-import common.commands.CommandType
-import common.commands.CommandType._
+import common.commands.CommandExecution
+import common.commands.CommandExecution._
 import common.configuration.{Directories, User, Users}
 import common.files.{FileLocation, FlacFileLocation, StagedFlacFileLocation}
-import common.message.MessageTypes._
+import common.message.Messages._
 import common.message.{MessageService, MessageServiceBuilder, Messaging}
 import initialise.InitialiseCommand
 import io.circe.Json
@@ -56,7 +56,7 @@ class Commands @Inject()(
 
   def commands: Action[JsValue] = Action(parse.json) { implicit request =>
     val validatedCommandTypeBuilder = commandBuilder(request.body)
-    val enumerator: (MessageService => CommandType) => Enumerator[String] = cmd => Concurrent.unicast[String](onStart = channel => {
+    val enumerator: (MessageService => CommandExecution) => Enumerator[String] = cmd => Concurrent.unicast[String](onStart = channel => {
       val messageService = messageServiceBuilder.
         withPrinter(message => channel.push(message + "\n")).
         withExceptionHandler { t =>

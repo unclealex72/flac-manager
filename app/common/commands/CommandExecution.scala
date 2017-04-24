@@ -17,26 +17,47 @@
 package common.commands
 
 /**
- * A trait used to define whether a command is synchronous (and does not explicitly send a finish message to the message service) or is asynchronous.
+ * A trait used to execute a command either synchronously (and does not explicitly send a finish message to the
+  * message service) or asynchronously.
  * Created by alex on 14/01/15.
  */
-sealed trait CommandType {
+sealed trait CommandExecution {
 
+  /**
+    * Execute the command
+    */
   def execute(): Unit
 
+  /**
+    * A flag to indicate whether a finish message needs to be sent to a [[common.message.MessageService]]
+    * @return True if the message service requires finishing, false otherwise.
+    */
   def requiresFinish: Boolean
 }
 
-object CommandType {
+/**
+  * An object used to create implementations of [[CommandExecution]]
+  */
+object CommandExecution {
 
-  private def simpleCommandType(block: => Unit, _requiresFinish: Boolean) = new CommandType {
+  private def simpleCommandType(block: => Unit, _requiresFinish: Boolean) = new CommandExecution {
     override def execute(): Unit = {
       block
     }
     override def requiresFinish: Boolean = _requiresFinish
   }
 
-  def synchronous(block: => Unit): CommandType = simpleCommandType(block, _requiresFinish = true)
+  /**
+    * Create a synchronous command execution.
+    * @param block The code to run.
+    * @return A synchronous command execution
+    */
+  def synchronous(block: => Unit): CommandExecution = simpleCommandType(block, _requiresFinish = true)
 
-  def asynchronous(block: => Unit): CommandType = simpleCommandType(block, _requiresFinish = false)
+  /**
+    * Create an asynchronous command execution.
+    * @param block The code to run.
+    * @return A synchronous command execution
+    */
+  def asynchronous(block: => Unit): CommandExecution = simpleCommandType(block, _requiresFinish = false)
 }

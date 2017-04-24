@@ -16,16 +16,12 @@
 
 package checkin
 
-import java.nio.file.Paths
-
 import cats.data.NonEmptyList
 import cats.data.Validated.{Invalid, Valid}
-import common.commands.CommandExecution._
 import common.configuration.{TestDirectories, User}
-import common.files.FileLocationImplicits._
 import common.files.FileLocationToPathImplicits._
 import common.files._
-import common.message.MessageTypes._
+import common.message.Messages._
 import common.message.TestMessageService
 import common.music.{CoverArt, Tags, TagsService}
 import common.owners.OwnerService
@@ -33,12 +29,10 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import org.specs2.specification.Scope
 
-import scala.collection.SortedSet
-
 /**
  * Created by alex on 15/11/14.
  */
-class ActionGeneratorImplSpec extends Specification with Mockito {
+class CheckinActionGeneratorImplSpec extends Specification with Mockito {
 
   trait Context extends Scope {
     lazy implicit val flacFileChecker: FlacFileChecker = mock[FlacFileChecker]
@@ -47,7 +41,7 @@ class ActionGeneratorImplSpec extends Specification with Mockito {
     lazy implicit val messageService = TestMessageService()
     lazy implicit val fileLocationExtensions: TestFileLocationExtensions = mock[TestFileLocationExtensions]
     lazy val checkinService: CheckinService = mock[CheckinService]
-    lazy val actionGenerator = new ActionGeneratorImpl(ownerService)
+    lazy val actionGenerator = new CheckinActionGeneratorImpl(ownerService)
     implicit val directories = TestDirectories()
     val tags = Tags(
       album = "Metal: A Headbanger's Companion",

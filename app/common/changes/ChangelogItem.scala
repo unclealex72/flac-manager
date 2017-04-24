@@ -19,6 +19,11 @@ package common.changes
 import org.joda.time.DateTime
 
 /**
- * Created by alex on 14/12/14.
+ * A single change to an album.
+  * Created by alex on 14/12/14.
+  * @constructor
+  * @param parentRelativePath The parent path of the album that changed.
+  * @param at The date and time of the change.
+  * @param relativePath The path of the album that changed.
  */
 case class ChangelogItem(parentRelativePath: String, at: DateTime, relativePath: String)

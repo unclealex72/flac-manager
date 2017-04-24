@@ -22,7 +22,6 @@ import common.message.MessageService
 
 /**
  * The command that checks in flac files from the staging directory.
- * Created by alex on 09/11/14.
  */
 trait CheckinCommand {
 
@@ -30,7 +29,7 @@ trait CheckinCommand {
     * Check in a set of staged flac files.
     * @param locations The files to check in
     * @param messageService The [[MessageService]] used to report progress.
-    * @return
+    * @return A [[CommandExecution]] that checks in a list of flac files to the staging repository.
     */
   def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandExecution
 

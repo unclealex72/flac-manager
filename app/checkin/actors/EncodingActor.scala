@@ -23,13 +23,18 @@ import checkin.Mp3Encoder
 import checkin.actors.Messages._
 import common.configuration.Directories
 import common.files.{FileLocationExtensions, MP3, TemporaryFileLocation}
-import common.message.MessageTypes.{ENCODE, EXCEPTION}
+import common.message.Messages.{ENCODE, EXCEPTION}
 import common.message.Messaging
 import common.music.TagsService
 import logging.ApplicationLogging
 
 /**
- * Created by alex on 11/01/15.
+  * An actor that encodes flac files to mp3.
+  * @constructor
+  * @param mp3Encoder An mp3 encoder.
+  * @param tagsService The service used to read audio tags.
+  * @param directories The locations of the different directories.
+  * @param fileLocationExtensions The typeclass used to give [[common.files.FileLocation]]s path-like functionality.
  */
 class EncodingActor @Inject()(implicit val mp3Encoder: Mp3Encoder,
                               val tagsService: TagsService,
@@ -37,6 +42,10 @@ class EncodingActor @Inject()(implicit val mp3Encoder: Mp3Encoder,
                               val fileLocationExtensions: FileLocationExtensions) extends Actor with Messaging with ApplicationLogging {
 
 
+  /**
+    * The actor's receive method. The message can be either an [[EncodeFlacFileLocation]] or a [[DeleteFileLocation]]
+    * @return
+    */
   def receive: PartialFunction[Any, Unit] = {
     case EncodeFlacFileLocation(stagedFlacFileLocation, flacFileLocation, tags, owners, messageService) =>
       implicit val _messageService = messageService

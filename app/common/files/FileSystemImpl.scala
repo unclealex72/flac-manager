@@ -20,7 +20,7 @@ package common.files
 import java.nio.file.{AtomicMoveNotSupportedException, Files, Path, StandardCopyOption}
 import javax.inject.Inject
 
-import common.message.MessageTypes._
+import common.message.Messages._
 import common.message._
 
 import scala.util.Try

@@ -16,7 +16,7 @@
 
 package initialise
 
-import common.commands.CommandType
+import common.commands.CommandExecution
 import common.message.MessageService
 
 /**
@@ -27,5 +27,5 @@ trait InitialiseCommand {
   /**
    * Initialise the datbase with all device files.
    */
-  def initialiseDb(implicit messageService: MessageService): CommandType
+  def initialiseDb(implicit messageService: MessageService): CommandExecution
 }

@@ -21,11 +21,11 @@ import javax.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import common.changes.{Change, ChangeDao}
 import common.collections.CollectionDao
-import common.commands.CommandType
-import common.commands.CommandType._
+import common.commands.CommandExecution
+import common.commands.CommandExecution._
 import common.configuration.{Directories, User, Users}
 import common.files.{DeviceFileLocation, DirectoryService, FileLocationExtensions}
-import common.message.MessageTypes._
+import common.message.Messages._
 import common.message.{MessageService, Messaging}
 import common.music.TagsService
 
@@ -43,9 +43,9 @@ class InitialiseCommandImpl @Inject()(val users: Users, val directoryService: Di
   /**
    * Initialise the database with all device files.
    */
-  override def initialiseDb(implicit messageService: MessageService): CommandType = synchronous {
+  override def initialiseDb(implicit messageService: MessageService): CommandExecution = synchronous {
     if (changeDao.countChanges() != 0) {
-      log(DATABASE_NOT_EMPTY())
+      log(DATABASE_NOT_EMPTY)
     }
     else {
       val initialFiles: Seq[InitialFile] = for {

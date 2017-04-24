@@ -24,7 +24,7 @@ import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.implicits._
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
-import common.commands.CommandType
+import common.commands.CommandExecution
 import common.configuration.{Directories, User, Users}
 import common.files.{FileLocation, FlacFileLocation, StagedFlacFileLocation}
 import common.message.MessageService
@@ -97,7 +97,7 @@ class CommandBuilderImpl @Inject()(
     }
   }
 
-  override def apply(jsValue: JsValue): ValidatedNel[String, (MessageService) => CommandType] = {
+  override def apply(jsValue: JsValue): ValidatedNel[String, (MessageService) => CommandExecution] = {
     val validatedParameters = jsonToParameters(jsValue)
     validatedParameters.andThen {
       case CheckinParameters(relativeStagingDirectories) =>

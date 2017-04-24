@@ -20,9 +20,16 @@ import common.commands.CommandExecution
 import common.message.MessageService
 
 /**
- * Created by alex on 15/11/14.
- */
+  * A trait to checkin flac files into the flac repository.
+  */
 trait CheckinService {
+
+  /**
+    * Check in a set of flac files.
+    * @param actions The [[Action]]s that need to be performed to check in flac files.
+    * @param messagingService The [[MessageService]] used to report progress and errors.
+    * @return A [[CommandExecution]] that will perform the checkin actions.
+    */
   def checkin(actions: Seq[Action])(implicit messagingService: MessageService): CommandExecution
 
 }

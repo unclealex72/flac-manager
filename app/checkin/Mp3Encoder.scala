@@ -19,14 +19,14 @@ package checkin
 import java.nio.file.Path
 
 /**
- * Created by alex on 16/11/14.
- */
+  * Encode a flac file into an MP3 file.
+  */
 trait Mp3Encoder {
 
   /**
    * Encode a flac file into an MP3 file.
-   * @param source
-   * @param target
+   * @param source The source flac file.
+   * @param target The target MP3 file.
    */
   def encode(source: Path, target: Path)
 }

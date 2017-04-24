@@ -34,117 +34,116 @@ trait MessageService {
 
   def finish(): Unit
 
-  private[message] def printMessage(template: MessageType): Unit
+  private[message] def printMessage(template: Message): Unit
 }
 
-sealed abstract class MessageType(val key: String, val parameters: String*)(implicit messageService: MessageService)
+sealed abstract class Message(val key: String, val parameters: String*)
 
-object MessageTypes {
+object Messages {
 
-  import common.message.MessageTypes.MessageTypeImplicits._
+  import common.message.Messages.MessageImplicits._
 
-  case class NO_FILES(fileLocations: Traversable[FileLocation])(implicit messageService: MessageService) extends MessageType("noFiles", fileLocations)
+  case class NO_FILES(fileLocations: Traversable[FileLocation]) extends Message("noFiles", fileLocations)
 
   /**
    * The key for producing an encoding message.
    */
-  case class ENCODE(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService) extends MessageType("encode", sourceFileLocation, targetFileLocation)
+  case class ENCODE(sourceFileLocation: FileLocation, targetFileLocation: FileLocation) extends
+    Message("encode", sourceFileLocation, targetFileLocation)
 
   /**
    * The key for producing a delete message.
    */
-  case class DELETE(fileLocation: FileLocation)(implicit messageService: MessageService) extends MessageType("delete", fileLocation)
+  case class DELETE(fileLocation: FileLocation) extends Message("delete", fileLocation)
 
   /**
    * The key for producing a checkin message.
    */
-  case class CHECKIN(stagedFlacFileLocation: StagedFlacFileLocation)(implicit messageService: MessageService) extends MessageType("checkin", stagedFlacFileLocation)
+  case class CHECKIN(stagedFlacFileLocation: StagedFlacFileLocation) extends Message("checkin", stagedFlacFileLocation)
 
   /**
    * The key for producing a checkin message.
    */
-  case class CHECKOUT(flacFileLocation: FlacFileLocation)(implicit messageService: MessageService) extends MessageType("checkout", flacFileLocation)
+  case class CHECKOUT(flacFileLocation: FlacFileLocation) extends Message("checkout", flacFileLocation)
 
   /**
    * The key for producing a move message.
    */
-  case class MOVE(source: FileLocation, target: FileLocation)(implicit messageService: MessageService) extends MessageType("move", source, target)
+  case class MOVE(source: FileLocation, target: FileLocation) extends Message("move", source, target)
 
   /**
    * The key for producing a not flac file message.
    */
-  case class INVALID_FLAC(fileLocation: FileLocation)(implicit messageService: MessageService) extends MessageType("invalidFlac", fileLocation)
+  case class INVALID_FLAC(fileLocation: FileLocation) extends Message("invalidFlac", fileLocation)
 
   /**
    * The key for producing an overwrite message.
    */
-  case class OVERWRITE(source: FileLocation, target: FileLocation)(implicit messageService: MessageService) extends MessageType("overwrite", source, target)
+  case class OVERWRITE(source: FileLocation, target: FileLocation) extends Message("overwrite", source, target)
 
   /**
    * The key for producing non unique messages.
    */
-  case class NON_UNIQUE(flacFileLocation: FlacFileLocation, stagedFlacFileLocations: Set[StagedFlacFileLocation])(implicit messageService: MessageService) extends MessageType("nonUnique", flacFileLocation, stagedFlacFileLocations)
+  case class NON_UNIQUE(flacFileLocation: FlacFileLocation,
+                        stagedFlacFileLocations: Set[StagedFlacFileLocation]) extends
+    Message("nonUnique", flacFileLocation, stagedFlacFileLocations)
 
   /**
    * The key for producing link messages.
    */
-  case class LINK(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService) extends MessageType("link", fileLocation, linkLocation)
+  case class LINK(fileLocation: FileLocation,
+                  linkLocation: FileLocation) extends Message("link", fileLocation, linkLocation)
 
   /**
    * The key for producing link messages.
    */
-  case class UNLINK(implicit messageService: MessageService) extends MessageType("unlink")
+  case class UNLINK(implicit messageService: MessageService) extends Message("unlink")
 
   /**
    * The key for producing add owner messages.
    */
-  case class NOT_OWNED(stagedFlacFileLocation: StagedFlacFileLocation)(implicit messageService: MessageService) extends MessageType("notOwned", stagedFlacFileLocation)
+  case class NOT_OWNED(stagedFlacFileLocation: StagedFlacFileLocation) extends
+    Message("notOwned", stagedFlacFileLocation)
 
   /**
    * The key for producing add owner messages.
    */
-  case class READING_COLLECTION(user: User)(implicit messageService: MessageService) extends MessageType("readingCollection", user)
-
-  /**
-   * The key for producing add owner messages.
-   */
-  case class ADD_OWNER(fileLocation: FileLocation, user: User)(implicit messageService: MessageService) extends MessageType("addOwner", fileLocation, user)
+  case class ADD_OWNER(fileLocation: FileLocation, user: User) extends Message("addOwner", fileLocation, user)
 
   /**
    * The key for producing remove owner messages.
    */
-  case class REMOVE_OWNER(implicit messageService: MessageService) extends MessageType("removeOwner")
+  case class REMOVE_OWNER(implicit messageService: MessageService) extends Message("removeOwner")
 
   /**
    * The key for producing commit ownership changes messages.
    */
-  case class COMMIT_OWNERSHIP(implicit messageService: MessageService) extends MessageType("commitOwnership")
+  case class COMMIT_OWNERSHIP(implicit messageService: MessageService) extends Message("commitOwnership")
 
   /**
    * The key for producing a message to say that a file has been found.
    */
-  case class FOUND_FILE(fileLocation: FileLocation)(implicit messageService: MessageService) extends MessageType("foundFile", fileLocation)
+  case class FOUND_FILE(fileLocation: FileLocation) extends Message("foundFile", fileLocation)
 
   /**
    * The key for producing a message to say that devices are being searched.
    */
-  case class LOOKING_FOR_DEVICES(implicit messageService: MessageService) extends MessageType("lookingForDevices")
+  case object LOOKING_FOR_DEVICES extends Message("lookingForDevices")
 
   /**
    * The key for producing a message to say that the database is not empty and so initialisation cannot continue.
-   * @param messageService
    */
-  case class DATABASE_NOT_EMPTY(implicit messageService: MessageService) extends MessageType("databaseNotEmpty")
+  case object DATABASE_NOT_EMPTY extends Message("databaseNotEmpty")
 
-  case class INITIALISING(deviceFileLocation: DeviceFileLocation)(implicit messageService: MessageService) extends MessageType("initialising", deviceFileLocation)
+  case class INITIALISING(deviceFileLocation: DeviceFileLocation) extends
+    Message("initialising", deviceFileLocation)
 
   /**
    * The key for producing error keys.
    */
-  case class INVALID_PARAMETERS(errorMessage: String)
-                               (implicit messageService: MessageService) extends MessageType(errorMessage)
+  case class INVALID_PARAMETERS(errorMessage: String) extends Message(errorMessage)
 
-  case class EXCEPTION(e: Exception)(implicit messageService: MessageService) extends MessageType("exception", {
+  case class EXCEPTION(e: Exception)(implicit messageService: MessageService) extends Message("exception", {
     val stringWriter = new StringWriter
     val printWriter = new PrintWriter(stringWriter)
     printWriter.println(e.getMessage)
@@ -152,7 +151,7 @@ object MessageTypes {
     stringWriter.toString
   })
 
-  private object MessageTypeImplicits {
+  private object MessageImplicits {
 
     implicit def fileLocationsToString[FL <: FileLocation](fls: Traversable[FL]): String = {
       fls.map(fileLocationToString(_)).mkString(", ")
@@ -167,17 +166,17 @@ object MessageTypes {
 
 trait Messaging {
 
-  def log(template: MessageType)(implicit messageService: MessageService): Unit = messageService.printMessage(template)
+  def log(template: Message)(implicit messageService: MessageService): Unit = messageService.printMessage(template)
 
   implicit class TraversableLoggingImplicits[A](items: Set[A]) {
-    def log(templateFactory: A => MessageType)(implicit messageService: MessageService): Set[A] = {
+    def log(templateFactory: A => Message)(implicit messageService: MessageService): Set[A] = {
       items.foreach(item => Messaging.this.log(templateFactory(item)))
       items
     }
   }
 
   implicit class InvalidLoggingImplicits[F, S, V <: ValidatedNel[F, S]](validationNel: V) {
-    def log(templateFactory: Seq[F] => Seq[MessageType])(implicit messageService: MessageService): V = {
+    def log(templateFactory: Seq[F] => Seq[Message])(implicit messageService: MessageService): V = {
       //logme
       validationNel
     }

@@ -18,7 +18,7 @@ package common.files
 
 import java.nio.file.{Files, Path, Paths}
 
-import common.message.MessageTypes._
+import common.message.Messages._
 import common.message.TestMessageService
 import org.specs2.mock.Mockito
 import org.specs2.mutable._

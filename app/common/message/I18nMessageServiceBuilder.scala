@@ -28,7 +28,7 @@ class I18nMessageServiceBuilder(messagesApi: MessagesApi, printers: Seq[String =
 
   override def build: MessageService = new MessageService() {
 
-    override def printMessage(template: MessageType): Unit = {
+    override def printMessage(template: Message): Unit = {
       val message = messagesApi(template.key, template.parameters :_*)
       logger.debug(message)
       printers.foreach(printer => printer(message))

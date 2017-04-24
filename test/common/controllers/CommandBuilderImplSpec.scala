@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
 import cats.data.NonEmptyList
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
-import common.commands.CommandType
+import common.commands.CommandExecution
 import common.configuration.{TestDirectories, User, Users}
 import common.files.{FlacFileLocation, StagedFlacFileLocation}
 import common.message.{MessageService, NoOpMessageService}
@@ -183,29 +183,29 @@ class CommandBuilderImplSpec extends Specification {
 
   def execution(jsValue: JsValue): Either[NonEmptyList[String], Parameters] = {
     val promise = Promise[Parameters]
-    def commandType(parameters: Parameters): CommandType = CommandType.asynchronous {
+    def commandType(parameters: Parameters): CommandExecution = CommandExecution.asynchronous {
       promise.success(parameters)
     }
 
     val checkinCommand: CheckinCommand = new CheckinCommand {
-      override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandType = {
+      override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandExecution = {
         commandType(CheckinParameters(locations.map(_.relativePath)))
       }
     }
     val checkoutCommand: CheckoutCommand = new CheckoutCommand {
       override def checkout(locations: Seq[FlacFileLocation], unown: Boolean)
-                           (implicit messageService: MessageService): CommandType = {
+                           (implicit messageService: MessageService): CommandExecution = {
         commandType(CheckoutParameters(locations.map(_.relativePath), unown))
       }
     }
     val initialiseCommand: InitialiseCommand = new InitialiseCommand {
-      override def initialiseDb(implicit messageService: MessageService): CommandType = {
+      override def initialiseDb(implicit messageService: MessageService): CommandExecution = {
         commandType(InitialiseParameters())
       }
     }
     val ownCommand: OwnCommand = new OwnCommand {
       override def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[StagedFlacFileLocation])
-                                  (implicit messageService: MessageService): CommandType = {
+                                  (implicit messageService: MessageService): CommandExecution = {
         commandType {
           if (action == Own) {
             OwnParameters(locations.map(_.relativePath), users.map(_.name))

@@ -21,12 +21,21 @@ import javax.inject.{Inject, Named, Singleton}
 import akka.actor.{Actor, ActorRef}
 import checkin.actors.Messages._
 import checkin.{Delete, Encode}
-import logging.ApplicationLogging
 import common.changes.{Change, ChangeDao}
 import common.files.{FileLocationExtensions, FileSystem}
-import common.message.MessageTypes.EXCEPTION
+import common.message.Messages.EXCEPTION
 import common.message.{MessageService, Messaging}
+import logging.ApplicationLogging
 
+
+/**
+  * An actor that checks in flac files by moving them as well as calling telling the [[EncodingActor]] to encode them.
+  * @constructor
+  * @param fileSystem The underlying file system.
+  * @param encodingActor The actor who will encode flac files.
+  * @param changeDao The DAO used to persist changes.
+  * @param fileLocationExtensions The typeclass used to allow [[common.files.FileLocation]]s to have path-like methods.
+  */
 @Singleton
 class CheckinActor @Inject()(
                               val fileSystem: FileSystem,
@@ -36,8 +45,12 @@ class CheckinActor @Inject()(
                              val fileLocationExtensions: FileLocationExtensions) extends Actor with ApplicationLogging with Messaging {
 
 
-  var numberOfFilesRemaining = 0
+  private var numberOfFilesRemaining = 0
 
+  /**
+    * The actor's receive method. This may be either a [[Delete]] or an [[Encode]]
+    * @return Nothing.
+    */
   override def receive: PartialFunction[Any, Unit] = {
     case Actions(actions, messageService) =>
       numberOfFilesRemaining = actions.length
@@ -74,7 +87,7 @@ class CheckinActor @Inject()(
       decreaseFileCount
   }
 
-  def safely(block: => Unit)(implicit messageService: MessageService): Unit = {
+  private def safely(block: => Unit)(implicit messageService: MessageService): Unit = {
     try {
       block
     }
@@ -83,7 +96,7 @@ class CheckinActor @Inject()(
     }
   }
 
-  def decreaseFileCount(implicit messageService: MessageService): Unit = {
+  private def decreaseFileCount(implicit messageService: MessageService): Unit = {
     numberOfFilesRemaining -= 1
     if (numberOfFilesRemaining == 0) {
       messageService.finish()

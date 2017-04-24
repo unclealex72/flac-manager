@@ -25,10 +25,14 @@ import common.commands.CommandExecution._
 import common.message.{MessageService, Messaging}
 
 /**
- * Created by alex on 16/11/14.
- */
+  * The [[CheckinService]] that delegates to an [[akka.actor.Actor]]
+  * @param checkinActor A reference to the actor that will check in the flac files.
+  */
 class CheckinServiceImpl @Inject()(@Named("checkin-actor") checkinActor: ActorRef) extends CheckinService with Messaging {
 
+  /**
+    * @inheritdoc
+    */
   override def checkin(actions: Seq[Action])(implicit messagingService: MessageService): CommandExecution = asynchronous {
     checkinActor ! Actions(actions, messagingService)
   }

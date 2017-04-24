@@ -25,7 +25,7 @@ import org.specs2.mock.Mockito
  */
 trait TestMessageService extends MessageService {
 
-  def printMessage(template: MessageType): Unit
+  def printMessage(template: Message): Unit
 }
 
 object TestMessageService extends Mockito with ApplicationLogging {

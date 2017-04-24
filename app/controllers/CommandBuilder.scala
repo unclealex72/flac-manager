@@ -16,7 +16,7 @@
 
 package controllers
 import cats.data.ValidatedNel
-import common.commands.CommandType
+import common.commands.CommandExecution
 import common.message.MessageService
 import play.api.libs.json.JsValue
 
@@ -25,5 +25,5 @@ import play.api.libs.json.JsValue
   **/
 trait CommandBuilder {
 
-  def apply(jsValue: JsValue): ValidatedNel[String, MessageService => CommandType]
+  def apply(jsValue: JsValue): ValidatedNel[String, MessageService => CommandExecution]
 }
