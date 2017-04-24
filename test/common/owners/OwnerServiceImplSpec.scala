@@ -16,7 +16,7 @@
 
 package common.owners
 
-import common.configuration.{User, Users}
+import common.configuration.{User, UserDao}
 import common.message.Messages._
 import common.message.TestMessageService
 import common.music.{CoverArt, Tags}
@@ -33,7 +33,7 @@ class OwnerServiceImplSpec extends Specification with Mockito {
   trait Context extends Scope {
     lazy implicit val messageService = TestMessageService()
     lazy val musicBrainzClient: CollectionDao = mock[CollectionDao]
-    lazy val ownerService = new OwnerServiceImpl(musicBrainzClient, users)
+    lazy val ownerService = new OwnerServiceImpl(musicBrainzClient, userDao)
     val brian = User("Brian")
     val freddie = User("Freddie")
     val tags1 = Tags(
@@ -70,7 +70,7 @@ class OwnerServiceImplSpec extends Specification with Mockito {
       artistSort = "Carcass",
       trackNumber = 5,
       coverArt = CoverArt(Array[Byte](), ""))
-    val users = new Users {
+    val userDao = new UserDao {
       override def allUsers: Set[User] = Set(brian, freddie)
     }
   }

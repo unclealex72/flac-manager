@@ -22,8 +22,17 @@ import common.message.MessageService
 import scala.collection.{SortedMap, SortedSet}
 
 /**
- * Created by alex on 16/11/14.
- */
+  * Checkout a sequence of [[FlacFileLocation]]s.
+  */
 trait CheckoutService {
-  def checkout(flacFileLocationsByParent: SortedMap[FlacFileLocation, SortedSet[FlacFileLocation]], unown: Boolean)(implicit messageService: MessageService)
+
+  /**
+    * Checkout a sequence of flac files.
+    * @param flacFileLocationsByParent A map of flac files grouped by their parent file.
+    * @param unown True if checked out files should have their owners removed, false otherwise.
+    * @param messageService The [[MessageService]] used to report progress and log errors.
+    */
+  def checkout(
+                flacFileLocationsByParent: SortedMap[FlacFileLocation, SortedSet[FlacFileLocation]],
+                unown: Boolean)(implicit messageService: MessageService)
 }

@@ -18,7 +18,7 @@ package common.message
 
 import logging.ApplicationLogging
 import org.slf4j.{Logger, LoggerFactory}
-import play.api.i18n.{Messages, MessagesApi}
+import play.api.i18n.MessagesApi
 
 /**
  * A `MessageServiceBuilder` that builds messages using Play's bundle support.
@@ -65,6 +65,6 @@ object I18nMessageServiceBuilder {
     new I18nMessageServiceBuilder(messagesApi, Seq(), Seq(), Seq()).
       withPrinter(message => logger.info(message)).
       withExceptionHandler(t => logger.error("An unexpected exception occurred.", t)).
-      withOnFinish(() => logger.info(s"Commmand has completed."))
+      withOnFinish(() => logger.info(s"Command has completed."))
 
 }

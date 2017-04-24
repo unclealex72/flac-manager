@@ -20,7 +20,7 @@ import java.nio.file.{Path, Paths}
 
 import cats.data.Validated.Valid
 import common.changes.{Change, ChangeDao, ChangeMatchers}
-import common.configuration.{Directories, TestDirectories, User, Users}
+import common.configuration.{Directories, TestDirectories, User, UserDao}
 import common.files.FileLocationImplicits._
 import common.files._
 import common.message.MessageService
@@ -44,7 +44,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
     val freddie: User = User("freddie")
     val brian: User = User("brian")
 
-    val users = new Users {
+    val userDao = new UserDao {
       override def allUsers: Set[User] = Set(brian, freddie)
     }
 
@@ -126,7 +126,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
     val now = new DateTime()
     tagsService.read("/flac/A Kind of Magic/01 One Vision.flac") returns Valid(oneVisionTags)
     tagsService.read("/flac/Jazz/01 Mustapha.flac") returns Valid(mustaphaTags)
-    val checkoutService = new CheckoutServiceImpl(fileSystem, users, ownerService, nowService)
+    val checkoutService = new CheckoutServiceImpl(fileSystem, userDao, ownerService, nowService)
 
     def checkFilesRemoved: MatchResult[Unit] = {
       // check flac files are moved

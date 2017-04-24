@@ -20,7 +20,7 @@ import java.nio.file.{Path, Paths}
 import javax.inject.{Inject, Singleton}
 
 import common.changes.ChangeDao
-import common.configuration.{User, Users}
+import common.configuration.{User, UserDao}
 import common.joda.JodaDateTime
 import org.joda.time.DateTime
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -30,11 +30,11 @@ import play.api.mvc._
   * Created by alex on 14/12/14.
   */
 @Singleton
-class Changes @Inject()(val users: Users, val changeDao: ChangeDao) extends Controller {
+class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao) extends Controller {
 
   def since(username: String, sinceStr: String)(jsonBuilder: RequestHeader => User => DateTime => JsValue) = Action { implicit request =>
     val parameters = for {
-      user <- users().find(_.name == username)
+      user <- userDao.allUsers().find(_.name == username)
       since <- JodaDateTime(sinceStr)
     } yield (user, since)
     parameters match {

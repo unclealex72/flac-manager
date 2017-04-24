@@ -19,7 +19,7 @@ package common.owners
 import javax.inject.Inject
 
 import common.collections.CollectionDao
-import common.configuration.{User, Users}
+import common.configuration.{User, UserDao}
 import common.message.{MessageService, Messaging}
 import common.music.Tags
 
@@ -28,12 +28,12 @@ import scala.concurrent.duration._
 /**
  * Created by alex on 15/11/14.
  */
-class OwnerServiceImpl @Inject()(val musicBrainzClient: CollectionDao, val users: Users) extends OwnerService with Messaging {
+class OwnerServiceImpl @Inject()(val musicBrainzClient: CollectionDao, val userDao: UserDao) extends OwnerService with Messaging {
 
   val timeout: FiniteDuration = 1000000 seconds
 
   override def listCollections(): Tags => Set[User] = {
-    val collectionsByUser = users().map { user =>
+    val collectionsByUser = userDao.allUsers().map { user =>
       val collection = musicBrainzClient.releasesForOwner(user)
       user -> collection
     }

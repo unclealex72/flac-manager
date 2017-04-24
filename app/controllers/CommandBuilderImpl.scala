@@ -25,7 +25,7 @@ import cats.implicits._
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
 import common.commands.CommandExecution
-import common.configuration.{Directories, User, Users}
+import common.configuration.{Directories, User, UserDao}
 import common.files.{FileLocation, FlacFileLocation, StagedFlacFileLocation}
 import common.message.MessageService
 import initialise.InitialiseCommand
@@ -43,7 +43,7 @@ class CommandBuilderImpl @Inject()(
                                     checkoutCommand: CheckoutCommand,
                                     ownCommand: OwnCommand,
                                     initialiseCommand: InitialiseCommand,
-                                    users: Users
+                                    userDao: UserDao
                                   )(implicit val directories: Directories) extends CommandBuilder {
 
   def jsonToParameters(jsValue: JsValue): ValidatedNel[String, Parameters] = {
@@ -63,7 +63,7 @@ class CommandBuilderImpl @Inject()(
 
   def validateUsers(usernames: Seq[String]): ValidatedNel[String, Seq[User]] = {
     val empty: ValidatedNel[String, Seq[User]] = Valid(Seq.empty)
-    val allUsers = users.allUsers
+    val allUsers = userDao.allUsers()
     if (usernames.isEmpty) {
       Validated.invalidNel("You must supply at least one user.")
     }

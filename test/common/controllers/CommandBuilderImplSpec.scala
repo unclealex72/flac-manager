@@ -23,7 +23,7 @@ import cats.data.NonEmptyList
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
 import common.commands.CommandExecution
-import common.configuration.{TestDirectories, User, Users}
+import common.configuration.{TestDirectories, User, UserDao}
 import common.files.{FlacFileLocation, StagedFlacFileLocation}
 import common.message.{MessageService, NoOpMessageService}
 import controllers.CommandBuilderImpl
@@ -218,11 +218,11 @@ class CommandBuilderImplSpec extends Specification {
     }
 
     implicit val directories = TestDirectories(datum = "/music/.datum")
-    val users = new Users {
+    val userDao = new UserDao {
       override def allUsers: Set[User] = Set("Freddie", "Brian").map(User)
     }
     val commandBuilder = new CommandBuilderImpl(
-      checkinCommand, checkoutCommand, ownCommand, initialiseCommand, users)
+      checkinCommand, checkoutCommand, ownCommand, initialiseCommand, userDao)
     commandBuilder(jsValue).map { builder =>
       builder(NoOpMessageService).execute()
       Await.result(promise.future, Duration(1, TimeUnit.SECONDS))

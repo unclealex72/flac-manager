@@ -21,7 +21,7 @@ import java.nio.file.{Path, Paths}
 import javax.inject.{Inject, Singleton}
 
 import cats.data.Validated.{Invalid, Valid}
-import common.configuration.{Directories, User, Users}
+import common.configuration.{Directories, User, UserDao}
 import common.files.{DeviceFileLocation, FileLocationExtensions}
 import common.music.{Tags, TagsService}
 import org.joda.time.DateTime
@@ -37,7 +37,7 @@ import scala.util.Try
  * Created by alex on 18/11/14.
  */
 @Singleton
-class Music @Inject()(val users: Users)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService) extends Controller {
+class Music @Inject()(val userDao: UserDao)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService) extends Controller {
 
   def music(username: String, path: String): Action[AnyContent] = musicFile(username, path, deviceFileAt) { deviceFileLocation =>
     Ok.sendFile(deviceFileLocation.toFile)
@@ -63,7 +63,7 @@ class Music @Inject()(val users: Users)(implicit val directories: Directories, v
                (resultBuilder: DeviceFileLocation => Result) = Action { implicit request =>
     val decodedPath = UriEncoding.decodePath(path, StandardCharsets.UTF_8.toString).replace('+', ' ')
     val musicFile = for {
-      user <- users().find(_.name == username)
+      user <- userDao.allUsers().find(_.name == username)
       musicFile <- deviceFileLocator(user, Paths.get(decodedPath))
     } yield musicFile
     musicFile match {

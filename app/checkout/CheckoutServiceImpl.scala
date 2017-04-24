@@ -19,7 +19,7 @@ package checkout
 import javax.inject.Inject
 
 import common.changes.{Change, ChangeDao}
-import common.configuration.{Directories, User, Users}
+import common.configuration.{Directories, User, UserDao}
 import common.files._
 import common.message.MessageService
 import common.music.{Tags, TagsService}
@@ -29,14 +29,35 @@ import common.owners.OwnerService
 import scala.collection.{SortedMap, SortedSet}
 
 /**
- * Created by alex on 17/11/14.
- */
-class CheckoutServiceImpl @Inject()(val fileSystem: FileSystem, val users: Users, val ownerService: OwnerService, val nowService: NowService)
-                         (implicit val changeDao: ChangeDao, implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService)
+  * The default implementation of [[CheckoutService]]
+  * @param fileSystem The [[FileSystem]] used to manipulate files.
+  * @param userDao The dao used to get all users.
+  * @param ownerService The service used to find who owns which flac files.
+  * @param nowService The service used to get the current time.
+  * @param changeDao The dao used to store repository changes.
+  * @param directories The locations of the repositories.
+  * @param fileLocationExtensions A typeclass to give [[java.nio.file.Path]] like functionality to [[FileLocation]]s.
+  * @param tagsService The service used to read tags from audio files.
+  */
+class CheckoutServiceImpl @Inject()(
+                                     val fileSystem: FileSystem,
+                                     val userDao: UserDao,
+                                     val ownerService: OwnerService,
+                                     val nowService: NowService)
+                         (implicit val changeDao: ChangeDao,
+                          val directories: Directories,
+                          val fileLocationExtensions: FileLocationExtensions,
+                          val tagsService: TagsService)
   extends CheckoutService {
 
-  override def checkout(flacFileLocationsByParent: SortedMap[FlacFileLocation, SortedSet[FlacFileLocation]], unown: Boolean)(implicit messageService: MessageService): Unit = {
-    val tagsForUsers = flacFileLocationsByParent.foldLeft(Map.empty[User, Set[Tags]])(findTagsAndDeleteFiles)
+  /**
+    * @inheritdoc
+    */
+  override def checkout(
+                         flacFileLocationsByParent: SortedMap[FlacFileLocation, SortedSet[FlacFileLocation]],
+                         unown: Boolean)(implicit messageService: MessageService): Unit = {
+    val tagsForUsers: Map[User, Set[Tags]] =
+      flacFileLocationsByParent.foldLeft(Map.empty[User, Set[Tags]])(findTagsAndDeleteFiles)
     if (unown) {
       tagsForUsers.foreach { case (user, tagsSet) =>
         ownerService.unown(user, tagsSet)
@@ -44,7 +65,17 @@ class CheckoutServiceImpl @Inject()(val fileSystem: FileSystem, val users: Users
     }
   }
 
-  def findTagsAndDeleteFiles(tagsForUsers: Map[User, Set[Tags]], fls: (FlacFileLocation, SortedSet[FlacFileLocation]))(implicit messageService: MessageService): Map[User, Set[Tags]] = {
+  /**
+    * I'm far too scared to change any of this!
+    * @param tagsForUsers The currently known tags for users
+    * @param fls A parent flac location and the flac files in that
+    * @param messageService The [[MessageService]] used to report progress and log errors.
+    * @return A map of users and the tags of the files they one.
+    */
+  def findTagsAndDeleteFiles(
+                              tagsForUsers: Map[User, Set[Tags]],
+                              fls: (FlacFileLocation, SortedSet[FlacFileLocation]))
+                            (implicit messageService: MessageService): Map[User, Set[Tags]] = {
     val directory = fls._1
     val flacFileLocations = fls._2
     flacFileLocations.find(_ => true) match {
@@ -53,6 +84,15 @@ class CheckoutServiceImpl @Inject()(val fileSystem: FileSystem, val users: Users
     }
   }
 
+  /**
+    * Here be dragons!
+    * @param tagsForUsers The currently known tags for users
+    * @param directory A directory containing flac files.
+    * @param firstFlacFileLocation The first flac file in the directory.
+    * @param flacFileLocations The flac files in the directory.
+    * @param messageService The [[MessageService]] used to report progress and log errors.
+    * @return A map of users and the tags of the files they one.
+    */
   def findTagsAndDeleteFiles(
                               tagsForUsers: Map[User, Set[Tags]], directory: FlacFileLocation,
                               firstFlacFileLocation: FlacFileLocation, flacFileLocations: SortedSet[FlacFileLocation])(implicit messageService: MessageService): Map[User, Set[Tags]] = {
@@ -79,10 +119,10 @@ class CheckoutServiceImpl @Inject()(val fileSystem: FileSystem, val users: Users
 
   /**
    * Find out quickly who owns an album by looking for links in the users' device repository.
-   * @param flacFileLocation
-   * @return
+   * @param flacFileLocation A flac file for the album.
+   * @return A list of users who own the album.
    */
-  def quickOwners(flacFileLocation: FlacFileLocation): Set[User] = users.allUsers.filter { user =>
+  def quickOwners(flacFileLocation: FlacFileLocation): Set[User] = userDao.allUsers().filter { user =>
     flacFileLocation.toEncodedFileLocation.toDeviceFileLocation(user).exists
   }
 }

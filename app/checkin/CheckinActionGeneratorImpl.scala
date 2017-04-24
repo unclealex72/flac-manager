@@ -26,6 +26,7 @@ import common.message.Message
 import common.message.Messages._
 import common.music.{Tags, TagsService}
 import common.owners.OwnerService
+import common.validation.SequentialValidation
 
 /**
   * The default implementation of [[CheckinActionGenerator]]
@@ -33,7 +34,8 @@ import common.owners.OwnerService
 class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
                                           (implicit val flacFileChecker: FlacFileChecker,
                                      val tagsService: TagsService,
-                                     val fileLocationExtensions: FileLocationExtensions) extends CheckinActionGenerator {
+                                     val fileLocationExtensions: FileLocationExtensions)
+  extends CheckinActionGenerator with SequentialValidation {
 
   /**
     * @inheritdoc
@@ -149,22 +151,6 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
       else {
         Validated.valid(validFlacFile.ownedBy(owners))
       }
-    }
-  }
-
-  /**
-    * Run a validation step against every member of a sequence and collate the results in a [[ValidatedNel]]
-    * @param as The elements to validate
-    * @param validationStep A function that checks an element is valid and transforms it if need be.
-    * @tparam A The type of the source elements.
-    * @tparam B The type of elements to return.
-    * @return A [[ValidatedNel]] that contains the result of all the validation steps.
-    */
-  def runValidation[A, B](as: Seq[A])(validationStep: A => Validated[Message, B]): ValidatedNel[Message, Seq[B]] = {
-    val empty: ValidatedNel[Message, Seq[B]] = Valid(Seq.empty)
-    as.foldLeft(empty) { (results, a) =>
-      val result = validationStep(a).toValidatedNel
-      (results |@| result).map(_ :+ _)
     }
   }
 

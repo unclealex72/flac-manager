@@ -27,7 +27,7 @@ import scala.collection.JavaConversions._
  * Get the users using Play common.configuration
  * Created by alex on 20/11/14.
  */
-case class FileSystemUsers @Inject()(directories: Directories) extends Users with ApplicationLogging {
+case class FileSystemUserDao @Inject()(directories: Directories) extends UserDao with ApplicationLogging {
 
   val allUsers: Set[User] =
     Files.newDirectoryStream(directories.devicesPath).toSet.map((dir: Path) => User(dir.getFileName.toString))

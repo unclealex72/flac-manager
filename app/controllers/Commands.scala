@@ -29,7 +29,7 @@ import checkin.CheckinCommand
 import checkout.CheckoutCommand
 import common.commands.CommandExecution
 import common.commands.CommandExecution._
-import common.configuration.{Directories, User, Users}
+import common.configuration.{Directories, User, UserDao}
 import common.files.{FileLocation, FlacFileLocation, StagedFlacFileLocation}
 import common.message.Messages._
 import common.message.{MessageService, MessageServiceBuilder, Messaging}

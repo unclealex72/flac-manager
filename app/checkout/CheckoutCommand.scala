@@ -21,8 +21,17 @@ import common.files.FlacFileLocation
 import common.message.MessageService
 
 /**
- * Created by alex on 09/11/14.
- */
+  * The command used to checkout flac files from the flac repository. Files that get checked out are not
+  * allowed to overwrite existing files in the staging repository.
+  */
 trait CheckoutCommand {
+
+  /**
+    * Check out a sequence of flac files.
+    * @param locations The locations of the flac files to check out.
+    * @param unown True if each flac file should also lose its owners, false otherwise.
+    * @param messageService The [[MessageService]] used to report progress and errors.
+    * @return A [[CommandExecution]] that checks out flac files.
+    */
   def checkout(locations: Seq[FlacFileLocation], unown: Boolean)(implicit messageService: MessageService): CommandExecution
 }

@@ -23,7 +23,7 @@ import common.changes.{Change, ChangeDao}
 import common.collections.CollectionDao
 import common.commands.CommandExecution
 import common.commands.CommandExecution._
-import common.configuration.{Directories, User, Users}
+import common.configuration.{Directories, User, UserDao}
 import common.files.{DeviceFileLocation, DirectoryService, FileLocationExtensions}
 import common.message.Messages._
 import common.message.{MessageService, Messaging}
@@ -34,7 +34,7 @@ import scala.collection.SortedSet
 /**
  * Created by alex on 06/12/14.
  */
-class InitialiseCommandImpl @Inject()(val users: Users, val directoryService: DirectoryService, val tagsService: TagsService)
+class InitialiseCommandImpl @Inject()(val userDao: UserDao, val directoryService: DirectoryService, val tagsService: TagsService)
                            (implicit val changeDao: ChangeDao,
                             val directories: Directories,
                             val fileLocationExtensions: FileLocationExtensions,
@@ -49,7 +49,7 @@ class InitialiseCommandImpl @Inject()(val users: Users, val directoryService: Di
     }
     else {
       val initialFiles: Seq[InitialFile] = for {
-        user <- users.allUsers.toSeq
+        user <- userDao.allUsers().toSeq
         deviceFileLocation <- listFiles(user)
       } yield {
         log(INITIALISING(deviceFileLocation))
@@ -71,7 +71,7 @@ class InitialiseCommandImpl @Inject()(val users: Users, val directoryService: Di
         case (user, releaseIds) =>
           collectionDao.addReleases(user, releaseIds)
       }
-      users.allUsers.foreach { user =>
+      userDao.allUsers().foreach { user =>
         val root = DeviceFileLocation(user)
         val deviceFileLocations: SortedSet[DeviceFileLocation] = directoryService.listFiles(Some(root))
         deviceFileLocations.foreach { deviceFileLocation =>
