@@ -25,26 +25,31 @@ import scala.util.{Failure, Try}
 
 /**
  * A companion object for Joda DateTime that ensures all created dates have the correct time zone and chronology.
- * @author alex
  *
  */
 object JodaDateTime extends ApplicationLogging {
 
   private val formatter: DateTimeFormatter = ISODateTimeFormat.dateTime()
+
   /**
-   * Create a new date time.
-   */
+    * Create a new date time.
+    * @param m The number of milliseconds since the UNIX Epoch.
+    * @return A new Joda DateTime
+    */
   def apply(m: Long) = new JDateTime(m)
 
   /**
-   * Create a new date time.
-   */
+    * Create a new date time.
+    * @param d A java date.
+    * @return A new Joda DateTime
+    */
   def apply(d: Date) = new JDateTime(d)
 
   /**
-   * Parse an ISO8601 formatter
-   * @param s
-   */
+    * Parse a string for an ISO8601 date
+    * @param s The string to parse.
+    * @return A Joda DateTime or None if the string could not be parsed.
+    */
   def apply(s: String): Option[JDateTime] = Try {
     formatter.parseDateTime(s)
   }.recoverWith { case (t: Throwable) =>
@@ -52,5 +57,10 @@ object JodaDateTime extends ApplicationLogging {
     Failure(t)
   }.toOption
 
+  /**
+    * Format a Joda DateTime into ISO8601
+    * @param dateTime The time to format.
+    * @return The date formatted in to ISO8601 format.
+    */
   def format(dateTime: JDateTime): String = formatter.print(dateTime)
 }
