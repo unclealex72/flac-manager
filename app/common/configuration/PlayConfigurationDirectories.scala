@@ -30,13 +30,21 @@ import play.api.inject.ApplicationLifecycle
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
+
 /**
- * Get the users using Play common.configuration
- * Created by alex on 20/11/14.
- */
-case class PlayConfigurationDirectories @Inject() (configuration: Configuration, lifecycle: ApplicationLifecycle)
+  * Find repositories using the Play Framework's configuration.
+  * @param configuration The underlying [[Configuration]] object.
+  * @param lifecycle Play's [[ApplicationLifecycle]], used to remove temporary files on shutdown.
+  * @param ec The execution context used to remove temporary files on shutdown.
+  */
+case class PlayConfigurationDirectories @Inject()(
+                                                   configuration: Configuration,
+                                                   lifecycle: ApplicationLifecycle)
                                                   (implicit ec: ExecutionContext) extends Directories with ApplicationLogging {
 
+  /**
+    * The parent directory for all repositories.
+    */
   val musicDirectory: Path =
     configuration.getString("directories.music").map(Paths.get(_)).getOrElse(Paths.get("/music"))
 
