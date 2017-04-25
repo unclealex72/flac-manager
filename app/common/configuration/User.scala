@@ -17,17 +17,8 @@
 package common.configuration
 
 /**
- * A common.configuration item for a user. Users must also have a MusicBrainz login and own an iPod.
- *
- * @author alex
- *
- */
-case class User(
-                 /**
-                  * Gets the user's name that is to be displayed with their devices and to be
-                  * used when changing ownership.
-                  *
-                  * @return the user's name that is to be displayed with their devices and to
-                  *         be used when changing ownership.
-                  */
-                 name: String)
+  * A user who has entries in the devices repository.
+  * @param name the user's name that is to be used to identify their devices and to
+  *         be used when changing ownership
+  */
+case class User(name: String)

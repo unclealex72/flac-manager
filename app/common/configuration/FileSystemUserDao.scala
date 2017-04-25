@@ -24,18 +24,23 @@ import logging.ApplicationLogging
 import scala.collection.JavaConversions._
 
 /**
- * Get the users using Play common.configuration
- * Created by alex on 20/11/14.
- */
+  * Get the users using by searching for directories in the device repository.
+  * @param directories The pointer to each repository.
+  */
 case class FileSystemUserDao @Inject()(directories: Directories) extends UserDao with ApplicationLogging {
 
-  val allUsers: Set[User] =
+  val users: Set[User] =
     Files.newDirectoryStream(directories.devicesPath).toSet.map((dir: Path) => User(dir.getFileName.toString))
 
-  if (allUsers.isEmpty) {
+  if (users.isEmpty) {
     throw new IllegalStateException(s"Could not find any user directories under ${directories.devicesPath}")
   }
   else {
-    logger.info(s"Found users ${allUsers.map(_.name).mkString(", ")}")
+    logger.info(s"Found users ${users.map(_.name).mkString(", ")}")
   }
+
+  /**
+    * @inheritdoc
+    */
+  override def allUsers(): Set[User] = users
 }

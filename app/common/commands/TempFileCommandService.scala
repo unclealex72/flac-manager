@@ -23,11 +23,11 @@ import javax.inject.Inject
 import com.google.common.collect.Sets
 
 /**
- * Created by alex on 27/10/14.
- */
+  * Copy the flac2mp3.sh command to a temporary directory.
+  */
 class TempFileCommandService  @Inject() extends CommandService {
 
-  def create(resourceName: String): String = {
+  private def create(resourceName: String): String = {
     val commandPath = Files.createTempFile("flacman-", s"-$resourceName")
     commandPath.toFile.deleteOnExit()
     val in = getClass.getResourceAsStream(resourceName)
@@ -41,5 +41,8 @@ class TempFileCommandService  @Inject() extends CommandService {
     commandPath.toAbsolutePath.toString
   }
 
-  val flac2mp3Command: String = create("flac2mp3.sh")
+  /**
+    * @inheritdoc
+    */
+  override val flac2mp3Command: String = create("flac2mp3.sh")
 }

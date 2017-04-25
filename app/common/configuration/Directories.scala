@@ -19,7 +19,7 @@ package common.configuration
 import java.nio.file.Path
 
 /**
-  * A common.configuration interface that is used to hold where the various directories are.
+  * A pointer to the different repository roots.
   *
   * @author alex
   *

@@ -22,6 +22,10 @@ package common.configuration
  */
 trait UserDao {
 
+  /**
+    * Get all users.
+    * @return All registered users.
+    */
   def allUsers(): Set[User]
 
 }
