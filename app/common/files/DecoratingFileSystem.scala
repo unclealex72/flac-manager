@@ -20,15 +20,24 @@ import logging.ApplicationLogging
 import common.message.MessageService
 
 /**
- * An implementation of {@link fileSystem} that decorates another {@link fileSystem}
- * @author alex
+ * An implementation of [[FileSystem]] that decorates another [[FileSystem]] by calling before and after methods.
+ * @param fileLocationExtensions The typeclass used to give [[FileLocation]]s [[java.nio.file.Path]]-like functionality.
  *
  */
 abstract class DecoratingFileSystem(implicit val fileLocationExtensions: FileLocationExtensions)
   extends FileSystem with ApplicationLogging {
 
+  /**
+    * The filesystem to delete to.
+    *
+    */
   val delegate: FileSystem
 
+  /**
+    * Wrap a method by calling the before and after methods before and after the invocation respectively.
+    * @param block The callback to execute.
+    * @param fileLocations The [[FileLocation]]s to send to the callback.
+    */
   def wrap(block: => FileSystem => Unit)(fileLocations: FileLocation*): Unit = {
     before(fileLocations)
     try {
@@ -39,21 +48,41 @@ abstract class DecoratingFileSystem(implicit val fileLocationExtensions: FileLoc
     }
   }
 
+  /**
+    * @inheritdoc
+    */
   override def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit =
     wrap(_.move(sourceFileLocation, targetFileLocation))(sourceFileLocation, targetFileLocation)
 
+  /**
+    * @inheritdoc
+    */
   override def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit =
     wrap(_.copy(sourceFileLocation, targetFileLocation))(targetFileLocation)
 
+  /**
+    * @inheritdoc
+    */
   override def remove(fileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
     before(Seq(fileLocation))
     delegate.remove(fileLocation)
   }
 
+  /**
+    * @inheritdoc
+    */
   override def link(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService): Unit =
     wrap(_.link(fileLocation, linkLocation))(fileLocation, linkLocation)
 
+  /**
+    * Override this method with code that will be called before any other method invocation.
+    * @param fileLocations The file locations to send to the original invocation.
+    */
   def before(fileLocations: Seq[FileLocation]): Unit
 
+  /**
+    * Override this method with code that will be called after any other method invocation.
+    * @param fileLocations The file locations sent to the original invocation.
+    */
   def after(fileLocations: Seq[FileLocation]): Unit
 }

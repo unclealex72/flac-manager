@@ -32,7 +32,7 @@ class DirectoryServiceImpl @Inject()(implicit fileLocationExtensions: FileLocati
   override def groupFiles[FL <: FileLocation](fileLocations: Traversable[FL])(implicit messageService: MessageService): SortedMap[FL, SortedSet[FL]] = {
     fileLocations.foldLeft(SortedMap.empty[FL, SortedSet[FL]]) { (allFileLocations, fl) =>
       val files = fl.toPath.toFile.listFiles().map(_.toPath)
-      val childFileLocations = files.map(p => fl.extendTo(p.getFileName))
+      val childFileLocations = files.map(p => fl.resolve(p.getFileName))
       val (childDirectories, childFiles) = childFileLocations.sorted.partition(_.isDirectory)
       childFiles.foreach(fl => log(FOUND_FILE(fl)))
       val sortedChildFiles = childFiles.foldLeft(SortedSet.empty[FL])(_ + _)

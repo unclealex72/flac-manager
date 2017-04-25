@@ -18,6 +18,7 @@ package common.files
 
 import java.nio.file.Paths
 
+import common.files.Extension.MP3
 import common.files.PathImplicits._
 import org.specs2.mutable._
 

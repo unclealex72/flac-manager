@@ -25,27 +25,42 @@ import scala.compat.java8.StreamConverters._
 import common.files.PathImplicits._
 
 /**
- * Created by alex on 16/11/14.
- */
+  * The default implementation of [[FileLocationExtensions]]
+  */
 class FileLocationExtensionsImpl @Inject() extends FileLocationExtensions {
 
-  implicit val fileLocationToPath: FileLocation => Path = _.toPath
+  private implicit val fileLocationToPath: FileLocation => Path = _.toPath
 
+  /**
+    * @inheritdoc
+    */
   override def isDirectory(fileLocation: FileLocation): Boolean = {
     Files.exists(fileLocation) && !Files.isSymbolicLink(fileLocation) && Files.isDirectory(fileLocation)
   }
 
-  def exists(fileLocation: FileLocation): Boolean = Files.exists(fileLocation)
+  /**
+    * @inheritdoc
+    */
+  override def exists(fileLocation: FileLocation): Boolean = Files.exists(fileLocation)
 
+  /**
+    * @inheritdoc
+    */
   override def createTemporaryFileLocation(extension: Extension)(implicit directories: Directories): TemporaryFileLocation = {
     val path = Files.createTempFile(directories.temporaryPath, "flac-manager-", s".${extension.extension}")
     TemporaryFileLocation(directories.temporaryPath.resolve(path))
   }
 
+  /**
+    * @inheritdoc
+    */
   override def lastModified(fileLocation: FileLocation): Long = {
     Files.getLastModifiedTime(fileLocation).toMillis
   }
 
+  /**
+    * @inheritdoc
+    */
   override protected[files] def firstFileIn[F <: FileLocation](
                                                                 parentFileLocation: F,
                                                                 extension: Extension,

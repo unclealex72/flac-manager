@@ -18,6 +18,9 @@ package common.files
 
 import java.nio.file.Path
 
+import enumeratum.{Enum, EnumEntry}
+
+import scala.collection.immutable
 import scala.util.matching.Regex
 
 /**
@@ -25,7 +28,7 @@ import scala.util.matching.Regex
  * @author alex
  *
  */
-sealed trait Extension {
+sealed trait Extension extends EnumEntry {
 
   /**
    * The string to put at the end of a file.
@@ -33,23 +36,65 @@ sealed trait Extension {
    */
   def extension: String
 
+  /**
+    * The extension itself.
+    * @return The extension itself.
+    */
   override def toString: String = extension
 }
 
-case object MP3 extends Extension {
-  def extension = "mp3"
+/**
+  * A container for the different extensions.
+  */
+object Extension extends Enum[Extension] {
+
+  /**
+    * The extension for MP3 files.
+    */
+  case object MP3 extends Extension {
+
+    /**
+      * @inheritdoc
+      */
+    override def extension = "mp3"
+  }
+
+  /**
+    * The extension for flac files.
+    */
+  case object FLAC extends Extension {
+
+    /**
+      * @inheritdoc
+      */
+    override def extension = "flac"
+  }
+
+  /**
+    * Get all known extensions.
+    * @return All known extensions.
+    */
+  override def values: immutable.IndexedSeq[Extension] = findValues
 }
 
-case object FLAC extends Extension {
-  def extension = "flac"
-}
-
+/**
+  * Implicits for [[Path]]s that supply functionality to check the extension of a path or to change it.
+  */
 object PathImplicits {
 
-  implicit class WithMp3Extension(path: Path) {
+  /**
+    * Implicits for [[Path]]s that supply functionality to check the extension of a path or to change it.
+    * @param path The path to extend.
+    */
+  implicit class PathExtensions(path: Path) {
 
-    val FILENAME: Regex = """^(.+)\..+?$""".r
+    private val FILENAME: Regex = """^(.+)\..+?$""".r
 
+    /**
+      * Change the extension of a path.
+      * @param extension The new extension of the path.
+      * @return A path with the given extension, replacing any other extension.
+      */
     def withExtension(extension: Extension): Path = {
       val parent = path.getParent
       val originalFilename = path.getFileName.toString
@@ -59,6 +104,11 @@ object PathImplicits {
       parent.resolve(filename)
     }
 
+    /**
+      * Check to see if a path has an extension.
+      * @param extension The extension to look for.
+      * @return True if the path has the extension, false otherwise.
+      */
     def hasExtension(extension: Extension): Boolean = {
       path.getFileName.toString.endsWith(s".$extension")
     }

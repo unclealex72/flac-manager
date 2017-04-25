@@ -18,11 +18,12 @@ package checkin.actors
 
 import javax.inject.Inject
 
-import akka.actor.{Actor, ActorLogging}
+import akka.actor.Actor
 import checkin.Mp3Encoder
 import checkin.actors.Messages._
 import common.configuration.Directories
-import common.files.{FileLocationExtensions, MP3, TemporaryFileLocation}
+import common.files.Extension.MP3
+import common.files.{FileLocationExtensions, TemporaryFileLocation}
 import common.message.Messages.{ENCODE, EXCEPTION}
 import common.message.Messaging
 import common.music.TagsService

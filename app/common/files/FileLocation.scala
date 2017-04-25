@@ -22,6 +22,7 @@ import java.nio.file.{Path, Paths}
 import cats.data.ValidatedNel
 import checkin.Mp3Encoder
 import common.configuration.{Directories, User}
+import common.files.Extension.{FLAC, MP3}
 import common.music.{Tags, TagsService}
 import logging.ApplicationLogging
 
@@ -35,6 +36,7 @@ import logging.ApplicationLogging
  *
  */
 trait FileLocation {
+
   /**
    * The location of the file relative to the base path.
    */
@@ -44,20 +46,38 @@ trait FileLocation {
    */
   protected[files] val basePath: Path
 
-  def toMessage: String = toPath.toString
-
   /**
-   * True if this file location should be read only, false otherwise.
-   * @return
+   * Return whether this file location should be is read-only or not.
+   * @return True if this file location should be read only, false otherwise.
    */
   def readOnly: Boolean
 
+  /**
+    * Return whether this file is a directory.
+    * @param fileLocationExtensions The [[FileLocationExtensions]] used to add [[Path]]-like functionality to file locations.
+    * @return True if this file location is a directory, false otherwise.
+    */
   def isDirectory(implicit fileLocationExtensions: FileLocationExtensions): Boolean = fileLocationExtensions.isDirectory(this)
 
+  /**
+    * Return whether this file exists.
+    * @param fileLocationExtensions The [[FileLocationExtensions]] used to add [[Path]]-like functionality to file locations.
+    * @return True if this file location is exists, false otherwise.
+    */
   def exists(implicit fileLocationExtensions: FileLocationExtensions): Boolean = fileLocationExtensions.exists(this)
 
+  /**
+    * Return the time this file was last modified.
+    * @param fileLocationExtensions The [[FileLocationExtensions]] used to add [[Path]]-like functionality to file locations.
+    * @return The number of milliseconds since the UNIX Epoch when this file was last modified.
+    */
   def lastModified(implicit fileLocationExtensions: FileLocationExtensions): Long = fileLocationExtensions.lastModified(this)
 
+  /**
+    * Read and validate audio tags from this file.
+    * @param tagsService The [[TagsService]] used to read and write tags.
+    * @return The audio tags for this file or failure messages if the tags are incomplete.
+    */
   def readTags(implicit tagsService: TagsService): ValidatedNel[String, Tags] = tagsService.read(toPath)
 
   /**
@@ -69,105 +89,148 @@ trait FileLocation {
     basePath.resolve(relativePath)
   }
 
+  /**
+    * Write tags to this file.
+    * @param tagsService The [[TagsService]] used to read and write tags.
+    * @param tags The tags to write.
+    */
   def writeTags(tags: Tags)(implicit tagsService: TagsService): Unit = tagsService.write(toPath, tags)
 }
 
 /**
- * A file location in the temporary directory structure.
+ * A [[FileLocation]] in the temporary directory structure.
  */
 trait TemporaryFileLocation extends FileLocation
 
 /**
- * A `FileLocation` in the staging repository.
+ * A [[FileLocation]] in the staging repository.
  */
 trait StagedFlacFileLocation extends FileLocation {
 
+  /**
+    * Encode a staged flac file in to an MP3 file.
+    * @param targetFileLocation The file to write the MP3 file to.
+    * @param mp3Encoder The [[Mp3Encoder]] that will be used to encode this file.
+    */
   def encodeTo(targetFileLocation: FileLocation)(implicit mp3Encoder: Mp3Encoder): Unit = {
     mp3Encoder.encode(this.toPath, targetFileLocation.toPath)
   }
 
+  /**
+    * Resolve where this file would be in the flac repository.
+    * @param tags The tags for this file.
+    * @return The flac file location where this staged file would be moved to.
+    */
   def toFlacFileLocation(tags: Tags): FlacFileLocation
 
+  /**
+    * Determine whether this file is a valid flac file.
+    * @param flacFileChecker The [[FlacFileChecker]] used to check whether this file is a flac file or not.
+    * @return True if this file is a flac file, false otherwise.
+    */
   def isFlacFile(implicit flacFileChecker: FlacFileChecker): Boolean = flacFileChecker.isFlacFile(toPath)
 
 }
 
 /**
- * A `FileLocation` in the FLAC repository.
+ * A [[FileLocation]] in the FLAC repository.
  */
 trait FlacFileLocation extends FileLocation {
 
+  /**
+    * The location where this file would be checked out to.
+    * @return The location where this file would be checked out to.
+    */
   def toStagedFlacFileLocation: StagedFlacFileLocation
 
+  /**
+    * The location where this file would be encoded to.
+    * @return The location where this file would be encoded to.
+    */
   def toEncodedFileLocation: EncodedFileLocation
 }
 
-trait ToDeviceFileLocation {
-  def toDeviceFileLocation(user: User): DeviceFileLocation
-}
-
-trait ToDeviceFileLocationImpl extends ToDeviceFileLocation {
-  this: {
-    val directories: Directories
-    val relativePath: Path
-  } =>
-
-  override def toDeviceFileLocation(user: User): DeviceFileLocation = {
-    DeviceFileLocation(user, relativePath)(directories)
-  }
-
-}
-
 /**
- * A `FileLocation` in the encoded repository.
+ * A [[FileLocation]] in the encoded repository.
  */
-trait EncodedFileLocation extends FileLocation with ToDeviceFileLocation
+trait EncodedFileLocation extends FileLocation {
+
+  /**
+    * The location where this file can be found in a user's device repository.
+    * @param user The user who's repository to use as a base.
+    * @return
+    */
+  def toDeviceFileLocation(user: User): DeviceFileLocation
+
+}
 
 /**
- * A `FileLocation` in the devices repository.
+ * A [[FileLocation]] in the devices repository.
  */
 trait DeviceFileLocation extends FileLocation {
 
+  /**
+    * The user who owns the device.
+    */
   val user: String
 
+  /**
+    * The flac file that would have been used to encode this file.
+    * @return
+    */
   def toFlacFileLocation: FlacFileLocation
 
-  def toRemovableFileLocation(rootDirectory: Path): RemovableFileLocation
-
+  /**
+    * The [[File]] at this file location.
+    * @return The [[File]] at this file location.
+    */
   def toFile(implicit fileLocationExtensions: FileLocationExtensions): File = path.toFile
 
+  /**
+    * Convert this location to a [[Path]].
+    * @return The path for this location.
+    */
   def path: Path = toPath
 
   def ifExists(implicit fileLocationExtensions: FileLocationExtensions): Option[DeviceFileLocation] = {
     if (exists && !isDirectory) Some(this) else None
   }
 
+  /**
+    * Get the first file if this location is a non empty directory. This is useful for finding album art.
+    * @param fileLocationExtensions The typeclass used to give [[Path]]-like functionality to file locations.
+    * @return The first file in this directory or none.
+    */
   def firstInDirectory(implicit fileLocationExtensions: FileLocationExtensions): Option[DeviceFileLocation]
 
 }
 
-trait RemovableFileLocation extends FileLocation with ToDeviceFileLocation {
-
-  def toFile(implicit fileLocationExtensions: FileLocationExtensions): File = path.toFile
-
-  def path: Path = toPath
-
-}
-
-
+/**
+  * Implicits for file locations.
+  */
 object FileLocationImplicits {
 
+  /**
+    * Order file locations by their path.
+    * @tparam FL The file location type.
+    * @return An ordering that orders file locations by their path.
+    */
   implicit def fileLocationOrdering[FL <: FileLocation]: Ordering[FL] = Ordering.by(_.toPath)
 
   /**
    * An implicit class to add a resolve argument that then means that the FileLocation trait does not
    * need to be parameterised.
-   * @param fileLocation
-   * @tparam FL
+   * @param fileLocation The file location to enrich.
+   * @tparam FL The type of the file location.
    */
   implicit class Resolver[FL <: FileLocation](val fileLocation: FL)(implicit val directories: Directories) {
 
-    def extendTo(path: Path): FL = {
+    /**
+      * Resolve a path using this file location as a base.
+      * @param path The relative path to search for.
+      * @return A new file location that is the original file location with the extra path added.
+      */
+    def resolve(path: Path): FL = {
       val newRelativePath: Path = fileLocation.relativePath.resolve(path)
       (fileLocation match {
         case _: FlacFileLocation => FlacFileLocationImpl(newRelativePath, directories)
@@ -179,13 +242,23 @@ object FileLocationImplicits {
   }
 }
 
+/**
+  * The base class for all file locations.
+  * @param name A descriptive name for the file location type.
+  * @param relativePath The relative path of the file location, relative to its repository's root.
+  * @param readOnly True if this repository is read only, false otherwise.
+  * @param directoryFactory Get the root directory from a [[Directories]] class.
+  * @param directories The location of all repositories.
+  */
 abstract class AbstractFileLocation(
                                      val name: String,
                                      val relativePath: Path,
                                      val readOnly: Boolean,
-                                     val directoryFactory: Directories => Path,
-                                     val directories: Directories) {
+                                     val directoryFactory: Directories => Path, val directories: Directories) {
 
+  /**
+    * The base path of the repository for this file location.
+    */
   val basePath: Path = directoryFactory(directories)
 
   override def toString: String = s"$name($relativePath)"
@@ -195,30 +268,69 @@ abstract class AbstractFileLocation(
 
 import common.files.PathImplicits._
 
+/**
+  * The default implementation of [[TemporaryFileLocationImpl]]
+  * @param relativePath The relative path of the file location, relative to its repository's root.
+  * @param directories The location of all repositories.
+  */
 case class TemporaryFileLocationImpl(override val relativePath: Path, override val directories: Directories)
   extends AbstractFileLocation("TemporaryFileLocation", relativePath, false, _.temporaryPath, directories) with TemporaryFileLocation
 
+/**
+  * Used to create new [[TemporaryFileLocation]]s.
+  */
 object TemporaryFileLocation {
 
+  /**
+    * Get the temporary file location at the given relative paht.
+    * @param relativePath The relative path to add the the temporary repository's base path.
+    * @param directories The locations of the repositories.
+    * @return A temporary file location.
+    */
   def apply(relativePath: Path)(implicit directories: Directories): TemporaryFileLocation =
     TemporaryFileLocationImpl(relativePath, directories)
 
+  /**
+    * Create a new temporary file with an extension.
+    * @param extension The extension to give the temporary file.
+    * @param fileLocationExtensions The [[FileLocationExtensions]] typeclass used to add [[Path]]-like functionality to file locations.
+    * @param directories The locations of the repositories.
+    * @return A newly created temporary file with the given extension.
+    */
   def create(extension: Extension)(implicit fileLocationExtensions: FileLocationExtensions, directories: Directories): TemporaryFileLocation =
     fileLocationExtensions.createTemporaryFileLocation(extension)
 
 }
 
+/**
+  * The base class for flac file locations.
+  * @param name A descriptive name for the file location type.
+  * @param relativePath The relative path of the file location, relative to its repository's root.
+  * @param readOnly True if this repository is read only, false otherwise.
+  * @param directoryFactory Get the root directory from a [[Directories]] class.
+  * @param directories The location of all repositories.
+  */
 sealed abstract class AbstractFlacFileLocation(
                                                 override val name: String,
                                                 override val relativePath: Path,
                                                 override val readOnly: Boolean,
                                                 override val directoryFactory: Directories => Path,
-                                                override implicit val directories: Directories) extends AbstractFileLocation(name, relativePath, readOnly, directoryFactory, directories) {
+                                                override implicit val directories: Directories)
+  extends AbstractFileLocation(name, relativePath, readOnly, directoryFactory, directories) {
 
+  /**
+    * @inheritdoc
+    */
   def toStagedFlacFileLocation: StagedFlacFileLocation = StagedFlacFileLocation(relativePath)
 
+  /**
+    * @inheritdoc
+    */
   def toEncodedFileLocation: EncodedFileLocation = EncodedFileLocation(relativePath withExtension MP3)
 
+  /**
+    * @inheritdoc
+    */
   def toOwnedEncodedFileLocation(user: User): DeviceFileLocation = DeviceFileLocation(user, relativePath withExtension MP3)
 
 }
@@ -240,25 +352,44 @@ private object Unapply extends ApplicationLogging {
 }
 
 /**
- * Staged Flac files
- * @param relativePath
- * @param directories
- */
+  * The default implementation of [[StagedFlacFileLocation]].
+  * @param relativePath The relative path of the file location, relative to its repository's root.
+  * @param directories The location of all repositories.
+  */
 case class StagedFlacFileLocationImpl(
                                        override val relativePath: Path,
                                        override val directories: Directories) extends AbstractFlacFileLocation(
   "StagedFlacFileLocation", relativePath, false, _.stagingPath, directories) with StagedFlacFileLocation {
 
+  /**
+    * @inheritdoc
+    */
   override def toFlacFileLocation(tags: Tags): FlacFileLocation = {
     FlacFileLocation(tags.asPath(FLAC))(directories)
   }
 }
 
+/**
+  * Used to create [[StagedFlacFileLocation]]s
+  */
 object StagedFlacFileLocation {
 
+  /**
+    * Create a new staged flac file location.
+    * @param path The first path segment of a relative path.
+    * @param paths The next segments of a relative path.
+    * @param directories The locations of the repositories.
+    * @return A new staged flac file location pointing at a relative path.
+    */
   def apply(path: String, paths: String*)(implicit directories: Directories): StagedFlacFileLocation =
     StagedFlacFileLocation(Paths.get(path, paths: _*))
 
+  /**
+    * Create a new staged flac file location.
+    * @param relativePath The path relative to the staging repository.
+    * @param directories The locations of the repositories.
+    * @return A new staged flac file location pointing at a relative path.
+    */
   def apply(relativePath: Path)(implicit directories: Directories): StagedFlacFileLocation =
     StagedFlacFileLocationImpl(relativePath, directories)
 
@@ -267,91 +398,166 @@ object StagedFlacFileLocation {
 }
 
 /**
- * Flac files
- * @param relativePath
- * @param directories
- */
+  * The default implementation of [[FlacFileLocation]]
+  * @param relativePath The relative path of the file location, relative to its repository's root.
+  * @param directories The location of all repositories.
+  */
 case class FlacFileLocationImpl(
                                  override val relativePath: Path, override val directories: Directories) extends AbstractFlacFileLocation(
   "FlacFileLocation", relativePath, true, _.flacPath, directories) with FlacFileLocation
 
+/**
+  * Used to create [[FlacFileLocation]]s.
+  */
 object FlacFileLocation {
 
+  /**
+    * Create a new flac file location.
+    * @param path The first path segment of a relative path.
+    * @param paths The next segments of a relative path.
+    * @param directories The locations of the repositories.
+    * @return A new flac file location pointing at a relative path.
+    */
   def apply(path: String, paths: String*)(implicit directories: Directories): FlacFileLocation =
     FlacFileLocation(Paths.get(path, paths: _*))
 
-  def unapply(absolutePath: Path)(implicit directories: Directories): Option[FlacFileLocation] =
-    Unapply(directories.flacPath, absolutePath, p => FlacFileLocation(p))
-
+  /**
+    * Create a new flac file location.
+    * @param relativePath The path relative to the flac repository.
+    * @param directories The locations of the repositories.
+    * @return A new flac file location pointing at a relative path.
+    */
   def apply(relativePath: Path)(implicit directories: Directories): FlacFileLocation =
     FlacFileLocationImpl(relativePath, directories)
+
+  def unapply(absolutePath: Path)(implicit directories: Directories): Option[FlacFileLocation] =
+    Unapply(directories.flacPath, absolutePath, p => FlacFileLocation(p))
 }
 
 /**
- * Encoded files
- * @param relativePath
- * @param directories
- */
+  * The default implementation of [[EncodedFileLocation]].
+  * @param relativePath The relative path of the file location, relative to its repository's root.
+  * @param directories The location of all repositories.
+  */
 case class EncodedFileLocationImpl(
                                     override val relativePath: Path, override val directories: Directories) extends AbstractFileLocation(
-  "EncodedFlacFileLocation", relativePath, true, _.encodedPath, directories) with EncodedFileLocation with ToDeviceFileLocationImpl {
+  "EncodedFileLocation", relativePath, true, _.encodedPath, directories) with EncodedFileLocation {
+
+  /**
+    * @inheritdoc
+    */
+  override def toDeviceFileLocation(user: User): DeviceFileLocation = {
+    DeviceFileLocation(user, relativePath)(directories)
+  }
 }
 
+/**
+  * Create [[EncodedFileLocation]]s.
+  */
 object EncodedFileLocation {
 
+  /**
+    * Create a new encoded file location.
+    * @param path The first path segment of a relative path.
+    * @param paths The next segments of a relative path.
+    * @param directories The locations of the repositories.
+    * @return A new encoded file location pointing at a relative path.
+    */
   def apply(path: String, paths: String*)(implicit directories: Directories): EncodedFileLocation = EncodedFileLocation(Paths.get(path, paths: _*))
 
+  /**
+    * Create a new encoded file location.
+    * @param relativePath The path relative to the encoded repository.
+    * @param directories The locations of the repositories.
+    * @return A new encoded file location pointing at a relative path.
+    */
   def apply(relativePath: Path)(implicit directories: Directories): EncodedFileLocation = EncodedFileLocationImpl(relativePath, directories)
 
 }
 
 /**
- * Owned encoded files
- * @param relativePath
- * @param directories
- */
+  * The default implementation of [[DeviceFileLocation]].
+  * @param user The user who own's the device.
+  * @param relativePath The relative path of the file location, relative to its repository's root.
+  * @param directories The location of all repositories.
+  */
 case class DeviceFileLocationImpl(
                                    override val user: String, override val relativePath: Path, override val directories: Directories)
   extends AbstractFileLocation(
     "DeviceFileLocation", relativePath, true, _.devicesPath.resolve(user), directories) with DeviceFileLocation {
 
+  /**
+    * @inheritdoc
+    */
   override def toFlacFileLocation: FlacFileLocation = FlacFileLocation(relativePath withExtension FLAC)(directories)
 
-  override def toRemovableFileLocation(rootDirectory: Path): RemovableFileLocation = RemovableFileLocation(rootDirectory, relativePath)(directories)
-
+  /**
+    * @inheritdoc
+    */
   def firstInDirectory(implicit fileLocationExtensions: FileLocationExtensions): Option[DeviceFileLocation] = {
     fileLocationExtensions.firstFileIn(this, MP3, path => DeviceFileLocationImpl(user, path, directories))
   }
 }
 
+/**
+  * Create [[DeviceFileLocation]]s.
+  */
 object DeviceFileLocation {
 
+  /**
+    * Point to the root of a user's device repository.
+    * @param user The user who owns the device.
+    * @param directories The locations of the repositories.
+    * @return The root of the user's device repository.
+    */
   def apply(user: User)(implicit directories: Directories): DeviceFileLocation = apply(user.name)
 
+  /**
+    * Point to the root of a user's device repository.
+    * @param user The name of the user who owns the device.
+    * @param directories The locations of the repositories.
+    * @return The root of the user's device repository.
+    */
   def apply(user: String)(implicit directories: Directories): DeviceFileLocation = apply(user, "")
 
+  /**
+    * Create a new flac file location.
+    * @param user The user who owns the device.
+    * @param relativePath The path relative to the user's device repository.
+    * @param directories The locations of the repositories.
+    * @return A new device file location pointing at a relative path.
+    */
   def apply(user: User, relativePath: Path)(implicit directories: Directories): DeviceFileLocation = apply(user.name, relativePath)
 
+  /**
+    * Create a new device file location.
+    * @param user The user who owns the device.
+    * @param path The first path segment of a relative path.
+    * @param paths The next segments of a relative path.
+    * @param directories The locations of the repositories.
+    * @return A new device file location pointing at a relative path.
+    */
   def apply(user: User, path: String, paths: String*)(implicit directories: Directories): DeviceFileLocation =
     apply(user.name, path, paths: _*)
 
+  /**
+    * Create a new device file location.
+    * @param user The name of user who owns the device.
+    * @param path The first path segment of a relative path.
+    * @param paths The next segments of a relative path.
+    * @param directories The locations of the repositories.
+    * @return A new device file location pointing at a relative path.
+    */
   def apply(user: String, path: String, paths: String*)(implicit directories: Directories): DeviceFileLocation =
     DeviceFileLocation(user, Paths.get(path, paths: _*))
 
+  /**
+    * Create a new flac file location.
+    * @param user The name of the user who owns the device.
+    * @param relativePath The path relative to the user's device repository.
+    * @param directories The locations of the repositories.
+    * @return A new device file location pointing at a relative path.
+    */
   def apply(user: String, relativePath: Path)(implicit directories: Directories): DeviceFileLocation =
     DeviceFileLocationImpl(user, relativePath, directories)
-}
-
-case class RemovableFileLocationImpl(rootDirectory: Path, override val relativePath: Path, override val directories: Directories) extends AbstractFileLocation(
-  "RemovableFileLocation", relativePath, true, _ => rootDirectory, directories) with RemovableFileLocation with ToDeviceFileLocationImpl
-
-object RemovableFileLocation {
-
-  def apply(rootDirectory: Path)(implicit directories: Directories): RemovableFileLocation = apply(rootDirectory, "")
-
-  def apply(rootDirectory: Path, path: String, paths: String*)(implicit directories: Directories): RemovableFileLocation =
-    RemovableFileLocation(rootDirectory, Paths.get(path, paths: _*))
-
-  def apply(rootDirectory: Path, relativePath: Path)(implicit directories: Directories): RemovableFileLocation =
-    RemovableFileLocationImpl(rootDirectory, relativePath, directories)
 }

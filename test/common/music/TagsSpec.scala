@@ -19,7 +19,7 @@ package common.music
 import java.nio.file.Paths
 
 import com.wix.accord._
-import common.files.FLAC
+import common.files.Extension.FLAC
 import org.specs2.mutable._
 
 /**

@@ -16,11 +16,7 @@
 
 package common.files
 
-;
-
-import java.io.IOException
 import java.nio.file.Path
-;
 
 /**
  * An interface for classes that determine whether a file contains FLAC information or not.
@@ -33,7 +29,6 @@ trait FlacFileChecker {
    * Check whether a file is a FLAC encoded file or not.
    * @param path The file to check.
    * @return True if the file is a FLAC file or false otherwise.
-   * @throws IOException
    */
   def isFlacFile(path: Path): Boolean
 }

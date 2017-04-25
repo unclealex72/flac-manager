@@ -27,14 +27,15 @@ import scala.util.Try
 
 
 /**
- * The default implementation of {@link fileSystem}.
- *
- * @author alex
- *
+ * The default implementation of[[FileSystem]].
  */
 class FileSystemImpl @Inject() extends FileSystem with Messaging {
 
-  override def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
+  /**
+    * @inheritdoc
+    */
+  override def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)
+                   (implicit messageService: MessageService): Unit = {
     log(MOVE(sourceFileLocation, targetFileLocation))
     val sourcePath = sourceFileLocation.toPath
     val targetPath = targetFileLocation.toPath
@@ -44,7 +45,11 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     remove(sourceFileLocation.basePath, currentDirectory)
   }
 
-  override def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
+  /**
+    * @inheritdoc
+    */
+  override def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)
+                   (implicit messageService: MessageService): Unit = {
     val sourcePath = sourceFileLocation.toPath
     val targetPath = targetFileLocation.toPath
     val parentTargetPath = targetPath.getParent
@@ -56,6 +61,12 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     remove(sourceFileLocation.basePath, currentDirectory)
   }
 
+  /**
+    * Try and move a file using an atomic move operation. If this fails, move it non-atomically.
+    * @param sourcePath The source path.
+    * @param targetPath The target path.
+    * @param options The [[StandardCopyOption]] passed to the file system.
+    */
   def tryAtomicMove(sourcePath: Path, targetPath: Path, options: StandardCopyOption*): Unit = {
     try {
       val optionsWithAtomicMove = options :+ StandardCopyOption.ATOMIC_MOVE
@@ -67,30 +78,43 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     }
   }
 
+  /**
+    * @inheritdoc
+    */
   override def remove(fileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
     log(DELETE(fileLocation))
     remove(fileLocation.basePath, fileLocation.toPath)
   }
 
-  def remove(basePath: Path, currentPath: Path): Try[Unit] = Try {
-    if (Files.isSameFile(basePath, currentPath)) {
+  /**
+    * Remove a path and, if it's directory is now empty, remove that and recurse up.
+    * @param basePath The base path at which to no longer try to remove directories.
+    * @param path The path to remove.
+    * @return A [[Try]] containing an exception if one occurred.
+    */
+  def remove(basePath: Path, path: Path): Try[Unit] = Try {
+    if (Files.isSameFile(basePath, path)) {
       // Do nothing
     }
-    else if (Files.isDirectory(currentPath)) {
-      val dir = Files.newDirectoryStream(currentPath)
+    else if (Files.isDirectory(path)) {
+      val dir = Files.newDirectoryStream(path)
       val directoryIsEmpty = !dir.iterator().hasNext
       if (directoryIsEmpty) {
-        Files.delete(currentPath)
-        remove(basePath, currentPath.getParent)
+        Files.delete(path)
+        remove(basePath, path.getParent)
       }
       dir.close()
     }
     else {
-      Files.deleteIfExists(currentPath)
-      remove(basePath, currentPath.getParent)
+      Files.deleteIfExists(path)
+      remove(basePath, path.getParent)
     }
   }
 
+  /**
+    * @inheritdoc
+    *
+    */
   override def link(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService): Unit = {
     log(LINK(fileLocation, linkLocation))
     val target = fileLocation.toPath

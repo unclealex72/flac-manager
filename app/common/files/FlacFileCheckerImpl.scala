@@ -24,32 +24,28 @@ import javax.inject.Inject
 ;
 
 /**
- * The default implementation of {@link FlacFileChecker}.
+ * The default implementation of [[FlacFileChecker]]. This class checks that files start with flac's magic number.
  * @author alex
  *
  */
 class FlacFileCheckerImpl @Inject() extends FlacFileChecker {
 
+  /**
+    * 0x664c6143 is the magic number for flac files.
+    */
   val MAGIC_NUMBER: Vector[Byte] = Vector[Byte](0x66, 0x4C, 0x61, 0x43)
 
   /**
-   * Check whether a file is a FLAC encoded file or not.
-   * @param path The file to check.
-   * @return True if the file is a FLAC file or false otherwise.
-   * @throws IOException
-   */
+    * @inheritdoc
+    */
   override def isFlacFile(path: Path): Boolean = {
     val in = new FileInputStream(path.toFile)
     try {
-      isFlacFile(in)
+      val buffer: Array[Byte] = new Array[Byte](MAGIC_NUMBER.size)
+      in.read(buffer) == MAGIC_NUMBER.size && buffer.toVector.equals(MAGIC_NUMBER)
     }
     finally {
       in.close()
     }
-  }
-
-  def isFlacFile(in: InputStream): Boolean = {
-    val buffer: Array[Byte] = new Array[Byte](MAGIC_NUMBER.size)
-    in.read(buffer) == MAGIC_NUMBER.size && buffer.toVector.equals(MAGIC_NUMBER)
   }
 }

@@ -157,7 +157,7 @@ object Messages {
       fls.map(fileLocationToString(_)).mkString(", ")
     }
 
-    implicit def fileLocationToString(fileLocation: FileLocation): String = fileLocation.toMessage
+    implicit def fileLocationToString(fileLocation: FileLocation): String = fileLocation.toString
 
     implicit def userToString(user: User): String = user.name
   }

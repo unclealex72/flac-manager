@@ -16,6 +16,8 @@
 
 package common.files
 
+import java.nio.file.Paths
+
 import org.specs2.mutable._
 
 /**
@@ -39,7 +41,7 @@ class FlacFileCheckerImplSpec extends Specification {
   }
 
   def checking(resourceName: String): Boolean = {
-    val in = classOf[FlacFileCheckerImplSpec].getClassLoader.getResourceAsStream(resourceName)
-    new FlacFileCheckerImpl().isFlacFile(in)
+    val path = Paths.get(classOf[FlacFileCheckerImplSpec].getClassLoader.getResource(resourceName).toURI)
+    new FlacFileCheckerImpl().isFlacFile(path)
   }
 }

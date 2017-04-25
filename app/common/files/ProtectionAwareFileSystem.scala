@@ -25,41 +25,56 @@ import logging.ApplicationLogging
 import scala.collection.JavaConversions._
 
 /**
- * An implementation of {@link fileSystem} that decorates another {@link fileSystem} and is aware of whether {@link
- * FileLocation}s should be left in a read only or writable state.
- * @author alex
- *
- */
-class ProtectionAwareFileSystem @Inject() (@Named("rawFileSystem") val delegate: FileSystem)(override implicit val fileLocationExtensions: FileLocationExtensions) extends DecoratingFileSystem with ApplicationLogging {
+  * An implementation of [[FileSystem]] that decorates another [[FileSystem]] and is aware of whether [[FileSystem]]s
+  * should be left in a read only or writable state.
+  * @param delegate The file system to delegate to.
+  * @param fileLocationExtensions The typeclass used to give [[FileLocation]]s [[java.nio.file.Path]]-like functionality.
+  *
+  */
+class ProtectionAwareFileSystem @Inject() (@Named("rawFileSystem") val delegate: FileSystem)
+                                          (override implicit val fileLocationExtensions: FileLocationExtensions)
+  extends DecoratingFileSystem with ApplicationLogging {
 
+  /**
+    * Make all files that need to be writeable.
+    * @param fileLocations The file locations to send to the original invocation.
+    */
   def before(fileLocations: Seq[FileLocation]): Unit = alterWritable(_ => true, fileLocations)
 
+  /**
+    * Make all files that need to be unrwiteable.
+    * @param fileLocations The file locations to send to the original invocation.
+    */
   def after(fileLocations: Seq[FileLocation]): Unit = alterWritable(!_.readOnly, fileLocations)
 
+  /**
+    * Alter all files and their parents (up to the repository base) to be either writeable or unwriteable.
+    * @param writable True if files should be made writeable, false otherwise.
+    * @param fileLocations The file locations to send to the original invocation.
+    */
   def alterWritable(writable: FileLocation => Boolean, fileLocations: Seq[FileLocation]): Unit = {
-    fileLocations foreach alterWritableSingular(writable)
-  }
-
-  def alterWritableSingular: (FileLocation => Boolean) => FileLocation => Unit = { allowWritesFactory => fileLocation =>
-    var currentPath = fileLocation.toPath
-    val terminatingPath = fileLocation.basePath.getParent
-    while (currentPath != null && !currentPath.equals(terminatingPath)) {
-      if (Files.exists(currentPath)) {
-        val posixFilePermissions = Files.getPosixFilePermissions(currentPath)
-        if (allowWritesFactory(fileLocation)) {
-          logger.debug("Setting " + currentPath + " to read and write.")
-          posixFilePermissions.add(PosixFilePermission.OWNER_WRITE)
+    fileLocations.foreach { fileLocation =>
+      var currentPath = fileLocation.toPath
+      val terminatingPath = fileLocation.basePath.getParent
+      while (currentPath != null && !currentPath.equals(terminatingPath)) {
+        if (Files.exists(currentPath)) {
+          val posixFilePermissions = Files.getPosixFilePermissions(currentPath)
+          if (writable(fileLocation)) {
+            logger.debug("Setting " + currentPath + " to read and write.")
+            posixFilePermissions.add(PosixFilePermission.OWNER_WRITE)
+          }
+          else {
+            logger.debug("Setting " + currentPath + " to read only.")
+            posixFilePermissions.removeAll(Seq(
+              PosixFilePermission.OWNER_WRITE,
+              PosixFilePermission.GROUP_WRITE,
+              PosixFilePermission.OTHERS_WRITE))
+          }
+          Files.setPosixFilePermissions(currentPath, posixFilePermissions)
         }
-        else {
-          logger.debug("Setting " + currentPath + " to read only.")
-          posixFilePermissions.removeAll(Seq(
-            PosixFilePermission.OWNER_WRITE,
-            PosixFilePermission.GROUP_WRITE,
-            PosixFilePermission.OTHERS_WRITE))
-        }
-        Files.setPosixFilePermissions(currentPath, posixFilePermissions)
+        currentPath = currentPath.getParent
       }
-      currentPath = currentPath.getParent
+
     }
   }
 }

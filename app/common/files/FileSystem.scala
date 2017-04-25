@@ -28,49 +28,42 @@ import common.message.MessageService
 trait FileSystem {
 
   /**
-   * Move a path from a source directory to a target directory using an atomic
-   * file system move, creating any required directories. Any directories left
-   * empty in the source base path due to the move operation will be removed.
-   *
-   * @param sourceFileLocation
-   * The source file location.
-   * @param targetFileLocation
-   * The target file location.
-   * @throws IOException
-   */
+    * Move a path from a source directory to a target directory using an atomic
+    * file system move, creating any required directories. Any directories left
+    * empty in the source base path due to the move operation will be removed.
+    *
+    * @param sourceFileLocation The source file location
+    * @param targetFileLocation The target file location
+    * @param messageService The [[MessageService]] used to log progress or report errors.
+    */
   def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit
 
   /**
-   * Copy a path from a source directory to a target directory using an atomic
-   * file system copy, creating any required directories.
-   *
-   * @param sourceFileLocation
-   * The source file location.
-   * @param targetFileLocation
-   * The target file location.
-   * @throws IOException
-   */
+    * Copy a path from a source directory to a target directory using an atomic
+    * file system copy, creating any required directories.
+    *
+    * @param sourceFileLocation The source file location
+    * @param targetFileLocation The target file location
+    * @param messageService The [[MessageService]] used to log progress or report errors.
+    */
   def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit
 
   /**
-   * Remove directories if they are empty and recurse up the directory tree.
-   *
-   * @param fileLocation
-   * The location of the current file to remove if empty.
-   * @throws IOException
+    * Remove directories if they are empty and recurse up the directory tree.
+    *
+    * @param fileLocation The file location to remove.
+    * @param messageService The [[MessageService]] used to log progress or report errors.
    */
   def remove(fileLocation: FileLocation)(implicit messageService: MessageService): Unit
 
   /**
-   * Create a relative symbolic link from one file to another, creating any
-   * required parent directories for the new link.
-   *
-   * @param fileLocation
-   * The location of the file to link to.
-   * @param linkLocation
-   * The location of the new symbolic link.
-   * @throws IOException
-   */
+    * Create a relative symbolic link from one file to another, creating any
+    * required parent directories for the new link.
+    *
+    * @param fileLocation The location of the file to link to.
+    * @param linkLocation The location of the new symbolic link.
+    * @param messageService The [[MessageService]] used to log progress or report errors.
+    */
   def link(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService): Unit
 
 }
