@@ -25,10 +25,15 @@ import play.api.inject.ApplicationLifecycle
 import play.api.{Application, Configuration, Mode}
 
 import scala.concurrent.{ExecutionContext, Future}
+
 /**
-  * Created by alex on 21/03/17
-  * Advertise the flac manager using uPNP.
-  **/
+  * An implementation of [[UpnpServer]] that uses [[https://github.com/4thline/cling Cling]]
+  * @param directories The location of the various music repositories.
+  * @param app The Play application object.
+  * @param configuration The Play configuration object.
+  * @param lifecycle The Play lifecycle object.
+  * @param ec An execution context used to start and stop this service.
+  */
 class ClingUpnpServer @Inject()(
                             directories: Directories,
                             app: Application,
@@ -36,13 +41,13 @@ class ClingUpnpServer @Inject()(
                             lifecycle: ApplicationLifecycle)
                                (implicit ec: ExecutionContext) extends UpnpServer with StrictLogging {
 
-  val upnpService: UpnpService = new UpnpServiceImpl()
-  val maybePort: Option[Int] = app.mode match {
+  private val upnpService: UpnpService = new UpnpServiceImpl()
+  private val maybePort: Option[Int] = app.mode match {
     case Mode.Prod => configuration.getInt("play.server.http.port")
     case _ => None
   }
-  val suffix: String = configuration.getString("upnp.suffix").getOrElse("")
-  val port: Int = maybePort.getOrElse(9000)
+  private val suffix: String = configuration.getString("upnp.suffix").getOrElse("")
+  private val port: Int = maybePort.getOrElse(9000)
 
   new UpnpDeviceCreator(suffix, port, directories.datumPath, upnpService).call()
 

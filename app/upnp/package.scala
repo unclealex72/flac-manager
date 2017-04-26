@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package upnp
-
 /**
-  * A trait for UPNP servers. Currently it doesn't need any methods as the only server side
-  * interaction is startup and shutdown.
-  **/
-trait UpnpServer {
+  * Contains classes used to advertise the Flac Manager service via UPNP.
+  */
+package object upnp {
 
 }

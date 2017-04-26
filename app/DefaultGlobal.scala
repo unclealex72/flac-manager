@@ -24,7 +24,6 @@ import upnp.ClingUpnpServer
 
 /**
   * The entry point for the play application.
-  * Created by alex on 12/02/17
   **/
 trait DefaultGlobal extends GlobalSettings with LazyLogging {
 
