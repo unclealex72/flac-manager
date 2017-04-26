@@ -20,12 +20,14 @@ import common.commands.CommandExecution
 import common.message.MessageService
 
 /**
- * Created by alex on 06/12/14.
- */
+  * The command to initialise the database.
+  */
 trait InitialiseCommand {
 
   /**
-   * Initialise the datbase with all device files.
-   */
+    * Initialise the database with all device files.
+    * @param messageService The [[MessageService]] used to report progress and log errors.
+    * @return A [[CommandExecution]] that will initialise the database.
+    */
   def initialiseDb(implicit messageService: MessageService): CommandExecution
 }

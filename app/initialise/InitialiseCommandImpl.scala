@@ -32,18 +32,34 @@ import common.music.TagsService
 import scala.collection.SortedSet
 
 /**
- * Created by alex on 06/12/14.
- */
-class InitialiseCommandImpl @Inject()(val userDao: UserDao, val directoryService: DirectoryService, val tagsService: TagsService)
+  * The default implementation of [[InitialiseCommand]]. This implementation scans all user repositories and
+  * adds each file found as an addition at the time the file was last modified.
+  *
+  * @param userDao The [[UserDao]] used to list users.
+  * @param directoryService The [[DirectoryService]] used to read directories.
+  * @param tagsService The [[TagsService]] used to read audio tags.
+  * @param changeDao The [[ChangeDao]] used to update the changes in the database.
+  * @param directories The [[Directories]] pointing to all the repositories.
+  * @param fileLocationExtensions The typeclass used to give [[java.nio.file.Path]]-like functionality to
+  *                               [[common.files.FileLocation]]s.
+  * @param collectionDao The [[CollectionDao]] used to change a user's collection.
+  */
+class InitialiseCommandImpl @Inject()(
+                                       val userDao: UserDao,
+                                       val directoryService: DirectoryService,
+                                       val tagsService: TagsService)
                            (implicit val changeDao: ChangeDao,
                             val directories: Directories,
                             val fileLocationExtensions: FileLocationExtensions,
                             val collectionDao: CollectionDao) extends InitialiseCommand with Messaging with StrictLogging {
 
   /**
-   * Initialise the database with all device files.
-   */
+    * @inheritdoc
+    */
   override def initialiseDb(implicit messageService: MessageService): CommandExecution = synchronous {
+    case class InitialFile(deviceFileLocation: DeviceFileLocation, own: InitialOwn)
+    case class InitialOwn(releaseId: String, user: User)
+
     if (changeDao.countChanges() != 0) {
       log(DATABASE_NOT_EMPTY)
     }
@@ -82,11 +98,14 @@ class InitialiseCommandImpl @Inject()(val userDao: UserDao, val directoryService
     }
   }
 
+  /**
+    * List files for a user.
+    * @param user The user who's files have been requested.
+    * @param messageService The [[MessageService]] used to report progress and log errors.
+    * @return All the files in the user's device repository.
+    */
   def listFiles(user: User)(implicit messageService: MessageService): SortedSet[DeviceFileLocation] = {
     val root = DeviceFileLocation(user)
     directoryService.listFiles(Some(root))
   }
-
-  case class InitialFile(deviceFileLocation: DeviceFileLocation, own: InitialOwn)
-  case class InitialOwn(releaseId: String, user: User)
 }
