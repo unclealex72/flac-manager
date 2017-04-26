@@ -21,11 +21,21 @@ import org.slf4j.{Logger, LoggerFactory}
 import play.api.i18n.MessagesApi
 
 /**
- * A `MessageServiceBuilder` that builds messages using Play's bundle support.
- * Created by alex on 06/11/14.
- */
-class I18nMessageServiceBuilder(messagesApi: MessagesApi, printers: Seq[String => Unit], exceptionHandlers: Seq[Throwable => Unit], onFinishes: Seq[() => Unit]) extends MessageServiceBuilder with ApplicationLogging {
+  * A [[MessageServiceBuilder]] that builds messages using Play's bundle support.
+  * @param messagesApi Play's messages API.
+  * @param printers A list of callbacks to call when a message needs to be printed.
+  * @param exceptionHandlers A list of callbacks to call when an exception needs to be handled.
+  * @param onFinishes A list of callbacks to call when feedback has finished.
+  */
+class I18nMessageServiceBuilder(
+                                 messagesApi: MessagesApi,
+                                 printers: Seq[String => Unit],
+                                 exceptionHandlers: Seq[Throwable => Unit],
+                                 onFinishes: Seq[() => Unit]) extends MessageServiceBuilder with ApplicationLogging {
 
+  /**
+    * @inheritdoc
+    */
   override def build: MessageService = new MessageService() {
 
     override def printMessage(template: Message): Unit = {
@@ -45,22 +55,40 @@ class I18nMessageServiceBuilder(messagesApi: MessagesApi, printers: Seq[String =
     }
   }
 
+  /**
+    * @inheritdoc
+    */
   override def withPrinter(printer: String => Unit): MessageServiceBuilder = {
     new I18nMessageServiceBuilder(messagesApi, printers :+ printer, exceptionHandlers, onFinishes)
   }
 
+  /**
+    * @inheritdoc
+    */
   override def withExceptionHandler(exceptionHandler: Throwable => Unit): MessageServiceBuilder = {
     new I18nMessageServiceBuilder(messagesApi, printers, exceptionHandlers :+ exceptionHandler, onFinishes)
   }
 
+  /**
+    * @inheritdoc
+    */
   override def withOnFinish(onFinish: () => Unit): MessageServiceBuilder = {
     new I18nMessageServiceBuilder(messagesApi, printers, exceptionHandlers, onFinishes :+ onFinish)
   }
 }
 
+/**
+  * Create new instances of [[MessageServiceBuilder]]
+  */
 object I18nMessageServiceBuilder {
 
-  val logger: Logger = LoggerFactory.getLogger("messages")
+  private val logger: Logger = LoggerFactory.getLogger("messages")
+
+  /**
+    * Create a new [[MessageServiceBuilder]]
+    * @param messagesApi Play's messages API.
+    * @return A new [[MessageServiceBuilder]] that logs its output.
+    */
   def apply(messagesApi: MessagesApi): MessageServiceBuilder =
     new I18nMessageServiceBuilder(messagesApi, Seq(), Seq(), Seq()).
       withPrinter(message => logger.info(message)).

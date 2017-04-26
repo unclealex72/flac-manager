@@ -184,17 +184,5 @@ trait Messaging {
 
 }
 
-/**
- * A trait for building messaging services.
- */
-trait MessageServiceBuilder {
 
-  def build: MessageService
-
-  def withPrinter(printer: String => Unit): MessageServiceBuilder
-
-  def withExceptionHandler(handler: Throwable => Unit): MessageServiceBuilder
-
-  def withOnFinish(onFinish: () => Unit): MessageServiceBuilder
-}
 
