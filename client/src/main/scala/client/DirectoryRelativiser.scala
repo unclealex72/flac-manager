@@ -21,8 +21,8 @@ import java.nio.file.{Files, Path}
 import cats.data.NonEmptyList
 import cats.syntax.either._
 import common.configuration.FlacDirectories
-import json.DirectoryType
-import json.DirectoryType.{FlacDirectoryType, StagingDirectoryType}
+import json.RepositoryType
+import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
 
 /**
   * An object to work out whether a path is relative to a server's datum file.
@@ -36,7 +36,7 @@ object DirectoryRelativiser {
     * @param directory The directory to attempt to relativise.
     * @return A path relative to the root directory on the server or a list of errors.
     */
-  def relativise(datumFilename: String, directoryType: DirectoryType, directory: Path): Either[NonEmptyList[String], Path] = {
+  def relativise(datumFilename: String, directoryType: RepositoryType, directory: Path): Either[NonEmptyList[String], Path] = {
 
     case class DatumBasedFlacDirectories(override val datumPath: Path) extends FlacDirectories
 
@@ -57,8 +57,8 @@ object DirectoryRelativiser {
 
       maybeFlacDirectories(absoluteDirectoryPath).flatMap { flacDirectories =>
         val (parentDirectory, dir) = directoryType match {
-          case FlacDirectoryType => (flacDirectories.flacPath, "flac")
-          case StagingDirectoryType => (flacDirectories.stagingPath, "staging")
+          case FlacRepositoryType => (flacDirectories.flacPath, "flac")
+          case StagingRepositoryType => (flacDirectories.stagingPath, "staging")
         }
         if (absoluteDirectoryPath.startsWith(parentDirectory)) {
           Right(parentDirectory.relativize(absoluteDirectoryPath))

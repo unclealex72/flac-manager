@@ -20,12 +20,25 @@ import enumeratum.{Enum, EnumEntry}
 
 import scala.collection.immutable.IndexedSeq
 
-sealed trait DirectoryType extends EnumEntry
+/**
+  * The different types of repository that clients need to understand.
+  */
+sealed trait RepositoryType extends EnumEntry
 
-object DirectoryType extends Enum[DirectoryType] {
+/**
+  * The different types of repository that clients need to understand.
+  */
+object RepositoryType extends Enum[RepositoryType] {
 
-  case object FlacDirectoryType extends DirectoryType
-  case object StagingDirectoryType extends DirectoryType
+  /**
+    * The repository of flac files
+    */
+  case object FlacRepositoryType extends RepositoryType
 
-  val values: IndexedSeq[DirectoryType] = findValues
+  /**
+    * The repository of staged flac files.
+    */
+  case object StagingRepositoryType extends RepositoryType
+
+  val values: IndexedSeq[RepositoryType] = findValues
 }

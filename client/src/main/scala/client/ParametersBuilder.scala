@@ -39,7 +39,7 @@ trait ParametersBuilder[P <: Parameters] {
   def withExtraDirectory(
                           parameters: P,
                           datumFilename: String,
-                          directoryType: DirectoryType,
+                          directoryType: RepositoryType,
                           directory: Path): Either[NonEmptyList[String], P]
 
   /**
@@ -83,7 +83,7 @@ class FailingParametersBuilder[P <: Parameters](val commandName: String) extends
   override def withExtraDirectory(
                                    parameters: P,
                                    datumFilename: String,
-                                   directoryType: DirectoryType,
+                                   directoryType: RepositoryType,
                                    directory: Path): Either[NonEmptyList[String], P] = {
     fail("directory parameters")
   }
@@ -119,7 +119,7 @@ class FailingParametersBuilder[P <: Parameters](val commandName: String) extends
   def extraDirectory(
                       relativeDirectories: Seq[Path],
                       datumFilename: String,
-                      directoryType: DirectoryType,
+                      directoryType: RepositoryType,
                       directory: Path): Either[NonEmptyList[String], Seq[Path]] = {
     DirectoryRelativiser.relativise(datumFilename, directoryType, directory).map { relativeDirectory =>
       relativeDirectories :+ relativeDirectory
@@ -136,10 +136,10 @@ object CheckinParametersBuilder extends FailingParametersBuilder[CheckinParamete
     * @inheritdoc
     */
   override def withExtraDirectory(
-                                parameters: CheckinParameters,
-                                datumFilename: String,
-                                directoryType: DirectoryType,
-                                directory: Path): Either[NonEmptyList[String], CheckinParameters] = {
+                                   parameters: CheckinParameters,
+                                   datumFilename: String,
+                                   directoryType: RepositoryType,
+                                   directory: Path): Either[NonEmptyList[String], CheckinParameters] = {
     extraDirectory(parameters.relativeStagingDirectories, datumFilename, directoryType, directory).map { paths =>
       parameters.copy(relativeStagingDirectories = paths)
     }
@@ -155,10 +155,10 @@ object CheckoutParametersBuilder extends FailingParametersBuilder[CheckoutParame
     * @inheritdoc
     */
   override def withExtraDirectory(
-                                parameters: CheckoutParameters,
-                                datumFilename: String,
-                                directoryType: DirectoryType,
-                                directory: Path): Either[NonEmptyList[String], CheckoutParameters] = {
+                                   parameters: CheckoutParameters,
+                                   datumFilename: String,
+                                   directoryType: RepositoryType,
+                                   directory: Path): Either[NonEmptyList[String], CheckoutParameters] = {
     extraDirectory(parameters.relativeFlacDirectories, datumFilename: String, directoryType, directory).map { paths =>
       parameters.copy(relativeFlacDirectories = paths)
     }
@@ -192,7 +192,7 @@ object OwnParametersBuilder extends FailingParametersBuilder[OwnParameters]("own
   override def withExtraDirectory(
                                    parameters: OwnParameters,
                                    datumFilename: String,
-                                   directoryType: DirectoryType,
+                                   directoryType: RepositoryType,
                                    directory: Path): Either[NonEmptyList[String], OwnParameters] = {
     extraDirectory(parameters.relativeStagingDirectories, datumFilename, directoryType, directory).map { paths =>
       parameters.copy(relativeStagingDirectories = paths)
@@ -220,7 +220,7 @@ object UnownParametersBuilder extends FailingParametersBuilder[UnownParameters](
   override def withExtraDirectory(
                                    parameters: UnownParameters,
                                    datumFilename: String,
-                                   directoryType: DirectoryType,
+                                   directoryType: RepositoryType,
                                    directory: Path): Either[NonEmptyList[String], UnownParameters] = {
     extraDirectory(parameters.relativeStagingDirectories, datumFilename, directoryType, directory).map { paths =>
       parameters.copy(relativeStagingDirectories = paths)

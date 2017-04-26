@@ -19,9 +19,7 @@ package common.configuration
 import java.nio.file.Path
 
 /**
-  * A common.configuration interface that is used to hold where the various directories are.
-  *
-  * @author alex
+  * A  configuration interface that is used to hold where the various directories are.
   *
   */
 trait FlacDirectories {
