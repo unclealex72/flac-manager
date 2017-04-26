@@ -24,126 +24,46 @@ import common.files.Extension
 import play.api.libs.json.{JsObject, Json}
 
 /**
- * Created by alex on 02/11/14.
- */
+  * A case class that encapsulates information about a music file.
+  * @param albumArtistSort The string used to sort the artist for the album of this track.
+  * @param albumArtist The artist for the entire album
+  * @param album The name of the album for this track
+  * @param artist The name of the artist who recorded this track
+  * @param artistSort The string used to sort the artist who recorded this track
+  * @param title The title of this track
+  * @param totalDiscs The total number of discs included in the release for this track
+  * @param totalTracks The total number of tracks included in the release for this track
+  * @param discNumber The disc number of the disc that contains this track
+  * @param albumArtistId The [[http://www.musicbrainz.org MusicBrainz]] ID of the artist for the album for this track
+  * @param albumId The [[http://www.musicbrainz.org MusicBrainz]] ID of the album for this track
+  * @param artistId The [[http://www.musicbrainz.org MusicBrainz]] ID of the artist who recorded this track
+  * @param trackId The [[http://www.musicbrainz.org MusicBrainz]] ID of this track
+  * @param asin The Amazon identifier for the album of this track
+  * @param trackNumber The number of this track on its album
+  * @param coverArt The cover art for this track
+  */
 case class Tags(
-
-                 /**
-                  * Gets the string used to sort the artist for the album of this track.
-                  *
-                  * @return the string used to sort the artist for the album of this track
-                  */
                  albumArtistSort: String,
-
-                 /**
-                  * Gets the artist for the entire album.
-                  *
-                  * @return the artist for the entire album
-                  */
                  albumArtist: String,
-
-                 /**
-                  * Gets the name of the album for this track.
-                  *
-                  * @return the name of the album for this track
-                  */
                  album: String,
-
-                 /**
-                  * Gets the name of the artist who recorded this track.
-                  *
-                  * @return the name of the artist who recorded this track
-                  */
                  artist: String,
-
-                 /**
-                  * Gets the string used to sort the artist who recorded this track.
-                  *
-                  * @return the string used to sort the artist who recorded this track
-                  */
                  artistSort: String,
-
-                 /**
-                  * Gets the title of this track.
-                  *
-                  * @return the title of this track
-                  */
                  title: String,
-
-                 /**
-                  * Gets the total number of discs included in the release for this track.
-                  *
-                  * @return the total number of discs included in the release for this track
-                  */
                  totalDiscs: Int,
-
-                 /**
-                  * Gets the total number of tracks included in the release for this track.
-                  *
-                  * @return the total number of tracks included in the release for this track
-                  */
                  totalTracks: Int,
-
-                 /**
-                  * Gets the disc number of the disc that contains this track.
-                  *
-                  * @return the disc number of the disc that contains this track
-                  */
                  discNumber: Int,
-
-                 /**
-                  * Gets the MusicBrainz ID of the artist for the album for this track.
-                  *
-                  * @return the MusicBrainz ID of the artist for the album for this track
-                  */
                  albumArtistId: String,
-
-                 /**
-                  * Gets the MusicBrainz ID of the album for this track.
-                  *
-                  * @return the MusicBrainz ID of the album for this track
-                  */
                  albumId: String,
-
-                 /**
-                  * Gets the MusicBrainz ID of the artist who recorded this track.
-                  *
-                  * @return the MusicBrainz ID of the artist who recorded this track
-                  */
                  artistId: String,
-
-                 /**
-                  * Gets the MusicBrainz ID of this track.
-                  *
-                  * @return the MusicBrainz ID of this track
-                  */
                  trackId: String,
-
-                 /**
-                  * Gets the Amazon identifier for the album of this track.
-                  *
-                  * @return the Amazon identifier for the album of this track
-                  */
                  asin: Option[String],
-
-                 /**
-                  * Gets the number of this track on its album.
-                  *
-                  * @return the number of this track on its album
-                  */
                  trackNumber: Int,
-
-                 /**
-                  * Gets the cover art for this track.
-                  *
-                  * @return the cover art for this track
-                  */
-                 coverArt: CoverArt
-                 ) {
+                 coverArt: CoverArt) {
 
   /**
    * Create the following relative path:
-   * firstLetterOfSortedAlbumArtist/sortedAlbumArtist/album (diskNumber)/trackNumber title.ext
+   * `firstLetterOfSortedAlbumArtist/sortedAlbumArtist/album (diskNumber)/trackNumber title.ext` in ASCII
+    * @param extension The extension for the path.
    */
   def asPath(extension: Extension): Path = {
     def normalise(str: CharSequence): String = {
@@ -163,6 +83,12 @@ case class Tags(
     Paths.get(firstLetter, normalisedAlbumArtistSort, normalisedAlbum, normalisedTitle + "." + extension.extension)
   }
 
+  /**
+    * Convert these tags to a JSON object.
+    * @param includeCoverArt True if cover art should be included (as a mime-type and base 64 encoded data)
+    *                        or false otherwise.
+    * @return A JSON object containing all tagging information.
+    */
   def toJson(includeCoverArt: Boolean): JsObject = {
     val obj = Json.obj(
       "albumArtistSort" -> albumArtistSort, //String
@@ -185,12 +111,29 @@ case class Tags(
 }
 
 /**
- * Validation
+ * Used to generate a validator for tags.
  */
 object Tags {
 
   import com.wix.accord.dsl._
 
+  /**
+    * A validator for tags. The following must be present:
+    *   1. - album artist sort,
+    *   1. - album artist,
+    *   1. - album,
+    *   1. - artist,
+    *   1. - artist sort,
+    *   1. - title,
+    *   1. - total disks,
+    *   1. - disc number,
+    *   1. - album artist ID,
+    *   1. - artist ID,
+    *   1. - album ID,
+    *   1. - track ID,
+    *   1. - track number,
+    *   1. - cover art.
+    */
   implicit val musicFileValidator: ValidationTransform.TransformedValidator[Tags] = validator[Tags] { tags =>
     tags.albumArtistSort is notEmpty
     tags.albumArtist is notEmpty

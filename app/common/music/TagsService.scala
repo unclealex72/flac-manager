@@ -27,8 +27,18 @@ import common.music.Tags._
  */
 trait TagsService {
 
+  /**
+    * Read tags from an audio file.
+    * @param path The path of the audio file.
+    * @return The path's tags.
+    */
   def readTags(path: Path): Tags
 
+  /**
+    * Read an validate the tags of an audio file.
+    * @param path The path of the audio file.
+    * @return A validated tags object.
+    */
   def read(path: Path): ValidatedNel[String, Tags] = {
     val tags = readTags(path)
     validate(tags) match {
@@ -39,5 +49,10 @@ trait TagsService {
     }
   }
 
+  /**
+    * Write tags to an audio file.
+    * @param path The path of the audio file.
+    * @param tags The tags to write.
+    */
   def write(path: Path, tags: Tags): Unit
 }

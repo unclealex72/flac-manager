@@ -27,7 +27,7 @@ import common.message.{MessageService, Message}
   *  - Non-flac files are deleted.
   *  - At least one file must be a flac file.
   *  - All flac files must be fully tagged with at least an album, artist, track number, title, cover art and
-  *    musicbrainz IDs.
+  *    [[http://www.musicbrainz.org MusicBrainz]] IDs.
   *  - No flac file can overwrite an existing flac file.
   *  - No two staged flac files can resolve to the same file in the flac repository.
   *  - All flac files must have at least one owner.

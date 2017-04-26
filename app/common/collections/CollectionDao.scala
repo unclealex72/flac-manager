@@ -34,7 +34,7 @@ trait CollectionDao {
    *
    * @param user
    * The user who is doing the searching.
-   * @return A list of all the MusicBrainz releases owned by the user.
+   * @return A list of all the [[http://www.musicbrainz.org MusicBrainz]] releases owned by the user.
    */
   def releasesForOwner(user: User): Traversable[String]
 

@@ -55,7 +55,7 @@ class SquerylCollectionDao @Inject() extends CollectionDao {
     *
     * @param user
     * The user who is doing the searching.
-    * @return A list of all the MusicBrainz releases owned by the user.
+    * @return A list of all the [[http://www.musicbrainz.org MusicBrainz]] releases owned by the user.
     */
   override def releasesForOwner(user: User): Traversable[String] = inTransaction {
     val releases: List[String] = from(collectionItems)(c => where(user.name === c.user) select c.releaseId).distinct

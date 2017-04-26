@@ -20,20 +20,21 @@ import org.apache.commons.codec.binary.Base64
 import play.api.libs.json.{JsObject, Json}
 
 /**
- * An immutable class that contains information about a cover art picture, namely the image data and its mime type.
+ *
  * @author alex
  *
  */
-case class CoverArt(
-                     /**
-                      * The binary image data for the cover art.
-                      */
-                     imageData: Array[Byte],
 
-                     /**
-                      * The mime type for the cover art.
-                      */
-                     mimeType: String) {
+/**
+  * An immutable class that contains information about a cover art picture, namely the image data and its mime type.
+  * @param imageData The binary image data for the cover art.
+  * @param mimeType The mime type for the cover art.
+  */
+case class CoverArt(imageData: Array[Byte], mimeType: String) {
 
+  /**
+    * Generate a JSON object that describes this cover art. The image is base 64 encoded.
+    * @return A JSON object with mimeType and image fields.
+    */
   def toJson: JsObject = Json.obj("mimeType" -> mimeType, "image" -> Base64.encodeBase64String(imageData))
 }

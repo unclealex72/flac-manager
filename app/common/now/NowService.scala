@@ -19,13 +19,14 @@ package common.now
 import org.joda.time.DateTime
 
 /**
- * Created by alex on 30/11/14.
- */
+  * A simple trait for getting the current time. Implementing this trait only means you have to a
+  * time that can identified by the `now()` method; it does not have to be the current date and time.
+  */
 trait NowService {
 
   /**
    * Get the current date and time.
-   * @return
+   * @return The current date and time.
    */
   def now(): DateTime
 }
