@@ -35,9 +35,14 @@ import own.{Own, OwnCommand, Unown}
 import play.api.libs.json._
 
 /**
-  * A class used to create a command to run from a Json object.
-  * Created by alex on 23/04/17
-  **/
+  * The default implementation of [[CommandBuilder]].
+  * @param checkinCommand The [[CheckinCommand]] for checking in flac files.
+  * @param checkoutCommand The [[CheckoutCommand]] for checking out flac files.
+  * @param ownCommand The [[OwnCommand]] for changing the ownership of albums.
+  * @param initialiseCommand The [[InitialiseCommand]] used to initialise the database.
+  * @param userDao The [[UserDao]] used to find the known users.
+  * @param directories The [[Directories]] used to locate the repositories.
+  */
 class CommandBuilderImpl @Inject()(
                                     checkinCommand: CheckinCommand,
                                     checkoutCommand: CheckoutCommand,
@@ -46,6 +51,12 @@ class CommandBuilderImpl @Inject()(
                                     userDao: UserDao
                                   )(implicit val directories: Directories) extends CommandBuilder {
 
+
+  /**
+    * Convert a play [[JsValue]] into a [[Parameters]] object
+    * @param jsValue The [[JsValue]] to parse.
+    * @return A [[Parameters]] object or a list of errors if the JSON object could not be parsed.
+    */
   def jsonToParameters(jsValue: JsValue): ValidatedNel[String, Parameters] = {
     def jsValueToJson: JsValue => Json = {
       case JsArray(values) => Json.arr(values.map(jsValueToJson):_*)
@@ -61,6 +72,11 @@ class CommandBuilderImpl @Inject()(
     }
   }
 
+  /**
+    * Make sure that all usernames are valid and at least one username was supplied.
+    * @param usernames A list of usernames to check.
+    * @return The users with the usernames or a list of errors.
+    */
   def validateUsers(usernames: Seq[String]): ValidatedNel[String, Seq[User]] = {
     val empty: ValidatedNel[String, Seq[User]] = Valid(Seq.empty)
     val allUsers = userDao.allUsers()
@@ -78,12 +94,31 @@ class CommandBuilderImpl @Inject()(
     }
   }
 
+  /**
+    * Make sure that all staging directories are valid.
+    * @param relativePaths A list of relative paths to check.
+    * @return A list of [[StagedFlacFileLocation]]s or a list of errors.
+    */
   def validateStagingDirectories(relativePaths: Seq[Path]): ValidatedNel[String, Seq[StagedFlacFileLocation]] =
     validateDirectories("staging", StagedFlacFileLocation(_), relativePaths)
 
+  /**
+    * Make sure that all flac directories are valid.
+    * @param relativePaths A list of relative paths to check.
+    * @return A list of [[FlacFileLocation]]s or a list of errors.
+    */
   def validateFlacDirectories(relativePaths: Seq[Path]): ValidatedNel[String, Seq[FlacFileLocation]] =
     validateDirectories("flac", FlacFileLocation(_), relativePaths)
 
+  /**
+    * Make sure that all staging directories are valid. At this point all that is checked is that
+    * the supplied list is not empty.
+    * @param directoryType The directory type name that will be reported in errors.
+    * @param builder A function that converts a path into a [[FileLocation]]
+    * @param relativePaths A list of relative paths to check.
+    * @tparam F A type of [[FileLocation]]
+    * @return A list of [[FileLocation]]s or a list of errors.
+    */
   def validateDirectories[F <: FileLocation](directoryType: String, builder: Path => F, relativePaths: Seq[Path]): ValidatedNel[String, Seq[F]] = {
     val empty: Seq[F] = Seq.empty
     val locations = relativePaths.foldLeft(empty) { (locations, relativePath) =>
@@ -97,6 +132,9 @@ class CommandBuilderImpl @Inject()(
     }
   }
 
+  /**
+    * @inheritdoc
+    */
   override def apply(jsValue: JsValue): ValidatedNel[String, (MessageService) => CommandExecution] = {
     val validatedParameters = jsonToParameters(jsValue)
     validatedParameters.andThen {

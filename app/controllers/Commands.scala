@@ -46,17 +46,25 @@ import play.api.mvc._
 import scala.util.Try
 
 /**
- * Created by alex on 06/11/14.
- */
+  * The controller that executes commands that alter repositories.
+  * @param messageServiceBuilder The [[MessageServiceBuilder]] used to build a feedback mechanism.
+  * @param commandBuilder A [[CommandBuilder]] used to build a command from a JSON RPC payload.
+  */
 @Singleton
 class Commands @Inject()(
                           messageServiceBuilder: MessageServiceBuilder,
                           commandBuilder: CommandBuilder) extends Controller with Messaging {
 
 
+  /**
+    * Take a JSON RPC payload an execute a command. The feedback from the command will be sent back to the
+    * client using an HTTP chunked response so that feedback is received and processed as soon as possible.
+    * @return A HTTP chunked response containing the feedback from the command.
+    */
   def commands: Action[JsValue] = Action(parse.json) { implicit request =>
     val validatedCommandTypeBuilder = commandBuilder(request.body)
-    val enumerator: (MessageService => CommandExecution) => Enumerator[String] = cmd => Concurrent.unicast[String](onStart = channel => {
+    val enumerator: (MessageService => CommandExecution) => Enumerator[String] = cmd => 
+      Concurrent.unicast[String](onStart = channel => {
       val messageService = messageServiceBuilder.
         withPrinter(message => channel.push(message + "\n")).
         withExceptionHandler { t =>

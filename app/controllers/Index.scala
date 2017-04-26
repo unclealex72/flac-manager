@@ -33,12 +33,17 @@ import play.api.mvc.{Action, Controller}
 import scala.io.Source
 
 import java.lang.{Boolean => JB, Integer => JI}
+
 /**
-  * Created by alex on 18/04/17
-  **/
+  * A controller that outputs this project's
+  * [[https://github.com/unclealex72/flac-manager/blob/master/README.md README.md]] file.
+  */
 @Singleton
 class Index @Inject() extends Controller {
 
+  /**
+    * Convert the README.md file into HTML.
+    */
   lazy val html: String = {
     val options = new MutableDataSet
     options.setFrom(ParserEmulationProfile.GITHUB_DOC)
@@ -75,6 +80,10 @@ class Index @Inject() extends Controller {
     s"<html><head><title>Flac Manager</title></head><body>${renderer.render(document)}</body></html>"
   }
 
+  /**
+    * Show this project's [[https://github.com/unclealex72/flac-manager/blob/master/README.md README.md]] file
+    * @return A retro-themed README.md.
+    */
   def index = Action { implicit request =>
     Ok(views.html.index(html))
   }

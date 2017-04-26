@@ -26,30 +26,41 @@ import common.music.Tags
 import scala.concurrent.duration._
 
 /**
- * Created by alex on 15/11/14.
- */
-class OwnerServiceImpl @Inject()(val musicBrainzClient: CollectionDao, val userDao: UserDao) extends OwnerService with Messaging {
+  * The default implementation of [[OwnerService]]
+  * @param collectionDao The [[CollectionDao]] used to read and alter user's collections.
+  * @param userDao The [[UserDao]] used to list the current users.
+  */
+class OwnerServiceImpl @Inject()(
+                                  val collectionDao: CollectionDao,
+                                  val userDao: UserDao) extends OwnerService with Messaging {
 
-  val timeout: FiniteDuration = 1000000 seconds
-
+  /**
+    * @inheritdoc
+    */
   override def listCollections(): Tags => Set[User] = {
     val collectionsByUser = userDao.allUsers().map { user =>
-      val collection = musicBrainzClient.releasesForOwner(user)
+      val collection = collectionDao.releasesForOwner(user)
       user -> collection
     }
     tags => collectionsByUser.filter(_._2.exists(id => id == tags.albumId)).map(_._1)
 
   }
 
+  /**
+    * @inheritdoc
+    */
   override def own(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit = {
-    changeOwnership(user, tags, musicBrainzClient.addReleases)
+    changeOwnership(user, tags, collectionDao.addReleases)
   }
 
+  /**
+    * @inheritdoc
+    */
   override def unown(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit = {
-    changeOwnership(user, tags, musicBrainzClient.removeReleases)
+    changeOwnership(user, tags, collectionDao.removeReleases)
   }
 
-  def changeOwnership(user: User, tags: Set[Tags], block: (User, Set[String]) => Unit): Unit = {
+  private def changeOwnership(user: User, tags: Set[Tags], block: (User, Set[String]) => Unit): Unit = {
     val albumIds = tags.map(_.albumId)
     block(user, albumIds)
   }

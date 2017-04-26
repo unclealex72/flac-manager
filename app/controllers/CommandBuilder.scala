@@ -21,9 +21,15 @@ import common.message.MessageService
 import play.api.libs.json.JsValue
 
 /**
-  * Created by alex on 23/04/17
-  **/
+  * A trait for building a [[CommandExecution]] from a JSON RPC payload sent from a client.
+  */
 trait CommandBuilder {
 
+  /**
+    * Try to create a [[CommandExecution]] for a JSON RPC payload.
+    * @param jsValue The RPC payload.
+    * @return Either a list of errors or a function that will create a [[CommandExecution]] when a
+    *         [[MessageService]] is supplied.
+    */
   def apply(jsValue: JsValue): ValidatedNel[String, MessageService => CommandExecution]
 }

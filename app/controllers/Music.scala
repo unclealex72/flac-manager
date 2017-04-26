@@ -34,17 +34,48 @@ import play.utils.UriEncoding
 import scala.util.Try
 
 /**
- * Created by alex on 18/11/14.
- */
+  * A controller that streams music information, namely: tags, artwork and the music itself.
+  * @param userDao The [[UserDao]] used to list users.
+  * @param directories The [[Directories]] containing the location of the repositories.
+  * @param fileLocationExtensions The typeclass used to give [[Path]]-like functionality to
+  *                               [[common.files.FileLocation]]s.
+  * @param tagsService The [[TagsService]] used to read an audio file's tags.
+  */
 @Singleton
-class Music @Inject()(val userDao: UserDao)(implicit val directories: Directories, val fileLocationExtensions: FileLocationExtensions, val tagsService: TagsService) extends Controller {
+class Music @Inject()(val userDao: UserDao)(
+  implicit val directories: Directories,
+  val fileLocationExtensions:
+  FileLocationExtensions,
+  val tagsService: TagsService) extends Controller {
 
-  def music(username: String, path: String): Action[AnyContent] = musicFile(username, path, deviceFileAt) { deviceFileLocation =>
-    Ok.sendFile(deviceFileLocation.toFile)
+  /**
+    * Stream an audio file
+    * @param username The name of the user who owns the track.
+    * @param path The relative path of the track.
+    * @return An MP3 stream of music from a user's device repository.
+    */
+  def music(username: String, path: String): Action[AnyContent] = musicFile(username, path, deviceFileAt) {
+    deviceFileLocation =>
+      Ok.sendFile(deviceFileLocation.toFile)
   }
 
-  def tags(username: String, path: String): Action[AnyContent] = serveTags(username, path, deviceFileAt)(tags => Ok(tags.toJson(false)))
+  /**
+    * Stream an audio file
+    * @param username The name of the user who owns the track.
+    * @param path The relative path of the track.
+    * @return An MP3 stream of music from a user's device repository.
+    */
+  def tags(username: String, path: String): Action[AnyContent] =
+    serveTags(username, path, deviceFileAt)(tags => Ok(tags.toJson(false)))
 
+  /**
+    * Serve a response based on an audio file's tags.
+    * @param username The name of the user who owns the file.
+    * @param path The path at which the file is located.
+    * @param deviceFileLocator A function that gets the device file given a user and path.
+    * @param responseBuilder A function to build the response given the calculated tags.
+    * @return The result of the `responseBuilder` or 404 if the file or user could not be found
+    */
   def serveTags(username: String,
                 path: String,
                 deviceFileLocator: (User, Path) => Option[DeviceFileLocation])
@@ -57,6 +88,14 @@ class Music @Inject()(val userDao: UserDao)(implicit val directories: Directorie
     }
   }
 
+  /**
+    * Serve a response based on a [[common.files.FileLocation]].
+    * @param username The name of the user who owns the file.
+    * @param path The path at which the file is located.
+    * @param deviceFileLocator A function that gets the device file given a user and path.
+    * @param resultBuilder A function to build the response from the file calculated file location.
+    * @return The result of the `responseBuilder` or 404 if the file or user could not be found
+    */
   def musicFile(username: String,
                 path: String,
                 deviceFileLocator: (User, Path) => Option[DeviceFileLocation])
@@ -81,14 +120,33 @@ class Music @Inject()(val userDao: UserDao)(implicit val directories: Directorie
     }
   }
 
+  /**
+    * Get the album artwork for a track.
+    * @param username The name of the user who owns the track.
+    * @param path The path of the track relative to the user's device repository.
+    * @return The album artwork or 404 if the track or user could not be found.
+    */
   def artwork(username: String, path: String): Action[AnyContent] = serveTags(username, path, firstDeviceFileIn) { tags =>
     val coverArt = tags.coverArt
     Ok(coverArt.imageData).withHeaders(HeaderNames.CONTENT_TYPE -> coverArt.mimeType)
   }
 
+  /**
+    * A method that can be used to find a file by directly looking a file in a user's device repository.
+    * @param user The user who owns the property.
+    * @param path The path of the file relative to the user's device repository.
+    * @return A [[DeviceFileLocation]] if one exists, none otherwise.
+    */
   def deviceFileAt(user: User, path: Path): Option[DeviceFileLocation] =
     DeviceFileLocation(user, path).ifExists
 
+  /**
+    * A method that can be used to find a file by looking for the first file in directory in a user's device repository.
+    * This is to allow album artwork to be correctly cached by clients.
+    * @param user The user who owns the property.
+    * @param parentPath The path of the album relative to the user's device repository.
+    * @return A [[DeviceFileLocation]] if one exists, none otherwise.
+    */
   def firstDeviceFileIn(user: User, parentPath: Path): Option[DeviceFileLocation] =
     DeviceFileLocation(user, parentPath).firstInDirectory
 

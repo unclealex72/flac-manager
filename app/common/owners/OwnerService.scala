@@ -21,13 +21,29 @@ import common.message.MessageService
 import common.music.Tags
 
 /**
- * Created by alex on 03/11/14.
- */
+  * Allow the listing and changing of which albums should be included on a user's device.
+  */
 trait OwnerService {
 
+  /**
+    * List all collections.
+    * @return A function that, given [[Tags]], will return the set of [[User]]s who own them.
+    */
   def listCollections(): Tags => Set[User]
 
+  /**
+    * Add a set of albums to a user's collection.
+    * @param user The user who's collection will be changed.
+    * @param tags The tags containing the albums that will be added.
+    * @param messageService The [[MessageService]] used to report progress and log errors.
+    */
   def own(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit
 
+  /**
+    * Remove a set of albums from a user's collection.
+    * @param user The user who's collection will be changed.
+    * @param tags The tags containing the albums that will be removed.
+    * @param messageService The [[MessageService]] used to report progress and log errors.
+    */
   def unown(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit
 }

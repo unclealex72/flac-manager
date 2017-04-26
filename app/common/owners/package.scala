@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-package controllers
-
-import play.api.mvc.{Action, AnyContent, Controller}
+package common
 
 /**
-  * A controller to show icons at the root level. This is to make rendering favicons easier.
+  * Contains classes for changing the ownership of albums.
   **/
-class Icons extends Controller {
-
-  /**
-    * Return an asset.
-    * @param path The root path where to look for assets.
-    * @param file The file supplied by the client.
-    * @return A asset.
-    */
-  def at(path: String, file: String): Action[AnyContent] =
-    Assets.at(path, file, aggressiveCaching = true)
+package object owners {
 
 }

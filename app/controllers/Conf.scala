@@ -22,11 +22,16 @@ import play.api.Configuration
 import play.api.mvc.{Action, Controller}
 
 /**
- * Created by alex on 13/12/14.
- */
+  * A controller that prints out the server's configuration.
+  * @param conf The Play [[Configuration]] object.
+  */
 @Singleton
 class Conf @Inject()(val conf: Configuration) extends Controller{
 
+  /**
+    * Render the server's configuration.
+    * @return The server's configuration.
+    */
   def configuration = Action { implicit request =>
     Ok(conf.underlying.root().render())
   }
