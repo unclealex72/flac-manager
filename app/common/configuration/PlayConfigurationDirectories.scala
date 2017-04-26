@@ -53,7 +53,7 @@ case class PlayConfigurationDirectories @Inject()(
     Files.createTempDirectory("flac-manager-", fileAttributes).toAbsolutePath
   }
 
-  val datumPath: Path = musicDirectory.resolve("." + java.util.UUID.randomUUID.toString)
+  val datumPath: Path = musicDirectory.resolve(".flac-manager-datum-file-" + java.util.UUID.randomUUID.toString)
 
   // Create the datum file
   Files.createFile(datumPath)

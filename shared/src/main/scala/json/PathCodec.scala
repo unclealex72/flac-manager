@@ -21,11 +21,17 @@ import java.nio.file.{Path, Paths}
 import io.circe.{Decoder, Encoder}
 
 /**
-  * Created by alex on 20/04/17
-  **/
+  * A [[https://circe.github.io/circe/ circe]] encoder and decoder for paths.
+  */
 object PathCodec {
 
+  /**
+    * A [[https://circe.github.io/circe/ circe]] encoder for paths.
+    */
   implicit val pathEncoder: Encoder[Path] = Encoder.encodeString.contramap(path => path.toString)
 
+  /**
+    * A [[https://circe.github.io/circe/ circe]] decoder for paths.
+    */
   implicit val pathDecoder: Decoder[Path] = Decoder.decodeString.map(str => Paths.get(str))
 }
