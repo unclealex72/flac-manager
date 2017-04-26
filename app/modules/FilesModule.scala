@@ -5,7 +5,14 @@ import common.files._
 import common.music.{JaudioTaggerTagsService, TagsService}
 import net.codingwell.scalaguice.ScalaModule
 
+/**
+  * Dependency injection for file related classes.
+  */
 class FilesModule  extends AbstractModule with ScalaModule {
+
+  /**
+    * @inheritdoc
+    */
   override def configure(): Unit = {
     bind[FileLocationExtensions].to[FileLocationExtensionsImpl].asEagerSingleton()
     bind[FileSystem].annotatedWithName("rawFileSystem").to[FileSystemImpl].asEagerSingleton()

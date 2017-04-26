@@ -20,7 +20,7 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 /**
-  * Created by alex on 12/02/17
+  * A trait that can be mixed in to allow a class to log to Play's application logger.
   **/
 trait ApplicationLogging {
 

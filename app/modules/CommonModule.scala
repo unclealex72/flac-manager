@@ -8,6 +8,9 @@ import common.now.{NowService, NowServiceImpl}
 import common.owners.{OwnerService, OwnerServiceImpl}
 import net.codingwell.scalaguice.ScalaModule
 
+/**
+  * Dependency injection for common services.
+  */
 class CommonModule extends AbstractModule with ScalaModule {
   override def configure(): Unit = {
     bind[ChangeDao].to[SquerylChangeDao].asEagerSingleton()

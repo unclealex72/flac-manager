@@ -14,22 +14,9 @@
  * limitations under the License.
  */
 
-package modules
-
-import com.google.inject.AbstractModule
-import net.codingwell.scalaguice.ScalaModule
-import upnp.{ClingUpnpServer, UpnpServer}
-
 /**
-  * Dependency injection of Upnp.
-  */
-class UpnpModule extends AbstractModule with ScalaModule {
+  * Contains all Google Guice modules.
+  **/
+package object modules {
 
-  /**
-    * @inheritdoc
-    */
-  override def configure(): Unit = {
-    bind[UpnpServer].to[ClingUpnpServer].asEagerSingleton()
-  }
 }
-
