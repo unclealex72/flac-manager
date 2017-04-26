@@ -25,13 +25,21 @@ import json.DirectoryType
 import json.DirectoryType.{FlacDirectoryType, StagingDirectoryType}
 
 /**
-  * Created by alex on 21/04/17
+  * An object to work out whether a path is relative to a server's datum file.
   **/
 object DirectoryRelativiser {
 
-  case class DatumBasedFlacDirectories(override val datumPath: Path) extends FlacDirectories
-
+  /**
+    * Attempt to relativise a directory to a directory that contains the datum file.
+    * @param datumFilename The name of the server's datum file.
+    * @param directoryType Either the staging or flac repository directory.
+    * @param directory The directory to attempt to relativise.
+    * @return A path relative to the root directory on the server or a list of errors.
+    */
   def relativise(datumFilename: String, directoryType: DirectoryType, directory: Path): Either[NonEmptyList[String], Path] = {
+
+    case class DatumBasedFlacDirectories(override val datumPath: Path) extends FlacDirectories
+
     val absoluteDirectoryPath = directory.toAbsolutePath
     if (Files.isDirectory(absoluteDirectoryPath)) {
       def maybeFlacDirectories(dir: Path): Either[String, FlacDirectories] = {

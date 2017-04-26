@@ -23,11 +23,17 @@ import cats.syntax.either._
 import io.circe.Json
 
 /**
-  *
-  * Created by alex on 17/04/17
+  * Parse command line parameters.
   **/
 object ParametersParser {
 
+  /**
+    * Parse command line parameters.
+    * @param datumFilename The name of the server's datum file.
+    * @param args The command line arguments.
+    * @param fs The java.nio FileSystem.
+    * @return A JSON RPC payload that can run a command based on the command line parameters or a list of errors.
+    */
   def apply(
              datumFilename: String,
              args: Seq[String])(implicit fs: FileSystem): Either[NonEmptyList[String], Json] = {

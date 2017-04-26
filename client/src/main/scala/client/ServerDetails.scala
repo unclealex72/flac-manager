@@ -29,17 +29,26 @@ import org.fourthline.cling.registry.{DefaultRegistryListener, Registry}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 
+/**
+  * A case class used to hold server details gained from UPNP discovery.
+  * @param uri The base URL of the server.
+  * @param datumFilename The name of the server's datum file.
+  */
 case class ServerDetails(uri: URI, datumFilename: String)
 
 /**
   * Get the datum file and server URL via UPNP.
-  * Created by alex on 17/04/17
   **/
 object ServerDetails {
 
   private type Svc = Service[_ <: Device[_ <: DeviceIdentity, _, _], _]
   private type Invocation = ActionInvocation[_ <: Svc]
 
+  /**
+    * Eventually find the Flac Manager server.
+    * @param dev A flag to indicate if development instances should be looked for or not.
+    * @return The found server details or a list of errors.
+    */
   def apply(dev: Boolean): Future[Either[NonEmptyList[String], ServerDetails]] = {
     val uriPromise: Promise[URI]  = Promise()
     val datumFilenamePromise: Promise[String]  = Promise()

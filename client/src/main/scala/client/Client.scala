@@ -32,17 +32,16 @@ import scala.util.Try
 
 /**
   * The main entry point for all commands. The first argument is expected to be the command name.
-  * Created by alex on 18/04/17
   **/
 object Client extends App {
 
   LogManager.getLogManager.reset()
 
-  implicit val system: ActorSystem = ActorSystem()
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
-  implicit val fs: FileSystem = FileSystems.getDefault
+  private implicit val system: ActorSystem = ActorSystem()
+  private implicit val materializer: ActorMaterializer = ActorMaterializer()
+  private implicit val fs: FileSystem = FileSystems.getDefault
 
-  val isDev: Boolean = !Option(System.getenv("FLAC_DEV")).forall(_.isEmpty)
+  private val isDev: Boolean = !Option(System.getenv("FLAC_DEV")).forall(_.isEmpty)
   if (isDev) {
     println("Running in development mode")
   }
@@ -63,14 +62,17 @@ object Client extends App {
     Try(system.terminate())
   }
 
-  type Response[T] = EitherT[Future, NonEmptyList[String], T]
+  private type Response[T] = EitherT[Future, NonEmptyList[String], T]
 
-  def parseParameters(serverDetails: ServerDetails): Response[Json] =
+  // Search for the server via UPNP
+  private def fetchServerDetails(): Response[ServerDetails] = EitherT(ServerDetails(isDev))
+
+  // Parse parameters from the server.
+  private def parseParameters(serverDetails: ServerDetails): Response[Json] =
     EitherT(Future.successful(ParametersParser(serverDetails.datumFilename, args)))
 
-  def fetchServerDetails(): Response[ServerDetails] = EitherT(ServerDetails(isDev))
-
-  def runCommand(body: Json, serverDetails: ServerDetails): Response[Unit] = {
+  // Run the command on the server.
+  private def runCommand(body: Json, serverDetails: ServerDetails): Response[Unit] = {
     EitherT.right(RemoteCommandRunner(ws, body, serverDetails.uri, System.out))
   }
 

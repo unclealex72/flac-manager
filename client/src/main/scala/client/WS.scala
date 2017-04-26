@@ -22,9 +22,13 @@ import play.api.libs.ws.ahc.AhcWSClient
 
 /**
   * An object to hold the WsClient used to talk to the server.
-  * Created by alex on 17/04/17
   **/
 object WS {
 
+  /**
+    * Create a new web client.
+    * @param materializer The materialiser used to materialise streams.
+    * @return A new web service client.
+    */
   def apply()(implicit materializer: Materializer): WSClient = AhcWSClient()
 }

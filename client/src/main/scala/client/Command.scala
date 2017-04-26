@@ -45,7 +45,6 @@ sealed trait Command extends EnumEntry {
 
   /**
     * The text to show for the users options, or none if not applicable.
-    * @return
     */
   val usersDescriptionText: Option[String]
 
@@ -59,9 +58,22 @@ sealed trait Command extends EnumEntry {
     */
   val unownText: Option[String]
 
-  def parseArguments(arguments: Seq[String], datumFilename: String)(implicit fs: FileSystem): Either[NonEmptyList[String], Json]
+  /**
+    * Parse arguments from the command line.
+    * @param arguments The command line arguments.
+    * @param datumFilename The datum filename supplied by the server.
+    * @param fs The Java NIO file system.
+    * @return Either a JSON RPC payload that can be sent to the server to execute a command or a list of errors.
+    */
+  def parseArguments(
+                      arguments: Seq[String],
+                      datumFilename: String)
+                    (implicit fs: FileSystem): Either[NonEmptyList[String], Json]
 }
 
+/**
+  * Used to enumerate and build the available commands.
+  */
 object Command extends Enum[Command] {
 
   private[Command] abstract class ParametersParser[P <: Parameters](
@@ -117,6 +129,9 @@ object Command extends Enum[Command] {
     }
   }
 
+  /**
+    * The `own` command
+    */
   object OwnCommand extends ParametersParser[OwnParameters](
     OwnParameters(),
     OwnParametersBuilder) with Command {
@@ -127,6 +142,9 @@ object Command extends Enum[Command] {
     val unownText: Option[String] = None
   }
 
+  /**
+    * The `unown` command
+    */
   object UnOwnCommand extends ParametersParser[UnownParameters](
     UnownParameters(),
     UnownParametersBuilder) with Command {
@@ -137,6 +155,9 @@ object Command extends Enum[Command] {
     val unownText: Option[String] = None
   }
 
+  /**
+    * The `checkin` command
+    */
   object CheckInCommand extends ParametersParser[CheckinParameters](
     CheckinParameters(),
     CheckinParametersBuilder) with Command {
@@ -147,6 +168,9 @@ object Command extends Enum[Command] {
     val unownText: Option[String] = None
   }
 
+  /**
+    * The `checkout` command
+    */
   object CheckOutCommand extends ParametersParser[CheckoutParameters](
     CheckoutParameters(),
     CheckoutParametersBuilder) with Command {
