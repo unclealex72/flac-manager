@@ -20,8 +20,10 @@ import java.nio.file.{Files, Path}
 import javax.inject.Inject
 
 import logging.ApplicationLogging
+import common.configuration.User._
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.SortedSet
 
 /**
   * Get the users using by searching for directories in the device repository.
@@ -29,8 +31,10 @@ import scala.collection.JavaConversions._
   */
 case class FileSystemUserDao @Inject()(directories: Directories) extends UserDao with ApplicationLogging {
 
-  val users: Set[User] =
-    Files.newDirectoryStream(directories.devicesPath).toSet.map((dir: Path) => User(dir.getFileName.toString))
+  val users: SortedSet[User] =
+    Files.newDirectoryStream(directories.devicesPath).foldLeft(SortedSet.empty[User]){ (users, dir) =>
+      users + User(dir.getFileName.toString)
+    }
 
   if (users.isEmpty) {
     throw new IllegalStateException(s"Could not find any user directories under ${directories.devicesPath}")

@@ -22,3 +22,14 @@ package common.configuration
   *         be used when changing ownership
   */
 case class User(name: String)
+
+/**
+  * Ordering for Users.
+  */
+object User {
+
+  /**
+    * Order users by their name.
+    */
+  implicit val ordering: Ordering[User] = Ordering.by(_.name)
+}
