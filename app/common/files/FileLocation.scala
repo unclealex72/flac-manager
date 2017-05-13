@@ -244,14 +244,14 @@ object FileLocationImplicits {
 
 /**
   * The base class for all file locations.
-  * @param name A descriptive name for the file location type.
+  * @param prefixes A list of directories to prefix this location when printing as a string.
   * @param relativePath The relative path of the file location, relative to its repository's root.
   * @param readOnly True if this repository is read only, false otherwise.
   * @param directoryFactory Get the root directory from a [[Directories]] class.
   * @param directories The location of all repositories.
   */
 abstract class AbstractFileLocation(
-                                     val name: String,
+                                     val prefixes: Seq[String],
                                      val relativePath: Path,
                                      val readOnly: Boolean,
                                      val directoryFactory: Directories => Path, val directories: Directories) {
@@ -261,7 +261,8 @@ abstract class AbstractFileLocation(
     */
   val basePath: Path = directoryFactory(directories)
 
-  override def toString: String = s"$name($relativePath)"
+  private val asString: String = (prefixes :+ relativePath.toString).mkString("/")
+  override def toString: String =  asString
 
 
 }
@@ -274,7 +275,7 @@ import common.files.PathImplicits._
   * @param directories The location of all repositories.
   */
 case class TemporaryFileLocationImpl(override val relativePath: Path, override val directories: Directories)
-  extends AbstractFileLocation("TemporaryFileLocation", relativePath, false, _.temporaryPath, directories) with TemporaryFileLocation
+  extends AbstractFileLocation(Seq("tmp"), relativePath, false, _.temporaryPath, directories) with TemporaryFileLocation
 
 /**
   * Used to create new [[TemporaryFileLocation]]s.
@@ -304,19 +305,19 @@ object TemporaryFileLocation {
 
 /**
   * The base class for flac file locations.
-  * @param name A descriptive name for the file location type.
+  * @param prefixes A list of directories to prefix this location when printing as a string.
   * @param relativePath The relative path of the file location, relative to its repository's root.
   * @param readOnly True if this repository is read only, false otherwise.
   * @param directoryFactory Get the root directory from a [[Directories]] class.
   * @param directories The location of all repositories.
   */
 sealed abstract class AbstractFlacFileLocation(
-                                                override val name: String,
+                                                override val prefixes: Seq[String],
                                                 override val relativePath: Path,
                                                 override val readOnly: Boolean,
                                                 override val directoryFactory: Directories => Path,
                                                 override implicit val directories: Directories)
-  extends AbstractFileLocation(name, relativePath, readOnly, directoryFactory, directories) {
+  extends AbstractFileLocation(prefixes, relativePath, readOnly, directoryFactory, directories) {
 
   /**
     * @inheritdoc
@@ -359,7 +360,7 @@ private object Unapply extends ApplicationLogging {
 case class StagedFlacFileLocationImpl(
                                        override val relativePath: Path,
                                        override val directories: Directories) extends AbstractFlacFileLocation(
-  "StagedFlacFileLocation", relativePath, false, _.stagingPath, directories) with StagedFlacFileLocation {
+  Seq("staging"), relativePath, false, _.stagingPath, directories) with StagedFlacFileLocation {
 
   /**
     * @inheritdoc
@@ -404,7 +405,7 @@ object StagedFlacFileLocation {
   */
 case class FlacFileLocationImpl(
                                  override val relativePath: Path, override val directories: Directories) extends AbstractFlacFileLocation(
-  "FlacFileLocation", relativePath, true, _.flacPath, directories) with FlacFileLocation
+  Seq("flac"), relativePath, true, _.flacPath, directories) with FlacFileLocation
 
 /**
   * Used to create [[FlacFileLocation]]s.
@@ -441,7 +442,7 @@ object FlacFileLocation {
   */
 case class EncodedFileLocationImpl(
                                     override val relativePath: Path, override val directories: Directories) extends AbstractFileLocation(
-  "EncodedFileLocation", relativePath, true, _.encodedPath, directories) with EncodedFileLocation {
+  Seq("encoded"), relativePath, true, _.encodedPath, directories) with EncodedFileLocation {
 
   /**
     * @inheritdoc
@@ -484,7 +485,7 @@ object EncodedFileLocation {
 case class DeviceFileLocationImpl(
                                    override val user: String, override val relativePath: Path, override val directories: Directories)
   extends AbstractFileLocation(
-    "DeviceFileLocation", relativePath, true, _.devicesPath.resolve(user), directories) with DeviceFileLocation {
+    Seq("devices", user), relativePath, true, _.devicesPath.resolve(user), directories) with DeviceFileLocation {
 
   /**
     * @inheritdoc
