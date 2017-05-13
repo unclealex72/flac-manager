@@ -1,25 +1,20 @@
 # -- Schema creation
 # --- !Ups
-CREATE TABLE "change" (
-  "id" INT PRIMARY KEY,
-  "relativePath" TEXT NOT NULL,
-  "parentRelativePath" TEXT,
-  "at" TIMESTAMP NOT NULL,
-  "action" VARCHAR(128) NOT NULL,
-  "user" VARCHAR(128) NOT NULL);
-
-create sequence "s_change_id";
-
-CREATE TABLE "collectionitem" (
-  "id" INT PRIMARY KEY,
-  "user" VARCHAR(128) NOT NULL,
-  "releaseId" VARCHAR(128) NOT NULL);
-
-create sequence "s_collectionitem_id";
+create table `change` (
+  relativePath varchar(128) not null,
+  parentRelativePath varchar(128),
+  at timestamp not null,
+  id bigint not null primary key auto_increment,
+  action varchar(128) not null,
+  user varchar(128) not null
+);
+create table collectionitem (
+  id bigint not null primary key auto_increment,
+  releaseId varchar(128) not null,
+  user varchar(128) not null
+);
 
 # --- !Downs
 
-DROP TABLE "collectionitem";
-DROP TABLE "change";
-drop sequence "s_change_id";
-drop sequence "s_collectionitem_id";
+DROP TABLE collectionitem;
+DROP TABLE `change`;

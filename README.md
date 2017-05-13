@@ -21,26 +21,19 @@ file.
 ## Server Setup
 
 The server is distributed as a a [Docker](https://www.docker.com/) image at 
-https://hub.docker.com/r/unclealex72/flac-manager. A [PostgreSQL](https://www.postgresql.org/) database is required 
+https://hub.docker.com/r/unclealex72/flac-manager. An [H2](http://www.h2database.com) database is used
 to store which user owns which albums.
-
-The following environment variables are required:
-
-| Name        | Value                         | 
-| ----------- | ----------------------------- |
-| DB_HOST     | The database host.            |
-| DB_USER     | The database user.            |
-| DB_PASSWORD | The database user's password. |
 
 Your music files need to be attached as a volume at `/music` and must be writeable by a user with UID 1000. Your
 music directory must have the following subdirectories:
 
-| Subdirectory     | Contents| 
-| ---------------- | ---------------------------- |
-| `flac/`          | A repository of FLAC files.  |
-| `staging/`       | A directory where new FLAC files are stored before checking in.|
-| `encoded/`       | Files that are encoded versions of FLAC files. |
-| `devices/<user>` | Symbolic links to the encoded files owned by a user. |
+| Subdirectory      | Contents| 
+| ----------------- | ---------------------------- |
+| `flac/`           | A repository of FLAC files.  |
+| `staging/`        | A directory where new FLAC files are stored before checking in.|
+| `encoded/`        | Files that are encoded versions of FLAC files. |
+| `devices/<user>/` | Symbolic links to the encoded files owned by a user. |
+| `db/`             | A directory that contains the H2 database. |
 
 ## Client Setup
 

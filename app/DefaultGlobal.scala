@@ -15,12 +15,12 @@
  */
 
 import com.typesafe.scalalogging.LazyLogging
+import common.db.FlacManagerSchema
 import org.squeryl.adapters.{H2Adapter, PostgreSqlAdapter}
 import org.squeryl.internals.DatabaseAdapter
 import org.squeryl.{Session, SessionFactory}
 import play.api.db.DB
 import play.api.{Application, GlobalSettings}
-import upnp.ClingUpnpServer
 
 /**
   * The entry point for the play application.
@@ -37,6 +37,7 @@ trait DefaultGlobal extends GlobalSettings with LazyLogging {
         val adapter = new PostgreSqlAdapter
         getSession(adapter, app)
       })
+
       case _ => sys.error("Database driver must be either org.h2.Driver or org.postgresql.Driver")
     }
   }
