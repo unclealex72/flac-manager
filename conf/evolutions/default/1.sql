@@ -1,8 +1,8 @@
 # -- Schema creation
 # --- !Ups
 create table `change` (
-  relativePath varchar(256) not null,
-  parentRelativePath varchar(256),
+  relativePath varchar(512) not null,
+  parentRelativePath varchar(512),
   at timestamp not null,
   id bigint not null primary key auto_increment,
   action varchar(128) not null,
