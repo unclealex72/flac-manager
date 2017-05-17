@@ -48,7 +48,12 @@ class SquerylCollectionDao @Inject() extends CollectionDao {
     * @param user          The user whose collection needs changing.
     * @param oldReleaseIds The old releases to remove from the user's collection.
    */
-  override def removeReleases(user: User, oldReleaseIds: Set[String]): Unit = ???
+  override def removeReleases(user: User, oldReleaseIds: Set[String]): Unit = inTransaction {
+    val username = user.name
+    oldReleaseIds.foreach { oldReleaseId =>
+      collectionItems.deleteWhere(ci => ci.releaseId === oldReleaseId and ci.user === username)
+    }
+  }
 
   /**
     * Get all the releases owned by a user.

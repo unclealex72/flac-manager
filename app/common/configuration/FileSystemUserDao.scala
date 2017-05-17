@@ -16,11 +16,11 @@
 
 package common.configuration
 
-import java.nio.file.{Files, Path}
+import java.nio.file.Files
 import javax.inject.Inject
 
-import logging.ApplicationLogging
 import common.configuration.User._
+import logging.ApplicationLogging
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.SortedSet

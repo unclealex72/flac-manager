@@ -17,8 +17,10 @@
 package common.owners
 
 import common.configuration.User
+import common.files.{FlacFileLocation, StagedFlacFileLocation}
 import common.message.MessageService
 import common.music.Tags
+import own.OwnAction
 
 /**
   * Allow the listing and changing of which albums should be included on a user's device.
@@ -26,18 +28,41 @@ import common.music.Tags
 trait OwnerService {
 
   /**
+    * Change the ownership of flac files in the staging repository.
+    * @param user The user to add or remove.
+    * @param action Add or remove.
+    * @param albumId The ID of the album being added or removed.
+    * @param stagedFlacFileLocations The location of the album's tracks.
+    * @param messageService A message service used to report progress and errors.
+    */
+  def changeStagedOwnership(
+                             user: User,
+                             action: OwnAction,
+                             albumId: String,
+                             stagedFlacFileLocations: Seq[StagedFlacFileLocation])
+                           (implicit messageService: MessageService): Unit
+
+  /**
+    * Change the ownership of flac files in the flac repository.
+    * @param user The user to add or remove.
+    * @param action Add or remove.
+    * @param albumId The ID of the album being added or removed.
+    * @param flacFileLocations The location of the album's tracks.
+    * @param messageService A message service used to report progress and errors.
+    */
+  def changeFlacOwnership(
+                           user: User,
+                           action: OwnAction,
+                           albumId: String,
+                           flacFileLocations: Seq[FlacFileLocation])
+                         (implicit messageService: MessageService): Unit
+
+  /**
     * List all collections.
+    *
     * @return A function that, given [[Tags]], will return the set of [[User]]s who own them.
     */
   def listCollections(): Tags => Set[User]
-
-  /**
-    * Add a set of albums to a user's collection.
-    * @param user The user who's collection will be changed.
-    * @param tags The tags containing the albums that will be added.
-    * @param messageService The [[MessageService]] used to report progress and log errors.
-    */
-  def own(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit
 
   /**
     * Remove a set of albums from a user's collection.
@@ -46,4 +71,5 @@ trait OwnerService {
     * @param messageService The [[MessageService]] used to report progress and log errors.
     */
   def unown(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit
+
 }

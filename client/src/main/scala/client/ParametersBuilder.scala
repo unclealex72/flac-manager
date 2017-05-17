@@ -32,14 +32,14 @@ trait ParametersBuilder[P <: Parameters] {
     * Add an extra directory specified in the command line to the parameters object.
     * @param parameters The current parameters object
     * @param datumFilename The name of the server's datum file.
-    * @param directoryType The type of directory, either staging or flac.
+    * @param repositoryTypes The types of directory, either staging or flac.
     * @param directory The directory to add.
     * @return either a new parameters object with the extra directory or a list of errors.
     */
   def withExtraDirectory(
                           parameters: P,
                           datumFilename: String,
-                          directoryType: RepositoryType,
+                          repositoryTypes: Seq[RepositoryType],
                           directory: Path): Either[NonEmptyList[String], P]
 
   /**
@@ -76,14 +76,14 @@ class FailingParametersBuilder[P <: Parameters](val commandName: String) extends
     * Fail to add an extra directory.
     * @param parameters The current parameters object
     * @param datumFilename The name of the server's datum file.
-    * @param directoryType The type of directory, either staging or flac.
+    * @param repositoryTypes The type of directory, either staging or flac.
     * @param directory The directory to add.
     * @return either a new parameters object with the extra directory or a list of errors.
     */
   override def withExtraDirectory(
                                    parameters: P,
                                    datumFilename: String,
-                                   directoryType: RepositoryType,
+                                   repositoryTypes: Seq[RepositoryType],
                                    directory: Path): Either[NonEmptyList[String], P] = {
     fail("directory parameters")
   }
@@ -112,16 +112,16 @@ class FailingParametersBuilder[P <: Parameters](val commandName: String) extends
     * Convert a directory in to a relative path and add it to a list of relative directories.
     * @param relativeDirectories The current list of relative directories.
     * @param datumFilename The name of the server's datum file.
-    * @param directoryType The directory type, either staging or flac.
+    * @param repositoryTypes The directory type, either staging or flac.
     * @param directory The absolute directory to add.
     * @return Either a new list of relative directories containing the new directory or a list of errors.
     */
   def extraDirectory(
-                      relativeDirectories: Seq[Path],
+                      relativeDirectories: Seq[PathAndRepository],
                       datumFilename: String,
-                      directoryType: RepositoryType,
-                      directory: Path): Either[NonEmptyList[String], Seq[Path]] = {
-    DirectoryRelativiser.relativise(datumFilename, directoryType, directory).map { relativeDirectory =>
+                      repositoryTypes: Seq[RepositoryType],
+                      directory: Path): Either[NonEmptyList[String], Seq[PathAndRepository]] = {
+    DirectoryRelativiser.relativise(datumFilename, repositoryTypes, directory).map { relativeDirectory =>
       relativeDirectories :+ relativeDirectory
     }
   }
@@ -138,10 +138,10 @@ object CheckinParametersBuilder extends FailingParametersBuilder[CheckinParamete
   override def withExtraDirectory(
                                    parameters: CheckinParameters,
                                    datumFilename: String,
-                                   directoryType: RepositoryType,
+                                   repositoryTypes: Seq[RepositoryType],
                                    directory: Path): Either[NonEmptyList[String], CheckinParameters] = {
-    extraDirectory(parameters.relativeStagingDirectories, datumFilename, directoryType, directory).map { paths =>
-      parameters.copy(relativeStagingDirectories = paths)
+    extraDirectory(parameters.relativeDirectories, datumFilename, repositoryTypes, directory).map { paths =>
+      parameters.copy(relativeDirectories = paths)
     }
   }
 }
@@ -157,10 +157,10 @@ object CheckoutParametersBuilder extends FailingParametersBuilder[CheckoutParame
   override def withExtraDirectory(
                                    parameters: CheckoutParameters,
                                    datumFilename: String,
-                                   directoryType: RepositoryType,
+                                   repositoryTypes: Seq[RepositoryType],
                                    directory: Path): Either[NonEmptyList[String], CheckoutParameters] = {
-    extraDirectory(parameters.relativeFlacDirectories, datumFilename: String, directoryType, directory).map { paths =>
-      parameters.copy(relativeFlacDirectories = paths)
+    extraDirectory(parameters.relativeDirectories, datumFilename: String, repositoryTypes, directory).map { paths =>
+      parameters.copy(relativeDirectories = paths)
     }
   }
 
@@ -192,10 +192,10 @@ object OwnParametersBuilder extends FailingParametersBuilder[OwnParameters]("own
   override def withExtraDirectory(
                                    parameters: OwnParameters,
                                    datumFilename: String,
-                                   directoryType: RepositoryType,
+                                   repositoryTypes: Seq[RepositoryType],
                                    directory: Path): Either[NonEmptyList[String], OwnParameters] = {
-    extraDirectory(parameters.relativeStagingDirectories, datumFilename, directoryType, directory).map { paths =>
-      parameters.copy(relativeStagingDirectories = paths)
+    extraDirectory(parameters.relativeDirectories, datumFilename, repositoryTypes, directory).map { paths =>
+      parameters.copy(relativeDirectories = paths)
     }
   }
 }
@@ -220,10 +220,10 @@ object UnownParametersBuilder extends FailingParametersBuilder[UnownParameters](
   override def withExtraDirectory(
                                    parameters: UnownParameters,
                                    datumFilename: String,
-                                   directoryType: RepositoryType,
+                                   repositoryTypes: Seq[RepositoryType],
                                    directory: Path): Either[NonEmptyList[String], UnownParameters] = {
-    extraDirectory(parameters.relativeStagingDirectories, datumFilename, directoryType, directory).map { paths =>
-      parameters.copy(relativeStagingDirectories = paths)
+    extraDirectory(parameters.relativeDirectories, datumFilename, repositoryTypes, directory).map { paths =>
+      parameters.copy(relativeDirectories = paths)
     }
   }
 }

@@ -29,30 +29,40 @@ sealed trait Parameters
 
 /**
   * The `checkin` command
-  * @param relativeStagingDirectories A list of paths relative to the staging repository.
+  * @param relativeDirectories A list of paths relative to the staging repository.
   */
-case class CheckinParameters(relativeStagingDirectories: Seq[Path] = Seq.empty) extends Parameters
+case class CheckinParameters(relativeDirectories: Seq[PathAndRepository] = Seq.empty) extends Parameters
 
 /**
   * The `checkout` command
-  * @param relativeFlacDirectories A list of paths relative to the flac repository.
+  * @param relativeDirectories A list of paths relative to the flac repository.
   * @param unown A flag to indicate whether checked out files should also be removed from user repositories.
   */
-case class CheckoutParameters(relativeFlacDirectories: Seq[Path] = Seq.empty, unown: Boolean = false) extends Parameters
+case class CheckoutParameters(relativeDirectories: Seq[PathAndRepository] = Seq.empty, unown: Boolean = false) extends Parameters
 
 /**
   * The `own` command
-  * @param relativeStagingDirectories A list of paths relative to the staging repository.
+  * @param relativeDirectories A list of paths relative to the staging or flac repository.
   * @param users The names of the users who will own the albums.
   */
-case class OwnParameters(relativeStagingDirectories: Seq[Path] = Seq.empty, users: Seq[String] = Seq.empty) extends Parameters
+case class OwnParameters(
+                          relativeDirectories: Seq[PathAndRepository] = Seq.empty,
+                          users: Seq[String] = Seq.empty) extends Parameters
 
 /**
   * The `own` command
-  * @param relativeStagingDirectories A list of paths relative to the staging repository.
+  * @param relativeDirectories A list of paths relative to the staging or flac repository.
   * @param users The names of the users who will no longer own the albums.
   */
-case class UnownParameters(relativeStagingDirectories: Seq[Path] = Seq.empty, users: Seq[String] = Seq.empty) extends Parameters
+case class UnownParameters(relativeDirectories: Seq[PathAndRepository] = Seq.empty,
+                           users: Seq[String] = Seq.empty) extends Parameters
+
+/**
+  * A class to hold a relative path an the repository it is relative to.
+  * @param path The relative path.
+  * @param repositoryType The type of repository the path is relative to.
+  */
+case class PathAndRepository(path: Path, repositoryType: RepositoryType)
 
 /**
   * The `initialise` command.
@@ -65,17 +75,21 @@ case class InitialiseParameters() extends Parameters
 object Parameters {
 
   /**
-    * Get the directory type for a [[Parameters]] object.
+    * Get the directory types for a [[Parameters]] object.
     * @param parameters The parameters object to query.
-    * @return The directory type that the parameters object changes, if any.
+    * @return The directory types that the parameters object changes, if any.
     */
-  def maybeDirectoryType(parameters: Parameters): Option[RepositoryType] = {
+  def repositoryTypes(parameters: Parameters): Seq[RepositoryType] = {
     parameters match {
-      case _ : InitialiseParameters => None
-      case _ : CheckoutParameters => Some(FlacRepositoryType)
-      case _ => Some(StagingRepositoryType)
+      case _ : InitialiseParameters => Seq.empty
+      case _ : CheckoutParameters => Seq(FlacRepositoryType)
+      case _ : OwnParameters => Seq(FlacRepositoryType, StagingRepositoryType)
+      case _ : UnownParameters => Seq(FlacRepositoryType, StagingRepositoryType)
+      case _ => Seq(StagingRepositoryType)
     }
   }
+
+
 
   /**
     * A [[https://circe.github.io/circe/ circe]] decoder for parameters.
@@ -83,15 +97,24 @@ object Parameters {
   implicit val parametersDecoder: Decoder[Parameters] = {
 
     implicit val pathDecoder: Decoder[Path] = Decoder.decodeString.map(Paths.get(_))
-    
+    implicit val repositoryTypeDecoder: Decoder[RepositoryType] = Decoder.decodeString.flatMap { str =>
+      RepositoryType.values.find(rt => rt.identifier == str) match {
+        case Some(rt) => Decoder.const(rt)
+        case None => Decoder.failedWithMessage(
+          s"Repository type must be one of: ${RepositoryType.values.map(_.identifier).mkString(", ")}")
+      }
+    }
+    implicit val pathAndRepositoryDecoder: Decoder[PathAndRepository] =
+      Decoder.forProduct2("path", "repositoryType")(PathAndRepository.apply)
+
     val checkinParametersDecoder =
-      Decoder.forProduct1("relativeStagingDirectories")(CheckinParameters.apply)
+      Decoder.forProduct1("relativeDirectories")(CheckinParameters.apply)
     val checkoutParametersDecoder =
-      Decoder.forProduct2("relativeFlacDirectories", "unown")(CheckoutParameters.apply)
+      Decoder.forProduct2("relativeDirectories", "unown")(CheckoutParameters.apply)
     val ownParametersDecoder =
-      Decoder.forProduct2("relativeStagingDirectories", "users")(OwnParameters.apply)
+      Decoder.forProduct2("relativeDirectories", "users")(OwnParameters.apply)
     val unownParametersDecoder =
-      Decoder.forProduct2("relativeStagingDirectories", "users")(UnownParameters.apply)
+      Decoder.forProduct2("relativeDirectories", "users")(UnownParameters.apply)
     val initialiseParametersDecoder = Decoder.instance { hcursor =>
       if (hcursor.value.isObject) {
         Right(InitialiseParameters())
@@ -130,15 +153,18 @@ object Parameters {
     */
   implicit val parametersEncoder: Encoder[Parameters] = {
     implicit val pathEncoder: Encoder[Path] = Encoder.encodeString.contramap(_.toString)
+    implicit val repositoryTypeEncoder: Encoder[RepositoryType] = Encoder.encodeString.contramap(_.identifier)
+    implicit val pathAndRepositoryEncoder: Encoder[PathAndRepository] =
+      Encoder.forProduct2("path", "repositoryType")(par => (par.path, par.repositoryType))
 
     val checkinParametersEncoder: Encoder[CheckinParameters] =
-      Encoder.forProduct1("relativeStagingDirectories")(cp => cp.relativeStagingDirectories)
+      Encoder.forProduct1("relativeDirectories")(cp => cp.relativeDirectories)
     val checkoutParametersEncoder: Encoder[CheckoutParameters] =
-      Encoder.forProduct2("relativeFlacDirectories", "unown")(cp => (cp.relativeFlacDirectories, cp.unown))
+      Encoder.forProduct2("relativeDirectories", "unown")(cp => (cp.relativeDirectories, cp.unown))
     val ownParametersEncoder: Encoder[OwnParameters] =
-      Encoder.forProduct2("relativeStagingDirectories", "users")(op => (op.relativeStagingDirectories, op.users))
+      Encoder.forProduct2("relativeDirectories", "users")(op => (op.relativeDirectories, op.users))
     val unownParametersEncoder: Encoder[UnownParameters] =
-      Encoder.forProduct2("relativeStagingDirectories", "users")(up => (up.relativeStagingDirectories, up.users))
+      Encoder.forProduct2("relativeDirectories", "users")(up => (up.relativeDirectories, up.users))
     val initialiseParametersEncoder: Encoder[InitialiseParameters] =
       Encoder.encodeJsonObject.contramap(_ => JsonObject.empty)
     Encoder.instance { parameters =>

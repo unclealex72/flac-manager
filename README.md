@@ -45,9 +45,11 @@ After installation, the following commands are available:
 
 + `flacman-checkout [directories]` Checkout all the FLAC files into the staging area so they can be retagged.
 + `flacman-checkin [directories]` Checkin all the FLAC files into the music library and also convert them to MP3.
-+ `flacman-own --users users [directories]` Add all the FLAC files in the supplied directories to users collections. 
++ `flacman-own --users users [directories]` Add all the FLAC files in the supplied directories (either staged or not) 
+                                            to users' collections. 
   `users` is a comma separated list of user names.
-+ `flacman-unown --users users [directories]` Add all the FLAC files in the supplied directories to users collections. 
++ `flacman-unown --users users [directories]` Remove all the FLAC files in the supplied directories (either staged or not) 
+                                            from users' collections. 
   `users` is a comma separated list of user names.
 
 ## Synchronising to external devices

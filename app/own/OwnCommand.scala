@@ -18,19 +18,52 @@ package own
 
 import common.commands.CommandExecution
 import common.configuration.User
-import common.files.StagedFlacFileLocation
+import common.files.{FlacFileLocation, StagedFlacFileLocation}
 import common.message.MessageService
+import enumeratum._
+
+import scala.collection.immutable
 
 /**
- * Created by alex on 09/11/14.
- */
+  * The own command.
+  */
 trait OwnCommand {
-  def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandExecution
+
+  /**
+    * Change the ownership of a list of either flac or staged files.
+    * @param action Whether to own or unown.
+    * @param users The users who will be owning or unowning the files.
+    * @param directoryLocations The locations of the directories to own or unown.
+    * @param messageService The [[MessageService]] used to report progress and errors.
+    * @return A command to be executed.
+    */
+  def changeOwnership(action: OwnAction, users: Seq[User], directoryLocations: Seq[Either[StagedFlacFileLocation, FlacFileLocation]])
+                     (implicit messageService: MessageService): CommandExecution
 
 }
 
-sealed trait OwnAction
+/**
+  * Actions for owning and unowning tracks.
+  */
+sealed trait OwnAction extends EnumEntry
 
-object Own extends OwnAction
+/**
+  * Contains the different own actions.
+  */
+object OwnAction extends Enum[OwnAction] {
 
-object Unown extends OwnAction
+  /**
+    * The action for adding albums to a user's collection.
+    */
+  object Own extends OwnAction
+
+  /**
+    * The action for removing albums from a user's collection.
+    */
+  object Unown extends OwnAction
+
+  /**
+    * @inheritdoc
+    */
+  override def values: immutable.IndexedSeq[OwnAction] = findValues
+}

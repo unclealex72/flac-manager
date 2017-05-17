@@ -21,7 +21,7 @@ import java.nio.file.{Files, Path}
 import cats.data.NonEmptyList
 import cats.syntax.either._
 import common.configuration.FlacDirectories
-import json.RepositoryType
+import json.{PathAndRepository, RepositoryType}
 import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
 
 /**
@@ -32,11 +32,14 @@ object DirectoryRelativiser {
   /**
     * Attempt to relativise a directory to a directory that contains the datum file.
     * @param datumFilename The name of the server's datum file.
-    * @param directoryType Either the staging or flac repository directory.
+    * @param repositoryTypes Either the staging or flac repository directory.
     * @param directory The directory to attempt to relativise.
     * @return A path relative to the root directory on the server or a list of errors.
     */
-  def relativise(datumFilename: String, directoryType: RepositoryType, directory: Path): Either[NonEmptyList[String], Path] = {
+  def relativise(
+                  datumFilename: String,
+                  repositoryTypes: Seq[RepositoryType],
+                  directory: Path): Either[NonEmptyList[String], PathAndRepository] = {
 
     case class DatumBasedFlacDirectories(override val datumPath: Path) extends FlacDirectories
 
@@ -56,16 +59,21 @@ object DirectoryRelativiser {
       }
 
       maybeFlacDirectories(absoluteDirectoryPath).flatMap { flacDirectories =>
-        val (parentDirectory, dir) = directoryType match {
-          case FlacRepositoryType => (flacDirectories.flacPath, "flac")
-          case StagingRepositoryType => (flacDirectories.stagingPath, "staging")
-        }
-        if (absoluteDirectoryPath.startsWith(parentDirectory)) {
-          Right(parentDirectory.relativize(absoluteDirectoryPath))
-        }
-        else {
-          Left(s"$absoluteDirectoryPath is not a $dir directory.")
-        }
+        val maybePathAndRepository = repositoryTypes.toStream.flatMap { repositoryType =>
+          val parentDirectory = repositoryType match {
+            case FlacRepositoryType => flacDirectories.flacPath
+            case StagingRepositoryType => flacDirectories.stagingPath
+          }
+          if (absoluteDirectoryPath.startsWith(parentDirectory)) {
+            Some(PathAndRepository(parentDirectory.relativize(absoluteDirectoryPath), repositoryType))
+          }
+          else {
+           None
+          }
+        }.headOption
+        maybePathAndRepository.toRight(
+          s"$absoluteDirectoryPath is not relative to one of the following repositories: " +
+            repositoryTypes.map(_.identifier).mkString(", "))
       }
     }
     else {

@@ -17,26 +17,14 @@
 package controllers
 
 import java.io.{PrintWriter, StringWriter}
-import java.nio.file.Path
 import javax.inject.{Inject, Singleton}
 
 import akka.stream.scaladsl.Source
 import cats.data.Validated.{Invalid, Valid}
-import cats.data.{NonEmptyList, Validated, ValidatedNel}
-import cats.implicits._
-import cats.syntax.either._
-import checkin.CheckinCommand
-import checkout.CheckoutCommand
 import common.commands.CommandExecution
 import common.commands.CommandExecution._
-import common.configuration.{Directories, User, UserDao}
-import common.files.{FileLocation, FlacFileLocation, StagedFlacFileLocation}
 import common.message.Messages._
 import common.message.{MessageService, MessageServiceBuilder, Messaging}
-import initialise.InitialiseCommand
-import io.circe.Json
-import json._
-import own.{Own, OwnCommand, Unown}
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.iteratee.{Concurrent, Enumerator}
 import play.api.libs.json._

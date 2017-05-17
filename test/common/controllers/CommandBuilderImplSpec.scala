@@ -28,9 +28,11 @@ import common.files.{FlacFileLocation, StagedFlacFileLocation}
 import common.message.{MessageService, NoOpMessageService}
 import controllers.CommandBuilderImpl
 import initialise.InitialiseCommand
+import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
 import json._
 import org.specs2.mutable.Specification
-import own.{Own, OwnAction, OwnCommand}
+import own.OwnAction._
+import own.{OwnAction, OwnCommand}
 import play.api.libs.json._
 
 import scala.concurrent.duration.Duration
@@ -57,10 +59,21 @@ class CommandBuilderImplSpec extends Specification {
         JsObject(
           Seq(
             "command" -> JsString("checkin"),
-            "relativeStagingDirectories" -> JsArray()))
+            "relativeDirectories" -> JsArray()))
       }
       validatedResult must beLeft { (es: NonEmptyList[String]) =>
         es.toList must contain(exactly("You must supply at least 1 staging directory."))
+      }
+    }
+    "not allow flac directories" in {
+      val validatedResult = execution {
+        JsObject(
+          Seq(
+            "command" -> JsString("checkin"),
+            "relativeDirectories" -> JsArray(Seq(flacObj("A"), stagingObj("B")))))
+      }
+      validatedResult must beLeft { (es: NonEmptyList[String]) =>
+        es.toList must contain(exactly("A is not a staging directory."))
       }
     }
     "pass on its parameters" in {
@@ -68,10 +81,10 @@ class CommandBuilderImplSpec extends Specification {
         JsObject(
           Seq(
             "command" -> JsString("checkin"),
-            "relativeStagingDirectories" -> JsArray(Seq(JsString("A"), JsString("B")))))
+            "relativeDirectories" -> JsArray(Seq(stagingObj("A"), stagingObj("B")))))
       }
       validatedResult must beRight { (p: Parameters) =>
-        p must be_==(CheckinParameters(List(Paths.get("A"), Paths.get("B"))))
+        p must be_==(CheckinParameters(List(staging("A"), staging("B"))))
       }
     }
   }
@@ -83,10 +96,22 @@ class CommandBuilderImplSpec extends Specification {
           Seq(
             "command" -> JsString("checkout"),
             "unown" -> JsBoolean(true),
-            "relativeFlacDirectories" -> JsArray()))
+            "relativeDirectories" -> JsArray()))
       }
       validatedResult must beLeft { (es: NonEmptyList[String]) =>
         es.toList must contain(exactly("You must supply at least 1 flac directory."))
+      }
+    }
+    "not allow staging directories" in {
+      val validatedResult = execution {
+        JsObject(
+          Seq(
+            "command" -> JsString("checkout"),
+            "unown" -> JsBoolean(true),
+            "relativeDirectories" -> JsArray(Seq(flacObj("A"), stagingObj("B")))))
+      }
+      validatedResult must beLeft { (es: NonEmptyList[String]) =>
+        es.toList must contain(exactly("B is not a flac directory."))
       }
     }
     "pass on its parameters" in {
@@ -95,10 +120,10 @@ class CommandBuilderImplSpec extends Specification {
           Seq(
             "command" -> JsString("checkout"),
             "unown" -> JsBoolean(true),
-            "relativeFlacDirectories" -> JsArray(Seq(JsString("A"), JsString("B")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("A"), flacObj("B")))))
       }
       validatedResult must beRight { (p: Parameters) =>
-        p must be_==(CheckoutParameters(List(Paths.get("A"), Paths.get("B")), unown = true))
+        p must be_==(CheckoutParameters(List(flac("A"), flac("B")), unown = true))
       }
     }
   }
@@ -110,10 +135,10 @@ class CommandBuilderImplSpec extends Specification {
           Seq(
             "command" -> JsString("own"),
             "users" -> JsArray(),
-            "relativeStagingDirectories" -> JsArray()))
+            "relativeDirectories" -> JsArray()))
       }
       validatedResult must beLeft { (es: NonEmptyList[String]) =>
-        es.toList must contain(exactly("You must supply at least 1 staging directory.", "You must supply at least one user."))
+        es.toList must contain(exactly("You must supply at least 1 staging or flac directory.", "You must supply at least one user."))
       }
     }
     "require valid users" in {
@@ -122,7 +147,7 @@ class CommandBuilderImplSpec extends Specification {
           Seq(
             "command" -> JsString("own"),
             "users" -> JsArray(Seq(JsString("Roger"))),
-            "relativeStagingDirectories" -> JsArray(Seq(JsString("A")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("A")))))
       }
       validatedResult must beLeft { (es: NonEmptyList[String]) =>
         es.toList must contain(exactly("Roger is not a valid user."))
@@ -134,10 +159,10 @@ class CommandBuilderImplSpec extends Specification {
           Seq(
             "command" -> JsString("own"),
             "users" -> JsArray(Seq(JsString("Brian"))),
-            "relativeStagingDirectories" -> JsArray(Seq(JsString("A"), JsString("B")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("A"), stagingObj("B")))))
       }
       validatedResult must beRight { (p: Parameters) =>
-        p must be_==(OwnParameters(List(Paths.get("A"), Paths.get("B")), List("Brian")))
+        p must be_==(OwnParameters(List(flac("A"), staging("B")), List("Brian")))
       }
     }
   }
@@ -149,10 +174,10 @@ class CommandBuilderImplSpec extends Specification {
           Seq(
             "command" -> JsString("unown"),
             "users" -> JsArray(),
-            "relativeStagingDirectories" -> JsArray()))
+            "relativeDirectories" -> JsArray()))
       }
       validatedResult must beLeft { (es: NonEmptyList[String]) =>
-        es.toList must contain(exactly("You must supply at least 1 staging directory.", "You must supply at least one user."))
+        es.toList must contain(exactly("You must supply at least 1 staging or flac directory.", "You must supply at least one user."))
       }
     }
     "require valid users" in {
@@ -161,7 +186,7 @@ class CommandBuilderImplSpec extends Specification {
           Seq(
             "command" -> JsString("unown"),
             "users" -> JsArray(Seq(JsString("Roger"))),
-            "relativeStagingDirectories" -> JsArray(Seq(JsString("A")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("A")))))
       }
       validatedResult must beLeft { (es: NonEmptyList[String]) =>
         es.toList must contain(exactly("Roger is not a valid user."))
@@ -173,10 +198,10 @@ class CommandBuilderImplSpec extends Specification {
           Seq(
             "command" -> JsString("unown"),
             "users" -> JsArray(Seq(JsString("Brian"))),
-            "relativeStagingDirectories" -> JsArray(Seq(JsString("A"), JsString("B")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("A"), stagingObj("B")))))
       }
       validatedResult must beRight { (p: Parameters) =>
-        p must be_==(UnownParameters(List(Paths.get("A"), Paths.get("B")), List("Brian")))
+        p must be_==(UnownParameters(List(flac("A"), staging("B")), List("Brian")))
       }
     }
   }
@@ -189,13 +214,13 @@ class CommandBuilderImplSpec extends Specification {
 
     val checkinCommand: CheckinCommand = new CheckinCommand {
       override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandExecution = {
-        commandType(CheckinParameters(locations.map(_.relativePath)))
+        commandType(CheckinParameters(locations.map(l => PathAndRepository(l.relativePath, StagingRepositoryType))))
       }
     }
     val checkoutCommand: CheckoutCommand = new CheckoutCommand {
       override def checkout(locations: Seq[FlacFileLocation], unown: Boolean)
                            (implicit messageService: MessageService): CommandExecution = {
-        commandType(CheckoutParameters(locations.map(_.relativePath), unown))
+        commandType(CheckoutParameters(locations.map(l => PathAndRepository(l.relativePath, FlacRepositoryType)), unown))
       }
     }
     val initialiseCommand: InitialiseCommand = new InitialiseCommand {
@@ -204,14 +229,18 @@ class CommandBuilderImplSpec extends Specification {
       }
     }
     val ownCommand: OwnCommand = new OwnCommand {
-      override def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[StagedFlacFileLocation])
-                                  (implicit messageService: MessageService): CommandExecution = {
+      def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[Either[StagedFlacFileLocation, FlacFileLocation]])
+                         (implicit messageService: MessageService): CommandExecution = {
         commandType {
+          val pathAndRepositories = locations.map {
+            case Left(sffl) => PathAndRepository(sffl.relativePath, StagingRepositoryType)
+            case Right(ffl) => PathAndRepository(ffl.relativePath, FlacRepositoryType)
+          }
           if (action == Own) {
-            OwnParameters(locations.map(_.relativePath), users.map(_.name))
+            OwnParameters(pathAndRepositories, users.map(_.name))
           }
           else {
-            UnownParameters(locations.map(_.relativePath), users.map(_.name))
+            UnownParameters(pathAndRepositories, users.map(_.name))
           }
         }
       }
@@ -219,7 +248,7 @@ class CommandBuilderImplSpec extends Specification {
 
     implicit val directories = TestDirectories(datum = "/music/.datum")
     val userDao = new UserDao {
-      override def allUsers: Set[User] = Set("Freddie", "Brian").map(User)
+      override def allUsers(): Set[User] = Set("Freddie", "Brian").map(User(_))
     }
     val commandBuilder = new CommandBuilderImpl(
       checkinCommand, checkoutCommand, ownCommand, initialiseCommand, userDao)
@@ -227,5 +256,14 @@ class CommandBuilderImplSpec extends Specification {
       builder(NoOpMessageService).execute()
       Await.result(promise.future, Duration(1, TimeUnit.SECONDS))
     }.toEither
+  }
+
+  def staging(path: String): PathAndRepository = PathAndRepository(Paths.get(path), StagingRepositoryType)
+  def flac(path: String): PathAndRepository = PathAndRepository(Paths.get(path), FlacRepositoryType)
+
+  def stagingObj: (String) => JsObject = pathObj(StagingRepositoryType)
+  def flacObj: (String) => JsObject = pathObj(FlacRepositoryType)
+  def pathObj(repositoryType: RepositoryType)(path: String): JsObject = {
+    JsObject(Seq("path" -> JsString(path), "repositoryType" -> JsString(repositoryType.identifier)))
   }
 }

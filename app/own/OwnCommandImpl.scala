@@ -21,23 +21,69 @@ import javax.inject.Inject
 import common.commands.CommandExecution
 import common.commands.CommandExecution._
 import common.configuration.User
-import common.files.{DirectoryService, FlacFileChecker, StagedFlacFileLocation}
+import common.files._
+import common.files.FileLocation._
 import common.message.MessageService
-import common.music.TagsService
+import common.music.{Tags, TagsService}
 import common.owners.OwnerService
 
-/**
- * Created by alex on 23/11/14.
- */
-class OwnCommandImpl @Inject()(val ownerService: OwnerService, directoryService: DirectoryService)(implicit val flacFileChecker: FlacFileChecker, implicit val tagsService: TagsService) extends OwnCommand {
+import scala.collection.{SortedMap, SortedSet}
 
-  override def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandExecution = synchronous {
-    val allLocations = directoryService.listFiles(locations)
-    val tags = allLocations.filter(_.isFlacFile).flatMap(_.readTags.toOption).toSet
-    val changeOwnershipFunction: User => Unit = action match {
-      case Own => user => ownerService.own(user, tags)
-      case Unown => user => ownerService.unown(user, tags)
+/**
+  * The default implementation of [[OwnCommand]]
+  * @param ownerService The [[OwnerService]] used to change ownership.
+  * @param directoryService The [[DirectoryService]] used to list files.
+  * @param flacFileChecker The [[FlacFileChecker]] used to check all files are valid FLAC files.
+  * @param tagsService The [[TagsService]] used to read audio information from FLAC files.
+  */
+class OwnCommandImpl @Inject()(
+                                ownerService: OwnerService,
+                                directoryService: DirectoryService)
+                              (implicit flacFileChecker: FlacFileChecker,
+                               tagsService: TagsService,
+                               fileLocationExtensions: FileLocationExtensions) extends OwnCommand {
+
+  /**
+    * @inheritdoc
+    */
+  override def changeOwnership(action: OwnAction,
+                               users: Seq[User],
+                               directoryLocations: Seq[Either[StagedFlacFileLocation, FlacFileLocation]])
+                              (implicit messageService: MessageService): CommandExecution = synchronous {
+    val empty: (SortedMap[String, Seq[StagedFlacFileLocation]], SortedMap[String, Seq[FlacFileLocation]]) =
+      (SortedMap.empty[String, Seq[StagedFlacFileLocation]], SortedMap.empty[String, Seq[FlacFileLocation]])
+    val (stagedLocations, flacLocations) = directoryLocations.foldLeft(empty){ (acc, location) =>
+      val (stagedLocations, flacLocations) = acc
+      location match {
+        case Left(sfl) => (stagedLocations ++ childrenByAlbumId[StagedFlacFileLocation](sfl, _.isFlacFile), flacLocations)
+        case Right(fl) => (stagedLocations, flacLocations ++ childrenByAlbumId[FlacFileLocation](fl, _ => true))
+      }
     }
-    users.foreach(changeOwnershipFunction)
+    for {
+      user <- users
+      stagedLocationAndAlbumId <- stagedLocations.toSeq
+    } yield {
+      ownerService.changeStagedOwnership(user, action, stagedLocationAndAlbumId._1, stagedLocationAndAlbumId._2)
+    }
+    for {
+      user <- users
+      flacLocationAndAlbumId <- flacLocations.toSeq
+    } yield {
+      ownerService.changeFlacOwnership(user, action, flacLocationAndAlbumId._1, flacLocationAndAlbumId._2)
+    }
+  }
+
+  def childrenByAlbumId[FL <: FileLocation](fl: FL, filter: FL => Boolean)
+                                           (implicit messageService: MessageService): Map[String, Seq[FL]] = {
+    val fileLocations: SortedSet[FL] = directoryService.listFiles(Seq(fl)).filter(fl => filter(fl) && !fl.isDirectory)
+    val fileLocationsByMaybeAlbumId: Map[Option[String], SortedSet[FL]] =
+      fileLocations.groupBy(fl => fl.readTags.toOption.map(_.albumId))
+    val empty: Map[String, Seq[FL]] = Map.empty
+    fileLocationsByMaybeAlbumId.foldLeft(empty) { (fileLocationsByAlbumId, maybeAlbumIdAndFileLocation) =>
+      maybeAlbumIdAndFileLocation match {
+        case (Some(albumId), fls) => fileLocationsByAlbumId + (albumId -> fls.toSeq)
+        case _ => fileLocationsByAlbumId
+      }
+    }
   }
 }

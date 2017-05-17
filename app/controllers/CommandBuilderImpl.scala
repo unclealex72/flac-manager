@@ -16,7 +16,6 @@
 
 package controllers
 
-import java.nio.file.Path
 import javax.inject.Inject
 
 import cats.data.Validated.{Invalid, Valid}
@@ -30,8 +29,10 @@ import common.files.{FileLocation, FlacFileLocation, StagedFlacFileLocation}
 import common.message.MessageService
 import initialise.InitialiseCommand
 import io.circe.Json
+import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
 import json._
-import own.{Own, OwnCommand, Unown}
+import own.OwnAction._
+import own.OwnCommand
 import play.api.libs.json._
 
 /**
@@ -96,39 +97,64 @@ class CommandBuilderImpl @Inject()(
 
   /**
     * Make sure that all staging directories are valid.
-    * @param relativePaths A list of relative paths to check.
+    * @param pathAndRepositories A list of relative paths to check.
     * @return A list of [[StagedFlacFileLocation]]s or a list of errors.
     */
-  def validateStagingDirectories(relativePaths: Seq[Path]): ValidatedNel[String, Seq[StagedFlacFileLocation]] =
-    validateDirectories("staging", StagedFlacFileLocation(_), relativePaths)
+  def validateStagingDirectories(pathAndRepositories: Seq[PathAndRepository]): ValidatedNel[String, Seq[StagedFlacFileLocation]] =
+    validateDirectories("staging", pathAndRepositories) { pathAndRepository =>
+      pathAndRepository.repositoryType match {
+        case StagingRepositoryType => Validated.valid(StagedFlacFileLocation(pathAndRepository.path))
+        case _ => Validated.invalid(s"${pathAndRepository.path} is not a staging directory.")
+      }
+    }
 
   /**
     * Make sure that all flac directories are valid.
-    * @param relativePaths A list of relative paths to check.
+    * @param pathAndRepositories A list of relative paths to check.
     * @return A list of [[FlacFileLocation]]s or a list of errors.
     */
-  def validateFlacDirectories(relativePaths: Seq[Path]): ValidatedNel[String, Seq[FlacFileLocation]] =
-    validateDirectories("flac", FlacFileLocation(_), relativePaths)
+  def validateFlacDirectories(pathAndRepositories: Seq[PathAndRepository]): ValidatedNel[String, Seq[FlacFileLocation]] =
+    validateDirectories("flac", pathAndRepositories) { pathAndRepository =>
+      pathAndRepository.repositoryType match {
+        case FlacRepositoryType => Validated.valid(FlacFileLocation(pathAndRepository.path))
+        case _ => Validated.invalid(s"${pathAndRepository.path} is not a flac directory.")
+      }
+    }
 
   /**
-    * Make sure that all staging directories are valid. At this point all that is checked is that
-    * the supplied list is not empty.
-    * @param directoryType The directory type name that will be reported in errors.
-    * @param builder A function that converts a path into a [[FileLocation]]
-    * @param relativePaths A list of relative paths to check.
-    * @tparam F A type of [[FileLocation]]
-    * @return A list of [[FileLocation]]s or a list of errors.
+    * Make sure that all flac or staging directories are valid.
+    * @param pathAndRepositories A list of relative paths to check.
+    * @return A list of [[FlacFileLocation]]s and [[StagedFlacFileLocation]]s or a list of errors.
     */
-  def validateDirectories[F <: FileLocation](directoryType: String, builder: Path => F, relativePaths: Seq[Path]): ValidatedNel[String, Seq[F]] = {
-    val empty: Seq[F] = Seq.empty
-    val locations = relativePaths.foldLeft(empty) { (locations, relativePath) =>
-      locations :+ builder(relativePath)
+  def validateStagingOrFlacDirectories(pathAndRepositories: Seq[PathAndRepository]): ValidatedNel[String, Seq[Either[StagedFlacFileLocation, FlacFileLocation]]] =
+    validateDirectories("staging or flac", pathAndRepositories) { pathAndRepository =>
+      pathAndRepository.repositoryType match {
+        case FlacRepositoryType => Validated.valid(Right(FlacFileLocation(pathAndRepository.path)))
+        case StagingRepositoryType => Validated.valid(Left(StagedFlacFileLocation(pathAndRepository.path)))
+      }
     }
-    if (locations.isEmpty) {
-      Validated.invalidNel(s"You must supply at least 1 $directoryType directory.")
+
+  /**
+    *
+    * Make sure that all staging directories are valid. At this point all that is checked is that
+    * the supplied list is not empty and each directory is of a specified type.
+    * @param repositoryType The directory type name that will be reported in errors.
+    * @param builder A function that converts a path containing object into a [[FileLocation]]
+    * @param pathAndRepositories A list of relative paths to check.
+    * @tparam R The result type.
+    * @return A list of results or a list of errors.
+    */
+  def validateDirectories[R](repositoryType: String, pathAndRepositories: Seq[PathAndRepository])
+                               (builder: PathAndRepository => Validated[String, R]): ValidatedNel[String, Seq[R]] = {
+    val empty: ValidatedNel[String, Seq[R]] = if (pathAndRepositories.isEmpty) {
+      Validated.invalidNel(s"You must supply at least 1 $repositoryType directory.")
     }
     else {
-      Valid(locations)
+      Validated.valid(Seq.empty)
+    }
+    pathAndRepositories.foldLeft(empty) { (validatedLocations, pathAndRepository) =>
+      val validatedLocation = builder(pathAndRepository)
+      (validatedLocations |@| validatedLocation.toValidatedNel).map(_ :+ _)
     }
   }
 
@@ -138,19 +164,19 @@ class CommandBuilderImpl @Inject()(
   override def apply(jsValue: JsValue): ValidatedNel[String, (MessageService) => CommandExecution] = {
     val validatedParameters = jsonToParameters(jsValue)
     validatedParameters.andThen {
-      case CheckinParameters(relativeStagingDirectories) =>
-        validateStagingDirectories(relativeStagingDirectories).map { fls =>
+      case CheckinParameters(relativeDirectories) =>
+        validateStagingDirectories(relativeDirectories).map { fls =>
           (messageService: MessageService) => checkinCommand.checkin(fls)(messageService) }
-      case CheckoutParameters(relativeFlacDirectories, unown) =>
-        validateFlacDirectories(relativeFlacDirectories).map { fls =>
+      case CheckoutParameters(relativeDirectories, unown) =>
+        validateFlacDirectories(relativeDirectories).map { fls =>
           (messageService: MessageService) => checkoutCommand.checkout(fls, unown)(messageService)
         }
-      case OwnParameters(relativeStagingDirectories, usernames) =>
-        (validateStagingDirectories(relativeStagingDirectories) |@| validateUsers(usernames)).map { (fls, us) =>
+      case OwnParameters(relativeStagingOrFlacDirectories, usernames) =>
+        (validateStagingOrFlacDirectories(relativeStagingOrFlacDirectories) |@| validateUsers(usernames)).map { (fls, us) =>
           (messageService: MessageService) => ownCommand.changeOwnership(Own, us, fls)(messageService)
         }
-      case UnownParameters(relativeStagingDirectories, usernames) =>
-        (validateStagingDirectories(relativeStagingDirectories) |@| validateUsers(usernames)).map { (fls, us) =>
+      case UnownParameters(relativeStagingOrFlacDirectories, usernames) =>
+        (validateStagingOrFlacDirectories(relativeStagingOrFlacDirectories) |@| validateUsers(usernames)).map { (fls, us) =>
           (messageService: MessageService) => ownCommand.changeOwnership(Unown, us, fls)(messageService)
         }
       case InitialiseParameters() => Valid {

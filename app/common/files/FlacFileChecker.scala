@@ -20,6 +20,7 @@ import java.nio.file.Path
 
 /**
  * An interface for classes that determine whether a file contains FLAC information or not.
+ *
  * @author alex
  *
  */

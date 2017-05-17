@@ -110,12 +110,13 @@ object Command extends Enum[Command] {
             eParameters.flatMap {
               //noinspection MatchToPartialFunction
               parameters =>
-                Parameters.maybeDirectoryType(parameters) match {
-                case Some(directoryType) =>
-                  parametersBuilder.withExtraDirectory(parameters, datumFilename, directoryType, dir)
-                case _ =>
+                val repositoryTypes = Parameters.repositoryTypes(parameters)
+                if (repositoryTypes.isEmpty) {
                   Left(NonEmptyList.of(s"Command $name does not take file parameters."))
-              }
+                }
+                else {
+                  parametersBuilder.withExtraDirectory(parameters, datumFilename, repositoryTypes, dir)
+                }
             }
           }.text(directoriesDescriptionText)
         }

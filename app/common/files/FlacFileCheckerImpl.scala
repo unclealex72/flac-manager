@@ -18,8 +18,7 @@ package common.files
 
 ;
 
-import java.io.{FileInputStream, InputStream}
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 import javax.inject.Inject
 ;
 
@@ -39,7 +38,7 @@ class FlacFileCheckerImpl @Inject() extends FlacFileChecker {
     * @inheritdoc
     */
   override def isFlacFile(path: Path): Boolean = {
-    val in = new FileInputStream(path.toFile)
+    val in = Files.newInputStream(path)
     try {
       val buffer: Array[Byte] = new Array[Byte](MAGIC_NUMBER.size)
       in.read(buffer) == MAGIC_NUMBER.size && buffer.toVector.equals(MAGIC_NUMBER)

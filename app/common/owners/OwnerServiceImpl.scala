@@ -18,21 +18,32 @@ package common.owners
 
 import javax.inject.Inject
 
+import common.changes.{Change, ChangeDao}
 import common.collections.CollectionDao
 import common.configuration.{User, UserDao}
+import common.files._
 import common.message.{MessageService, Messaging}
 import common.music.Tags
-
-import scala.concurrent.duration._
+import common.now.NowService
+import own.OwnAction
+import own.OwnAction._
 
 /**
   * The default implementation of [[OwnerService]]
   * @param collectionDao The [[CollectionDao]] used to read and alter user's collections.
+  * @param fileSystem The [[FileSystem]] used to link and remove device files.
+  * @param nowService The [[NowService]] used to get the current time.
+  * @param changeDao The [[ChangeDao]] used to tell devices that encoded files need to be added or removed.
+  * @param fileLocationExtensions The [[FileLocationExtensions]] used to enrich file locations.
   * @param userDao The [[UserDao]] used to list the current users.
   */
 class OwnerServiceImpl @Inject()(
                                   val collectionDao: CollectionDao,
-                                  val userDao: UserDao) extends OwnerService with Messaging {
+                                  val fileSystem: FileSystem,
+                                  val nowService: NowService,
+                                  val userDao: UserDao)
+                                (implicit val changeDao: ChangeDao,
+                                 val fileLocationExtensions: FileLocationExtensions) extends OwnerService with Messaging {
 
   /**
     * @inheritdoc
@@ -49,20 +60,57 @@ class OwnerServiceImpl @Inject()(
   /**
     * @inheritdoc
     */
-  override def own(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit = {
-    changeOwnership(user, tags, collectionDao.addReleases)
+  override def changeStagedOwnership(
+                                      user: User,
+                                      action: OwnAction,
+                                      albumId: String,
+                                      stagedFlacFileLocations: Seq[StagedFlacFileLocation])
+                                    (implicit messageService: MessageService): Unit = {
+    changeOwnership(user, action, albumId, Seq.empty)
+  }
+
+  /**
+    * @inheritdoc
+    */
+  override def changeFlacOwnership(
+                                    user: User,
+                                    action: OwnAction,
+                                    albumId: String,
+                                    flacFileLocations: Seq[FlacFileLocation])
+                                  (implicit messageService: MessageService): Unit = {
+    changeOwnership(user, action, albumId, flacFileLocations.map(_.toEncodedFileLocation))
+  }
+
+  def changeOwnership(
+                       user: User,
+                       action: OwnAction,
+                       albumId: String,
+                       encodedFileLocations: Seq[EncodedFileLocation])
+                     (implicit messageService: MessageService): Unit = {
+    action match {
+      case Own =>
+        collectionDao.addReleases(user, Set(albumId))
+        encodedFileLocations.foreach { encodedFileLocation =>
+          val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
+          fileSystem.link(encodedFileLocation, deviceFileLocation)
+          Change.added(deviceFileLocation).store
+        }
+      case Unown =>
+        collectionDao.removeReleases(user, Set(albumId))
+        encodedFileLocations.foreach { encodedFileLocation =>
+          val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
+          fileSystem.remove(deviceFileLocation)
+          Change.removed(deviceFileLocation, nowService.now()).store
+        }
+    }
   }
 
   /**
     * @inheritdoc
     */
   override def unown(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit = {
-    changeOwnership(user, tags, collectionDao.removeReleases)
-  }
-
-  private def changeOwnership(user: User, tags: Set[Tags], block: (User, Set[String]) => Unit): Unit = {
     val albumIds = tags.map(_.albumId)
-    block(user, albumIds)
+    collectionDao.removeReleases(user, albumIds)
   }
 
 }

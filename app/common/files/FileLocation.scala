@@ -562,3 +562,11 @@ object DeviceFileLocation {
   def apply(user: String, relativePath: Path)(implicit directories: Directories): DeviceFileLocation =
     DeviceFileLocationImpl(user, relativePath, directories)
 }
+
+/**
+  * Contains ordering for [[FileLocation]]s.
+  */
+object FileLocation {
+
+  implicit def ordering[FL <: FileLocation]: Ordering[FL] = Ordering.by(_.toPath)
+}

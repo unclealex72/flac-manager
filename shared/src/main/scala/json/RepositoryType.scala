@@ -23,7 +23,13 @@ import scala.collection.immutable.IndexedSeq
 /**
   * The different types of repository that clients need to understand.
   */
-sealed trait RepositoryType extends EnumEntry
+sealed trait RepositoryType extends EnumEntry {
+
+  /**
+    * The string used to identify this repository type.
+    */
+  val identifier: String
+}
 
 /**
   * The different types of repository that clients need to understand.
@@ -33,12 +39,16 @@ object RepositoryType extends Enum[RepositoryType] {
   /**
     * The repository of flac files
     */
-  case object FlacRepositoryType extends RepositoryType
+  case object FlacRepositoryType extends RepositoryType {
+    override val identifier: String = "FLAC"
+  }
 
   /**
     * The repository of staged flac files.
     */
-  case object StagingRepositoryType extends RepositoryType
+  case object StagingRepositoryType extends RepositoryType {
+    override val identifier: String = "STAGING"
+  }
 
   val values: IndexedSeq[RepositoryType] = findValues
 }
