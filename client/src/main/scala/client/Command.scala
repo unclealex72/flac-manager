@@ -46,17 +46,22 @@ sealed trait Command extends EnumEntry {
   /**
     * The text to show for the users options, or none if not applicable.
     */
-  val usersDescriptionText: Option[String]
+  val maybeUsersDescriptionText: Option[String]
 
   /**
     * The text to describe files, or none if not applicable.
     */
-  val directoriesDescriptionText: Option[String]
+  val maybeDirectoriesDescriptionText: Option[String]
 
   /**
     * The text to describe the unown flag, or none if not applicable.
     */
-  val unownText: Option[String]
+  val maybeUnownText: Option[String]
+
+  /**
+    * The text to describe the allow unowned flag, or none if not applicable.
+    */
+  val maybeAllowUnownedText: Option[String]
 
   /**
     * Parse arguments from the command line.
@@ -90,22 +95,28 @@ object Command extends Enum[Command] {
       val parser = new scopt.OptionParser[Either[NonEmptyList[String], P]](s"flacman-$name") {
         head(usageText)
 
-        usersDescriptionText.foreach { usersDescriptionText =>
+        maybeUsersDescriptionText.foreach { usersDescriptionText =>
           opt[Seq[String]]('u', "users").required().valueName("<user1>,<user2>...").action { (users, eParameters) =>
             eParameters.flatMap { parameters => parametersBuilder.withUsers(parameters, users)
             }
           }.text(usersDescriptionText)
         }
 
-        unownText.foreach { unownText =>
+        maybeUnownText.foreach { unownText =>
           opt[Unit]("unown").optional().action { (_, eParameters) =>
             eParameters.flatMap { parameters => parametersBuilder.withUnown(parameters, unown = true) }
           }.text(unownText)
         }
 
+        maybeAllowUnownedText.foreach { allowUnownedText =>
+          opt[Unit]("allow-unowned").optional().action { (_, eParameters) =>
+            eParameters.flatMap { parameters => parametersBuilder.withAllowUnowned(parameters, allowUnowned = true) }
+          }.text(allowUnownedText)
+        }
+
         help("help").text("Prints this usage text.")
 
-        directoriesDescriptionText.foreach { directoriesDescriptionText =>
+        maybeDirectoriesDescriptionText.foreach { directoriesDescriptionText =>
           arg[Path]("<file>...").unbounded().required().action { (dir, eParameters) =>
             eParameters.flatMap {
               //noinspection MatchToPartialFunction
@@ -138,9 +149,10 @@ object Command extends Enum[Command] {
     OwnParametersBuilder) with Command {
     val name = "own"
     val usageText = "Add owners to staged flac files."
-    val usersDescriptionText: Option[String] = Some("The users who will own the files.")
-    val directoriesDescriptionText: Option[String] = Some("The files to be owned.")
-    val unownText: Option[String] = None
+    val maybeUsersDescriptionText: Option[String] = Some("The users who will own the files.")
+    val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be owned.")
+    val maybeUnownText: Option[String] = None
+    val maybeAllowUnownedText: Option[String] = None
   }
 
   /**
@@ -151,9 +163,10 @@ object Command extends Enum[Command] {
     UnownParametersBuilder) with Command {
     val name = "unown"
     val usageText = "Remove owners from staged flac files."
-    val usersDescriptionText: Option[String] = Some("The users who will no longer own the files.")
-    val directoriesDescriptionText: Option[String] = Some("The files to be unowned.")
-    val unownText: Option[String] = None
+    val maybeUsersDescriptionText: Option[String] = Some("The users who will no longer own the files.")
+    val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be unowned.")
+    val maybeUnownText: Option[String] = None
+    val maybeAllowUnownedText: Option[String] = None
   }
 
   /**
@@ -164,9 +177,10 @@ object Command extends Enum[Command] {
     CheckinParametersBuilder) with Command {
     val name = "checkin"
     val usageText = "Check in staged flac files."
-    val usersDescriptionText: Option[String] = None
-    val directoriesDescriptionText: Option[String] = Some("The files to be checked in.")
-    val unownText: Option[String] = None
+    val maybeUsersDescriptionText: Option[String] = None
+    val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be checked in.")
+    val maybeUnownText: Option[String] = None
+    val maybeAllowUnownedText: Option[String] = Some("Allow files without owners to be checked in.")
   }
 
   /**
@@ -177,9 +191,10 @@ object Command extends Enum[Command] {
     CheckoutParametersBuilder) with Command {
     val name = "checkout"
     val usageText = "Check out flac files."
-    val usersDescriptionText: Option[String] = None
-    val directoriesDescriptionText: Option[String] = Some("The files to be checked out.")
-    val unownText: Option[String] = Some("Also unown any checked out files.")
+    val maybeUsersDescriptionText: Option[String] = None
+    val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be checked out.")
+    val maybeUnownText: Option[String] = Some("Also unown any checked out files.")
+    val maybeAllowUnownedText: Option[String] = None
   }
 
   val values: immutable.IndexedSeq[Command] = findValues

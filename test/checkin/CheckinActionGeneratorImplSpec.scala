@@ -69,7 +69,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
       val sfl = StagedFlacFileLocation("bad.flac")
       flacFileChecker.isFlacFile(sfl) returns true
       tagsService.read(sfl) returns Invalid(NonEmptyList.of(""))
-      actionGenerator.generate(Seq(sfl)).toEither must beLeft(NonEmptyList.of(INVALID_FLAC(sfl)))
+      actionGenerator.generate(Seq(sfl), allowUnowned = false).toEither must beLeft(NonEmptyList.of(INVALID_FLAC(sfl)))
     }
 
     "not allow flac files that would overwrite an existing file" in new Context {
@@ -79,7 +79,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
       flacFileChecker.isFlacFile(sfl) returns true
       tagsService.read(sfl) returns Valid(tags)
       fileLocationExtensions.exists(fl) returns true
-      actionGenerator.generate(Seq(sfl)).toEither must beLeft(NonEmptyList.of(OVERWRITE(sfl, fl)))
+      actionGenerator.generate(Seq(sfl), allowUnowned = false).toEither must beLeft(NonEmptyList.of(OVERWRITE(sfl, fl)))
     }
 
     "not allow two flac files that would have the same file name" in new Context {
@@ -93,18 +93,21 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
       }
       ownerService.listCollections().returns(_ => Set(brian))
       fileLocationExtensions.exists(fl) returns false
-      actionGenerator.generate(Seq(sfl1, sfl2, sfl3)).toEither must beLeft(NonEmptyList.of(NON_UNIQUE(fl, Set(sfl1, sfl2, sfl3))))
+      actionGenerator.generate(Seq(sfl1, sfl2, sfl3), allowUnowned = false).toEither must beLeft(
+        NonEmptyList.of(NON_UNIQUE(fl, Set(sfl1, sfl2, sfl3))))
     }
   }
 
-  "not allow flac files that don't have an owner" in new Context {
+  "not allow flac files that don't have an owner without the allow unowned flag" in new Context {
     val sfl = StagedFlacFileLocation("good.flac")
     val fl: FlacFileLocation = sfl.toFlacFileLocation(tags)
     flacFileChecker.isFlacFile(sfl) returns true
     tagsService.read(sfl) returns Valid(tags)
     fileLocationExtensions.exists(fl) returns false
     ownerService.listCollections() returns { _ => Set()}
-    actionGenerator.generate(Seq(sfl)).toEither must beLeft(NonEmptyList.of(NOT_OWNED(sfl)))
+    actionGenerator.generate(Seq(sfl), allowUnowned = false).toEither must beLeft(NonEmptyList.of(NOT_OWNED(sfl)))
+    actionGenerator.generate(Seq(sfl), allowUnowned = true).toEither must beRight(
+      Seq(Encode(sfl, fl, tags, Set.empty)))
   }
 
   "Allow valid flac files an non-flac files" in new Context {
@@ -116,7 +119,8 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
     tagsService.read(sfl1) returns Valid(tags)
     fileLocationExtensions.exists(fl) returns false
     ownerService.listCollections() returns { _ => Set(brian)}
-    actionGenerator.generate(Seq(sfl1, sfl2)).toEither must beRight(Seq(Encode(sfl1, fl, tags, Set(brian)), Delete(sfl2)))
+    actionGenerator.generate(Seq(sfl1, sfl2), allowUnowned = false).toEither must beRight(
+      Seq(Encode(sfl1, fl, tags, Set(brian)), Delete(sfl2)))
   }
 
 }

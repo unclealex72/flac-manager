@@ -164,9 +164,9 @@ class CommandBuilderImpl @Inject()(
   override def apply(jsValue: JsValue): ValidatedNel[String, (MessageService) => CommandExecution] = {
     val validatedParameters = jsonToParameters(jsValue)
     validatedParameters.andThen {
-      case CheckinParameters(relativeDirectories) =>
+      case CheckinParameters(relativeDirectories, allowUnowned) =>
         validateStagingDirectories(relativeDirectories).map { fls =>
-          (messageService: MessageService) => checkinCommand.checkin(fls)(messageService) }
+          (messageService: MessageService) => checkinCommand.checkin(fls, allowUnowned)(messageService) }
       case CheckoutParameters(relativeDirectories, unown) =>
         validateFlacDirectories(relativeDirectories).map { fls =>
           (messageService: MessageService) => checkoutCommand.checkout(fls, unown)(messageService)

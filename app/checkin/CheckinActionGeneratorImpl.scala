@@ -40,10 +40,11 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
   /**
     * @inheritdoc
     */
-  override def generate(stagedFlacFileLocations: Seq[StagedFlacFileLocation]): ValidatedNel[Message, Seq[Action]] = {
+  override def generate(stagedFlacFileLocations: Seq[StagedFlacFileLocation],
+                        allowUnowned: Boolean): ValidatedNel[Message, Seq[Action]] = {
     val (flacFileLocations, nonFlacFileLocations) = partitionFlacAndNonFlacFiles(stagedFlacFileLocations)
     // Validate the flac files only as non flac files just get deleted.
-    validate(flacFileLocations).map(_.map(_.toAction)).map { actions =>
+    validate(flacFileLocations, allowUnowned).map(_.map(_.toAction)).map { actions =>
       actions ++ nonFlacFileLocations.map(Delete)
     }
   }
@@ -52,16 +53,18 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
     * Validate a sequence of staged flac files.
     *
     * @param fileLocations The staged flac files to check.
+    * @param allowUnowned True if unowned files are allowed to be checked in, false otherwise.
     * @return A [[ValidatedNel]] that contains either a sequence of [[OwnedFlacFile]]s or a non-empty list
     *         of [[Message]]s to log in the case of failure.
     */
-  def validate(fileLocations: Seq[StagedFlacFileLocation]): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
+  def validate(fileLocations: Seq[StagedFlacFileLocation],
+               allowUnowned: Boolean): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
     val validatedValidFlacFiles =
       checkThereAreSomeFiles(fileLocations).andThen(checkFullyTaggedFlacFiles)
     validatedValidFlacFiles.andThen { validFlacFiles =>
       (checkDoesNotOverwriteExistingFlacFile(validFlacFiles) |@|
         checkTargetFlacFilesAreUnique(validFlacFiles) |@|
-        checkFlacFilesAreOwned(validFlacFiles)).map((_, _, ownedFlacFiles) => ownedFlacFiles)
+        checkFlacFilesAreOwned(validFlacFiles, allowUnowned)).map((_, _, ownedFlacFiles) => ownedFlacFiles)
     }
   }
 
@@ -137,19 +140,25 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
   }
 
   /**
-    * Make sure that each flac file has at least one owner.
+    * Make sure that each flac file has at least one owner if unowned flac files are not allowed.
     * @param validFlacFiles The [[ValidFlacFile]]s to check.
     * @return A sequence of [[OwnedFlacFile]]s or [[NOT_OWNED]] for those that have no owner.
     */
-  def checkFlacFilesAreOwned(validFlacFiles: Seq[ValidFlacFile]): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
-    val hasOwners: Tags => Set[User] = ownerService.listCollections()
-    runValidation(validFlacFiles) { validFlacFile =>
-      val owners = hasOwners(validFlacFile.tags)
-      if (owners.isEmpty) {
-        Validated.invalid(NOT_OWNED(validFlacFile.stagedFileLocation))
-      }
-      else {
-        Validated.valid(validFlacFile.ownedBy(owners))
+  def checkFlacFilesAreOwned(validFlacFiles: Seq[ValidFlacFile],
+                             allowUnowned: Boolean): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
+    if (allowUnowned) {
+      Validated.valid(validFlacFiles.map(_.ownedBy(Set.empty)))
+    }
+    else {
+      val hasOwners: Tags => Set[User] = ownerService.listCollections()
+      runValidation(validFlacFiles) { validFlacFile =>
+        val owners = hasOwners(validFlacFile.tags)
+        if (owners.isEmpty) {
+          Validated.invalid(NOT_OWNED(validFlacFile.stagedFileLocation))
+        }
+        else {
+          Validated.valid(validFlacFile.ownedBy(owners))
+        }
       }
     }
   }

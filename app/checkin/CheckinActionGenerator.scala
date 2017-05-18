@@ -39,8 +39,10 @@ trait CheckinActionGenerator {
     * Generate actions and validate staged flac file locations as described above.
     * @param stagedFlacFileLocations The sequence of staged flac files to first validate and then generate the
     *                                checkin actions for.
+    *@param allowUnowned True if unowned files can be checked in, false otherwise.
     * @return A [[ValidatedNel]] that contains either the sequence of actions or a non-empty list of error log
     *         messages.
     */
-  def generate(stagedFlacFileLocations: Seq[StagedFlacFileLocation]): ValidatedNel[Message, Seq[Action]]
+  def generate(stagedFlacFileLocations: Seq[StagedFlacFileLocation],
+               allowUnowned: Boolean): ValidatedNel[Message, Seq[Action]]
 }

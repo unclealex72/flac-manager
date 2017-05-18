@@ -58,6 +58,14 @@ trait ParametersBuilder[P <: Parameters] {
     * @return either a new parameters object with the unown flag or a list of errors.
     */
   def withUnown(parameters: P, unown: Boolean): Either[NonEmptyList[String], P]
+
+  /**
+    * Add an allowUnowned flag in the command line to the parameters object.
+    * @param parameters The current parameters object
+    * @param allowUnowned The value of the allowUnowned flag.
+    * @return either a new parameters object with the allowUnowned flag or a list of errors.
+    */
+  def withAllowUnowned(parameters: P, allowUnowned: Boolean): Either[NonEmptyList[String], P]
 }
 
 /**
@@ -108,8 +116,21 @@ class FailingParametersBuilder[P <: Parameters](val commandName: String) extends
     fail("an unown flag")
   }
 
+
+  /**
+    * Fail to add an allowUnowned flag.
+    * @param parameters The current parameters object
+    * @param allowUnowned The value of the allowUnowned flag.
+    * @return either a new parameters object with the unown flag or a list of errors.
+    */
+  override def withAllowUnowned(parameters: P, allowUnowned: Boolean): Either[NonEmptyList[String], P] = {
+    fail("an allow unowned flag")
+
+  }
+
   /**
     * Convert a directory in to a relative path and add it to a list of relative directories.
+    *
     * @param relativeDirectories The current list of relative directories.
     * @param datumFilename The name of the server's datum file.
     * @param repositoryTypes The directory type, either staging or flac.
@@ -143,6 +164,18 @@ object CheckinParametersBuilder extends FailingParametersBuilder[CheckinParamete
     extraDirectory(parameters.relativeDirectories, datumFilename, repositoryTypes, directory).map { paths =>
       parameters.copy(relativeDirectories = paths)
     }
+  }
+
+  /**
+    * Add an allowUnowned flag in the command line to the parameters object.
+    *
+    * @param parameters   The current parameters object
+    * @param allowUnowned The value of the allowUnowned flag.
+    * @return either a new parameters object with the allowUnowned flag or a list of errors.
+    */
+  override def withAllowUnowned(parameters: CheckinParameters,
+                                allowUnowned: Boolean): Either[NonEmptyList[String], CheckinParameters] = {
+    Right(parameters.copy(allowUnowned = allowUnowned))
   }
 }
 

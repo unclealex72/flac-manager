@@ -43,13 +43,13 @@ class ParametersParserSpec extends Specification {
       parse(datumFilename, "checkout", "music/flac/Q", "--unown") must beRight(
         Json.obj(
           "command" -> Json.fromString("checkout"),
-          "relativeFlacDirectories" -> Json.arr(Json.fromString("Q")),
+          "relativeDirectories" -> Json.arr(jsonFlac("Q")),
           "unown" -> Json.fromBoolean(true)
         )
       )
     }
     "not allow directories in the staging directory to be checked out" in {
-      parse(datumFilename, "checkout", "music/staging/N") must failWith("/data/music/staging/N is not a flac directory.")
+      parse(datumFilename, "checkout", "music/staging/N") must failWith("/data/music/staging/N is not relative to one of the following repositories: FLAC")
     }
     "not allow files in the flac directory to be checked out" in {
       parse(datumFilename, "checkout", "music/staging/Q/Queen/A Night at the Opera/01 Death on Two Legs.mp3") must failWith(
@@ -60,15 +60,17 @@ class ParametersParserSpec extends Specification {
 
   "Checking in files" should {
     "allow directories in the staging directory to be checked in" in {
-      parse(datumFilename, "checkin", "music/staging/N") must beRight(
+      parse(datumFilename, "checkin", "--allow-unowned", "music/staging/N") must beRight(
         Json.obj(
           "command" -> Json.fromString("checkin"),
-          "relativeStagingDirectories" -> Json.arr(Json.fromString("N"))
+          "relativeDirectories" -> Json.arr(jsonStaging("N")),
+          "allowUnowned" -> Json.fromBoolean(true)
         )
       )
     }
     "not allow directories in the flac directory to be checked in" in {
-      parse(datumFilename, "checkin", "music/flac/Q") must failWith("/data/music/flac/Q is not a staging directory.")
+      parse(datumFilename, "checkin", "music/flac/Q") must
+        failWith("/data/music/flac/Q is not relative to one of the following repositories: STAGING")
     }
     "not allow files in the staging directory to be checked out" in {
       parse(datumFilename, "checkin", "music/staging/N/Napalm Death/Scum/01 You Suffer.mp3") must failWith(
@@ -83,20 +85,16 @@ class ParametersParserSpec extends Specification {
   }
 
   "Owning files" should {
-    "allow directories in the staging directory to be owned" in {
-      parse(datumFilename, "own", "--users", "alex,trevor", "music/staging/N") must beRight(
+    "allow directories in the staging or flac directory to be owned" in {
+      parse(datumFilename, "own", "--users", "alex,trevor", "music/staging/N", "music/flac/Q") must beRight(
         Json.obj(
           "command" -> Json.fromString("own"),
-          "relativeStagingDirectories" -> Json.arr(Json.fromString("N")),
+          "relativeDirectories" -> Json.arr(jsonStaging("N"), jsonFlac("Q")),
           "users" -> Json.arr(Json.fromString("alex"), Json.fromString("trevor"))
         )
       )
     }
-    "not allow directories in the flac directory to be owned" in {
-      parse(datumFilename, "own", "--users", "alex,trevor", "music/flac/Q") must failWith("" +
-        "/data/music/flac/Q is not a staging directory.")
-    }
-    "not allow files in the staging directory to be owned" in {
+    "not allow files in be owned" in {
       parse(
         datumFilename,
         "own",
@@ -111,6 +109,12 @@ class ParametersParserSpec extends Specification {
   private def failWith(message: String) = {
     beLeft(NonEmptyList.of(message))
   }
+
+  def jsonRepo(repoType: String)(relativePath: String): Json =
+    Json.obj("path" -> Json.fromString(relativePath), "repositoryType" -> Json.fromString(repoType))
+
+  def jsonStaging: String => Json = jsonRepo("STAGING")
+  def jsonFlac: String => Json = jsonRepo("FLAC")
 
   def parse(datumFilename: String, args: String*)(implicit fs: FileSystem) = ParametersParser(datumFilename, args)
   def random(): String = s".${UUID.randomUUID()}"

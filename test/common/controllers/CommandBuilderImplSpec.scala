@@ -59,6 +59,7 @@ class CommandBuilderImplSpec extends Specification {
         JsObject(
           Seq(
             "command" -> JsString("checkin"),
+            "allowUnowned" -> JsBoolean(false),
             "relativeDirectories" -> JsArray()))
       }
       validatedResult must beLeft { (es: NonEmptyList[String]) =>
@@ -70,6 +71,7 @@ class CommandBuilderImplSpec extends Specification {
         JsObject(
           Seq(
             "command" -> JsString("checkin"),
+            "allowUnowned" -> JsBoolean(false),
             "relativeDirectories" -> JsArray(Seq(flacObj("A"), stagingObj("B")))))
       }
       validatedResult must beLeft { (es: NonEmptyList[String]) =>
@@ -81,10 +83,11 @@ class CommandBuilderImplSpec extends Specification {
         JsObject(
           Seq(
             "command" -> JsString("checkin"),
+            "allowUnowned" -> JsBoolean(true),
             "relativeDirectories" -> JsArray(Seq(stagingObj("A"), stagingObj("B")))))
       }
       validatedResult must beRight { (p: Parameters) =>
-        p must be_==(CheckinParameters(List(staging("A"), staging("B"))))
+        p must be_==(CheckinParameters(List(staging("A"), staging("B")), allowUnowned = true))
       }
     }
   }
@@ -213,8 +216,8 @@ class CommandBuilderImplSpec extends Specification {
     }
 
     val checkinCommand: CheckinCommand = new CheckinCommand {
-      override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandExecution = {
-        commandType(CheckinParameters(locations.map(l => PathAndRepository(l.relativePath, StagingRepositoryType))))
+      override def checkin(locations: Seq[StagedFlacFileLocation], allowUnowned: Boolean)(implicit messageService: MessageService): CommandExecution = {
+        commandType(CheckinParameters(locations.map(l => PathAndRepository(l.relativePath, StagingRepositoryType)), allowUnowned))
       }
     }
     val checkoutCommand: CheckoutCommand = new CheckoutCommand {

@@ -39,9 +39,10 @@ class CheckinCommandImpl @Inject()(
   /**
     * @inheritdoc
     */
-  override def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandExecution = {
+  override def checkin(locations: Seq[StagedFlacFileLocation],
+                       allowUnowned: Boolean)(implicit messageService: MessageService): CommandExecution = {
     val fileLocations = directoryService.listFiles(locations).toSeq
-    actionGenerator.generate(fileLocations) match {
+    actionGenerator.generate(fileLocations, allowUnowned) match {
       case Valid(actions) =>
         checkinService.checkin(actions.sorted)
       case Invalid(messageTypes) => synchronous {

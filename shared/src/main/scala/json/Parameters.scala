@@ -30,8 +30,9 @@ sealed trait Parameters
 /**
   * The `checkin` command
   * @param relativeDirectories A list of paths relative to the staging repository.
+  * @param allowUnowned A flag to indicate whether files without owners can be checked in.
   */
-case class CheckinParameters(relativeDirectories: Seq[PathAndRepository] = Seq.empty) extends Parameters
+case class CheckinParameters(relativeDirectories: Seq[PathAndRepository] = Seq.empty, allowUnowned: Boolean = false) extends Parameters
 
 /**
   * The `checkout` command
@@ -108,7 +109,7 @@ object Parameters {
       Decoder.forProduct2("path", "repositoryType")(PathAndRepository.apply)
 
     val checkinParametersDecoder =
-      Decoder.forProduct1("relativeDirectories")(CheckinParameters.apply)
+      Decoder.forProduct2("relativeDirectories", "allowUnowned")(CheckinParameters.apply)
     val checkoutParametersDecoder =
       Decoder.forProduct2("relativeDirectories", "unown")(CheckoutParameters.apply)
     val ownParametersDecoder =
@@ -158,7 +159,7 @@ object Parameters {
       Encoder.forProduct2("path", "repositoryType")(par => (par.path, par.repositoryType))
 
     val checkinParametersEncoder: Encoder[CheckinParameters] =
-      Encoder.forProduct1("relativeDirectories")(cp => cp.relativeDirectories)
+      Encoder.forProduct2("relativeDirectories", "allowUnowned")(cp => (cp.relativeDirectories, cp.allowUnowned))
     val checkoutParametersEncoder: Encoder[CheckoutParameters] =
       Encoder.forProduct2("relativeDirectories", "unown")(cp => (cp.relativeDirectories, cp.unown))
     val ownParametersEncoder: Encoder[OwnParameters] =

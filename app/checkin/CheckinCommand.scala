@@ -28,9 +28,11 @@ trait CheckinCommand {
   /**
     * Check in a set of staged flac files.
     * @param locations The files to check in
+    * @param allowUnowned True if unowned files should be allowed to be checked in, false otherwise.
     * @param messageService The [[MessageService]] used to report progress.
     * @return A [[CommandExecution]] that checks in a list of flac files to the staging repository.
     */
-  def checkin(locations: Seq[StagedFlacFileLocation])(implicit messageService: MessageService): CommandExecution
+  def checkin(locations: Seq[StagedFlacFileLocation],
+              allowUnowned: Boolean)(implicit messageService: MessageService): CommandExecution
 
 }
