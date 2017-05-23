@@ -89,6 +89,12 @@ object Messages {
     Message("nonUnique", flacFileLocation, stagedFlacFileLocations)
 
   /**
+    * The key for producing multi disc messages.
+    */
+  case class MULTI_DISC(stagedFlacFileLocation: StagedFlacFileLocation) extends
+    Message("multiDisc", stagedFlacFileLocation)
+
+  /**
    * The key for producing link messages.
    */
   case class LINK(fileLocation: FileLocation,

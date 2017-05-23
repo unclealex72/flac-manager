@@ -18,12 +18,13 @@ package checkin
 import javax.inject.Inject
 
 import cats.data.Validated.{Invalid, Valid}
-import cats.data.{Validated, ValidatedNel}
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.implicits._
 import common.configuration.User
 import common.files.{FileLocationExtensions, FlacFileChecker, FlacFileLocation, StagedFlacFileLocation}
 import common.message.Message
 import common.message.Messages._
+import common.multi.AllowMultiService
 import common.music.{Tags, TagsService}
 import common.owners.OwnerService
 import common.validation.SequentialValidation
@@ -31,7 +32,7 @@ import common.validation.SequentialValidation
 /**
   * The default implementation of [[CheckinActionGenerator]]
   **/
-class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
+class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService, val allowMultiService: AllowMultiService)
                                           (implicit val flacFileChecker: FlacFileChecker,
                                      val tagsService: TagsService,
                                      val fileLocationExtensions: FileLocationExtensions)
@@ -64,7 +65,8 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
     validatedValidFlacFiles.andThen { validFlacFiles =>
       (checkDoesNotOverwriteExistingFlacFile(validFlacFiles) |@|
         checkTargetFlacFilesAreUnique(validFlacFiles) |@|
-        checkFlacFilesAreOwned(validFlacFiles, allowUnowned)).map((_, _, ownedFlacFiles) => ownedFlacFiles)
+        checkForMultiDisc(validFlacFiles) |@|
+        checkFlacFilesAreOwned(validFlacFiles, allowUnowned)).map((_, _, _, ownedFlacFiles) => ownedFlacFiles)
     }
   }
 
@@ -137,6 +139,27 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService)
         Validated.invalid(NON_UNIQUE(flacFileLocation, nonUniqueValidFlacFiles.map(_.stagedFileLocation).toSet))
     }
     (uniqueFlacFiles |@| nonUniqueFlacFiles).map((uffs, _) => uffs)
+  }
+
+  /**
+    * Make sure that if albums with multiple discs are not allowed then no files have a disc number greater than 1.
+    * @param validFlacFiles The set of valid flac files to check.
+    * @return The sequence of valid flac files that non-multi disc or [[MULTI_DISC]] for each one that isn't.
+    */
+  def checkForMultiDisc(validFlacFiles: Seq[ValidFlacFile]): ValidatedNel[Message, Seq[ValidFlacFile]] = {
+    val maybeMultiDiscFlacFiles: Option[NonEmptyList[ValidFlacFile]] = for {
+      _ <- Some(()).filterNot(_ => allowMultiService.allowMulti) // Short circuit if multi discs are allowed
+      multiDiscFlacFiles <- NonEmptyList.fromList(
+        validFlacFiles.filter(vff => vff.tags.discNumber > 1).toList)
+    } yield {
+      multiDiscFlacFiles
+    }
+    maybeMultiDiscFlacFiles match {
+      case Some(multiDiscFlacFiles) =>
+        Validated.invalid(multiDiscFlacFiles.map(vff => MULTI_DISC(vff.stagedFileLocation)))
+      case None =>
+        Validated.valid(validFlacFiles)
+    }
   }
 
   /**

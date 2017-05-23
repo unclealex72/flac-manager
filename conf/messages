@@ -7,6 +7,7 @@ move = Moving {0} to {1}
 invalidFlac = {0} is not a valid FLAC file
 overwrite = {0} would overwrite {1}
 nonUnique = The following files all resolve to {0}: {1}
+multiDisc = {0} is not on the first disc of an album.
 link = Linking {0} to {1}
 unlink = Unlinking {0} from {1}
 notOwned = {0} has no owners

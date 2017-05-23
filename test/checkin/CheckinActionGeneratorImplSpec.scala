@@ -23,6 +23,7 @@ import common.files.FileLocationToPathImplicits._
 import common.files._
 import common.message.Messages._
 import common.message.TestMessageService
+import common.multi.AllowMultiService
 import common.music.{CoverArt, Tags, TagsService}
 import common.owners.OwnerService
 import org.specs2.mock.Mockito
@@ -35,13 +36,16 @@ import org.specs2.specification.Scope
 class CheckinActionGeneratorImplSpec extends Specification with Mockito {
 
   trait Context extends Scope {
+    val _allowMulti: Boolean
     lazy implicit val flacFileChecker: FlacFileChecker = mock[FlacFileChecker]
     lazy val ownerService: OwnerService = mock[OwnerService]
     lazy implicit val tagsService: TagsService = mock[TagsService]
     lazy implicit val messageService = TestMessageService()
     lazy implicit val fileLocationExtensions: TestFileLocationExtensions = mock[TestFileLocationExtensions]
     lazy val checkinService: CheckinService = mock[CheckinService]
-    lazy val actionGenerator = new CheckinActionGeneratorImpl(ownerService)
+    lazy val actionGenerator = new CheckinActionGeneratorImpl(ownerService, new AllowMultiService {
+      override def allowMulti: Boolean = _allowMulti
+    })
     implicit val directories = TestDirectories()
     val tags = Tags(
       album = "Metal: A Headbanger's Companion",
@@ -60,12 +64,30 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
       totalDiscs = 6,
       totalTracks = 17,
       trackNumber = 3)
+    val discTwoTags = Tags(
+      album = "Metal: A Headbanger's Companion",
+      albumArtist = "Various Artists",
+      albumArtistId = "89ad4ac3-39f7-470e-963a-56509c546377",
+      albumArtistSort = "Various Artists Sort",
+      albumId = "6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e",
+      artist = "Napalm Death",
+      artistId = "ce7bba8b-026b-4aa6-bddb-f98ed6d595e4",
+      artistSort = "Napalm Death Sort",
+      asin = Some("B000Q66HUA"),
+      title = "Suffer The Children",
+      trackId = "5b0ef8e9-9b55-4a3e-aca6-d816d6bbc00f",
+      coverArt = CoverArt(Array[Byte](), ""),
+      discNumber = 2,
+      totalDiscs = 6,
+      totalTracks = 17,
+      trackNumber = 3)
     val brian: User = User("Brian")
     val fileLocations = Seq.empty[StagedFlacFileLocation]
   }
 
   "Validating checked in files" should {
     "not allow flac files that are not fully tagged" in new Context {
+      val _allowMulti = false
       val sfl = StagedFlacFileLocation("bad.flac")
       flacFileChecker.isFlacFile(sfl) returns true
       tagsService.read(sfl) returns Invalid(NonEmptyList.of(""))
@@ -73,6 +95,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
     }
 
     "not allow flac files that would overwrite an existing file" in new Context {
+      val _allowMulti = false
       val sfl = StagedFlacFileLocation("good.flac")
       val fl: FlacFileLocation = sfl.toFlacFileLocation(tags)
       ownerService.listCollections().returns(_ => Set(brian))
@@ -83,6 +106,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
     }
 
     "not allow two flac files that would have the same file name" in new Context {
+      val _allowMulti = false
       val sfl1 = StagedFlacFileLocation("good.flac")
       val sfl2 = StagedFlacFileLocation("bad.flac")
       val sfl3 = StagedFlacFileLocation("ugly.flac")
@@ -99,6 +123,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
   }
 
   "not allow flac files that don't have an owner without the allow unowned flag" in new Context {
+    val _allowMulti = false
     val sfl = StagedFlacFileLocation("good.flac")
     val fl: FlacFileLocation = sfl.toFlacFileLocation(tags)
     flacFileChecker.isFlacFile(sfl) returns true
@@ -111,6 +136,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
   }
 
   "Allow valid flac files an non-flac files" in new Context {
+    val _allowMulti = false
     val sfl1 = StagedFlacFileLocation("good.flac")
     val sfl2 = StagedFlacFileLocation("bad.flac")
     val fl: FlacFileLocation = sfl1.toFlacFileLocation(tags)
@@ -123,4 +149,27 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
       Seq(Encode(sfl1, fl, tags, Set(brian)), Delete(sfl2)))
   }
 
+  "Allow multi disc flac files if so configured" in new Context {
+    val _allowMulti = true
+    val sfl1 = StagedFlacFileLocation("good.flac")
+    val fl: FlacFileLocation = sfl1.toFlacFileLocation(discTwoTags)
+    flacFileChecker.isFlacFile(sfl1) returns true
+    tagsService.read(sfl1) returns Valid(discTwoTags)
+    fileLocationExtensions.exists(fl) returns false
+    ownerService.listCollections() returns { _ => Set(brian)}
+    actionGenerator.generate(Seq(sfl1), allowUnowned = false).toEither must beRight(
+      Seq(Encode(sfl1, fl, discTwoTags, Set(brian))))
+  }
+
+  "Not allow multi disc flac files if so configured" in new Context {
+    val _allowMulti = false
+    val sfl1 = StagedFlacFileLocation("bad.flac")
+    val fl: FlacFileLocation = sfl1.toFlacFileLocation(tags)
+    flacFileChecker.isFlacFile(sfl1) returns true
+    tagsService.read(sfl1) returns Valid(discTwoTags)
+    fileLocationExtensions.exists(fl) returns false
+    ownerService.listCollections() returns { _ => Set(brian)}
+    actionGenerator.generate(Seq(sfl1), allowUnowned = false).toEither must beLeft(
+      NonEmptyList.of(MULTI_DISC(sfl1)))
+  }
 }

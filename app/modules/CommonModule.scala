@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule
 import common.changes.{ChangeDao, SquerylChangeDao}
 import common.collections.{CollectionDao, SquerylCollectionDao}
 import common.commands.{CommandService, TempFileCommandService}
+import common.multi.{AllowMultiService, PlayConfigurationAllowMultiService}
 import common.now.{NowService, NowServiceImpl}
 import common.owners.{OwnerService, OwnerServiceImpl}
 import net.codingwell.scalaguice.ScalaModule
@@ -18,6 +19,7 @@ class CommonModule extends AbstractModule with ScalaModule {
     bind[CommandService].to[TempFileCommandService].asEagerSingleton()
     bind[OwnerService].to[OwnerServiceImpl].asEagerSingleton()
     bind[NowService].to[NowServiceImpl].asEagerSingleton()
+    bind[AllowMultiService].to[PlayConfigurationAllowMultiService].asEagerSingleton()
   }
 }
 

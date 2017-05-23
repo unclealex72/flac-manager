@@ -19,8 +19,10 @@ import java.nio.file.Path
 
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, ValidatedNel}
-import com.wix.accord._
+import com.wix.accord.{validate, Failure => WixFailure, Success => WixSuccess}
 import common.music.Tags._
+
+import scala.util.{Failure, Success, Try}
 /**
  * A trait to add tags to and read tags from files.
  * Created by alex on 02/11/14.
@@ -40,12 +42,16 @@ trait TagsService {
     * @return A validated tags object.
     */
   def read(path: Path): ValidatedNel[String, Tags] = {
-    val tags = readTags(path)
-    validate(tags) match {
-      case Success => Valid(tags)
-      case Failure(violations) =>
-        val descriptions = violations.flatMap(_.description)
-        Invalid(NonEmptyList.fromListUnsafe(descriptions.toList))
+    Try(readTags(path)) match {
+      case Success(tags) =>
+        validate(tags) match {
+          case WixSuccess => Valid(tags)
+          case WixFailure(violations) =>
+            val descriptions = violations.flatMap(_.description)
+            Invalid(NonEmptyList.fromListUnsafe(descriptions.toList))
+        }
+      case Failure(e) =>
+        Invalid(NonEmptyList.of(e.getMessage))
     }
   }
 
