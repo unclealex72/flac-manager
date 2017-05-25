@@ -51,7 +51,10 @@ After installation, the following commands are available:
 + `flacman-unown --users users [directories]` Remove all the FLAC files in the supplied directories (either staged or not) 
                                             from users' collections. 
   `users` is a comma separated list of user names.
-
++ `flacman-multidisc --split [directories]` Split multi-disc albums into two separate albums. The first disc will remain
+    unchanged but all the others will joined in an album suffixed with _(Extras)_
++ `flacman-multidisc --join [directories]` Join multi-disc albums into a single disc.
+    
 ## Synchronising to external devices
 
 The Device Synchroniser project at https://github.com/unclealex72/device-synchroniser contains both Android and

@@ -31,6 +31,7 @@ import initialise.InitialiseCommand
 import io.circe.Json
 import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
 import json._
+import multidisc.MultiDiscCommand
 import own.OwnAction._
 import own.OwnCommand
 import play.api.libs.json._
@@ -49,6 +50,7 @@ class CommandBuilderImpl @Inject()(
                                     checkoutCommand: CheckoutCommand,
                                     ownCommand: OwnCommand,
                                     initialiseCommand: InitialiseCommand,
+                                    multiDiscCommand: MultiDiscCommand,
                                     userDao: UserDao
                                   )(implicit val directories: Directories) extends CommandBuilder {
 
@@ -107,6 +109,15 @@ class CommandBuilderImpl @Inject()(
         case _ => Validated.invalid(s"${pathAndRepository.path} is not a staging directory.")
       }
     }
+
+  /**
+    * Require a multi action to be provided.
+    * @param maybeMultiAction The multi action that may have been provided.
+    * @return The provided multi action or an error.
+    */
+  def requireMultiAction(maybeMultiAction: Option[MultiAction]): ValidatedNel[String, MultiAction] = {
+    maybeMultiAction.toValidNel("You must include an action to deal with multiple disc albums.")
+  }
 
   /**
     * Make sure that all flac directories are valid.
@@ -182,6 +193,10 @@ class CommandBuilderImpl @Inject()(
       case InitialiseParameters() => Valid {
         (messageService: MessageService) => initialiseCommand.initialiseDb(messageService)
       }
+      case MultiDiscParameters(relativeDirectories, maybeMultiAction) =>
+        (validateStagingDirectories(relativeDirectories) |@| requireMultiAction(maybeMultiAction)).map { (fls, multiAction) =>
+          (messageService: MessageService) => multiDiscCommand.mutateMultiDiscAlbum(fls, multiAction)(messageService)
+        }
     }
   }
 }

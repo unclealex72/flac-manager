@@ -26,7 +26,8 @@ foundDevice = Found {0}''s {1} device
 deviceSynchronised = {0}''s {1} device has been synchronised.
 databaseNotEmpty = The database is not empty.
 initialising = Initialising {0}
-
+joinAlbum = Joining multi-disc album {0}
+splitAlbum = Splitting multi-disc album {0}
 # Error messages
 error.directories.invalidPath = The following directories are invalid: {0}
 exception = {0}

@@ -29,7 +29,16 @@ import json._
 trait ParametersBuilder[P <: Parameters] {
 
   /**
+    * Check whether the multi action that may be within some parameters is valid.
+    * @param parameters The parameters to check.
+    * @return True if the multi action is valid, false otherwise.
+    */
+  def multiActionIsValid(parameters: P): Boolean
+
+
+  /**
     * Add an extra directory specified in the command line to the parameters object.
+    *
     * @param parameters The current parameters object
     * @param datumFilename The name of the server's datum file.
     * @param repositoryTypes The types of directory, either staging or flac.
@@ -66,6 +75,14 @@ trait ParametersBuilder[P <: Parameters] {
     * @return either a new parameters object with the allowUnowned flag or a list of errors.
     */
   def withAllowUnowned(parameters: P, allowUnowned: Boolean): Either[NonEmptyList[String], P]
+
+  /**
+    * Add a multi action to the parameters object.
+    * @param parameters The current parameters object.
+    * @param multiAction The multi action to add.
+    * @return either a new parameters object with the new multi action or a list of errors.
+    */
+  def withMultiAction(parameters: P, multiAction: MultiAction): Either[NonEmptyList[String], P]
 }
 
 /**
@@ -125,7 +142,6 @@ class FailingParametersBuilder[P <: Parameters](val commandName: String) extends
     */
   override def withAllowUnowned(parameters: P, allowUnowned: Boolean): Either[NonEmptyList[String], P] = {
     fail("an allow unowned flag")
-
   }
 
   /**
@@ -146,6 +162,19 @@ class FailingParametersBuilder[P <: Parameters](val commandName: String) extends
       relativeDirectories :+ relativeDirectory
     }
   }
+
+  /**
+    * Fail to add a multi action to the parameters object.
+    *
+    * @param parameters  The current parameters object.
+    * @param multiAction The multi action to add.
+    * @return either a new parameters object with the new multi action or a list of errors.
+    */
+  override def withMultiAction(parameters: P, multiAction: MultiAction): Either[NonEmptyList[String], P] = {
+    fail("a multi action")
+  }
+
+  override def multiActionIsValid(parameters: P): Boolean = true
 }
 
 /**
@@ -203,6 +232,34 @@ object CheckoutParametersBuilder extends FailingParametersBuilder[CheckoutParame
   override def withUnown(parameters: CheckoutParameters, unown: Boolean): Either[NonEmptyList[String], CheckoutParameters] = {
     Right(parameters.copy(unown = unown))
   }
+}
+
+/**
+  * Build parameters for the `multi` command.
+  */
+object MultiParametersBuilder extends FailingParametersBuilder[MultiDiscParameters]("multi") {
+
+  /**
+    * @inheritdoc
+    */
+  override def withExtraDirectory(
+                                   parameters: MultiDiscParameters,
+                                   datumFilename: String,
+                                   repositoryTypes: Seq[RepositoryType],
+                                   directory: Path): Either[NonEmptyList[String], MultiDiscParameters] = {
+    extraDirectory(parameters.relativeDirectories, datumFilename, repositoryTypes, directory).map { paths =>
+      parameters.copy(relativeDirectories = paths)
+    }
+  }
+
+  override def withMultiAction(
+                                parameters: MultiDiscParameters,
+                                multiAction: MultiAction): Either[NonEmptyList[String], MultiDiscParameters] = {
+    Right(parameters.copy(maybeMultiAction = Some(multiAction)))
+  }
+
+  override def multiActionIsValid(parameters: MultiDiscParameters): Boolean = parameters.maybeMultiAction.isDefined
+
 }
 
 /**

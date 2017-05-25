@@ -21,28 +21,28 @@ import enumeratum.{Enum, EnumEntry}
 import scala.collection.immutable.IndexedSeq
 
 /**
-  * The different types of repository that clients need to understand.
+  * The different ways of handling a multi disc album.
   */
-sealed trait RepositoryType extends IdentifiableEnumEntry
+sealed trait MultiAction extends IdentifiableEnumEntry
 
 /**
   * The different types of repository that clients need to understand.
   */
-object RepositoryType extends Enum[RepositoryType] {
+object MultiAction extends Enum[MultiAction] {
 
   /**
-    * The repository of flac files
+    * An object that indicates multi disc albums should be split.
     */
-  case object FlacRepositoryType extends RepositoryType {
-    override val identifier: String = "FLAC"
+  case object Split extends MultiAction {
+    override val identifier: String = "split"
   }
 
   /**
-    * The repository of staged flac files.
+    * An object that indicates multi disc albums should be joined.
     */
-  case object StagingRepositoryType extends RepositoryType {
-    override val identifier: String = "STAGING"
+  case object Join extends MultiAction {
+    override val identifier: String = "join"
   }
 
-  val values: IndexedSeq[RepositoryType] = findValues
+  val values: IndexedSeq[MultiAction] = findValues
 }

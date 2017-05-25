@@ -30,6 +30,7 @@ import controllers.CommandBuilderImpl
 import initialise.InitialiseCommand
 import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
 import json._
+import multidisc.MultiDiscCommand
 import org.specs2.mutable.Specification
 import own.OwnAction._
 import own.{OwnAction, OwnCommand}
@@ -88,6 +89,64 @@ class CommandBuilderImplSpec extends Specification {
       }
       validatedResult must beRight { (p: Parameters) =>
         p must be_==(CheckinParameters(List(staging("A"), staging("B")), allowUnowned = true))
+      }
+    }
+  }
+
+  "running the multi command" should {
+    "require directories" in {
+      val validatedResult = execution {
+        JsObject(
+          Seq(
+            "command" -> JsString("multidisc"),
+            "action" -> JsString("join"),
+            "relativeDirectories" -> JsArray()))
+      }
+      validatedResult must beLeft { (es: NonEmptyList[String]) =>
+        es.toList must contain(exactly("You must supply at least 1 staging directory."))
+      }
+    }
+    "not allow flac directories" in {
+      val validatedResult = execution {
+        JsObject(
+          Seq(
+            "command" -> JsString("multidisc"),
+            "action" -> JsString("join"),
+            "relativeDirectories" -> JsArray(Seq(flacObj("A"), stagingObj("B")))))
+      }
+      validatedResult must beLeft { (es: NonEmptyList[String]) =>
+        es.toList must contain(exactly("A is not a staging directory."))
+      }
+    }
+    "require an action" in {
+      val validatedMultiDiscResult = execution {
+        JsObject(
+          Seq(
+            "command" -> JsString("multidisc"),
+            "relativeDirectories" -> JsArray(Seq(stagingObj("A"), stagingObj("B")))))
+      }
+      validatedMultiDiscResult must beLeft(NonEmptyList.of("You must include an action to deal with multiple disc albums."))
+    }
+    "pass on its parameters" in {
+      val validatedJoinResult = execution {
+        JsObject(
+          Seq(
+            "command" -> JsString("multidisc"),
+            "action" -> JsString("join"),
+            "relativeDirectories" -> JsArray(Seq(stagingObj("A"), stagingObj("B")))))
+      }
+      validatedJoinResult must beRight { (p: Parameters) =>
+        p must be_==(MultiDiscParameters(List(staging("A"), staging("B")), Some(MultiAction.Join)))
+      }
+      val validatedSplitResult = execution {
+        JsObject(
+          Seq(
+            "command" -> JsString("multidisc"),
+            "action" -> JsString("split"),
+            "relativeDirectories" -> JsArray(Seq(stagingObj("A"), stagingObj("B")))))
+      }
+      validatedSplitResult must beRight { (p: Parameters) =>
+        p must be_==(MultiDiscParameters(List(staging("A"), staging("B")), Some(MultiAction.Split)))
       }
     }
   }
@@ -231,6 +290,12 @@ class CommandBuilderImplSpec extends Specification {
         commandType(InitialiseParameters())
       }
     }
+    val multiDiscCommand: MultiDiscCommand = new MultiDiscCommand {
+      override def mutateMultiDiscAlbum(locations: Seq[StagedFlacFileLocation], multiAction: MultiAction)
+                                       (implicit messageService: MessageService): CommandExecution = {
+        commandType(MultiDiscParameters(locations.map(l => PathAndRepository(l.relativePath, StagingRepositoryType)), Some(multiAction)))
+      }
+    }
     val ownCommand: OwnCommand = new OwnCommand {
       def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[Either[StagedFlacFileLocation, FlacFileLocation]])
                          (implicit messageService: MessageService): CommandExecution = {
@@ -254,7 +319,7 @@ class CommandBuilderImplSpec extends Specification {
       override def allUsers(): Set[User] = Set("Freddie", "Brian").map(User(_))
     }
     val commandBuilder = new CommandBuilderImpl(
-      checkinCommand, checkoutCommand, ownCommand, initialiseCommand, userDao)
+      checkinCommand, checkoutCommand, ownCommand, initialiseCommand, multiDiscCommand, userDao)
     commandBuilder(jsValue).map { builder =>
       builder(NoOpMessageService).execute()
       Await.result(promise.future, Duration(1, TimeUnit.SECONDS))

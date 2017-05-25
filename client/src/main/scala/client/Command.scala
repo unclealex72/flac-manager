@@ -64,6 +64,11 @@ sealed trait Command extends EnumEntry {
   val maybeAllowUnownedText: Option[String]
 
   /**
+    * The text for multi action flags.
+    */
+  val multiActionTexts: Map[MultiAction, String]
+
+  /**
     * Parse arguments from the command line.
     * @param arguments The command line arguments.
     * @param datumFilename The datum filename supplied by the server.
@@ -114,6 +119,24 @@ object Command extends Enum[Command] {
           }.text(allowUnownedText)
         }
 
+        multiActionTexts.foreach {
+          case (action, text) =>
+            opt[Unit](action.identifier).action { (_, eParameters) =>
+              eParameters.flatMap { parameters => parametersBuilder.withMultiAction(parameters, action) }
+            }.text(text)
+        }
+
+        checkConfig { eParameters =>
+            eParameters.flatMap { parameters =>
+              if (parametersBuilder.multiActionIsValid(parameters)) {
+                Right(())
+              }
+              else {
+                Left(NonEmptyList.of("You must supply an action for multiple disc albums."))
+              }
+            }.leftMap(_.toList.mkString("\n"))
+        }
+
         help("help").text("Prints this usage text.")
 
         maybeDirectoriesDescriptionText.foreach { directoriesDescriptionText =>
@@ -153,6 +176,7 @@ object Command extends Enum[Command] {
     val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be owned.")
     val maybeUnownText: Option[String] = None
     val maybeAllowUnownedText: Option[String] = None
+    val multiActionTexts: Map[MultiAction, String] = Map.empty
   }
 
   /**
@@ -167,6 +191,7 @@ object Command extends Enum[Command] {
     val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be unowned.")
     val maybeUnownText: Option[String] = None
     val maybeAllowUnownedText: Option[String] = None
+    val multiActionTexts: Map[MultiAction, String] = Map.empty
   }
 
   /**
@@ -181,6 +206,7 @@ object Command extends Enum[Command] {
     val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be checked in.")
     val maybeUnownText: Option[String] = None
     val maybeAllowUnownedText: Option[String] = Some("Allow files without owners to be checked in.")
+    val multiActionTexts: Map[MultiAction, String] = Map.empty
   }
 
   /**
@@ -195,6 +221,25 @@ object Command extends Enum[Command] {
     val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be checked out.")
     val maybeUnownText: Option[String] = Some("Also unown any checked out files.")
     val maybeAllowUnownedText: Option[String] = None
+    val multiActionTexts: Map[MultiAction, String] = Map.empty
+  }
+
+  /**
+    * The `checkin` command
+    */
+  object MultiCommand extends ParametersParser[MultiDiscParameters](
+    MultiDiscParameters(),
+    MultiParametersBuilder) with Command {
+    val name = "multidisc"
+    val usageText = "Split or join multiple disc albums."
+    val maybeUsersDescriptionText: Option[String] = None
+    val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be split or joined")
+    val maybeUnownText: Option[String] = None
+    val maybeAllowUnownedText: Option[String] = None
+    val multiActionTexts: Map[MultiAction, String] = Map(
+      MultiAction.Join -> "Join albums into one long album",
+      MultiAction.Split -> "Keep albums split but with (Extra) as a prefix for any discs but the first."
+    )
   }
 
   val values: immutable.IndexedSeq[Command] = findValues

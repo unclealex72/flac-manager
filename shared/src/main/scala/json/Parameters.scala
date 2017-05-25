@@ -59,6 +59,14 @@ case class UnownParameters(relativeDirectories: Seq[PathAndRepository] = Seq.emp
                            users: Seq[String] = Seq.empty) extends Parameters
 
 /**
+  * The `multidisc` command
+  * @param relativeDirectories A list of paths relative to the staging repository.
+  * @param maybeMultiAction An enumeration used to decide whether multi disc albums should be split or joined.
+  */
+case class MultiDiscParameters(relativeDirectories: Seq[PathAndRepository] = Seq.empty,
+                               maybeMultiAction: Option[MultiAction] = None) extends Parameters
+
+/**
   * A class to hold a relative path an the repository it is relative to.
   * @param path The relative path.
   * @param repositoryType The type of repository the path is relative to.
@@ -98,13 +106,17 @@ object Parameters {
   implicit val parametersDecoder: Decoder[Parameters] = {
 
     implicit val pathDecoder: Decoder[Path] = Decoder.decodeString.map(Paths.get(_))
-    implicit val repositoryTypeDecoder: Decoder[RepositoryType] = Decoder.decodeString.flatMap { str =>
-      RepositoryType.values.find(rt => rt.identifier == str) match {
+
+    def enumDecoder[E <: IdentifiableEnumEntry](name: String, values: Seq[E]): Decoder[E] = Decoder.decodeString.flatMap { str =>
+      values.find(rt => rt.identifier == str) match {
         case Some(rt) => Decoder.const(rt)
         case None => Decoder.failedWithMessage(
-          s"Repository type must be one of: ${RepositoryType.values.map(_.identifier).mkString(", ")}")
+          s"$name must be one of: ${values.map(_.identifier).mkString(", ")}")
       }
     }
+    implicit val repositoryTypeDecoder: Decoder[RepositoryType] = enumDecoder("repositoryType", RepositoryType.values)
+    implicit val multiActionDecoder: Decoder[MultiAction] = enumDecoder("action", MultiAction.values)
+
     implicit val pathAndRepositoryDecoder: Decoder[PathAndRepository] =
       Decoder.forProduct2("path", "repositoryType")(PathAndRepository.apply)
 
@@ -116,6 +128,8 @@ object Parameters {
       Decoder.forProduct2("relativeDirectories", "users")(OwnParameters.apply)
     val unownParametersDecoder =
       Decoder.forProduct2("relativeDirectories", "users")(UnownParameters.apply)
+    val multiParametersDecoder =
+      Decoder.forProduct2("relativeDirectories", "action")(MultiDiscParameters.apply)
     val initialiseParametersDecoder = Decoder.instance { hcursor =>
       if (hcursor.value.isObject) {
         Right(InitialiseParameters())
@@ -135,6 +149,7 @@ object Parameters {
                 case "checkin" => Some(checkinParametersDecoder.map[Parameters](identity))
                 case "checkout" => Some(checkoutParametersDecoder.map[Parameters](identity))
                 case "initialise" => Some(initialiseParametersDecoder.map[Parameters](identity))
+                case "multidisc" => Some(multiParametersDecoder.map[Parameters](identity))
                 case _ => None
               }
               maybeDecoder match {
@@ -154,7 +169,10 @@ object Parameters {
     */
   implicit val parametersEncoder: Encoder[Parameters] = {
     implicit val pathEncoder: Encoder[Path] = Encoder.encodeString.contramap(_.toString)
-    implicit val repositoryTypeEncoder: Encoder[RepositoryType] = Encoder.encodeString.contramap(_.identifier)
+    def enumEncoder[E <: IdentifiableEnumEntry]: Encoder[E] = Encoder.encodeString.contramap(_.identifier)
+    implicit val repositoryTypeEncoder: Encoder[RepositoryType] = enumEncoder[RepositoryType]
+    implicit val multiActionEncoder: Encoder[MultiAction] = enumEncoder[MultiAction]
+
     implicit val pathAndRepositoryEncoder: Encoder[PathAndRepository] =
       Encoder.forProduct2("path", "repositoryType")(par => (par.path, par.repositoryType))
 
@@ -166,6 +184,8 @@ object Parameters {
       Encoder.forProduct2("relativeDirectories", "users")(op => (op.relativeDirectories, op.users))
     val unownParametersEncoder: Encoder[UnownParameters] =
       Encoder.forProduct2("relativeDirectories", "users")(up => (up.relativeDirectories, up.users))
+    val multiParametersEncoder: Encoder[MultiDiscParameters] =
+      Encoder.forProduct2("relativeDirectories", "action")(mp => (mp.relativeDirectories, mp.maybeMultiAction))
     val initialiseParametersEncoder: Encoder[InitialiseParameters] =
       Encoder.encodeJsonObject.contramap(_ => JsonObject.empty)
     Encoder.instance { parameters =>
@@ -175,6 +195,7 @@ object Parameters {
         case op : OwnParameters => ("own", ownParametersEncoder(op))
         case up : UnownParameters => ("unown", unownParametersEncoder(up))
         case ip : InitialiseParameters => ("initialise", initialiseParametersEncoder(ip))
+        case mp : MultiDiscParameters => ("multidisc", multiParametersEncoder(mp))
       }
       val obj = json.asObject.
         map(obj => obj.+:("command" -> Json.fromString(commandName))).

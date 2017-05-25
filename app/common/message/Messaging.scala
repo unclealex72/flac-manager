@@ -141,6 +141,18 @@ object Messages {
    */
   case object DATABASE_NOT_EMPTY extends Message("databaseNotEmpty")
 
+  /**
+    * The key for producing a message to say that a multi-disc album is being joined.
+    * @param albumTitle The name of the album being joined.
+    */
+  case class JOIN_ALBUM(albumTitle: String) extends Message("joinAlbum", albumTitle)
+
+  /**
+    * The key for producing a message to say that a multi-disc album is being split.
+    * @param albumTitle The name of the album being split.
+    */
+  case class SPLIT_ALBUM(albumTitle: String) extends Message("splitAlbum", albumTitle)
+
   case class INITIALISING(deviceFileLocation: DeviceFileLocation) extends
     Message("initialising", deviceFileLocation)
 
