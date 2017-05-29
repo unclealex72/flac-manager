@@ -73,7 +73,7 @@ class InitialiseCommandImpl @Inject()(
         val tags = tagsService.readTags(path)
         InitialFile(
           deviceFileLocation,
-          InitialOwn(tags.artistId, user))
+          InitialOwn(tags.albumId, user))
       }
       val deviceFileLocations = initialFiles.map(_.deviceFileLocation)
       val ownsByUser: Map[User, Set[InitialOwn]] = initialFiles.map(_.own).toSet.groupBy(_.user)
