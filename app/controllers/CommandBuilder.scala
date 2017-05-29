@@ -15,21 +15,23 @@
  */
 
 package controllers
+
 import cats.data.ValidatedNel
-import common.commands.CommandExecution
 import common.message.MessageService
 import play.api.libs.json.JsValue
 
+import scala.concurrent.Future
+
 /**
-  * A trait for building a [[CommandExecution]] from a JSON RPC payload sent from a client.
+  * A trait for building a [[Future]] from a JSON RPC payload sent from a client.
   */
 trait CommandBuilder {
 
   /**
-    * Try to create a [[CommandExecution]] for a JSON RPC payload.
+    * Try to create a [[Future]] for a JSON RPC payload.
     * @param jsValue The RPC payload.
-    * @return Either a list of errors or a function that will create a [[CommandExecution]] when a
+    * @return Either a list of errors or a function that will create a [[Future]] when a
     *         [[MessageService]] is supplied.
     */
-  def apply(jsValue: JsValue): ValidatedNel[String, MessageService => CommandExecution]
+  def apply(jsValue: JsValue): ValidatedNel[String, MessageService => Future[_]]
 }

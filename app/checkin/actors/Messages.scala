@@ -29,11 +29,23 @@ import common.music.Tags
 object Messages {
 
   /**
+    * A trait that can be used to notify the outside world that checking in files has finished.
+    */
+  trait CompletionNotifier {
+
+    /**
+      * Notify the outside world that checking in files has finished.
+      */
+    def finished(): Unit
+  }
+
+  /**
     * A message that contains a sequence of [[Action]]s.
     * @param actions The actions to be executed.
     * @param messageService The [[MessageService]] used to report progress.
+    * @param completionNotifier The completionNotifier used to tell the outside world that checking in has finished.
     */
-  case class Actions(actions: Seq[Action], messageService: MessageService)
+  case class Actions(actions: Seq[Action], messageService: MessageService, completionNotifier: CompletionNotifier)
 
   /**
     * A message that signifies a flac file is to be encoded.
@@ -42,15 +54,26 @@ object Messages {
     * @param tags The audio tags for the flac file.
     * @param owners The flac file's owners.
     * @param messageService The [[MessageService]] used to report progress.
+    * @param completionNotifier The completionNotifier used to tell the outside world that checking in has finished.
     */
-  case class EncodeFlacFileLocation(stagedFlacFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, owners: Set[User], messageService: MessageService)
+  case class EncodeFlacFileLocation(
+                                     stagedFlacFileLocation: StagedFlacFileLocation,
+                                     flacFileLocation: FlacFileLocation,
+                                     tags: Tags,
+                                     owners: Set[User],
+                                     messageService: MessageService,
+                                     completionNotifier: CompletionNotifier)
 
   /**
     * A message that signifies a flac file is to be deleted.
     * @param stagedFlacFileLocation The source flac file.
     * @param messageService The [[MessageService]] used to report progress.
+    * @param completionNotifier The completionNotifier used to tell the outside world that checking in has finished.
     */
-  case class DeleteFileLocation(stagedFlacFileLocation: StagedFlacFileLocation, messageService: MessageService)
+  case class DeleteFileLocation(
+                                 stagedFlacFileLocation: StagedFlacFileLocation,
+                                 messageService: MessageService,
+                                 completionNotifier: CompletionNotifier)
 
   /**
     * A message that signifies a staged flac file needs to be moved to the flac repository and an encoded temporary file
@@ -61,12 +84,16 @@ object Messages {
     * @param flacFileLocation The location of the target file.
     * @param owners The flac file's owners.
     * @param messageService The [[MessageService]] used to report progress.
+    * @param completionNotifier The completionNotifier used to tell the outside world that checking in has finished.
     */
   case class LinkAndMoveFileLocations(
                                        tempEncodedLocation: TemporaryFileLocation,
                                        encodedFileLocation: EncodedFileLocation,
                                        stagedFlacFileLocation: StagedFlacFileLocation,
-                                       flacFileLocation: FlacFileLocation, owners: Set[User], messageService: MessageService)
+                                       flacFileLocation: FlacFileLocation,
+                                       owners: Set[User],
+                                       messageService: MessageService,
+                                       completionNotifier: CompletionNotifier)
 
 
   /**
@@ -74,6 +101,11 @@ object Messages {
     * @param stagedFlacFileLocation The source file that could not be checked in.
     * @param e The exception thrown by the failure.
     * @param messageService The [[MessageService]] used to report progress.
+    * @param completionNotifier The completionNotifier used to tell the outside world that checking in has finished.
     */
-  case class CheckinFailed(stagedFlacFileLocation: StagedFlacFileLocation, e: Exception, messageService: MessageService)
+  case class CheckinFailed(
+                            stagedFlacFileLocation: StagedFlacFileLocation,
+                            e: Exception,
+                            messageService: MessageService,
+                            completionNotifier: CompletionNotifier)
 }

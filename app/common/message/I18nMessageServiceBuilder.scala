@@ -25,13 +25,11 @@ import play.api.i18n.MessagesApi
   * @param messagesApi Play's messages API.
   * @param printers A list of callbacks to call when a message needs to be printed.
   * @param exceptionHandlers A list of callbacks to call when an exception needs to be handled.
-  * @param onFinishes A list of callbacks to call when feedback has finished.
   */
 class I18nMessageServiceBuilder(
                                  messagesApi: MessagesApi,
                                  printers: Seq[String => Unit],
-                                 exceptionHandlers: Seq[Throwable => Unit],
-                                 onFinishes: Seq[() => Unit]) extends MessageServiceBuilder with ApplicationLogging {
+                                 exceptionHandlers: Seq[Throwable => Unit]) extends MessageServiceBuilder with ApplicationLogging {
 
   /**
     * @inheritdoc
@@ -49,32 +47,22 @@ class I18nMessageServiceBuilder(
       exceptionHandlers.foreach(exceptionHandler => exceptionHandler(t))
     }
 
-    override def finish(): Unit = {
-      logger.info("Command finished")
-      onFinishes.foreach(block => block())
-    }
   }
 
   /**
     * @inheritdoc
     */
   override def withPrinter(printer: String => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(messagesApi, printers :+ printer, exceptionHandlers, onFinishes)
+    new I18nMessageServiceBuilder(messagesApi, printers :+ printer, exceptionHandlers)
   }
 
   /**
     * @inheritdoc
     */
   override def withExceptionHandler(exceptionHandler: Throwable => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(messagesApi, printers, exceptionHandlers :+ exceptionHandler, onFinishes)
+    new I18nMessageServiceBuilder(messagesApi, printers, exceptionHandlers :+ exceptionHandler)
   }
 
-  /**
-    * @inheritdoc
-    */
-  override def withOnFinish(onFinish: () => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(messagesApi, printers, exceptionHandlers, onFinishes :+ onFinish)
-  }
 }
 
 /**
@@ -90,9 +78,8 @@ object I18nMessageServiceBuilder {
     * @return A new [[MessageServiceBuilder]] that logs its output.
     */
   def apply(messagesApi: MessagesApi): MessageServiceBuilder =
-    new I18nMessageServiceBuilder(messagesApi, Seq(), Seq(), Seq()).
+    new I18nMessageServiceBuilder(messagesApi, Seq(), Seq()).
       withPrinter(message => logger.info(message)).
-      withExceptionHandler(t => logger.error("An unexpected exception occurred.", t)).
-      withOnFinish(() => logger.info(s"Command has completed."))
+      withExceptionHandler(t => logger.error("An unexpected exception occurred.", t))
 
 }

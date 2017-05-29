@@ -26,6 +26,7 @@ import io.circe.Json
 import play.api.http.Writeable
 import play.api.libs.ws.{StreamedResponse, WSClient}
 
+import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -45,7 +46,7 @@ object RemoteCommandRunner {
            (implicit materializer: Materializer, executionContext: ExecutionContext): Future[Unit] = {
     val commandUri = serverUri.resolve(new URI(s"/commands"))
     val futureResponse: Future[StreamedResponse] =
-      ws.url(commandUri.toString).withMethod("POST").withBody(body).stream()
+      ws.url(commandUri.toString).withRequestTimeout(Duration.Inf).withMethod("POST").withBody(body).stream()
     futureResponse.flatMap { res =>
       val sink = Sink.foreach[ByteString] { bytes =>
         out.write(bytes.toArray)

@@ -136,7 +136,8 @@ class MultiDiscServiceImpl @Inject()(val directoryService: DirectoryService)
   }
 
   def toMultiDiscAlbum(tagsAndFileLocations: Seq[TagsAndFileLocation]): MultiDiscAlbum = {
-    val (firstDisc, nextDiscs) = tagsAndFileLocations.partition(tfl => tfl.tags.discNumber == 1)
+    val maybeLowestDiscNumber = tagsAndFileLocations.map(_.tags.discNumber).sorted.headOption
+    val (firstDisc, nextDiscs) = tagsAndFileLocations.partition(tfl => maybeLowestDiscNumber.contains(tfl.tags.discNumber))
     def index(tracks: Seq[TagsAndFileLocation]): IndexedSeq[TagsAndFileLocation] =
       tracks.sorted(tagsAndFileLocationOrdering).toIndexedSeq
     MultiDiscAlbum(index(firstDisc), index(nextDiscs))

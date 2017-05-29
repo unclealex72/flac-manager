@@ -16,9 +16,10 @@
 
 package checkin
 
-import common.commands.CommandExecution
 import common.files.StagedFlacFileLocation
 import common.message.MessageService
+
+import scala.concurrent.Future
 
 /**
  * The command that checks in flac files from the staging directory.
@@ -30,9 +31,9 @@ trait CheckinCommand {
     * @param locations The files to check in
     * @param allowUnowned True if unowned files should be allowed to be checked in, false otherwise.
     * @param messageService The [[MessageService]] used to report progress.
-    * @return A [[CommandExecution]] that checks in a list of flac files to the staging repository.
+    * @return A [[Future]] that checks in a list of flac files to the staging repository.
     */
   def checkin(locations: Seq[StagedFlacFileLocation],
-              allowUnowned: Boolean)(implicit messageService: MessageService): CommandExecution
+              allowUnowned: Boolean)(implicit messageService: MessageService): Future[_]
 
 }

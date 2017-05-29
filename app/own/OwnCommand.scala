@@ -16,13 +16,13 @@
 
 package own
 
-import common.commands.CommandExecution
 import common.configuration.User
 import common.files.{FlacFileLocation, StagedFlacFileLocation}
 import common.message.MessageService
 import enumeratum._
 
 import scala.collection.immutable
+import scala.concurrent.Future
 
 /**
   * The own command.
@@ -38,7 +38,7 @@ trait OwnCommand {
     * @return A command to be executed.
     */
   def changeOwnership(action: OwnAction, users: Seq[User], directoryLocations: Seq[Either[StagedFlacFileLocation, FlacFileLocation]])
-                     (implicit messageService: MessageService): CommandExecution
+                     (implicit messageService: MessageService): Future[_]
 
 }
 

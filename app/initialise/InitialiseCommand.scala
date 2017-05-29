@@ -16,8 +16,9 @@
 
 package initialise
 
-import common.commands.CommandExecution
 import common.message.MessageService
+
+import scala.concurrent.Future
 
 /**
   * The command to initialise the database.
@@ -27,7 +28,7 @@ trait InitialiseCommand {
   /**
     * Initialise the database with all device files.
     * @param messageService The [[MessageService]] used to report progress and log errors.
-    * @return A [[CommandExecution]] that will initialise the database.
+    * @return A [[Future]] that will initialise the database.
     */
-  def initialiseDb(implicit messageService: MessageService): CommandExecution
+  def initialiseDb(implicit messageService: MessageService): Future[_]
 }

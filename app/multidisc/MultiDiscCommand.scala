@@ -16,10 +16,11 @@
 
 package multidisc
 
-import common.commands.CommandExecution
 import common.files.StagedFlacFileLocation
 import common.message.MessageService
 import json.MultiAction
+
+import scala.concurrent.Future
 
 /**
   * The multi command is used for handling albums that span more than one disc. Some MP3 systems do not cope with these
@@ -37,6 +38,6 @@ trait MultiDiscCommand {
     * @return A command execution that will split or join a multi-disc album.
     */
   def mutateMultiDiscAlbum(stagedFlacFileLocations: Seq[StagedFlacFileLocation], multiAction: MultiAction)
-                          (implicit messageService: MessageService): CommandExecution
+                          (implicit messageService: MessageService): Future[_]
 
 }

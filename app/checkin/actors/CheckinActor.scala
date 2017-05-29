@@ -18,6 +18,7 @@ package checkin.actors
 
 import javax.inject.{Inject, Named, Singleton}
 
+import akka.Done
 import akka.actor.{Actor, ActorRef}
 import checkin.actors.Messages._
 import checkin.{Delete, Encode}
@@ -52,24 +53,25 @@ class CheckinActor @Inject()(
     * @return Nothing.
     */
   override def receive: PartialFunction[Any, Unit] = {
-    case Actions(actions, messageService) =>
+    case Actions(actions, messageService, completionNotifier) =>
       numberOfFilesRemaining = actions.length
 
       actions.foreach {
         case Delete(stagedFlacFileLocation) =>
-          encodingActor ! DeleteFileLocation(stagedFlacFileLocation, messageService)
+          encodingActor ! DeleteFileLocation(stagedFlacFileLocation, messageService, completionNotifier)
         case Encode(stagedFileLocation, flacFileLocation, tags, users) =>
-          encodingActor ! EncodeFlacFileLocation(stagedFileLocation, flacFileLocation, tags, users, messageService)
+          encodingActor ! EncodeFlacFileLocation(
+            stagedFileLocation, flacFileLocation, tags, users, messageService, completionNotifier)
       }
 
-    case DeleteFileLocation(stagedFlacFileLocation, messageService) =>
+    case DeleteFileLocation(stagedFlacFileLocation, messageService, completionNotifier) =>
       implicit val _messageService = messageService
       safely {
         fileSystem.remove(stagedFlacFileLocation)
       }
-      decreaseFileCount
+      decreaseFileCount(completionNotifier)
 
-    case LinkAndMoveFileLocations(tempEncodedLocation, encodedFileLocation, stagedFlacFileLocation, flacFileLocation, users, messageService) =>
+    case LinkAndMoveFileLocations(tempEncodedLocation, encodedFileLocation, stagedFlacFileLocation, flacFileLocation, users, messageService, completionNotifier) =>
       implicit val _messageService = messageService
       safely {
         fileSystem.move(tempEncodedLocation, encodedFileLocation)
@@ -80,11 +82,11 @@ class CheckinActor @Inject()(
         }
         fileSystem.move(stagedFlacFileLocation, flacFileLocation)
       }
-      decreaseFileCount
+      decreaseFileCount(completionNotifier)
 
-    case CheckinFailed(_, _, messageService) =>
+    case CheckinFailed(_, _, messageService, completionNotifier) =>
       implicit val _messageService = messageService
-      decreaseFileCount
+      decreaseFileCount(completionNotifier)
   }
 
   private def safely(block: => Unit)(implicit messageService: MessageService): Unit = {
@@ -96,10 +98,10 @@ class CheckinActor @Inject()(
     }
   }
 
-  private def decreaseFileCount(implicit messageService: MessageService): Unit = {
+  private def decreaseFileCount(completionNotifier: CompletionNotifier)(implicit messageService: MessageService): Unit = {
     numberOfFilesRemaining -= 1
     if (numberOfFilesRemaining == 0) {
-      messageService.finish()
+      completionNotifier.finished()
     }
   }
 }

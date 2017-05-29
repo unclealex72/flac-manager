@@ -21,8 +21,6 @@ import javax.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import common.changes.{Change, ChangeDao}
 import common.collections.CollectionDao
-import common.commands.CommandExecution
-import common.commands.CommandExecution._
 import common.configuration.{Directories, User, UserDao}
 import common.files.{DeviceFileLocation, DirectoryService, FileLocationExtensions}
 import common.message.Messages._
@@ -30,6 +28,7 @@ import common.message.{MessageService, Messaging}
 import common.music.TagsService
 
 import scala.collection.SortedSet
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * The default implementation of [[InitialiseCommand]]. This implementation scans all user repositories and
@@ -43,6 +42,7 @@ import scala.collection.SortedSet
   * @param fileLocationExtensions The typeclass used to give [[java.nio.file.Path]]-like functionality to
   *                               [[common.files.FileLocation]]s.
   * @param collectionDao The [[CollectionDao]] used to change a user's collection.
+  * @param ec The execution context used to execute the command.
   */
 class InitialiseCommandImpl @Inject()(
                                        val userDao: UserDao,
@@ -51,12 +51,13 @@ class InitialiseCommandImpl @Inject()(
                            (implicit val changeDao: ChangeDao,
                             val directories: Directories,
                             val fileLocationExtensions: FileLocationExtensions,
-                            val collectionDao: CollectionDao) extends InitialiseCommand with Messaging with StrictLogging {
+                            val collectionDao: CollectionDao,
+                            val ec: ExecutionContext) extends InitialiseCommand with Messaging with StrictLogging {
 
   /**
     * @inheritdoc
     */
-  override def initialiseDb(implicit messageService: MessageService): CommandExecution = synchronous {
+  override def initialiseDb(implicit messageService: MessageService): Future[_] = Future {
     case class InitialFile(deviceFileLocation: DeviceFileLocation, own: InitialOwn)
     case class InitialOwn(releaseId: String, user: User)
 

@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit
 import cats.data.NonEmptyList
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
-import common.commands.CommandExecution
 import common.configuration.{TestDirectories, User, UserDao}
 import common.files.{FlacFileLocation, StagedFlacFileLocation}
 import common.message.{MessageService, NoOpMessageService}
@@ -37,7 +36,7 @@ import own.{OwnAction, OwnCommand}
 import play.api.libs.json._
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Promise}
+import scala.concurrent.{Await, Future, Promise}
 /**
   * Created by alex on 23/04/17
   **/
@@ -270,35 +269,36 @@ class CommandBuilderImplSpec extends Specification {
 
   def execution(jsValue: JsValue): Either[NonEmptyList[String], Parameters] = {
     val promise = Promise[Parameters]
-    def commandType(parameters: Parameters): CommandExecution = CommandExecution.asynchronous {
+    def commandType(parameters: Parameters): Future[_] = {
       promise.success(parameters)
+      promise.future
     }
 
     val checkinCommand: CheckinCommand = new CheckinCommand {
-      override def checkin(locations: Seq[StagedFlacFileLocation], allowUnowned: Boolean)(implicit messageService: MessageService): CommandExecution = {
+      override def checkin(locations: Seq[StagedFlacFileLocation], allowUnowned: Boolean)(implicit messageService: MessageService): Future[_] = {
         commandType(CheckinParameters(locations.map(l => PathAndRepository(l.relativePath, StagingRepositoryType)), allowUnowned))
       }
     }
     val checkoutCommand: CheckoutCommand = new CheckoutCommand {
       override def checkout(locations: Seq[FlacFileLocation], unown: Boolean)
-                           (implicit messageService: MessageService): CommandExecution = {
+                           (implicit messageService: MessageService): Future[_] = {
         commandType(CheckoutParameters(locations.map(l => PathAndRepository(l.relativePath, FlacRepositoryType)), unown))
       }
     }
     val initialiseCommand: InitialiseCommand = new InitialiseCommand {
-      override def initialiseDb(implicit messageService: MessageService): CommandExecution = {
+      override def initialiseDb(implicit messageService: MessageService): Future[_] = {
         commandType(InitialiseParameters())
       }
     }
     val multiDiscCommand: MultiDiscCommand = new MultiDiscCommand {
       override def mutateMultiDiscAlbum(locations: Seq[StagedFlacFileLocation], multiAction: MultiAction)
-                                       (implicit messageService: MessageService): CommandExecution = {
+                                       (implicit messageService: MessageService): Future[_] = {
         commandType(MultiDiscParameters(locations.map(l => PathAndRepository(l.relativePath, StagingRepositoryType)), Some(multiAction)))
       }
     }
     val ownCommand: OwnCommand = new OwnCommand {
       def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[Either[StagedFlacFileLocation, FlacFileLocation]])
-                         (implicit messageService: MessageService): CommandExecution = {
+                         (implicit messageService: MessageService): Future[_] = {
         commandType {
           val pathAndRepositories = locations.map {
             case Left(sffl) => PathAndRepository(sffl.relativePath, StagingRepositoryType)
@@ -321,7 +321,7 @@ class CommandBuilderImplSpec extends Specification {
     val commandBuilder = new CommandBuilderImpl(
       checkinCommand, checkoutCommand, ownCommand, initialiseCommand, multiDiscCommand, userDao)
     commandBuilder(jsValue).map { builder =>
-      builder(NoOpMessageService).execute()
+      builder(NoOpMessageService)
       Await.result(promise.future, Duration(1, TimeUnit.SECONDS))
     }.toEither
   }

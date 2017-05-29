@@ -19,29 +19,28 @@ package controllers
 import java.io.{PrintWriter, StringWriter}
 import javax.inject.{Inject, Singleton}
 
+import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Source
 import cats.data.Validated.{Invalid, Valid}
-import common.commands.CommandExecution
-import common.commands.CommandExecution._
-import common.message.Messages._
+import com.typesafe.scalalogging.StrictLogging
 import common.message.{MessageService, MessageServiceBuilder, Messaging}
-import play.api.libs.concurrent.Execution.Implicits._
-import play.api.libs.iteratee.{Concurrent, Enumerator}
+import play.api.libs.EventSource
 import play.api.libs.json._
-import play.api.libs.streams.Streams
 import play.api.mvc._
 
-import scala.util.Try
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 /**
   * The controller that executes commands that alter repositories.
   * @param messageServiceBuilder The [[MessageServiceBuilder]] used to build a feedback mechanism.
   * @param commandBuilder A [[CommandBuilder]] used to build a command from a JSON RPC payload.
+  * @param ec The execution context used to execute the command.
   */
 @Singleton
 class Commands @Inject()(
                           messageServiceBuilder: MessageServiceBuilder,
-                          commandBuilder: CommandBuilder) extends Controller with Messaging {
+                          commandBuilder: CommandBuilder)
+                        (implicit ec: ExecutionContext) extends Controller with Messaging with StrictLogging {
 
 
   /**
@@ -51,40 +50,53 @@ class Commands @Inject()(
     */
   def commands: Action[JsValue] = Action(parse.json) { implicit request =>
     val validatedCommandTypeBuilder = commandBuilder(request.body)
-    val enumerator: (MessageService => CommandExecution) => Enumerator[String] = cmd => 
-      Concurrent.unicast[String](onStart = channel => {
-      val messageService = messageServiceBuilder.
-        withPrinter(message => channel.push(message + "\n")).
-        withExceptionHandler { t =>
-          val writer = new StringWriter
-          t.printStackTrace(new PrintWriter(writer))
-          channel.push(writer.toString + "\n")
-        }.
-        withOnFinish {
-          channel.eofAndEnd
-        }.
-        build
-      Try {
-        val commandType = cmd(messageService)
-        commandType.execute()
-        if (commandType.requiresFinish) {
-          messageService.finish()
-        }
-      }.recover {
-        case e =>
-          messageService.exception(e)
-          messageService.finish()
-      }
-    })
     validatedCommandTypeBuilder match {
-      case Valid(commandTypeBuilder) => Ok.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(enumerator(commandTypeBuilder))))
-      case Invalid(errors) => BadRequest.chunked(Source.fromPublisher(Streams.enumeratorToPublisher(enumerator { implicit messageService =>
-        synchronous {
-          errors.toList.foreach { error =>
-            log(INVALID_PARAMETERS(error))
-          }
+      case Valid(commandFactory) =>
+        val responseSource: Source[String, _] = generateResponse(commandFactory)
+        Ok.chunked(responseSource).as(TEXT)
+      case Invalid(neMessages) =>
+        val messages = neMessages.toList
+        messages.foreach { message =>
+          logger.error(message)
         }
-      })))
+        BadRequest(messages.mkString("\n")).as(TEXT)
     }
+  }
+
+  def generateResponse(commandFactory: MessageService => Future[_]): Source[String, _] = {
+    val (queueSource, futureQueue) = peekMatValue(Source.queue[String](128, OverflowStrategy.backpressure))
+    futureQueue.map { queue =>
+      def offer(message: Any) = queue.offer(s"$message\n")
+      def printer(message: String): Unit = offer(message)
+      def exceptionHandler(t: Throwable): Unit = {
+        val sw = new StringWriter()
+        t.printStackTrace(new PrintWriter(sw))
+        offer(sw)
+      }
+
+      val messageService = messageServiceBuilder.
+        withPrinter(printer).
+        withExceptionHandler(exceptionHandler).build
+
+      commandFactory(messageService).andThen {
+        case _ =>
+          printer("The command has completed successfully.")
+          queue.complete()
+      }.recover {
+        case t =>
+          exceptionHandler(t)
+          queue.complete()
+      }
+    }
+    queueSource
+  }
+
+  def peekMatValue[T, M](src: Source[T, M]): (Source[T, M], Future[M]) = {
+    val p = Promise[M]
+    val s = src.mapMaterializedValue { m =>
+      p.trySuccess(m)
+      m
+    }
+    (s, p.future)
   }
 }

@@ -32,8 +32,6 @@ trait MessageService {
 
   def exception(t: Throwable): Unit
 
-  def finish(): Unit
-
   private[message] def printMessage(template: Message): Unit
 }
 

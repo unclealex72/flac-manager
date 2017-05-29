@@ -16,9 +16,10 @@
 
 package checkout
 
-import common.commands.CommandExecution
 import common.files.FlacFileLocation
 import common.message.MessageService
+
+import scala.concurrent.Future
 
 /**
   * The command used to checkout flac files from the flac repository. Files that get checked out are not
@@ -31,7 +32,7 @@ trait CheckoutCommand {
     * @param locations The locations of the flac files to check out.
     * @param unown True if each flac file should also lose its owners, false otherwise.
     * @param messageService The [[MessageService]] used to report progress and errors.
-    * @return A [[CommandExecution]] that checks out flac files.
+    * @return A [[Future]] that checks out flac files.
     */
-  def checkout(locations: Seq[FlacFileLocation], unown: Boolean)(implicit messageService: MessageService): CommandExecution
+  def checkout(locations: Seq[FlacFileLocation], unown: Boolean)(implicit messageService: MessageService): Future[_]
 }

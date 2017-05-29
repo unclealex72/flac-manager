@@ -24,9 +24,9 @@ import common.configuration.Directories
 import common.files.{DirectoryService, FileLocationExtensions, FileSystem, FlacFileLocation}
 import common.message.Messages._
 import common.message.{Message, MessageService, Messaging}
-import common.commands.CommandExecution
-import common.commands.CommandExecution._
 import common.validation.SequentialValidation
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * The default implementation of [[CheckoutCommand]]
@@ -35,20 +35,22 @@ import common.validation.SequentialValidation
   * @param checkoutService The [[CheckoutService]] used to actually check out flac files.
   * @param directories The location of all repositories.
   * @param fileLocationExtensions A typeclass used to add [[java.nio.file.Path]] like functionality to [[FlacFileLocation]]s.
+  * @param ec The execution context used to execute the command.
   */
 class CheckoutCommandImpl @Inject()(
                                      val fileSystem: FileSystem,
                                      val directoryService: DirectoryService,
                                      val checkoutService: CheckoutService)
                          (implicit val directories: Directories,
-                          fileLocationExtensions: FileLocationExtensions)
+                          fileLocationExtensions: FileLocationExtensions,
+                          ec: ExecutionContext)
   extends CheckoutCommand with Messaging with SequentialValidation {
 
   /**
     * @inheritdoc
     */
   override def checkout(locations: Seq[FlacFileLocation], unown: Boolean)
-                       (implicit messageService: MessageService): CommandExecution = synchronous {
+                       (implicit messageService: MessageService): Future[_] = Future {
     val groupedFlacFileLocations = directoryService.groupFiles(locations)
     val flacFileLocations = groupedFlacFileLocations.values.flatten.toSeq
     checkFlacFilesDoNotOverwrite(flacFileLocations) match {

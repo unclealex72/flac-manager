@@ -24,8 +24,6 @@ object NoOpMessageService extends MessageService {
 
   override def exception(t: Throwable): Unit = {}
 
-  override def finish(): Unit = {}
-
   implicit val messageService: MessageService = this
 }
 

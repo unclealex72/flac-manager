@@ -43,11 +43,4 @@ trait MessageServiceBuilder {
     */
   def withExceptionHandler(handler: Throwable => Unit): MessageServiceBuilder
 
-  /**
-    * Build a [[MessageService]] that handles feedback finishing.
-    * @param onFinish The callback that will be called on finishing.
-    * @return A [[MessageServiceBuilder]] that will build a [[MessageService]] that handles finishing
-    *         using the given callback.
-    */
-  def withOnFinish(onFinish: () => Unit): MessageServiceBuilder
 }

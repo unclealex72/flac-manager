@@ -1,0 +1,3 @@
+#!/bin/sh
+
+docker run -it --rm -v /mnt/music:/music -e TZ=Europe/London --network host unclealex72/flac-manager

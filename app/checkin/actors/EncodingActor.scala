@@ -48,7 +48,7 @@ class EncodingActor @Inject()(implicit val mp3Encoder: Mp3Encoder,
     * @return
     */
   def receive: PartialFunction[Any, Unit] = {
-    case EncodeFlacFileLocation(stagedFlacFileLocation, flacFileLocation, tags, owners, messageService) =>
+    case EncodeFlacFileLocation(stagedFlacFileLocation, flacFileLocation, tags, owners, messageService, completionNotifier) =>
       implicit val _messageService = messageService
       try {
         val tempEncodedLocation = TemporaryFileLocation.create(MP3)
@@ -56,15 +56,15 @@ class EncodingActor @Inject()(implicit val mp3Encoder: Mp3Encoder,
         log(ENCODE(stagedFlacFileLocation, encodedFileLocation))
         stagedFlacFileLocation.encodeTo(tempEncodedLocation)
         tempEncodedLocation.writeTags(tags)
-        sender ! LinkAndMoveFileLocations(tempEncodedLocation, encodedFileLocation, stagedFlacFileLocation, flacFileLocation, owners, messageService)
+        sender ! LinkAndMoveFileLocations(tempEncodedLocation, encodedFileLocation, stagedFlacFileLocation, flacFileLocation, owners, messageService, completionNotifier)
       }
       catch {
         case e: Exception =>
           log(EXCEPTION(e))
-          sender ! CheckinFailed(stagedFlacFileLocation, e, messageService)
+          sender ! CheckinFailed(stagedFlacFileLocation, e, messageService, completionNotifier)
       }
-    case DeleteFileLocation(stagedFlacFileLocation, messageService) =>
-      sender ! DeleteFileLocation(stagedFlacFileLocation, messageService)
+    case DeleteFileLocation(stagedFlacFileLocation, messageService, completionNotifier) =>
+      sender ! DeleteFileLocation(stagedFlacFileLocation, messageService, completionNotifier)
 
   }
 }

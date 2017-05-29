@@ -18,16 +18,15 @@ package own
 
 import javax.inject.Inject
 
-import common.commands.CommandExecution
-import common.commands.CommandExecution._
 import common.configuration.User
-import common.files._
 import common.files.FileLocation._
+import common.files._
 import common.message.MessageService
-import common.music.{Tags, TagsService}
+import common.music.TagsService
 import common.owners.OwnerService
 
 import scala.collection.{SortedMap, SortedSet}
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * The default implementation of [[OwnCommand]]
@@ -35,13 +34,15 @@ import scala.collection.{SortedMap, SortedSet}
   * @param directoryService The [[DirectoryService]] used to list files.
   * @param flacFileChecker The [[FlacFileChecker]] used to check all files are valid FLAC files.
   * @param tagsService The [[TagsService]] used to read audio information from FLAC files.
+  * @param ec The execution context used to execute the command.
   */
 class OwnCommandImpl @Inject()(
                                 ownerService: OwnerService,
                                 directoryService: DirectoryService)
                               (implicit flacFileChecker: FlacFileChecker,
                                tagsService: TagsService,
-                               fileLocationExtensions: FileLocationExtensions) extends OwnCommand {
+                               fileLocationExtensions: FileLocationExtensions,
+                               ec: ExecutionContext) extends OwnCommand {
 
   /**
     * @inheritdoc
@@ -49,7 +50,7 @@ class OwnCommandImpl @Inject()(
   override def changeOwnership(action: OwnAction,
                                users: Seq[User],
                                directoryLocations: Seq[Either[StagedFlacFileLocation, FlacFileLocation]])
-                              (implicit messageService: MessageService): CommandExecution = synchronous {
+                              (implicit messageService: MessageService): Future[_] = Future {
     val empty: (SortedMap[String, Seq[StagedFlacFileLocation]], SortedMap[String, Seq[FlacFileLocation]]) =
       (SortedMap.empty[String, Seq[StagedFlacFileLocation]], SortedMap.empty[String, Seq[FlacFileLocation]])
     val (stagedLocations, flacLocations) = directoryLocations.foldLeft(empty){ (acc, location) =>

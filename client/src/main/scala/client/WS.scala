@@ -17,8 +17,10 @@
 package client
 
 import akka.stream.Materializer
-import play.api.libs.ws.WSClient
-import play.api.libs.ws.ahc.AhcWSClient
+import play.api.libs.ws.{WSClient, WSClientConfig}
+import play.api.libs.ws.ahc.{AhcWSClient, AhcWSClientConfig}
+
+import scala.concurrent.duration.Duration
 
 /**
   * An object to hold the WsClient used to talk to the server.
@@ -30,5 +32,9 @@ object WS {
     * @param materializer The materialiser used to materialise streams.
     * @return A new web service client.
     */
-  def apply()(implicit materializer: Materializer): WSClient = AhcWSClient()
+  def apply()(implicit materializer: Materializer): WSClient = {
+    val config = WSClientConfig(idleTimeout = Duration.Inf, requestTimeout = Duration.Inf)
+    val ahcConfig = AhcWSClientConfig(wsClientConfig = config)
+    AhcWSClient(ahcConfig)
+  }
 }

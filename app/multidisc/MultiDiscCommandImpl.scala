@@ -18,17 +18,21 @@ package multidisc
 
 import javax.inject.Inject
 
-import common.commands.CommandExecution
-import common.commands.CommandExecution._
 import common.files.StagedFlacFileLocation
 import common.message.MessageService
 import json.MultiAction
 import json.MultiAction.{Join, Split}
 
+import scala.concurrent.{ExecutionContext, Future}
+
 /**
-  * Created by alex on 25/05/17
+  * The default implementation of [[MultiDiscCommand]]
+  *
+  * @param multiDiscService The service used to mutate multi-disc albums.
+  * @param ec The execution context used to execute the command.
   **/
-class MultiDiscCommandImpl @Inject() (val multiDiscService: MultiDiscService) extends MultiDiscCommand {
+class MultiDiscCommandImpl @Inject()(val multiDiscService: MultiDiscService)
+                                    (implicit val ec: ExecutionContext) extends MultiDiscCommand {
   /**
     * Either join or split a multi-album
     *
@@ -38,7 +42,7 @@ class MultiDiscCommandImpl @Inject() (val multiDiscService: MultiDiscService) ex
     * @return A command execution that will split or join a multi-disc album.
     */
   override def mutateMultiDiscAlbum(stagedFlacFileLocations: Seq[StagedFlacFileLocation], multiAction: MultiAction)
-                                   (implicit messageService: MessageService): CommandExecution = synchronous {
+                                   (implicit messageService: MessageService): Future[_] = Future {
     multiAction match {
       case Split =>
         multiDiscService.createAlbumWithExtras(stagedFlacFileLocations)

@@ -23,7 +23,6 @@ import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.implicits._
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
-import common.commands.CommandExecution
 import common.configuration.{Directories, User, UserDao}
 import common.files.{FileLocation, FlacFileLocation, StagedFlacFileLocation}
 import common.message.MessageService
@@ -35,6 +34,8 @@ import multidisc.MultiDiscCommand
 import own.OwnAction._
 import own.OwnCommand
 import play.api.libs.json._
+
+import scala.concurrent.Future
 
 /**
   * The default implementation of [[CommandBuilder]].
@@ -172,7 +173,7 @@ class CommandBuilderImpl @Inject()(
   /**
     * @inheritdoc
     */
-  override def apply(jsValue: JsValue): ValidatedNel[String, (MessageService) => CommandExecution] = {
+  override def apply(jsValue: JsValue): ValidatedNel[String, (MessageService) => Future[_]] = {
     val validatedParameters = jsonToParameters(jsValue)
     validatedParameters.andThen {
       case CheckinParameters(relativeDirectories, allowUnowned) =>

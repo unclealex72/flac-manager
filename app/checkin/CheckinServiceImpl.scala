@@ -19,21 +19,29 @@ package checkin
 import javax.inject.{Inject, Named}
 
 import akka.actor.ActorRef
-import checkin.actors.Messages.Actions
-import common.commands.CommandExecution
-import common.commands.CommandExecution._
+import checkin.actors.Messages.{Actions, CompletionNotifier}
 import common.message.{MessageService, Messaging}
+
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 /**
   * The [[CheckinService]] that delegates to an [[akka.actor.Actor]]
   * @param checkinActor A reference to the actor that will check in the flac files.
+  * @param ec An execution context used to fire off checkin actions.
   */
-class CheckinServiceImpl @Inject()(@Named("checkin-actor") checkinActor: ActorRef) extends CheckinService with Messaging {
+class CheckinServiceImpl @Inject()(@Named("checkin-actor") checkinActor: ActorRef)
+                                  (implicit ec: ExecutionContext) extends CheckinService with Messaging {
 
   /**
     * @inheritdoc
     */
-  override def checkin(actions: Seq[Action])(implicit messagingService: MessageService): CommandExecution = asynchronous {
-    checkinActor ! Actions(actions, messagingService)
+  override def checkin(actions: Seq[Action])(implicit messagingService: MessageService): Future[_] = {
+    val promise = Promise[Unit]
+    val completionNotifier = new CompletionNotifier {
+      override def finished(): Unit = promise.success(())
+    }
+    checkinActor ! Actions(actions, messagingService, completionNotifier)
+    promise.future
   }
+
 }
