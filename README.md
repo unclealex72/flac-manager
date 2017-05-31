@@ -35,6 +35,12 @@ music directory must have the following subdirectories:
 | `devices/<user>/` | Symbolic links to the encoded files owned by a user. |
 | `db/`             | A directory that contains the H2 database. |
 
+Additionally, if you have a `tmp/` subdirectory this will be used as a temporary directory where newly encoded files
+will be held. If the `tmp/` subdirectory does not exist then the system temporary directory will be used. This allows
+you to decide whether it's quicker to encode to a faster file system and then non-atomically move the encoded file to 
+the repository or to encode to the same file system and then atomically move the encoded file.
+
+
 ## Client Setup
 
 The client can be installed as a Debian `dpkg` file.

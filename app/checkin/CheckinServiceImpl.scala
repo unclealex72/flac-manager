@@ -16,32 +16,32 @@
 
 package checkin
 
-import javax.inject.{Inject, Named}
+import javax.inject.Inject
 
-import akka.actor.ActorRef
-import checkin.actors.Messages.{Actions, CompletionNotifier}
 import common.message.{MessageService, Messaging}
 
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
-  * The [[CheckinService]] that delegates to an [[akka.actor.Actor]]
-  * @param checkinActor A reference to the actor that will check in the flac files.
+  * The [[CheckinService]] that delegates to a [[SingleCheckinService]]
+  * @param singleCheckinService The service that will encode or remove files.
   * @param ec An execution context used to fire off checkin actions.
   */
-class CheckinServiceImpl @Inject()(@Named("checkin-actor") checkinActor: ActorRef)
+class CheckinServiceImpl @Inject()(singleCheckinService: SingleCheckinService)
                                   (implicit ec: ExecutionContext) extends CheckinService with Messaging {
 
   /**
     * @inheritdoc
     */
   override def checkin(actions: Seq[Action])(implicit messagingService: MessageService): Future[_] = {
-    val promise = Promise[Unit]
-    val completionNotifier = new CompletionNotifier {
-      override def finished(): Unit = promise.success(())
-    }
-    checkinActor ! Actions(actions, messagingService, completionNotifier)
-    promise.future
+    val eventualActions: Seq[Future[Unit]] = actions.map(action => singleCheckin(action).map(_ => {}))
+    Future.sequence(eventualActions)
   }
 
+  def singleCheckin(action: Action)(implicit messagingService: MessageService): Future[_] = action match {
+    case Delete(stagedFlacFileLocation) =>
+      singleCheckinService.remove(stagedFlacFileLocation)
+    case Encode(stagedFileLocation, flacFileLocation, tags, owners) =>
+      singleCheckinService.encode(stagedFileLocation, flacFileLocation, tags, owners)
+  }
 }

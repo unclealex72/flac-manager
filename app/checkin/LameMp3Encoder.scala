@@ -19,17 +19,14 @@ package checkin
 import java.nio.file.Path
 import javax.inject.Inject
 
-import common.commands.CommandService
-
 import scala.sys.process._
 
 /**
   * An implementation that uses [[http://lame.sourceforge.net/ Lame]] to encode flac files to MP3.
-  * @param commandService The service that holds where small bash scripts are stored.
   */
-class LameMp3Encoder @Inject()(commandService: CommandService) extends Mp3Encoder {
+class LameMp3Encoder @Inject()() extends Mp3Encoder {
 
   override def encode(source: Path, target: Path): Unit = {
-    Seq(commandService.flac2mp3Command, source.toString, target.toString) !< ProcessLogger(_ => {})
+    Seq("flac", "-dcs", source.toString) #| Seq("lame", "--silent", "--resample", "44100", "-h", "-b", "320", "-", target.toString) !
   }
 }

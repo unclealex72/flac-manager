@@ -50,7 +50,15 @@ case class PlayConfigurationDirectories @Inject()(
 
   val temporaryPath: Path = {
     val fileAttributes = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxr--r--"))
-    Files.createTempDirectory("flac-manager-", fileAttributes).toAbsolutePath
+    val rootTmpDir = musicDirectory.resolve("tmp")
+    val tmp = if (Files.isDirectory(rootTmpDir)) {
+      Files.createTempDirectory(rootTmpDir, "flac-manager-", fileAttributes).toAbsolutePath
+    }
+    else {
+      Files.createTempDirectory("flac-manager-", fileAttributes).toAbsolutePath
+    }
+    logger.info(s"Created temporary directory $tmp")
+    tmp
   }
 
   val datumPath: Path = musicDirectory.resolve(".flac-manager-datum-file-" + java.util.UUID.randomUUID.toString)

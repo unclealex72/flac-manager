@@ -54,7 +54,7 @@ object Client extends App {
     }  yield {}
     Await.result(eventualAction.value, Duration.Inf) match {
       case Left(messages) => messages.toList.foreach(System.err.println)
-      case _ => println("The command completed successfully.")
+      case _ => println("Finished.")
     }
   }
   finally {
