@@ -16,6 +16,7 @@
 
 package controllers
 
+import java.lang.{Boolean => JB, Integer => JI}
 import java.util
 import javax.inject.{Inject, Singleton}
 
@@ -28,18 +29,16 @@ import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.{Parser, ParserEmulationProfile}
 import com.vladsch.flexmark.util.KeepType
 import com.vladsch.flexmark.util.options.MutableDataSet
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{BaseController, ControllerComponents}
 
 import scala.io.Source
-
-import java.lang.{Boolean => JB, Integer => JI}
 
 /**
   * A controller that outputs this project's
   * [[https://github.com/unclealex72/flac-manager/blob/master/README.md README.md]] file.
   */
 @Singleton
-class Index @Inject() extends Controller {
+class Index @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
 
   /**
     * Convert the README.md file into HTML.
@@ -84,7 +83,7 @@ class Index @Inject() extends Controller {
     * Show this project's [[https://github.com/unclealex72/flac-manager/blob/master/README.md README.md]] file
     * @return A retro-themed README.md.
     */
-  def index = Action { implicit request =>
+  def index = Action {
     Ok(views.html.index(html))
   }
 }

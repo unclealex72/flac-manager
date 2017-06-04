@@ -20,6 +20,7 @@ import common.files.FlacFileLocation
 import common.message.MessageService
 
 import scala.collection.{SortedMap, SortedSet}
+import scala.concurrent.Future
 
 /**
   * Checkout a sequence of [[FlacFileLocation]]s.
@@ -34,5 +35,5 @@ trait CheckoutService {
     */
   def checkout(
                 flacFileLocationsByParent: SortedMap[FlacFileLocation, SortedSet[FlacFileLocation]],
-                unown: Boolean)(implicit messageService: MessageService)
+                unown: Boolean)(implicit messageService: MessageService): Future[Unit]
 }

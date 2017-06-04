@@ -15,28 +15,29 @@
  */
 package common.changes
 
+import java.time.Instant
+
 import common.configuration.User
-import org.joda.time.DateTime
+import scala.concurrent.Future
 
 /**
   * The data access object for keeping track of changes to the flac repository.
   *
   */
 trait ChangeDao {
-  /**
-   * Count the number of added albums since a given date/time
-   * @param user The user making the request.
-   * @param since The earliest time to search for changes.
-   * @return A count of all the changelog items since the given time.
-   */
-  def countChangelogSince(user: User, since: DateTime): Long
 
   /**
     * Persist a change.
     * @param change The [[Change]] to persist.
     * @return The persisted change.
     */
-  def store(change: Change): Change
+  def store(change: Change): Future[Change]
+
+  /**
+    * Count the total number of changes.
+    * @return The total number of changes.
+    */
+  def countChanges(): Future[Int]
 
   /**
     * Get all the changes for a given user since a given time. Changes are ordered by deletions first and
@@ -45,21 +46,7 @@ trait ChangeDao {
     * @param since The earliest time to search for changes.
     * @return A list of all changes.
     */
-  def getAllChangesSince(user: User, since: DateTime): List[Change]
-
-  /**
-   * Count all changes.
-   * @return A count of all changes.
-   */
-  def countChanges(): Long
-
-  /**
-    * Count all the changes for a given user since a given time.
-    * @param user The user making the request.
-    * @param since The earliest time to search for changes.
-    * @return A count of all changes.
-    */
-  def countChangesSince(user: User, since: DateTime): Long
+  def getAllChangesSince(user: User, since: Instant): Future[Seq[Change]]
 
   /**
     * Get a list of changelog items for a given user since a given amount of time. A changelog item
@@ -68,13 +55,5 @@ trait ChangeDao {
     * @param since The earliest time to search for changes.
     * @return A list of changelog items.
     */
-  def changelog(user: User, since: DateTime): List[ChangelogItem]
-
-  /**
-    * Count the total number of changelog items for a user.
-    * @param user The user making the request.
-    * @return The number of changelog items for that user.
-    */
-  def countChangelog(user: User): Long
-
+  def changelog(user: User, since: Instant): Future[Seq[ChangelogItem]]
 }

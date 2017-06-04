@@ -22,6 +22,8 @@ import common.message.MessageService
 import common.music.Tags
 import own.OwnAction
 
+import scala.concurrent.Future
+
 /**
   * Allow the listing and changing of which albums should be included on a user's device.
   */
@@ -40,7 +42,7 @@ trait OwnerService {
                              action: OwnAction,
                              albumId: String,
                              stagedFlacFileLocations: Seq[StagedFlacFileLocation])
-                           (implicit messageService: MessageService): Unit
+                           (implicit messageService: MessageService): Future[Unit]
 
   /**
     * Change the ownership of flac files in the flac repository.
@@ -55,14 +57,14 @@ trait OwnerService {
                            action: OwnAction,
                            albumId: String,
                            flacFileLocations: Seq[FlacFileLocation])
-                         (implicit messageService: MessageService): Unit
+                         (implicit messageService: MessageService): Future[Unit]
 
   /**
     * List all collections.
     *
     * @return A function that, given [[Tags]], will return the set of [[User]]s who own them.
     */
-  def listCollections(): Tags => Set[User]
+  def listOwners(): Future[Map[String, Set[User]]]
 
   /**
     * Remove a set of albums from a user's collection.
@@ -70,6 +72,6 @@ trait OwnerService {
     * @param tags The tags containing the albums that will be removed.
     * @param messageService The [[MessageService]] used to report progress and log errors.
     */
-  def unown(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit
+  def unown(user: User, tags: Set[Tags])(implicit messageService: MessageService): Future[Unit]
 
 }

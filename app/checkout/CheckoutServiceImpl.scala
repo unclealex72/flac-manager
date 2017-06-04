@@ -16,6 +16,8 @@
 
 package checkout
 
+import java.time.{Clock, Instant}
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 import common.changes.{Change, ChangeDao}
@@ -23,31 +25,34 @@ import common.configuration.{Directories, User, UserDao}
 import common.files._
 import common.message.MessageService
 import common.music.{Tags, TagsService}
-import common.now.NowService
 import common.owners.OwnerService
 
 import scala.collection.{SortedMap, SortedSet}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
   * The default implementation of [[CheckoutService]]
   * @param fileSystem The [[FileSystem]] used to manipulate files.
   * @param userDao The dao used to get all users.
   * @param ownerService The service used to find who owns which flac files.
-  * @param nowService The service used to get the current time.
+  * @param clock The clock used to get the current time.
   * @param changeDao The dao used to store repository changes.
   * @param directories The locations of the repositories.
   * @param fileLocationExtensions A typeclass to give [[java.nio.file.Path]] like functionality to [[FileLocation]]s.
   * @param tagsService The service used to read tags from audio files.
+  * @param executionContext The execution context used to allocate threads to jobs.
   */
 class CheckoutServiceImpl @Inject()(
                                      val fileSystem: FileSystem,
                                      val userDao: UserDao,
                                      val ownerService: OwnerService,
-                                     val nowService: NowService)
+                                     val clock: Clock)
                          (implicit val changeDao: ChangeDao,
                           val directories: Directories,
                           val fileLocationExtensions: FileLocationExtensions,
-                          val tagsService: TagsService)
+                          val tagsService: TagsService,
+                          val executionContext: ExecutionContext)
   extends CheckoutService {
 
   /**
@@ -55,13 +60,19 @@ class CheckoutServiceImpl @Inject()(
     */
   override def checkout(
                          flacFileLocationsByParent: SortedMap[FlacFileLocation, SortedSet[FlacFileLocation]],
-                         unown: Boolean)(implicit messageService: MessageService): Unit = {
-    val tagsForUsers: Map[User, Set[Tags]] =
-      flacFileLocationsByParent.foldLeft(Map.empty[User, Set[Tags]])(findTagsAndDeleteFiles)
+                         unown: Boolean)(implicit messageService: MessageService): Future[Unit] = {
+    val eventualTagsForUsers = Future(flacFileLocationsByParent.foldLeft(Map.empty[User, Set[Tags]])(findTagsAndDeleteFiles))
     if (unown) {
-      tagsForUsers.foreach { case (user, tagsSet) =>
-        ownerService.unown(user, tagsSet)
+      eventualTagsForUsers.flatMap { tagsForUsers =>
+        val empty: Future[Unit] = Future.successful({})
+        tagsForUsers.foldLeft(empty){ (acc, tagsForUser) =>
+          val (user, tags) = tagsForUser
+          acc.flatMap(_ => ownerService.unown(user, tags))
+        }
       }
+    }
+    else {
+      Future.successful({})
     }
   }
 
@@ -102,7 +113,7 @@ class CheckoutServiceImpl @Inject()(
       val encodedFileLocation = flacFileLocation.toEncodedFileLocation
       val deviceFileLocations: Set[DeviceFileLocation] = owners.map { user => encodedFileLocation.toDeviceFileLocation(user)}
       deviceFileLocations.foreach { deviceFileLocation =>
-        Change.removed(deviceFileLocation, nowService.now()).store
+        Await.result(changeDao.store(Change.removed(deviceFileLocation, Instant.now(clock))), Duration.apply(1, TimeUnit.HOURS))
       }
       deviceFileLocations.foreach(fileSystem.remove(_))
       fileSystem.remove(encodedFileLocation)

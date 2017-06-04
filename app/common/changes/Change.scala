@@ -15,10 +15,9 @@
  */
 package common.changes
 
+import java.time.Instant
+
 import common.files.{DeviceFileLocation, FileLocationExtensions}
-import common.joda.JodaDateTime
-import org.joda.time.DateTime
-import org.squeryl.KeyedEntity
 
 /**
   * A persistable unit that represents a change to a user's encoded repository.
@@ -33,22 +32,9 @@ case class Change(
                    id: Long,
                    parentRelativePath: Option[String],
                    relativePath: String,
-                   at: DateTime,
+                   at: Instant,
                    user: String,
-                   action: String) extends KeyedEntity[Long] {
-
-  /**
-   * Squeryl constructor
-   */
-  protected def this() = this(0, None, "", new DateTime(), "", "")
-
-  /**
-    * Store this change in the database.
-    * @param changeDao The [[ChangeDao]] that will actually make the change.
-    */
-  def store(implicit changeDao: ChangeDao): Unit = changeDao.store(this)
-}
-
+                   action: String)
 /**
   * Used to create [[Change]] instances.
   */
@@ -62,7 +48,7 @@ object Change {
     * @return A change timed at when the file was last modified.
     */
   def added(deviceFileLocation: DeviceFileLocation)(implicit fileLocationExtensions: FileLocationExtensions): Change =
-    apply("added", deviceFileLocation, storeParent = true, JodaDateTime(deviceFileLocation.lastModified))
+    create("added", deviceFileLocation, storeParent = true, deviceFileLocation.lastModified)
 
   /**
     * Create a change that indicates a file has been removed.
@@ -70,11 +56,18 @@ object Change {
     * @param at The time when the file was removed.
     * @return A new removal change.
     */
-  def removed(deviceFileLocation: DeviceFileLocation, at: DateTime): Change = apply("removed", deviceFileLocation, storeParent = false, at)
+  def removed(deviceFileLocation: DeviceFileLocation, at: Instant): Change = create("removed", deviceFileLocation, storeParent = false, at)
 
-  private def apply(action: String, deviceFileLocation: DeviceFileLocation, storeParent: Boolean, at: DateTime): Change = {
+  private def create(action: String, deviceFileLocation: DeviceFileLocation, storeParent: Boolean, at: Instant): Change = {
     val relativePath = deviceFileLocation.relativePath
     val parentPath = if (storeParent) Some(relativePath.getParent.toString) else None
     Change(0, parentPath, relativePath.toString, at, deviceFileLocation.user, action)
   }
+
+  /**
+    * Explicitly required for Slick.
+    * @return A function to create a change from a tuple.
+    */
+  def tupled: ((Long, Option[String], String, Instant, String, String)) => Change = (Change.apply _).tupled
+
 }

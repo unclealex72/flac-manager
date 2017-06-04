@@ -54,49 +54,51 @@ class InitialiseCommandImpl @Inject()(
                             val collectionDao: CollectionDao,
                             val ec: ExecutionContext) extends InitialiseCommand with Messaging with StrictLogging {
 
+  case class InitialFile(deviceFileLocation: DeviceFileLocation, own: InitialOwn)
+  case class InitialOwn(releaseId: String, user: User)
+
   /**
     * @inheritdoc
     */
-  override def initialiseDb(implicit messageService: MessageService): Future[_] = Future {
-    case class InitialFile(deviceFileLocation: DeviceFileLocation, own: InitialOwn)
-    case class InitialOwn(releaseId: String, user: User)
-
-    if (changeDao.countChanges() != 0) {
-      log(DATABASE_NOT_EMPTY)
-    }
-    else {
-      val initialFiles: Seq[InitialFile] = for {
-        user <- userDao.allUsers().toSeq
-        deviceFileLocation <- listFiles(user)
-      } yield {
-        log(INITIALISING(deviceFileLocation))
-        val path = deviceFileLocation.path
-        val tags = tagsService.readTags(path)
-        InitialFile(
-          deviceFileLocation,
-          InitialOwn(tags.albumId, user))
-      }
-      val deviceFileLocations = initialFiles.map(_.deviceFileLocation)
-      val ownsByUser: Map[User, Set[InitialOwn]] = initialFiles.map(_.own).toSet.groupBy(_.user)
-      val releasesByUser: Map[User, Set[String]] = ownsByUser.mapValues(_.map(_.releaseId))
-
-      deviceFileLocations.foreach { deviceFileLocation =>
-        Change.added(deviceFileLocation).store
-      }
-
-      releasesByUser.foreach {
-        case (user, releaseIds) =>
-          collectionDao.addReleases(user, releaseIds)
-      }
-      userDao.allUsers().foreach { user =>
-        val root = DeviceFileLocation(user)
-        val deviceFileLocations: SortedSet[DeviceFileLocation] = directoryService.listFiles(Some(root))
-        deviceFileLocations.foreach { deviceFileLocation =>
+  override def initialiseDb(implicit messageService: MessageService): Future[_] = {
+    changeDao.countChanges().flatMap {
+      case 0 =>
+        val initialFiles: Seq[InitialFile] = for {
+          user <- userDao.allUsers().toSeq
+          deviceFileLocation <- listFiles(user)
+        } yield {
           log(INITIALISING(deviceFileLocation))
-          Change.added(deviceFileLocation).store
+          val path = deviceFileLocation.path
+          val tags = tagsService.readTags(path)
+          InitialFile(
+            deviceFileLocation,
+            InitialOwn(tags.albumId, user))
         }
-      }
+        val ownsByUser: Map[User, Set[InitialOwn]] = initialFiles.map(_.own).toSet.groupBy(_.user)
+        val releasesByUser: Map[User, Set[String]] = ownsByUser.mapValues(_.map(_.releaseId))
+        for {
+          _ <- addDeviceFileChanges(initialFiles)
+          _ <- addReleases(releasesByUser)
+        } yield {}
+      case _ => Future.successful(log(DATABASE_NOT_EMPTY))
     }
+  }
+
+  def addDeviceFileChanges(initialFiles: Seq[InitialFile])(implicit messageService: MessageService): Future[_] = {
+    val eventualChanges = initialFiles.map { initialFile =>
+      val deviceFileLocation = initialFile.deviceFileLocation
+      log(INITIALISING(deviceFileLocation))
+      changeDao.store(Change.added(deviceFileLocation))
+    }
+    Future.sequence(eventualChanges)
+  }
+
+  def addReleases(releasesByUser: Map[User, Set[String]]): Future[_] = {
+    val eventualCollections = releasesByUser.map {
+      case (user, releaseIds) =>
+        collectionDao.addReleases(user, releaseIds)
+    }
+    Future.sequence(eventualCollections)
   }
 
   /**

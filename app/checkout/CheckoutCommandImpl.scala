@@ -50,14 +50,17 @@ class CheckoutCommandImpl @Inject()(
     * @inheritdoc
     */
   override def checkout(locations: Seq[FlacFileLocation], unown: Boolean)
-                       (implicit messageService: MessageService): Future[_] = Future {
-    val groupedFlacFileLocations = directoryService.groupFiles(locations)
-    val flacFileLocations = groupedFlacFileLocations.values.flatten.toSeq
-    checkFlacFilesDoNotOverwrite(flacFileLocations) match {
-      case Valid(_) =>
+                       (implicit messageService: MessageService): Future[_] = {
+    val eventualValidatedFileLocations = Future {
+      val groupedFlacFileLocations = directoryService.groupFiles(locations)
+      val flacFileLocations = groupedFlacFileLocations.values.flatten.toSeq
+      (checkFlacFilesDoNotOverwrite(flacFileLocations), groupedFlacFileLocations)
+    }
+    eventualValidatedFileLocations.flatMap {
+      case (Valid(_), groupedFlacFileLocations) =>
         checkoutService.checkout(groupedFlacFileLocations, unown)
-      case Invalid(errors) =>
-        errors.toList.foreach(log)
+      case (Invalid(errors), _) =>
+        Future.successful(errors.toList.foreach(log))
     }
   }
 

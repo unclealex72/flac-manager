@@ -17,6 +17,7 @@
 package common.files
 
 import java.nio.file.{Files, Path, Paths}
+import java.time.Instant
 import javax.inject.Inject
 
 import common.configuration.Directories
@@ -54,8 +55,8 @@ class FileLocationExtensionsImpl @Inject() extends FileLocationExtensions {
   /**
     * @inheritdoc
     */
-  override def lastModified(fileLocation: FileLocation): Long = {
-    Files.getLastModifiedTime(fileLocation).toMillis
+  override def lastModified(fileLocation: FileLocation): Instant = {
+    Files.getLastModifiedTime(fileLocation).toInstant
   }
 
   /**

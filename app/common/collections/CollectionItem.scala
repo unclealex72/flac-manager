@@ -15,20 +15,10 @@
  */
 package common.collections
 
-import org.squeryl.KeyedEntity
-
 /**
  * A persistable unit that represents a change to a user's encoded repository.
  */
 case class CollectionItem(
                            id: Long,
                            user: String,
-                           releaseId: String) extends KeyedEntity[Long] {
-
-  /**
-   * Squeryl constructor
-   */
-
-  protected def this() = this(0, "", "")
-
-}
+                           releaseId: String)

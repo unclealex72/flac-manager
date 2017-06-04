@@ -1,10 +1,11 @@
 package modules
 
+import java.time.Clock
+
 import com.google.inject.AbstractModule
-import common.changes.{ChangeDao, SquerylChangeDao}
-import common.collections.{CollectionDao, SquerylCollectionDao}
+import common.changes.{ChangeDao, SlickChangeDao}
+import common.collections.{CollectionDao, SlickCollectionDao}
 import common.multi.{AllowMultiService, PlayConfigurationAllowMultiService}
-import common.now.{NowService, NowServiceImpl}
 import common.owners.{OwnerService, OwnerServiceImpl}
 import net.codingwell.scalaguice.ScalaModule
 
@@ -13,10 +14,10 @@ import net.codingwell.scalaguice.ScalaModule
   */
 class CommonModule extends AbstractModule with ScalaModule {
   override def configure(): Unit = {
-    bind[ChangeDao].to[SquerylChangeDao].asEagerSingleton()
-    bind[CollectionDao].to[SquerylCollectionDao].asEagerSingleton()
+    bind[ChangeDao].to[SlickChangeDao].asEagerSingleton()
+    bind[CollectionDao].to[SlickCollectionDao].asEagerSingleton()
     bind[OwnerService].to[OwnerServiceImpl].asEagerSingleton()
-    bind[NowService].to[NowServiceImpl].asEagerSingleton()
+    bind[Clock].toInstance(Clock.systemDefaultZone())
     bind[AllowMultiService].to[PlayConfigurationAllowMultiService].asEagerSingleton()
   }
 }

@@ -38,9 +38,10 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
   */
 @Singleton
 class Commands @Inject()(
-                          messageServiceBuilder: MessageServiceBuilder,
-                          commandBuilder: CommandBuilder)
-                        (implicit ec: ExecutionContext) extends Controller with Messaging with StrictLogging {
+                          val messageServiceBuilder: MessageServiceBuilder,
+                          val commandBuilder: CommandBuilder,
+                          val controllerComponents: ControllerComponents)
+                        (implicit ec: ExecutionContext) extends BaseController with Messaging with StrictLogging {
 
 
   /**
@@ -48,7 +49,7 @@ class Commands @Inject()(
     * client using an HTTP chunked response so that feedback is received and processed as soon as possible.
     * @return A HTTP chunked response containing the feedback from the command.
     */
-  def commands: Action[JsValue] = Action(parse.json) { implicit request =>
+  def commands: Action[JsValue] = Action(parse.json) { implicit request: Request[JsValue] =>
     val validatedCommandTypeBuilder = commandBuilder(request.body)
     validatedCommandTypeBuilder match {
       case Valid(commandFactory) =>

@@ -16,6 +16,7 @@
 
 package checkin
 
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 import com.typesafe.scalalogging.StrictLogging
@@ -27,7 +28,8 @@ import common.message.{MessageService, Messaging}
 import common.message.Messages.{ENCODE, EXCEPTION}
 import common.music.{Tags, TagsService}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
   * The default implementation of [[SingleCheckinService]]
@@ -106,9 +108,9 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
     owners.foreach { user =>
       val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
       fileSystem.link(encodedFileLocation, deviceFileLocation)
-      Change.added(deviceFileLocation).store
-      fileSystem.move(stagedFileLocation, flacFileLocation)
+      Await.result(changeDao.store(Change.added(deviceFileLocation)), Duration.apply(1, TimeUnit.HOURS))
     }
+    fileSystem.move(stagedFileLocation, flacFileLocation)
   }
 
   override def remove(stagedFlacFileLocation: StagedFlacFileLocation)

@@ -18,7 +18,7 @@ package common.message
 
 import logging.ApplicationLogging
 import org.slf4j.{Logger, LoggerFactory}
-import play.api.i18n.MessagesApi
+import play.api.i18n.{Lang, Langs, MessagesApi}
 
 /**
   * A [[MessageServiceBuilder]] that builds messages using Play's bundle support.
@@ -28,8 +28,11 @@ import play.api.i18n.MessagesApi
   */
 class I18nMessageServiceBuilder(
                                  messagesApi: MessagesApi,
+                                 langs: Langs,
                                  printers: Seq[String => Unit],
                                  exceptionHandlers: Seq[Throwable => Unit]) extends MessageServiceBuilder with ApplicationLogging {
+
+  implicit val lang: Lang = langs.availables.head
 
   /**
     * @inheritdoc
@@ -53,14 +56,14 @@ class I18nMessageServiceBuilder(
     * @inheritdoc
     */
   override def withPrinter(printer: String => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(messagesApi, printers :+ printer, exceptionHandlers)
+    new I18nMessageServiceBuilder(messagesApi, langs, printers :+ printer, exceptionHandlers)
   }
 
   /**
     * @inheritdoc
     */
   override def withExceptionHandler(exceptionHandler: Throwable => Unit): MessageServiceBuilder = {
-    new I18nMessageServiceBuilder(messagesApi, printers, exceptionHandlers :+ exceptionHandler)
+    new I18nMessageServiceBuilder(messagesApi, langs, printers, exceptionHandlers :+ exceptionHandler)
   }
 
 }
@@ -77,8 +80,8 @@ object I18nMessageServiceBuilder {
     * @param messagesApi Play's messages API.
     * @return A new [[MessageServiceBuilder]] that logs its output.
     */
-  def apply(messagesApi: MessagesApi): MessageServiceBuilder =
-    new I18nMessageServiceBuilder(messagesApi, Seq(), Seq()).
+  def apply(messagesApi: MessagesApi, langs: Langs): MessageServiceBuilder =
+    new I18nMessageServiceBuilder(messagesApi, langs, Seq(), Seq()).
       withPrinter(message => logger.info(message)).
       withExceptionHandler(t => logger.error("An unexpected exception occurred.", t))
 

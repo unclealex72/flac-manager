@@ -23,6 +23,7 @@ import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.implicits._
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
+import com.typesafe.scalalogging.StrictLogging
 import common.configuration.{Directories, User, UserDao}
 import common.files.{FileLocation, FlacFileLocation, StagedFlacFileLocation}
 import common.message.MessageService
@@ -53,7 +54,7 @@ class CommandBuilderImpl @Inject()(
                                     initialiseCommand: InitialiseCommand,
                                     multiDiscCommand: MultiDiscCommand,
                                     userDao: UserDao
-                                  )(implicit val directories: Directories) extends CommandBuilder {
+                                  )(implicit val directories: Directories) extends CommandBuilder with StrictLogging {
 
 
   /**
@@ -174,6 +175,7 @@ class CommandBuilderImpl @Inject()(
     * @inheritdoc
     */
   override def apply(jsValue: JsValue): ValidatedNel[String, (MessageService) => Future[_]] = {
+    logger.info(s"Received body $jsValue")
     val validatedParameters = jsonToParameters(jsValue)
     validatedParameters.andThen {
       case CheckinParameters(relativeDirectories, allowUnowned) =>

@@ -18,6 +18,7 @@ package common.files
 
 import java.io.File
 import java.nio.file.{Path, Paths}
+import java.time.Instant
 
 import cats.data.ValidatedNel
 import checkin.Mp3Encoder
@@ -69,9 +70,9 @@ trait FileLocation {
   /**
     * Return the time this file was last modified.
     * @param fileLocationExtensions The [[FileLocationExtensions]] used to add [[Path]]-like functionality to file locations.
-    * @return The number of milliseconds since the UNIX Epoch when this file was last modified.
+    * @return The instant when this file was last modified.
     */
-  def lastModified(implicit fileLocationExtensions: FileLocationExtensions): Long = fileLocationExtensions.lastModified(this)
+  def lastModified(implicit fileLocationExtensions: FileLocationExtensions): Instant = fileLocationExtensions.lastModified(this)
 
   /**
     * Read and validate audio tags from this file.

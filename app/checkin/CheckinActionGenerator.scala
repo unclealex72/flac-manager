@@ -18,7 +18,9 @@ package checkin
 
 import cats.data.ValidatedNel
 import common.files.StagedFlacFileLocation
-import common.message.{MessageService, Message}
+import common.message.{Message, MessageService}
+
+import scala.concurrent.Future
 
 /**
   * Given a list of [[StagedFlacFileLocation]]s, generate a list of [[Action]]s to check them in if they obey the
@@ -44,5 +46,5 @@ trait CheckinActionGenerator {
     *         messages.
     */
   def generate(stagedFlacFileLocations: Seq[StagedFlacFileLocation],
-               allowUnowned: Boolean): ValidatedNel[Message, Seq[Action]]
+               allowUnowned: Boolean): Future[ValidatedNel[Message, Seq[Action]]]
 }

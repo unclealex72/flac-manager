@@ -16,12 +16,14 @@
 
 package controllers
 
-import play.api.mvc.{Action, AnyContent, Controller}
+import javax.inject.Inject
+
+import play.api.mvc._
 
 /**
   * A controller to show icons at the root level. This is to make rendering favicons easier.
   **/
-class Icons extends Controller {
+class Icons @Inject() (val controllerComponents: ControllerComponents, val assets: Assets) extends BaseController {
 
   /**
     * Return an asset.
@@ -30,6 +32,6 @@ class Icons extends Controller {
     * @return A asset.
     */
   def at(path: String, file: String): Action[AnyContent] =
-    Assets.at(path, file, aggressiveCaching = true)
+    assets.at(path, file, aggressiveCaching = true)
 
 }

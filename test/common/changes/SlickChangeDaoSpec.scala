@@ -31,7 +31,7 @@ import org.squeryl.{Session, SessionFactory}
  * @author alex
  *
  */
-class SquerylChangeDaoSpec extends Specification with ApplicationLogging {
+class SlickChangeDaoSpec extends Specification with ApplicationLogging {
 
   /**
    * Wrap tests with database creation and transactions
@@ -46,7 +46,7 @@ class SquerylChangeDaoSpec extends Specification with ApplicationLogging {
       session.setLogger(logger.debug(_))
       session
     })
-    val changeDao = new SquerylChangeDao()
+    val changeDao = new SlickChangeDao()
     changeDao.tx { changeDao =>
       FlacManagerSchema.create
       val context = new Context()

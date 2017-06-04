@@ -98,7 +98,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
       val _allowMulti = false
       val sfl = StagedFlacFileLocation("good.flac")
       val fl: FlacFileLocation = sfl.toFlacFileLocation(tags)
-      ownerService.listCollections().returns(_ => Set(brian))
+      ownerService.listOwners().returns(_ => Set(brian))
       flacFileChecker.isFlacFile(sfl) returns true
       tagsService.read(sfl) returns Valid(tags)
       fileLocationExtensions.exists(fl) returns true
@@ -115,7 +115,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
         flacFileChecker.isFlacFile(sfl) returns true
         tagsService.read(sfl) returns Valid(tags)
       }
-      ownerService.listCollections().returns(_ => Set(brian))
+      ownerService.listOwners().returns(_ => Set(brian))
       fileLocationExtensions.exists(fl) returns false
       actionGenerator.generate(Seq(sfl1, sfl2, sfl3), allowUnowned = false).toEither must beLeft(
         NonEmptyList.of(NON_UNIQUE(fl, Set(sfl1, sfl2, sfl3))))
@@ -129,7 +129,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
     flacFileChecker.isFlacFile(sfl) returns true
     tagsService.read(sfl) returns Valid(tags)
     fileLocationExtensions.exists(fl) returns false
-    ownerService.listCollections() returns { _ => Set()}
+    ownerService.listOwners() returns { _ => Set()}
     actionGenerator.generate(Seq(sfl), allowUnowned = false).toEither must beLeft(NonEmptyList.of(NOT_OWNED(sfl)))
     actionGenerator.generate(Seq(sfl), allowUnowned = true).toEither must beRight(
       Seq(Encode(sfl, fl, tags, Set.empty)))
@@ -144,7 +144,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
     flacFileChecker.isFlacFile(sfl2) returns false
     tagsService.read(sfl1) returns Valid(tags)
     fileLocationExtensions.exists(fl) returns false
-    ownerService.listCollections() returns { _ => Set(brian)}
+    ownerService.listOwners() returns { _ => Set(brian)}
     actionGenerator.generate(Seq(sfl1, sfl2), allowUnowned = false).toEither must beRight(
       Seq(Encode(sfl1, fl, tags, Set(brian)), Delete(sfl2)))
   }
@@ -156,7 +156,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
     flacFileChecker.isFlacFile(sfl1) returns true
     tagsService.read(sfl1) returns Valid(discTwoTags)
     fileLocationExtensions.exists(fl) returns false
-    ownerService.listCollections() returns { _ => Set(brian)}
+    ownerService.listOwners() returns { _ => Set(brian)}
     actionGenerator.generate(Seq(sfl1), allowUnowned = false).toEither must beRight(
       Seq(Encode(sfl1, fl, discTwoTags, Set(brian))))
   }
@@ -168,7 +168,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
     flacFileChecker.isFlacFile(sfl1) returns true
     tagsService.read(sfl1) returns Valid(discTwoTags)
     fileLocationExtensions.exists(fl) returns false
-    ownerService.listCollections() returns { _ => Set(brian)}
+    ownerService.listOwners() returns { _ => Set(brian)}
     actionGenerator.generate(Seq(sfl1), allowUnowned = false).toEither must beLeft(
       NonEmptyList.of(MULTI_DISC(sfl1)))
   }

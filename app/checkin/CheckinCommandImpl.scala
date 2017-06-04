@@ -43,7 +43,7 @@ class CheckinCommandImpl @Inject()(
   override def checkin(locations: Seq[StagedFlacFileLocation],
                        allowUnowned: Boolean)(implicit messageService: MessageService): Future[_] = {
     val fileLocations = directoryService.listFiles(locations).toSeq
-    actionGenerator.generate(fileLocations, allowUnowned) match {
+    actionGenerator.generate(fileLocations, allowUnowned).flatMap {
       case Valid(actions) =>
         checkinService.checkin(actions.sorted)
       case Invalid(messageTypes) => Future {

@@ -29,24 +29,29 @@ import common.music.{Tags, TagsService}
 import common.owners.OwnerService
 import common.validation.SequentialValidation
 
+import scala.concurrent.{ExecutionContext, Future}
+
 /**
   * The default implementation of [[CheckinActionGenerator]]
   **/
 class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService, val allowMultiService: AllowMultiService)
                                           (implicit val flacFileChecker: FlacFileChecker,
                                      val tagsService: TagsService,
-                                     val fileLocationExtensions: FileLocationExtensions)
+                                     val fileLocationExtensions: FileLocationExtensions, val executionContext: ExecutionContext)
   extends CheckinActionGenerator with SequentialValidation {
 
   /**
     * @inheritdoc
     */
   override def generate(stagedFlacFileLocations: Seq[StagedFlacFileLocation],
-                        allowUnowned: Boolean): ValidatedNel[Message, Seq[Action]] = {
-    val (flacFileLocations, nonFlacFileLocations) = partitionFlacAndNonFlacFiles(stagedFlacFileLocations)
-    // Validate the flac files only as non flac files just get deleted.
-    validate(flacFileLocations, allowUnowned).map(_.map(_.toAction)).map { actions =>
-      actions ++ nonFlacFileLocations.map(Delete)
+                        allowUnowned: Boolean): Future[ValidatedNel[Message, Seq[Action]]] = {
+    val eventualUsersByAlbumId = ownerService.listOwners()
+    eventualUsersByAlbumId.map { usersByAlbumId =>
+      val (flacFileLocations, nonFlacFileLocations) = partitionFlacAndNonFlacFiles(stagedFlacFileLocations)
+      // Validate the flac files only as non flac files just get deleted.
+      validate(flacFileLocations, allowUnowned, usersByAlbumId).map(_.map(_.toAction)).map { actions =>
+        actions ++ nonFlacFileLocations.map(Delete)
+      }
     }
   }
 
@@ -55,18 +60,19 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService, val a
     *
     * @param fileLocations The staged flac files to check.
     * @param allowUnowned True if unowned files are allowed to be checked in, false otherwise.
+    * @param usersByAlbumId A list of users for each album.
     * @return A [[ValidatedNel]] that contains either a sequence of [[OwnedFlacFile]]s or a non-empty list
     *         of [[Message]]s to log in the case of failure.
     */
   def validate(fileLocations: Seq[StagedFlacFileLocation],
-               allowUnowned: Boolean): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
+               allowUnowned: Boolean, usersByAlbumId: Map[String, Set[User]]): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
     val validatedValidFlacFiles =
       checkThereAreSomeFiles(fileLocations).andThen(checkFullyTaggedFlacFiles)
     validatedValidFlacFiles.andThen { validFlacFiles =>
       (checkDoesNotOverwriteExistingFlacFile(validFlacFiles) |@|
         checkTargetFlacFilesAreUnique(validFlacFiles) |@|
         checkForMultiDisc(validFlacFiles) |@|
-        checkFlacFilesAreOwned(validFlacFiles, allowUnowned)).map((_, _, _, ownedFlacFiles) => ownedFlacFiles)
+        checkFlacFilesAreOwned(validFlacFiles, allowUnowned, usersByAlbumId)).map((_, _, _, ownedFlacFiles) => ownedFlacFiles)
     }
   }
 
@@ -168,14 +174,13 @@ class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService, val a
     * @return A sequence of [[OwnedFlacFile]]s or [[NOT_OWNED]] for those that have no owner.
     */
   def checkFlacFilesAreOwned(validFlacFiles: Seq[ValidFlacFile],
-                             allowUnowned: Boolean): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
+                             allowUnowned: Boolean, usersByAlbumId: Map[String, Set[User]]): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
     if (allowUnowned) {
       Validated.valid(validFlacFiles.map(_.ownedBy(Set.empty)))
     }
     else {
-      val hasOwners: Tags => Set[User] = ownerService.listCollections()
       runValidation(validFlacFiles) { validFlacFile =>
-        val owners = hasOwners(validFlacFile.tags)
+        val owners = usersByAlbumId.getOrElse(validFlacFile.tags.albumId, Set.empty)
         if (owners.isEmpty) {
           Validated.invalid(NOT_OWNED(validFlacFile.stagedFileLocation))
         }

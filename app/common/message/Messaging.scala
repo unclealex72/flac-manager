@@ -101,7 +101,9 @@ object Messages {
   /**
    * The key for producing link messages.
    */
-  case class UNLINK(implicit messageService: MessageService) extends Message("unlink")
+  case class UNLINK(fileLocation: FileLocation,
+                    linkLocation: FileLocation) extends Message("link", fileLocation, linkLocation)
+
 
   /**
    * The key for producing add owner messages.
@@ -117,12 +119,7 @@ object Messages {
   /**
    * The key for producing remove owner messages.
    */
-  case class REMOVE_OWNER(implicit messageService: MessageService) extends Message("removeOwner")
-
-  /**
-   * The key for producing commit ownership changes messages.
-   */
-  case class COMMIT_OWNERSHIP(implicit messageService: MessageService) extends Message("commitOwnership")
+  case class REMOVE_OWNER(fileLocation: FileLocation, user: User) extends Message("addOwner", fileLocation, user)
 
   /**
    * The key for producing a message to say that a file has been found.

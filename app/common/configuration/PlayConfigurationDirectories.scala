@@ -46,7 +46,7 @@ case class PlayConfigurationDirectories @Inject()(
     * The parent directory for all repositories.
     */
   val musicDirectory: Path =
-    configuration.getString("directories.music").map(Paths.get(_)).getOrElse(Paths.get("/music"))
+    configuration.getOptional[String]("directories.music").map(Paths.get(_)).getOrElse(Paths.get("/music"))
 
   val temporaryPath: Path = {
     val fileAttributes = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxr--r--"))

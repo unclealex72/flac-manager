@@ -43,10 +43,10 @@ class ClingUpnpServer @Inject()(
 
   private val upnpService: UpnpService = new UpnpServiceImpl()
   private val maybePort: Option[Int] = app.mode match {
-    case Mode.Prod => configuration.getInt("play.server.http.port")
+    case Mode.Prod => configuration.getOptional[Int]("play.server.http.port")
     case _ => None
   }
-  private val suffix: String = configuration.getString("upnp.suffix").getOrElse("")
+  private val suffix: String = configuration.getOptional[String]("upnp.suffix").getOrElse("")
   private val port: Int = maybePort.getOrElse(9000)
 
   new UpnpDeviceCreator(suffix, port, directories.datumPath, upnpService).call()

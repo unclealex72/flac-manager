@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-package common
+package common.db
+
+import java.sql.Timestamp
+import java.time.Instant
+
+import play.api.db.slick.HasDatabaseConfigProvider
+import slick.jdbc.JdbcProfile
 
 /**
-  * Contains classes to read the current date and time.
-  */
-package object now {
+  * A trait that adds JodaTime support to Slick-based DAOs.
+  **/
+trait SlickDao extends HasDatabaseConfigProvider[JdbcProfile] {
+
+  import dbConfig.profile.api._
+
+  implicit val dateTimeColumnType: BaseColumnType[Instant] = MappedColumnType.base[Instant, Timestamp](
+    { dt => new Timestamp(dt.toEpochMilli) },
+    { ts => Instant.ofEpochMilli(ts.getTime) }
+  )
+
 
 }

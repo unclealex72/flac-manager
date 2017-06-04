@@ -19,7 +19,7 @@ import java.nio.file.Path
 
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, ValidatedNel}
-import com.wix.accord.{validate, Failure => WixFailure, Success => WixSuccess}
+import com.wix.accord.{Descriptions, validate, Failure => WixFailure, Success => WixSuccess}
 import common.music.Tags._
 
 import scala.util.{Failure, Success, Try}
@@ -47,7 +47,7 @@ trait TagsService {
         validate(tags) match {
           case WixSuccess => Valid(tags)
           case WixFailure(violations) =>
-            val descriptions = violations.flatMap(_.description)
+            val descriptions = violations.map(violation => Descriptions.render(violation.description))
             Invalid(NonEmptyList.fromListUnsafe(descriptions.toList))
         }
       case Failure(e) =>

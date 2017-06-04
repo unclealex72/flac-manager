@@ -26,5 +26,5 @@ import play.api.Configuration
   **/
 class PlayConfigurationAllowMultiService @Inject() (configuration: Configuration) extends AllowMultiService {
 
-  override val allowMulti: Boolean = configuration.getBoolean("files.allowMultiDiscs").getOrElse(false)
+  override val allowMulti: Boolean = configuration.getOptional[Boolean]("files.allowMultiDiscs").getOrElse(false)
 }

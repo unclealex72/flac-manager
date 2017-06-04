@@ -17,6 +17,7 @@
 package common.files
 
 import java.nio.file.Path
+import java.time.Instant
 
 import common.configuration.Directories
 
@@ -53,7 +54,7 @@ trait FileLocationExtensions {
     * @param fileLocation The file location to check.
     * @return The number of milliseconds since the UNIX Epoch when the file was last modified.
     */
-  protected[files] def lastModified(fileLocation: FileLocation): Long
+  protected[files] def lastModified(fileLocation: FileLocation): Instant
 
   /**
     * Get the first file in a directory that has a given extension.

@@ -22,7 +22,7 @@ import javax.inject.{Inject, Named}
 
 import logging.ApplicationLogging
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
   * An implementation of [[FileSystem]] that decorates another [[FileSystem]] and is aware of whether [[FileSystem]]s
@@ -68,7 +68,7 @@ class ProtectionAwareFileSystem @Inject() (@Named("rawFileSystem") val delegate:
             posixFilePermissions.removeAll(Seq(
               PosixFilePermission.OWNER_WRITE,
               PosixFilePermission.GROUP_WRITE,
-              PosixFilePermission.OTHERS_WRITE))
+              PosixFilePermission.OTHERS_WRITE).asJavaCollection)
           }
           Files.setPosixFilePermissions(currentPath, posixFilePermissions)
         }

@@ -18,19 +18,18 @@ package controllers
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
+import java.time.{Instant, ZonedDateTime}
 import javax.inject.{Inject, Singleton}
 
 import cats.data.Validated.{Invalid, Valid}
 import common.configuration.{Directories, User, UserDao}
 import common.files.{DeviceFileLocation, FileLocationExtensions}
 import common.music.{Tags, TagsService}
-import org.joda.time.DateTime
 import play.api.http.HeaderNames
-import play.api.libs.concurrent.Execution.Implicits._
-import play.api.libs.iteratee.Enumerator
 import play.api.mvc._
 import play.utils.UriEncoding
 
+import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 /**
@@ -42,11 +41,10 @@ import scala.util.Try
   * @param tagsService The [[TagsService]] used to read an audio file's tags.
   */
 @Singleton
-class Music @Inject()(val userDao: UserDao)(
+class Music @Inject()(val userDao: UserDao, val controllerComponents: ControllerComponents)(
   implicit val directories: Directories,
-  val fileLocationExtensions:
-  FileLocationExtensions,
-  val tagsService: TagsService) extends Controller {
+  val fileLocationExtensions: FileLocationExtensions,
+  val tagsService: TagsService, val executionContext: ExecutionContext) extends BaseController {
 
   /**
     * Stream an audio file
@@ -99,7 +97,7 @@ class Music @Inject()(val userDao: UserDao)(
   def musicFile(username: String,
                 path: String,
                 deviceFileLocator: (User, Path) => Option[DeviceFileLocation])
-               (resultBuilder: DeviceFileLocation => Result) = Action { implicit request =>
+               (resultBuilder: DeviceFileLocation => Result) = Action { implicit request: Request[AnyContent] =>
     val decodedPath = UriEncoding.decodePath(path, StandardCharsets.UTF_8.toString).replace('+', ' ')
     val musicFile = for {
       user <- userDao.allUsers().find(_.name == username)
@@ -107,15 +105,15 @@ class Music @Inject()(val userDao: UserDao)(
     } yield musicFile
     musicFile match {
       case Some(deviceFileLocation) =>
-        val lastModified = new DateTime(deviceFileLocation.lastModified)
+        val lastModified: Instant = deviceFileLocation.lastModified
         val maybeNotModified = for {
           ifModifiedSinceValue <-
             request.headers.get("If-Modified-Since")
           ifModifiedSinceDate <-
-            Try(ResponseHeader.httpDateFormat.parseDateTime(ifModifiedSinceValue)).toOption
-            if lastModified.isBefore(ifModifiedSinceDate)
+            Try(ZonedDateTime.parse(ifModifiedSinceValue, ResponseHeader.httpDateFormat)).toOption
+            if lastModified.isBefore(ifModifiedSinceDate.toInstant)
         } yield NotModified
-        maybeNotModified.getOrElse(resultBuilder(deviceFileLocation)).withDateHeaders("Last-Modified" -> lastModified)
+        maybeNotModified.getOrElse(resultBuilder(deviceFileLocation)).withDateHeaders("Last-Modified" -> ZonedDateTime.from(lastModified))
       case _ => NotFound
     }
   }

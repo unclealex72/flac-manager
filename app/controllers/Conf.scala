@@ -19,20 +19,20 @@ package controllers
 import javax.inject.{Inject, Singleton}
 
 import play.api.Configuration
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{BaseController, ControllerComponents}
 
 /**
   * A controller that prints out the server's configuration.
   * @param conf The Play [[Configuration]] object.
   */
 @Singleton
-class Conf @Inject()(val conf: Configuration) extends Controller{
+class Conf @Inject()(val conf: Configuration, val controllerComponents: ControllerComponents) extends BaseController {
 
   /**
     * Render the server's configuration.
     * @return The server's configuration.
     */
-  def configuration = Action { implicit request =>
+  def configuration = Action {
     Ok(conf.underlying.root().render())
   }
 }

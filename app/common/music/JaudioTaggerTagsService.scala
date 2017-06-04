@@ -178,12 +178,12 @@ private object JaudioTaggerTagsService {
 
   object COVER_ART extends SingleTag[CoverArt] {
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     private val FRONT_COVER_ART: Int = 3
 
     def get(tag: Tag): CoverArt = {
-      val artwork = tag.getArtworkList.find(a => FRONT_COVER_ART == a.getPictureType)
+      val artwork = tag.getArtworkList.asScala.find(a => FRONT_COVER_ART == a.getPictureType)
       artwork.map { artwork =>
         CoverArt(artwork.getBinaryData, artwork.getMimeType)
       }.getOrElse(null.asInstanceOf[CoverArt])

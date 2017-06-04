@@ -16,7 +16,7 @@
 
 package common.changes
 
-import org.joda.time.DateTime
+import java.time.Instant
 
 /**
   * A single change to an album.
@@ -25,4 +25,4 @@ import org.joda.time.DateTime
   * @param at The date and time of the change.
   * @param relativePath The path of the album that changed.
  */
-case class ChangelogItem(parentRelativePath: String, at: DateTime, relativePath: String)
+case class ChangelogItem(parentRelativePath: String, at: Instant, relativePath: String)

@@ -3,7 +3,7 @@ package modules
 import com.google.inject.{AbstractModule, Provides}
 import common.message.{I18nMessageServiceBuilder, MessageServiceBuilder}
 import net.codingwell.scalaguice.ScalaModule
-import play.api.i18n.MessagesApi
+import play.api.i18n.{Langs, MessagesApi}
 
 /**
   * Dependency injection for messaging.
@@ -21,8 +21,8 @@ class MessagesModule extends AbstractModule with ScalaModule {
     * @return A new [[MessageServiceBuilder]].
     */
   @Provides
-  def provideMessageServiceBuilder(messagesApi: MessagesApi): MessageServiceBuilder = {
-    I18nMessageServiceBuilder(messagesApi)
+  def provideMessageServiceBuilder(messagesApi: MessagesApi, langs: Langs): MessageServiceBuilder = {
+    I18nMessageServiceBuilder(messagesApi, langs)
   }
 }
 

@@ -33,7 +33,7 @@ class PlayAwareThreadPoolThrottler @Inject() (configuration: Configuration,
                                              (implicit val ec: ExecutionContext) extends ThrottlerOps with StrictLogging {
 
   val throttler: Throttler = {
-    val threads = configuration.getInt("encoder.threads").getOrElse(Runtime.getRuntime.availableProcessors())
+    val threads = configuration.getOptional[Int]("encoder.threads").getOrElse(Runtime.getRuntime.availableProcessors())
     logger.info(s"Using $threads threads for encoding.")
     val throttler = new ThreadPoolThrottler(threads)
     applicationLifecycle.addStopHook { () =>

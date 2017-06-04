@@ -19,6 +19,8 @@ package common.collections
 import common.changes.Change
 import common.configuration.User
 
+import scala.concurrent.Future
+
 /**
  * <p>
  * The interface for keeping track of which albums are owned by which users.
@@ -30,25 +32,23 @@ import common.configuration.User
 trait CollectionDao {
 
   /**
-   * Get all the releases owned by a user.
+   * Get all the releases and who owns them.
    *
-   * @param user
-   * The user who is doing the searching.
-   * @return A list of all the [[http://www.musicbrainz.org MusicBrainz]] releases owned by the user.
+   * @return All map of owners keyed by the album ID that they own.
    */
-  def releasesForOwner(user: User): Traversable[String]
+  def allOwnersByRelease(): Future[Map[String, Seq[String]]]
 
   /**
    * Add releases to an owner's collection.
    * @param user The user whose collection needs changing.
    * @param newReleaseIds The new releases to add to the user's collection.
    */
-  def addReleases(user: User, newReleaseIds: Set[String]): Unit
+  def addReleases(user: User, newReleaseIds: Set[String]): Future[Unit]
 
   /**
    * Remove releases from an owner's collection.
    * @param user The user whose collection needs changing.
    * @param oldReleaseIds The old releases to remove from the user's collection.
    */
-  def removeReleases(user: User, oldReleaseIds: Set[String]): Unit
+  def removeReleases(user: User, oldReleaseIds: Set[String]): Future[Unit]
 }

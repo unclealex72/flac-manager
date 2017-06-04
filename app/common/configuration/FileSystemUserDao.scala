@@ -22,7 +22,7 @@ import javax.inject.Inject
 import common.configuration.User._
 import logging.ApplicationLogging
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedSet
 
 /**
@@ -32,7 +32,7 @@ import scala.collection.immutable.SortedSet
 case class FileSystemUserDao @Inject()(directories: Directories) extends UserDao with ApplicationLogging {
 
   val users: SortedSet[User] =
-    Files.newDirectoryStream(directories.devicesPath).foldLeft(SortedSet.empty[User]){ (users, dir) =>
+    Files.newDirectoryStream(directories.devicesPath).asScala.foldLeft(SortedSet.empty[User]){ (users, dir) =>
       users + User(dir.getFileName.toString)
     }
 

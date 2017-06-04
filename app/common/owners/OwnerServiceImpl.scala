@@ -16,6 +16,7 @@
 
 package common.owners
 
+import java.time.{Clock, Instant}
 import javax.inject.Inject
 
 import common.changes.{Change, ChangeDao}
@@ -24,39 +25,38 @@ import common.configuration.{User, UserDao}
 import common.files._
 import common.message.{MessageService, Messaging}
 import common.music.Tags
-import common.now.NowService
 import own.OwnAction
 import own.OwnAction._
 
+import scala.concurrent.{ExecutionContext, Future}
+
 /**
   * The default implementation of [[OwnerService]]
-  * @param collectionDao The [[CollectionDao]] used to read and alter user's collections.
-  * @param fileSystem The [[FileSystem]] used to link and remove device files.
-  * @param nowService The [[NowService]] used to get the current time.
-  * @param changeDao The [[ChangeDao]] used to tell devices that encoded files need to be added or removed.
+  * @param collectionDao          The [[CollectionDao]] used to read and alter user's collections.
+  * @param fileSystem             The [[FileSystem]] used to link and remove device files.
+  * @param clock                  The [[java.time.Clock]] used to get the current time.
+  * @param changeDao              The [[ChangeDao]] used to tell devices that encoded files need to be added or removed.
   * @param fileLocationExtensions The [[FileLocationExtensions]] used to enrich file locations.
-  * @param userDao The [[UserDao]] used to list the current users.
+  * @param userDao                The [[UserDao]] used to list the current users.
   */
 class OwnerServiceImpl @Inject()(
                                   val collectionDao: CollectionDao,
                                   val fileSystem: FileSystem,
-                                  val nowService: NowService,
+                                  val clock: Clock,
                                   val userDao: UserDao)
                                 (implicit val changeDao: ChangeDao,
-                                 val fileLocationExtensions: FileLocationExtensions) extends OwnerService with Messaging {
+                                 val fileLocationExtensions: FileLocationExtensions,
+                                 val executionContext: ExecutionContext) extends OwnerService with Messaging {
 
   /**
     * @inheritdoc
     */
-  override def listCollections(): Tags => Set[User] = {
-    val collectionsByUser = userDao.allUsers().map { user =>
-      val collection = collectionDao.releasesForOwner(user)
-      user -> collection
+  override def listOwners(): Future[Map[String, Set[User]]] = {
+    val usersByName = userDao.allUsers().groupBy(_.name)
+    collectionDao.allOwnersByRelease().map { ownersByRelease =>
+      ownersByRelease.mapValues(usernames => usernames.flatMap(username => usersByName.getOrElse(username, Set.empty)).toSet)
     }
-    tags => collectionsByUser.filter(_._2.exists(id => id == tags.albumId)).map(_._1)
-
   }
-
   /**
     * @inheritdoc
     */
@@ -65,7 +65,7 @@ class OwnerServiceImpl @Inject()(
                                       action: OwnAction,
                                       albumId: String,
                                       stagedFlacFileLocations: Seq[StagedFlacFileLocation])
-                                    (implicit messageService: MessageService): Unit = {
+                                    (implicit messageService: MessageService): Future[Unit] = {
     changeOwnership(user, action, albumId, Seq.empty)
   }
 
@@ -77,7 +77,7 @@ class OwnerServiceImpl @Inject()(
                                     action: OwnAction,
                                     albumId: String,
                                     flacFileLocations: Seq[FlacFileLocation])
-                                  (implicit messageService: MessageService): Unit = {
+                                  (implicit messageService: MessageService): Future[Unit] = {
     changeOwnership(user, action, albumId, flacFileLocations.map(_.toEncodedFileLocation))
   }
 
@@ -86,21 +86,19 @@ class OwnerServiceImpl @Inject()(
                        action: OwnAction,
                        albumId: String,
                        encodedFileLocations: Seq[EncodedFileLocation])
-                     (implicit messageService: MessageService): Unit = {
+                     (implicit messageService: MessageService): Future[Unit] = {
     action match {
       case Own =>
-        collectionDao.addReleases(user, Set(albumId))
-        encodedFileLocations.foreach { encodedFileLocation =>
+        encodedFileLocations.foldLeft(collectionDao.addReleases(user, Set(albumId))) { (acc, encodedFileLocation) =>
           val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
           fileSystem.link(encodedFileLocation, deviceFileLocation)
-          Change.added(deviceFileLocation).store
+          acc.flatMap(_ => changeDao.store(Change.added(deviceFileLocation))).map(_ => {})
         }
       case Unown =>
-        collectionDao.removeReleases(user, Set(albumId))
-        encodedFileLocations.foreach { encodedFileLocation =>
+        encodedFileLocations.foldLeft(collectionDao.removeReleases(user, Set(albumId))) { (acc, encodedFileLocation) =>
           val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
           fileSystem.remove(deviceFileLocation)
-          Change.removed(deviceFileLocation, nowService.now()).store
+          acc.flatMap(_ => changeDao.store(Change.removed(deviceFileLocation, Instant.now(clock)))).map(_ => {})
         }
     }
   }
@@ -108,7 +106,7 @@ class OwnerServiceImpl @Inject()(
   /**
     * @inheritdoc
     */
-  override def unown(user: User, tags: Set[Tags])(implicit messageService: MessageService): Unit = {
+  override def unown(user: User, tags: Set[Tags])(implicit messageService: MessageService): Future[Unit] = {
     val albumIds = tags.map(_.albumId)
     collectionDao.removeReleases(user, albumIds)
   }

@@ -31,7 +31,7 @@ trait Throttler {
     * @tparam T The type to return.
     * @return A future containing the result of running the code block.
     */
-  def parallel[T](block: =>T): Future[T]
+  def parallel[T](block: => T): Future[T]
 
   /**
     * Run a task sequentially.
@@ -39,7 +39,7 @@ trait Throttler {
     * @tparam T The type to return.
     * @return A future containing the result of running the code block.
     */
-  def sequential[T](block: =>T): Future[T]
+  def sequential[T](block: => T): Future[T]
 }
 
 /**

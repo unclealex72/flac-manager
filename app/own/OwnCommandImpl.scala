@@ -50,28 +50,33 @@ class OwnCommandImpl @Inject()(
   override def changeOwnership(action: OwnAction,
                                users: Seq[User],
                                directoryLocations: Seq[Either[StagedFlacFileLocation, FlacFileLocation]])
-                              (implicit messageService: MessageService): Future[_] = Future {
-    val empty: (SortedMap[String, Seq[StagedFlacFileLocation]], SortedMap[String, Seq[FlacFileLocation]]) =
-      (SortedMap.empty[String, Seq[StagedFlacFileLocation]], SortedMap.empty[String, Seq[FlacFileLocation]])
-    val (stagedLocations, flacLocations) = directoryLocations.foldLeft(empty){ (acc, location) =>
-      val (stagedLocations, flacLocations) = acc
-      location match {
-        case Left(sfl) => (stagedLocations ++ childrenByAlbumId[StagedFlacFileLocation](sfl, _.isFlacFile), flacLocations)
-        case Right(fl) => (stagedLocations, flacLocations ++ childrenByAlbumId[FlacFileLocation](fl, _ => true))
+                              (implicit messageService: MessageService): Future[_] = {
+    val (stagedLocations, flacLocations) = {
+      val empty: (SortedMap[String, Seq[StagedFlacFileLocation]], SortedMap[String, Seq[FlacFileLocation]]) =
+        (SortedMap.empty[String, Seq[StagedFlacFileLocation]], SortedMap.empty[String, Seq[FlacFileLocation]])
+      directoryLocations.foldLeft(empty){ (acc, location) =>
+        val (stagedLocations, flacLocations) = acc
+        location match {
+          case Left(sfl) => (stagedLocations ++ childrenByAlbumId[StagedFlacFileLocation](sfl, _.isFlacFile), flacLocations)
+          case Right(fl) => (stagedLocations, flacLocations ++ childrenByAlbumId[FlacFileLocation](fl, _ => true))
+        }
+      }
+    }
+    def executeChanges[FL <: FileLocation](locationsById: SortedMap[String, Seq[FL]], changer: (User, OwnAction, String, Seq[FL]) => Future[Unit]) = {
+      val empty: Future[Unit] = Future.successful({})
+      users.foldLeft(empty){(accA, user) =>
+        accA.flatMap { _ =>
+          locationsById.foldLeft(accA){ (accB, albumIdAndLocation) =>
+            val (albumId, locations) = albumIdAndLocation
+            accB.flatMap(_ => changer(user, action, albumId, locations))
+          }
+        }
       }
     }
     for {
-      user <- users
-      stagedLocationAndAlbumId <- stagedLocations.toSeq
-    } yield {
-      ownerService.changeStagedOwnership(user, action, stagedLocationAndAlbumId._1, stagedLocationAndAlbumId._2)
-    }
-    for {
-      user <- users
-      flacLocationAndAlbumId <- flacLocations.toSeq
-    } yield {
-      ownerService.changeFlacOwnership(user, action, flacLocationAndAlbumId._1, flacLocationAndAlbumId._2)
-    }
+      _ <- executeChanges(stagedLocations, ownerService.changeStagedOwnership)
+      _ <- executeChanges(flacLocations, ownerService.changeFlacOwnership)
+    } yield {}
   }
 
   def childrenByAlbumId[FL <: FileLocation](fl: FL, filter: FL => Boolean)
