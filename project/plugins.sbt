@@ -5,7 +5,7 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release
 addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.6.0")
 
 // The Play plugin
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.0-RC1")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.0-RC2")
 
 // Release plugin
 

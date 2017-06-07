@@ -23,12 +23,12 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Source
 import cats.data.Validated.{Invalid, Valid}
 import com.typesafe.scalalogging.StrictLogging
+import common.async.CommandExecutionContext
 import common.message.{MessageService, MessageServiceBuilder, Messaging}
-import play.api.libs.EventSource
 import play.api.libs.json._
 import play.api.mvc._
 
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.{Future, Promise}
 
 /**
   * The controller that executes commands that alter repositories.
@@ -41,7 +41,7 @@ class Commands @Inject()(
                           val messageServiceBuilder: MessageServiceBuilder,
                           val commandBuilder: CommandBuilder,
                           val controllerComponents: ControllerComponents)
-                        (implicit ec: ExecutionContext) extends BaseController with Messaging with StrictLogging {
+                        (implicit commandExecutionContext: CommandExecutionContext) extends BaseController with Messaging with StrictLogging {
 
 
   /**

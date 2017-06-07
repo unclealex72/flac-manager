@@ -18,25 +18,32 @@ package checkin
 
 import cats.data.NonEmptyList
 import cats.data.Validated.{Invalid, Valid}
+import common.async.{BackgroundExecutionContext, CommandExecutionContext, GlobalExecutionContext}
 import common.configuration.{TestDirectories, User}
 import common.files.FileLocationToPathImplicits._
 import common.files._
 import common.message.Messages._
-import common.message.TestMessageService
+import common.message.{Message, TestMessageService}
 import common.multi.AllowMultiService
 import common.music.{CoverArt, Tags, TagsService}
 import common.owners.OwnerService
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import org.specs2.specification.Scope
 
+import scala.concurrent.Future
+
 /**
  * Created by alex on 15/11/14.
  */
-class CheckinActionGeneratorImplSpec extends Specification with Mockito {
+class CheckinActionGeneratorImplSpec(implicit ee: ExecutionEnv) extends Specification with Mockito {
 
   trait Context extends Scope {
     val _allowMulti: Boolean
+    val commandExecutionContext: CommandExecutionContext = new GlobalExecutionContext with CommandExecutionContext
+    val backgroundExecutionContext: BackgroundExecutionContext = new GlobalExecutionContext with BackgroundExecutionContext
+
     lazy implicit val flacFileChecker: FlacFileChecker = mock[FlacFileChecker]
     lazy val ownerService: OwnerService = mock[OwnerService]
     lazy implicit val tagsService: TagsService = mock[TagsService]
@@ -45,14 +52,16 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
     lazy val checkinService: CheckinService = mock[CheckinService]
     lazy val actionGenerator = new CheckinActionGeneratorImpl(ownerService, new AllowMultiService {
       override def allowMulti: Boolean = _allowMulti
-    })
+    })(flacFileChecker, commandExecutionContext, tagsService, fileLocationExtensions)
     implicit val directories = TestDirectories()
+    val albumId = "6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e"
+
     val tags = Tags(
       album = "Metal: A Headbanger's Companion",
       albumArtist = "Various Artists",
       albumArtistId = "89ad4ac3-39f7-470e-963a-56509c546377",
       albumArtistSort = "Various Artists Sort",
-      albumId = "6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e",
+      albumId = albumId,
       artist = "Napalm Death",
       artistId = "ce7bba8b-026b-4aa6-bddb-f98ed6d595e4",
       artistSort = "Napalm Death Sort",
@@ -69,7 +78,7 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
       albumArtist = "Various Artists",
       albumArtistId = "89ad4ac3-39f7-470e-963a-56509c546377",
       albumArtistSort = "Various Artists Sort",
-      albumId = "6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e",
+      albumId = albumId,
       artist = "Napalm Death",
       artistId = "ce7bba8b-026b-4aa6-bddb-f98ed6d595e4",
       artistSort = "Napalm Death Sort",
@@ -91,18 +100,21 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
       val sfl = StagedFlacFileLocation("bad.flac")
       flacFileChecker.isFlacFile(sfl) returns true
       tagsService.read(sfl) returns Invalid(NonEmptyList.of(""))
-      actionGenerator.generate(Seq(sfl), allowUnowned = false).toEither must beLeft(NonEmptyList.of(INVALID_FLAC(sfl)))
+      ownerService.listOwners().returns(Future.successful(Map(albumId -> Set(brian))))
+      actionGenerator.generate(Seq(sfl), allowUnowned = false).map(_.toEither) must beLeft(
+        NonEmptyList.of[Message](INVALID_FLAC(sfl))).await
     }
 
     "not allow flac files that would overwrite an existing file" in new Context {
       val _allowMulti = false
       val sfl = StagedFlacFileLocation("good.flac")
       val fl: FlacFileLocation = sfl.toFlacFileLocation(tags)
-      ownerService.listOwners().returns(_ => Set(brian))
+      ownerService.listOwners().returns(Future.successful(Map(albumId -> Set(brian))))
       flacFileChecker.isFlacFile(sfl) returns true
       tagsService.read(sfl) returns Valid(tags)
       fileLocationExtensions.exists(fl) returns true
-      actionGenerator.generate(Seq(sfl), allowUnowned = false).toEither must beLeft(NonEmptyList.of(OVERWRITE(sfl, fl)))
+      actionGenerator.generate(Seq(sfl), allowUnowned = false).map(_.toEither) must beLeft(
+        NonEmptyList.of[Message](OVERWRITE(sfl, fl))).await
     }
 
     "not allow two flac files that would have the same file name" in new Context {
@@ -115,10 +127,10 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
         flacFileChecker.isFlacFile(sfl) returns true
         tagsService.read(sfl) returns Valid(tags)
       }
-      ownerService.listOwners().returns(_ => Set(brian))
+      ownerService.listOwners().returns(Future.successful(Map(albumId -> Set(brian))))
       fileLocationExtensions.exists(fl) returns false
-      actionGenerator.generate(Seq(sfl1, sfl2, sfl3), allowUnowned = false).toEither must beLeft(
-        NonEmptyList.of(NON_UNIQUE(fl, Set(sfl1, sfl2, sfl3))))
+      actionGenerator.generate(Seq(sfl1, sfl2, sfl3), allowUnowned = false).map(_.toEither) must beLeft(
+        NonEmptyList.of[Message](NON_UNIQUE(fl, Set(sfl1, sfl2, sfl3)))).await
     }
   }
 
@@ -129,10 +141,11 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
     flacFileChecker.isFlacFile(sfl) returns true
     tagsService.read(sfl) returns Valid(tags)
     fileLocationExtensions.exists(fl) returns false
-    ownerService.listOwners() returns { _ => Set()}
-    actionGenerator.generate(Seq(sfl), allowUnowned = false).toEither must beLeft(NonEmptyList.of(NOT_OWNED(sfl)))
-    actionGenerator.generate(Seq(sfl), allowUnowned = true).toEither must beRight(
-      Seq(Encode(sfl, fl, tags, Set.empty)))
+    ownerService.listOwners().returns(Future.successful(Map.empty))
+    actionGenerator.generate(Seq(sfl), allowUnowned = false).map(_.toEither) must beLeft(
+      NonEmptyList.of[Message](NOT_OWNED(sfl))).await
+    actionGenerator.generate(Seq(sfl), allowUnowned = true).map(_.toEither) must beRight(
+      Seq[Action](Encode(sfl, fl, tags, Set.empty))).await
   }
 
   "Allow valid flac files an non-flac files" in new Context {
@@ -144,9 +157,9 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
     flacFileChecker.isFlacFile(sfl2) returns false
     tagsService.read(sfl1) returns Valid(tags)
     fileLocationExtensions.exists(fl) returns false
-    ownerService.listOwners() returns { _ => Set(brian)}
-    actionGenerator.generate(Seq(sfl1, sfl2), allowUnowned = false).toEither must beRight(
-      Seq(Encode(sfl1, fl, tags, Set(brian)), Delete(sfl2)))
+    ownerService.listOwners().returns(Future.successful(Map(albumId -> Set(brian))))
+    actionGenerator.generate(Seq(sfl1, sfl2), allowUnowned = false).map(_.toEither) must beRight(
+      Seq[Action](Encode(sfl1, fl, tags, Set(brian)), Delete(sfl2))).await
   }
 
   "Allow multi disc flac files if so configured" in new Context {
@@ -156,9 +169,9 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
     flacFileChecker.isFlacFile(sfl1) returns true
     tagsService.read(sfl1) returns Valid(discTwoTags)
     fileLocationExtensions.exists(fl) returns false
-    ownerService.listOwners() returns { _ => Set(brian)}
-    actionGenerator.generate(Seq(sfl1), allowUnowned = false).toEither must beRight(
-      Seq(Encode(sfl1, fl, discTwoTags, Set(brian))))
+    ownerService.listOwners().returns(Future.successful(Map(albumId -> Set(brian))))
+    actionGenerator.generate(Seq(sfl1), allowUnowned = false).map(_.toEither) must beRight(
+      Seq[Action](Encode(sfl1, fl, discTwoTags, Set(brian)))).await
   }
 
   "Not allow multi disc flac files if so configured" in new Context {
@@ -168,8 +181,8 @@ class CheckinActionGeneratorImplSpec extends Specification with Mockito {
     flacFileChecker.isFlacFile(sfl1) returns true
     tagsService.read(sfl1) returns Valid(discTwoTags)
     fileLocationExtensions.exists(fl) returns false
-    ownerService.listOwners() returns { _ => Set(brian)}
-    actionGenerator.generate(Seq(sfl1), allowUnowned = false).toEither must beLeft(
-      NonEmptyList.of(MULTI_DISC(sfl1)))
+    ownerService.listOwners().returns(Future.successful(Map(albumId -> Set(brian))))
+    actionGenerator.generate(Seq(sfl1), allowUnowned = false).map(_.toEither) must beLeft(
+      NonEmptyList.of[Message](MULTI_DISC(sfl1))).await
   }
 }

@@ -102,7 +102,7 @@ object Messages {
    * The key for producing link messages.
    */
   case class UNLINK(fileLocation: FileLocation,
-                    linkLocation: FileLocation) extends Message("link", fileLocation, linkLocation)
+                    linkLocation: FileLocation) extends Message("unlink", fileLocation, linkLocation)
 
 
   /**
@@ -114,12 +114,12 @@ object Messages {
   /**
    * The key for producing add owner messages.
    */
-  case class ADD_OWNER(fileLocation: FileLocation, user: User) extends Message("addOwner", fileLocation, user)
+  case class ADD_OWNER(user: User, artist: String, album: String) extends Message("addOwner", user, artist, album)
 
   /**
    * The key for producing remove owner messages.
    */
-  case class REMOVE_OWNER(fileLocation: FileLocation, user: User) extends Message("addOwner", fileLocation, user)
+  case class REMOVE_OWNER(user: User, artist: String, album: String) extends Message("removeOwner", user, artist, album)
 
   /**
    * The key for producing a message to say that a file has been found.
@@ -136,6 +136,10 @@ object Messages {
    */
   case object DATABASE_NOT_EMPTY extends Message("databaseNotEmpty")
 
+  /**
+    * The key for producing a message to say that initialisation has started.
+    */
+  case object INITIALISATION_STARTED extends Message("initialisationStared")
   /**
     * The key for producing a message to say that a multi-disc album is being joined.
     * @param albumTitle The name of the album being joined.

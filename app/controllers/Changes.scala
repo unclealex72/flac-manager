@@ -17,17 +17,20 @@
 package controllers
 
 import java.nio.file.{Path, Paths}
-import java.time.{Instant, ZonedDateTime}
 import java.time.format.DateTimeFormatter
+import java.time.{Instant, ZoneId, ZonedDateTime}
 import javax.inject.{Inject, Singleton}
 
+import cats.data.Validated.{Invalid, Valid}
+import cats.implicits._
+import com.typesafe.scalalogging.StrictLogging
+import common.async.CommandExecutionContext
 import common.changes.ChangeDao
 import common.configuration.{User, UserDao}
-import org.joda.time.DateTime
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.Try
 
 /**
@@ -36,7 +39,10 @@ import scala.util.Try
   * @param changeDao The [[ChangeDao]] used to get changes.
   */
 @Singleton
-class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val controllerComponents: ControllerComponents)(implicit val executionContext: ExecutionContext) extends BaseController {
+class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val controllerComponents: ControllerComponents)
+                       (implicit val commandExecutionContext: CommandExecutionContext) extends BaseController with StrictLogging {
+
+  val formatter: DateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.systemDefault())
 
   /**
     * A helper method that will return either a JSON response or a 404 if a user is not find.
@@ -49,20 +55,23 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
   def since[V](
              username: String, 
              sinceStr: String,
+             requestType: String,
              dataFactory: (User, Instant) => Future[V])
               (jsonBuilder: RequestHeader => V => JsValue) = {
-    val maybeParameters: Option[(User, Instant)] = for {
-      user <- userDao.allUsers().find(_.name == username)
-      since <- Try(ZonedDateTime.parse(sinceStr, DateTimeFormatter.ISO_DATE_TIME).toInstant).toOption
-    } yield (user, since)
-    maybeParameters match {
-      case Some(parameters) => Action.async { implicit request: RequestHeader =>
-        dataFactory(parameters._1, parameters._2).map { result =>
+    logger.info(s"Received a request for $username's $requestType since $sinceStr")
+    val validatedUser =
+      userDao.allUsers().find(_.name == username).toValidNel(s"$username is not a valid user")
+    val validatedSince =
+      Try(ZonedDateTime.parse(sinceStr, formatter).toInstant).
+        toEither.leftMap(_.getMessage).toValidatedNel
+
+    (validatedUser |@| validatedSince).map((_, _)) match {
+      case Valid((user, since)) => Action.async { implicit request: RequestHeader =>
+        dataFactory(user, since).map { result =>
           Ok(jsonBuilder(request)(result))
         }
       }
-      case _ => Action(NotFound)
-
+      case Invalid(messages) => Action(BadRequest(messages.toList.mkString("\n")))
     }
   }
 
@@ -72,13 +81,13 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
     * @param sinceStr The since string in ISO8601 format.
     * @return A list of all the changes for the user since the given date or 404 if either is not valid.
     */
-  def changes(username: String, sinceStr: String): Action[AnyContent] = since(username, sinceStr, changeDao.getAllChangesSince) { implicit request => {
+  def changes(username: String, sinceStr: String): Action[AnyContent] = since(username, sinceStr, "changes", changeDao.getAllChangesSince) { implicit request => {
     changes =>
       val jsonChanges = changes.map { change =>
         val changeObj = Json.obj(
           "action" -> change.action,
           "relativePath" -> change.relativePath,
-          "at" -> DateTimeFormatter.ISO_DATE_TIME.format(change.at)
+          "at" -> formatter.format(change.at)
         )
         if (change.action == "added") {
           changeObj ++ links(username, change.relativePath)
@@ -118,14 +127,14 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
     * @param sinceStr The since string in ISO8601 format.
     * @return A list of all the changes for the user since the given date or 404 if either is not valid.
     */
-  def changelog(username: String, sinceStr: String): Action[AnyContent] = since(username, sinceStr, changeDao.changelog) { implicit request => {
+  def changelog(username: String, sinceStr: String): Action[AnyContent] = since(username, sinceStr, "changelog", changeDao.changelog) { implicit request => {
     changelog =>
       Json.obj(
         "total" -> changelog.size,
         "changelog" -> changelog.map { changelogItem =>
           Json.obj(
             "parentRelativePath" -> changelogItem.parentRelativePath,
-            "at" -> DateTimeFormatter.ISO_DATE_TIME.format(changelogItem.at),
+            "at" -> formatter.format(changelogItem.at),
             "relativePath" -> changelogItem.relativePath
           ) ++ links(username, changelogItem.relativePath)
         }

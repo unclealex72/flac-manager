@@ -19,11 +19,11 @@ package checkin
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.IntBinaryOperator
 
+import common.async.ThreadPoolThrottler
 import org.specs2.mutable.Specification
-
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
-
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Created by alex on 30/05/17
@@ -37,9 +37,7 @@ class ThreadPoolThrottlerSpec extends Specification {
 
     def enter(): Unit = {
       val newValue = concurrentCounter.incrementAndGet()
-      max.getAndAccumulate(newValue, new IntBinaryOperator {
-        override def applyAsInt(left: Int, right: Int): Int = Math.max(left, right)
-      })
+      max.getAndAccumulate(newValue, (left: Int, right: Int) => Math.max(left, right))
       Thread.sleep(delay.toMillis)
       concurrentCounter.decrementAndGet()
     }

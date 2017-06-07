@@ -17,35 +17,39 @@
 package checkout
 
 import java.nio.file.{Path, Paths}
+import java.time.{Clock, Instant, ZoneId}
 
 import cats.data.Validated.Valid
+import common.async.{BackgroundExecutionContext, CommandExecutionContext, GlobalExecutionContext}
 import common.changes.{Change, ChangeDao, ChangeMatchers}
 import common.configuration.{Directories, TestDirectories, User, UserDao}
 import common.files.FileLocationImplicits._
 import common.files._
 import common.message.MessageService
 import common.music.{CoverArt, Tags, TagsService}
-import common.now.NowService
 import common.owners.OwnerService
-import org.joda.time.DateTime
 import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import org.specs2.specification.Scope
 
 import scala.collection.{SortedMap, SortedSet}
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 /**
  * Created by alex on 18/11/14.
  */
 class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatchers {
 
+  sequential
+
   trait Context extends Scope {
     val freddie: User = User("freddie")
     val brian: User = User("brian")
 
     val userDao = new UserDao {
-      override def allUsers: Set[User] = Set(brian, freddie)
+      override def allUsers(): Set[User] = Set(brian, freddie)
     }
 
     implicit val stringToPath: String => Path = Paths.get(_)
@@ -117,16 +121,22 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
       override def firstFileIn[F <: FileLocation](parentFileLocation: F, extension: Extension, builder: (Path) => F): Option[F] = None
     }
 
+    lazy implicit val commandExecutionContext: CommandExecutionContext = new GlobalExecutionContext with CommandExecutionContext
+    lazy implicit val backgroundExecutionContext: BackgroundExecutionContext = new GlobalExecutionContext with BackgroundExecutionContext
+
     implicit val tagsService: TagsService = mock[TagsService]
     implicit val messageService: MessageService = mock[MessageService]
     implicit val changeDao: ChangeDao = mock[ChangeDao]
+    changeDao.store(any[Change]).returns(Future.successful({}))
     val fileSystem: FileSystem = mock[FileSystem]
     val ownerService: OwnerService = mock[OwnerService]
-    val nowService: NowService = mock[NowService]
-    val now = new DateTime()
+    ownerService.unown(any[User], any[Set[Tags]])(any[MessageService]).returns(Future.successful({}))
+    ownerService.listOwners().returns(Future.successful(Map("A Kind of Magic" -> Set(brian), "Jazz" -> Set(brian, freddie))))
+    val now: Instant = Instant.now()
+    val clock: Clock = Clock.fixed(now, ZoneId.systemDefault())
     tagsService.read("/flac/A Kind of Magic/01 One Vision.flac") returns Valid(oneVisionTags)
     tagsService.read("/flac/Jazz/01 Mustapha.flac") returns Valid(mustaphaTags)
-    val checkoutService = new CheckoutServiceImpl(fileSystem, userDao, ownerService, nowService)
+    val checkoutService = new CheckoutServiceImpl(fileSystem, userDao, ownerService, clock)
 
     def checkFilesRemoved: MatchResult[Unit] = {
       // check flac files are moved
@@ -162,8 +172,6 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
     def Mustapha = Track("01 Mustapha")
 
     def FatBottomedGirls = Track("02 Fat Bottomed Girls")
-
-    nowService.now() returns now
 
     case class Track(title: String) {
       def mp3 = s"$title.mp3"
@@ -207,8 +215,18 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
   }
 
   "Checking out albums" should {
+
+    "remove all traces of the album, excluding ownership if not asked for" in new Context {
+      Await.result(checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac), unown = false), 1.minute)
+      checkFilesRemoved
+
+      noMoreCallsTo(fileSystem)
+      noMoreCallsTo(ownerService)
+      noMoreCallsTo(changeDao)
+    }
+
     "remove all traces of the album, including ownership if asked for" in new Context {
-      checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac), unown = true)
+      Await.result(checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac), unown = true), 1.minute)
       checkFilesRemoved
 
       //check that albums were disowned
@@ -218,17 +236,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
       noMoreCallsTo(ownerService)
       noMoreCallsTo(changeDao)
     }
-  }
 
-  "Checking out albums" should {
-    "remove all traces of the album, excluding ownership if not asked for" in new Context {
-      checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac), unown = false)
-      checkFilesRemoved
-
-      noMoreCallsTo(fileSystem)
-      noMoreCallsTo(ownerService)
-      noMoreCallsTo(changeDao)
-    }
   }
 
 }

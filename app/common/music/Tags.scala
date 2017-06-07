@@ -147,7 +147,6 @@ object Tags {
     tags.albumArtistId is notEmpty
     tags.artistId is notEmpty
     tags.albumId is notEmpty
-    tags.trackId is notEmpty
     tags.trackNumber is >(0)
     tags.coverArt is notNull
   }

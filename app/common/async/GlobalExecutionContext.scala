@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Alex Jones
+ * Copyright 2017 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package common.collections
+
+package common.async
+
+import scala.concurrent.ExecutionContext
 
 /**
- * A persistable unit that represents a change to a user's encoded repository.
- */
-case class CollectionItem(
-                           id: Long,
-                           user: String,
-                           releaseId: String,
-                           artist: String,
-                           album: String)
+  * An execution context that uses a the default Scala execution context.
+  *
+  **/
+class GlobalExecutionContext() extends DelegatingExecutionContext {
+
+  val delegate: ExecutionContext = ExecutionContext.global
+
+}

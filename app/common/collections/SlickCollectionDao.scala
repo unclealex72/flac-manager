@@ -17,13 +17,11 @@ package common.collections
 
 import javax.inject.Inject
 
-import common.changes.{Change, ChangeDao}
-import common.configuration.User
+import common.async.CommandExecutionContext
 import common.db.SlickDao
-import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
  * The Squeryl implementation of both GameDao and Transactional.
@@ -31,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
  *
  */
 class SlickCollectionDao  @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)
-                                    (implicit val ec: ExecutionContext) extends CollectionDao with SlickDao {
+                                    (implicit val commandExecutionContext: CommandExecutionContext) extends CollectionDao with SlickDao {
 
   import dbConfig.profile.api._
 
@@ -41,47 +39,52 @@ class SlickCollectionDao  @Inject() (protected val dbConfigProvider: DatabaseCon
   val drop = collectionItems.schema.drop
 
   /** Table description of table game. Objects of this class serve as prototypes for rows in queries. */
-  class TCollection(_tableTag: Tag) extends Table[CollectionItem](_tableTag, "collectionItem") {
+  class TCollection(_tableTag: Tag) extends Table[CollectionItem](_tableTag, "COLLECTIONITEM") {
     def * = (
       id,
       user,
-      releaseId) <> (CollectionItem.tupled, CollectionItem.unapply)
+      releaseId,
+      artist,
+      album) <> (CollectionItem.tupled, CollectionItem.unapply)
 
-    val id: Rep[Long] = column[Long]("id", O.PrimaryKey, O.AutoInc)
+    val id: Rep[Long] = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     val parentRelativePath: Rep[Option[String]] =
-      column[Option[String]]("parentRelativePath", O.Length(512, varying = true), O.Default(None))
-    val user: Rep[String] = column[String]("user", O.Length(128, varying = true))
-    val releaseId: Rep[String] = column[String]("action", O.Length(128, varying = true))
+      column[Option[String]]("PARENTRELATIVEPATH", O.Length(512, varying = true), O.Default(None))
+    val user: Rep[String] = column[String]("USER", O.Length(128, varying = true))
+    val releaseId: Rep[String] = column[String]("RELEASEID", O.Length(128, varying = true))
+    val artist: Rep[String] = column[String]("ARTIST", O.Length(512, varying = true))
+    val album: Rep[String] = column[String]("ALBUM", O.Length(512, varying = true))
   }
 
   /** Collection-like TableQuery object for table Game */
   lazy val collectionItems = new TableQuery(tag => new TCollection(tag))
 
-  /**
-    * Add releases to an owner's collection.
-    *
-    * @param user          The user whose collection needs changing.
-    * @param newReleaseIds The new releases to add to the user's collection.
-    */
-  override def addReleases(user: User, newReleaseIds: Set[String]): Future[Unit] = dbConfig.db.run {
-  DBIO.seq(
-      collectionItems.map(ci => (ci.user, ci.releaseId)) ++= newReleaseIds.map(releaseId => (user.name, releaseId))
-    )
-  }
 
   /**
-    * Remove releases from an owner's collection.
-    *
-    * @param user          The user whose collection needs changing.
-    * @param oldReleaseIds The old releases to remove from the user's collection.
-   */
-  override def removeReleases(user: User, oldReleaseIds: Set[String]): Future[Unit] = dbConfig.db.run {
-    DBIO.sequence(oldReleaseIds.toSeq.map { oldReleaseId =>
-      collectionItems.
-        filter(ci => ci.user === user.name && ci.releaseId === oldReleaseId).
-        delete
-    }).map(_ => {})
-  }
+    * @inheritdoc
+    */
+  override def addRelease(username: String, releaseId: String, artist: String, album: String): Future[Unit] = dbConfig.db.run {
+    val collectionItemsQuery = collectionItems.filter(ci => ci.user === username && ci.releaseId === releaseId)
+    val existingCollectionItemsResult = collectionItemsQuery.result
+    existingCollectionItemsResult.flatMap[Int, NoStream, Nothing] { existingCollectionItems =>
+      existingCollectionItems.headOption match {
+        case Some(_) =>
+          collectionItemsQuery.map(ci => (ci.artist, ci.album)).update((artist, album))
+        case None =>
+          collectionItems.map(ci => (ci.user, ci.releaseId, ci.artist, ci.album)) +=
+            (username, releaseId, artist, album)
+      }
+    }
+  }.map(_ => {})
+
+  /**
+    * @inheritdoc
+    */
+  override def removeRelease(username: String, releaseId: String): Future[Unit] = dbConfig.db.run {
+    collectionItems.
+      filter(ci => ci.user === username && ci.releaseId === releaseId).
+      delete
+  }.map(_ => {})
 
   /**
     * Get all the releases and who owns them.
@@ -90,5 +93,5 @@ class SlickCollectionDao  @Inject() (protected val dbConfigProvider: DatabaseCon
     */
   override def allOwnersByRelease(): Future[Map[String, Seq[String]]] = dbConfig.db.run {
     collectionItems.result
-  }.map(_.groupBy(_.user).mapValues(_.map(_.releaseId)))
+  }.map(_.groupBy(_.releaseId).mapValues(_.map(_.user)))
 }

@@ -1,6 +1,6 @@
 # -- Schema creation
 # --- !Ups
-create table `change` (
+create table `CHANGE` (
   relativePath varchar(512) not null,
   parentRelativePath varchar(512),
   at timestamp not null,
@@ -8,9 +8,11 @@ create table `change` (
   action varchar(128) not null,
   user varchar(128) not null
 );
-create table collectionitem (
+create table COLLECTIONITEM (
   id bigint not null primary key auto_increment,
   releaseId varchar(128) not null,
+  artist varchar(512) not null,
+  album varchar(512) not null,
   user varchar(128) not null
 );
 

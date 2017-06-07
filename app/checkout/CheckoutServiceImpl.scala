@@ -20,6 +20,7 @@ import java.time.{Clock, Instant}
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+import common.async.CommandExecutionContext
 import common.changes.{Change, ChangeDao}
 import common.configuration.{Directories, User, UserDao}
 import common.files._
@@ -29,7 +30,7 @@ import common.owners.OwnerService
 
 import scala.collection.{SortedMap, SortedSet}
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, Future}
 
 /**
   * The default implementation of [[CheckoutService]]
@@ -52,7 +53,7 @@ class CheckoutServiceImpl @Inject()(
                           val directories: Directories,
                           val fileLocationExtensions: FileLocationExtensions,
                           val tagsService: TagsService,
-                          val executionContext: ExecutionContext)
+                          val commandExecutionContext: CommandExecutionContext)
   extends CheckoutService {
 
   /**
@@ -72,7 +73,7 @@ class CheckoutServiceImpl @Inject()(
       }
     }
     else {
-      Future.successful({})
+      eventualTagsForUsers.map(_ => {})
     }
   }
 
@@ -89,7 +90,7 @@ class CheckoutServiceImpl @Inject()(
                             (implicit messageService: MessageService): Map[User, Set[Tags]] = {
     val directory = fls._1
     val flacFileLocations = fls._2
-    flacFileLocations.find(_ => true) match {
+    flacFileLocations.headOption match {
       case Some(firstFlacFileLocation) => findTagsAndDeleteFiles(tagsForUsers, directory, firstFlacFileLocation, flacFileLocations)
       case None => tagsForUsers
     }
@@ -114,8 +115,8 @@ class CheckoutServiceImpl @Inject()(
       val deviceFileLocations: Set[DeviceFileLocation] = owners.map { user => encodedFileLocation.toDeviceFileLocation(user)}
       deviceFileLocations.foreach { deviceFileLocation =>
         Await.result(changeDao.store(Change.removed(deviceFileLocation, Instant.now(clock))), Duration.apply(1, TimeUnit.HOURS))
+        fileSystem.remove(deviceFileLocation)
       }
-      deviceFileLocations.foreach(fileSystem.remove(_))
       fileSystem.remove(encodedFileLocation)
       fileSystem.move(flacFileLocation, flacFileLocation.toStagedFlacFileLocation)
     }

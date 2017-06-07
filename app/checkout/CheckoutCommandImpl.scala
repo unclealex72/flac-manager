@@ -20,13 +20,14 @@ import javax.inject.Inject
 
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{Validated, ValidatedNel}
+import common.async.CommandExecutionContext
 import common.configuration.Directories
 import common.files.{DirectoryService, FileLocationExtensions, FileSystem, FlacFileLocation}
 import common.message.Messages._
 import common.message.{Message, MessageService, Messaging}
 import common.validation.SequentialValidation
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
   * The default implementation of [[CheckoutCommand]]
@@ -43,7 +44,7 @@ class CheckoutCommandImpl @Inject()(
                                      val checkoutService: CheckoutService)
                          (implicit val directories: Directories,
                           fileLocationExtensions: FileLocationExtensions,
-                          ec: ExecutionContext)
+                          commandExecutionContext: CommandExecutionContext)
   extends CheckoutCommand with Messaging with SequentialValidation {
 
   /**

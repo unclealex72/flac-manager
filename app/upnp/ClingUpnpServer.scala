@@ -19,12 +19,13 @@ package upnp
 import javax.inject.Inject
 
 import com.typesafe.scalalogging.StrictLogging
+import common.async.BackgroundExecutionContext
 import common.configuration.Directories
 import org.fourthline.cling.{UpnpService, UpnpServiceImpl}
 import play.api.inject.ApplicationLifecycle
 import play.api.{Application, Configuration, Mode}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
   * An implementation of [[UpnpServer]] that uses [[https://github.com/4thline/cling Cling]]
@@ -39,7 +40,7 @@ class ClingUpnpServer @Inject()(
                             app: Application,
                             configuration: Configuration,
                             lifecycle: ApplicationLifecycle)
-                               (implicit ec: ExecutionContext) extends UpnpServer with StrictLogging {
+                               (implicit executionContext: BackgroundExecutionContext) extends UpnpServer with StrictLogging {
 
   private val upnpService: UpnpService = new UpnpServiceImpl()
   private val maybePort: Option[Int] = app.mode match {

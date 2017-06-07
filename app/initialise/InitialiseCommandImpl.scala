@@ -16,19 +16,24 @@
 
 package initialise
 
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+import cats.data.NonEmptyList
 import com.typesafe.scalalogging.StrictLogging
+import common.async.CommandExecutionContext
 import common.changes.{Change, ChangeDao}
-import common.collections.CollectionDao
 import common.configuration.{Directories, User, UserDao}
 import common.files.{DeviceFileLocation, DirectoryService, FileLocationExtensions}
 import common.message.Messages._
 import common.message.{MessageService, Messaging}
-import common.music.TagsService
+import common.music.{Tags, TagsService}
+import common.owners.OwnerService
+import own.OwnAction
 
 import scala.collection.SortedSet
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 /**
   * The default implementation of [[InitialiseCommand]]. This implementation scans all user repositories and
@@ -41,21 +46,23 @@ import scala.concurrent.{ExecutionContext, Future}
   * @param directories The [[Directories]] pointing to all the repositories.
   * @param fileLocationExtensions The typeclass used to give [[java.nio.file.Path]]-like functionality to
   *                               [[common.files.FileLocation]]s.
-  * @param collectionDao The [[CollectionDao]] used to change a user's collection.
   * @param ec The execution context used to execute the command.
   */
 class InitialiseCommandImpl @Inject()(
                                        val userDao: UserDao,
                                        val directoryService: DirectoryService,
-                                       val tagsService: TagsService)
+                                       val tagsService: TagsService,
+                                       val ownerService: OwnerService)
                            (implicit val changeDao: ChangeDao,
                             val directories: Directories,
                             val fileLocationExtensions: FileLocationExtensions,
-                            val collectionDao: CollectionDao,
-                            val ec: ExecutionContext) extends InitialiseCommand with Messaging with StrictLogging {
+                            val commandExecutionContext: CommandExecutionContext) extends InitialiseCommand with Messaging with StrictLogging {
 
-  case class InitialFile(deviceFileLocation: DeviceFileLocation, own: InitialOwn)
-  case class InitialOwn(releaseId: String, user: User)
+  case class InitialFile(deviceFileLocation: DeviceFileLocation, tags: Tags, user: User)
+
+  implicit val initialFileOrdering: Ordering[InitialFile] = Ordering.by(i => (i.user, i.deviceFileLocation))
+  private val emptyFuture: Future[Unit] = Future.successful({})
+
 
   /**
     * @inheritdoc
@@ -63,42 +70,39 @@ class InitialiseCommandImpl @Inject()(
   override def initialiseDb(implicit messageService: MessageService): Future[_] = {
     changeDao.countChanges().flatMap {
       case 0 =>
+        log(INITIALISATION_STARTED)
         val initialFiles: Seq[InitialFile] = for {
           user <- userDao.allUsers().toSeq
           deviceFileLocation <- listFiles(user)
         } yield {
-          log(INITIALISING(deviceFileLocation))
-          val path = deviceFileLocation.path
-          val tags = tagsService.readTags(path)
-          InitialFile(
-            deviceFileLocation,
-            InitialOwn(tags.albumId, user))
+          InitialFile(deviceFileLocation, tagsService.readTags(deviceFileLocation.path), user)
         }
-        val ownsByUser: Map[User, Set[InitialOwn]] = initialFiles.map(_.own).toSet.groupBy(_.user)
-        val releasesByUser: Map[User, Set[String]] = ownsByUser.mapValues(_.map(_.releaseId))
-        for {
-          _ <- addDeviceFileChanges(initialFiles)
-          _ <- addReleases(releasesByUser)
-        } yield {}
+        val releasesByUserAndAlbumId =
+          initialFiles.sorted.groupBy(i => (i.user, i.tags.albumId)).mapValues(is => is.head.deviceFileLocation)
+        releasesByUserAndAlbumId.foldLeft(addDeviceFileChanges(initialFiles)) { (acc, entry) =>
+          val ((user, _), deviceFileLocation) = entry
+          for {
+            _ <- acc
+            _ <- addRelease(user, deviceFileLocation)
+          } yield {}
+        }
       case _ => Future.successful(log(DATABASE_NOT_EMPTY))
     }
   }
 
-  def addDeviceFileChanges(initialFiles: Seq[InitialFile])(implicit messageService: MessageService): Future[_] = {
-    val eventualChanges = initialFiles.map { initialFile =>
+  def addDeviceFileChanges(initialFiles: Seq[InitialFile])(implicit messageService: MessageService): Future[Unit] = {
+    initialFiles.foldLeft(emptyFuture){ (acc, initialFile) =>
       val deviceFileLocation = initialFile.deviceFileLocation
       log(INITIALISING(deviceFileLocation))
-      changeDao.store(Change.added(deviceFileLocation))
+      for {
+        _ <- acc
+        _ <- changeDao.store(Change.added(deviceFileLocation))
+      } yield {}
     }
-    Future.sequence(eventualChanges)
   }
 
-  def addReleases(releasesByUser: Map[User, Set[String]]): Future[_] = {
-    val eventualCollections = releasesByUser.map {
-      case (user, releaseIds) =>
-        collectionDao.addReleases(user, releaseIds)
-    }
-    Future.sequence(eventualCollections)
+  def addRelease(user: User, deviceFileLocation: DeviceFileLocation)(implicit messageService: MessageService): Future[Unit] = {
+    ownerService.ownDeviceFile(user, deviceFileLocation)
   }
 
   /**

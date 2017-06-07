@@ -18,7 +18,6 @@ class CheckinModule extends AbstractModule with ScalaModule with AkkaGuiceSuppor
     bind[CheckinService].to[CheckinServiceImpl].asEagerSingleton()
     bind[Mp3Encoder].to[LameMp3Encoder].asEagerSingleton()
     bind[CheckinActionGenerator].to[CheckinActionGeneratorImpl].asEagerSingleton()
-    bind[Throttler].to[PlayAwareThreadPoolThrottler].asEagerSingleton()
     bind[SingleCheckinService].to[SingleCheckinServiceImpl].asEagerSingleton()
   }
 }

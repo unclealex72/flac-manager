@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package checkin
+package common.async
+
 import java.util.concurrent.{ExecutorService, Executors}
+
+import checkin.Throttler
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 

@@ -17,18 +17,19 @@
 package common.configuration
 
 import java.nio.file.attribute.PosixFilePermissions
-import java.nio.file.{FileSystem, Files, Path, Paths}
+import java.nio.file.{Files, Path, Paths}
 import javax.inject.Inject
 
 import cats.data.Validated._
 import cats.data.{NonEmptyList, ValidatedNel}
 import cats.implicits._
+import common.async.CommandExecutionContext
 import logging.ApplicationLogging
 import org.apache.commons.io.FileUtils
 import play.api.Configuration
 import play.api.inject.ApplicationLifecycle
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.Try
 
 /**
@@ -40,7 +41,7 @@ import scala.util.Try
 case class PlayConfigurationDirectories @Inject()(
                                                    configuration: Configuration,
                                                    lifecycle: ApplicationLifecycle)
-                                                  (implicit ec: ExecutionContext) extends Directories with ApplicationLogging {
+                                                  (implicit commandExecutionContext: CommandExecutionContext) extends Directories with ApplicationLogging {
 
   /**
     * The parent directory for all repositories.

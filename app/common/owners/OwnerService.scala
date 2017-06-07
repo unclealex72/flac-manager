@@ -16,11 +16,13 @@
 
 package common.owners
 
+import cats.data.NonEmptyList
 import common.configuration.User
-import common.files.{FlacFileLocation, StagedFlacFileLocation}
+import common.files.{DeviceFileLocation, FlacFileLocation, StagedFlacFileLocation}
 import common.message.MessageService
 import common.music.Tags
 import own.OwnAction
+import own.OwnAction.Own
 
 import scala.concurrent.Future
 
@@ -33,31 +35,37 @@ trait OwnerService {
     * Change the ownership of flac files in the staging repository.
     * @param user The user to add or remove.
     * @param action Add or remove.
-    * @param albumId The ID of the album being added or removed.
     * @param stagedFlacFileLocations The location of the album's tracks.
     * @param messageService A message service used to report progress and errors.
     */
   def changeStagedOwnership(
                              user: User,
                              action: OwnAction,
-                             albumId: String,
-                             stagedFlacFileLocations: Seq[StagedFlacFileLocation])
+                             stagedFlacFileLocations: NonEmptyList[StagedFlacFileLocation])
                            (implicit messageService: MessageService): Future[Unit]
 
   /**
     * Change the ownership of flac files in the flac repository.
     * @param user The user to add or remove.
     * @param action Add or remove.
-    * @param albumId The ID of the album being added or removed.
     * @param flacFileLocations The location of the album's tracks.
     * @param messageService A message service used to report progress and errors.
     */
   def changeFlacOwnership(
                            user: User,
                            action: OwnAction,
-                           albumId: String,
-                           flacFileLocations: Seq[FlacFileLocation])
+                           flacFileLocations: NonEmptyList[FlacFileLocation])
                          (implicit messageService: MessageService): Future[Unit]
+
+  /**
+    * Add an owner to a device file.
+    * @param user The user to add or remove.
+    * @param deviceFileLocation The device file to own.
+    * @param messageService A message service used to report progress and errors.
+    */
+  def ownDeviceFile(user: User,
+                    deviceFileLocation: DeviceFileLocation)
+                   (implicit messageService: MessageService): Future[Unit]
 
   /**
     * List all collections.

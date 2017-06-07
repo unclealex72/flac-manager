@@ -20,6 +20,7 @@ import javax.inject.Inject
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.implicits._
+import common.async.CommandExecutionContext
 import common.configuration.User
 import common.files.{FileLocationExtensions, FlacFileChecker, FlacFileLocation, StagedFlacFileLocation}
 import common.message.Message
@@ -29,15 +30,18 @@ import common.music.{Tags, TagsService}
 import common.owners.OwnerService
 import common.validation.SequentialValidation
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
   * The default implementation of [[CheckinActionGenerator]]
   **/
-class CheckinActionGeneratorImpl @Inject()(val ownerService: OwnerService, val allowMultiService: AllowMultiService)
+class CheckinActionGeneratorImpl @Inject()(
+                                            val ownerService: OwnerService,
+                                            val allowMultiService: AllowMultiService)
                                           (implicit val flacFileChecker: FlacFileChecker,
+                                            val commandExecutionContext: CommandExecutionContext,
                                      val tagsService: TagsService,
-                                     val fileLocationExtensions: FileLocationExtensions, val executionContext: ExecutionContext)
+                                     val fileLocationExtensions: FileLocationExtensions)
   extends CheckinActionGenerator with SequentialValidation {
 
   /**

@@ -18,6 +18,8 @@ package own
 
 import javax.inject.Inject
 
+import cats.data.NonEmptyList
+import common.async.CommandExecutionContext
 import common.configuration.User
 import common.files.FileLocation._
 import common.files._
@@ -26,7 +28,7 @@ import common.music.TagsService
 import common.owners.OwnerService
 
 import scala.collection.{SortedMap, SortedSet}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
   * The default implementation of [[OwnCommand]]
@@ -42,7 +44,7 @@ class OwnCommandImpl @Inject()(
                               (implicit flacFileChecker: FlacFileChecker,
                                tagsService: TagsService,
                                fileLocationExtensions: FileLocationExtensions,
-                               ec: ExecutionContext) extends OwnCommand {
+                               commandExecutionContext: CommandExecutionContext) extends OwnCommand {
 
   /**
     * @inheritdoc
@@ -62,13 +64,14 @@ class OwnCommandImpl @Inject()(
         }
       }
     }
-    def executeChanges[FL <: FileLocation](locationsById: SortedMap[String, Seq[FL]], changer: (User, OwnAction, String, Seq[FL]) => Future[Unit]) = {
+    def executeChanges[FL <: FileLocation](locationsById: SortedMap[String, Seq[FL]],
+                                           changer: (User, OwnAction, NonEmptyList[FL]) => Future[Unit]) = {
       val empty: Future[Unit] = Future.successful({})
       users.foldLeft(empty){(accA, user) =>
         accA.flatMap { _ =>
           locationsById.foldLeft(accA){ (accB, albumIdAndLocation) =>
-            val (albumId, locations) = albumIdAndLocation
-            accB.flatMap(_ => changer(user, action, albumId, locations))
+            val (_, locations) = albumIdAndLocation
+            accB.flatMap(_ => changer(user, action, NonEmptyList.fromListUnsafe(locations.toList)))
           }
         }
       }

@@ -31,7 +31,7 @@ trait ChangeDao {
     * @param change The [[Change]] to persist.
     * @return The persisted change.
     */
-  def store(change: Change): Future[Change]
+  def store(change: Change): Future[Unit]
 
   /**
     * Count the total number of changes.

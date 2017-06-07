@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package checkin
+package common.async
 
 import javax.inject.Inject
 
+import checkin.{Throttler, ThrottlerOps}
 import com.typesafe.scalalogging.StrictLogging
 import play.api.Configuration
 import play.api.inject.ApplicationLifecycle
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
   * A [[Throttler]] that uses Play configuration to get a value for `encoder.threads` to get the number of encoding
@@ -30,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
   **/
 class PlayAwareThreadPoolThrottler @Inject() (configuration: Configuration,
                                               applicationLifecycle: ApplicationLifecycle)
-                                             (implicit val ec: ExecutionContext) extends ThrottlerOps with StrictLogging {
+                                             (implicit val commandExecutionContext: CommandExecutionContext) extends ThrottlerOps with StrictLogging {
 
   val throttler: Throttler = {
     val threads = configuration.getOptional[Int]("encoder.threads").getOrElse(Runtime.getRuntime.availableProcessors())

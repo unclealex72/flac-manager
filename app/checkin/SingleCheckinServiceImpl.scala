@@ -20,16 +20,17 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 import com.typesafe.scalalogging.StrictLogging
+import common.async.CommandExecutionContext
 import common.changes.{Change, ChangeDao}
 import common.configuration.{Directories, User}
 import common.files.Extension.MP3
 import common.files._
-import common.message.{MessageService, Messaging}
 import common.message.Messages.{ENCODE, EXCEPTION}
+import common.message.{MessageService, Messaging}
 import common.music.{Tags, TagsService}
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, Future}
 
 /**
   * The default implementation of [[SingleCheckinService]]
@@ -49,7 +50,7 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
                                           val directories: Directories,
                                           val mp3Encoder: Mp3Encoder,
                                           val tagsService: TagsService,
-                                          val ec: ExecutionContext) extends SingleCheckinService
+                                          val commandExecutionContext: CommandExecutionContext) extends SingleCheckinService
   with ThrottlerOps with StrictLogging with Messaging {
 
   override def encode(stagedFileLocation: StagedFlacFileLocation,

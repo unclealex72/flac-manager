@@ -18,12 +18,13 @@ package multidisc
 
 import javax.inject.Inject
 
+import common.async.CommandExecutionContext
 import common.files.StagedFlacFileLocation
 import common.message.MessageService
 import json.MultiAction
 import json.MultiAction.{Join, Split}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
   * The default implementation of [[MultiDiscCommand]]
@@ -32,7 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
   * @param ec The execution context used to execute the command.
   **/
 class MultiDiscCommandImpl @Inject()(val multiDiscService: MultiDiscService)
-                                    (implicit val ec: ExecutionContext) extends MultiDiscCommand {
+                                    (implicit val commandExecutionContext: CommandExecutionContext) extends MultiDiscCommand {
   /**
     * Either join or split a multi-album
     *

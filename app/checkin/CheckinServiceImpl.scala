@@ -18,9 +18,10 @@ package checkin
 
 import javax.inject.Inject
 
+import common.async.CommandExecutionContext
 import common.message.{MessageService, Messaging}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
   * The [[CheckinService]] that delegates to a [[SingleCheckinService]]
@@ -28,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
   * @param ec An execution context used to fire off checkin actions.
   */
 class CheckinServiceImpl @Inject()(singleCheckinService: SingleCheckinService)
-                                  (implicit ec: ExecutionContext) extends CheckinService with Messaging {
+                                  (implicit val commandExecutionContext: CommandExecutionContext) extends CheckinService with Messaging {
 
   /**
     * @inheritdoc

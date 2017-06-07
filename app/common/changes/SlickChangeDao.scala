@@ -18,17 +18,18 @@ package common.changes
 import java.time.Instant
 import javax.inject.Inject
 
+import common.async.CommandExecutionContext
 import common.configuration.User
 import common.db.SlickDao
 import play.api.db.slick.DatabaseConfigProvider
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
  * The Slick implementation of [[ChangeDao]].
  */
 class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)
-                               (implicit val ec: ExecutionContext) extends ChangeDao with SlickDao {
+                               (implicit val commandExecutionContext: CommandExecutionContext) extends ChangeDao with SlickDao {
 
   import dbConfig.profile.api._
 
@@ -38,7 +39,7 @@ class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigPr
   val drop = changes.schema.drop
 
   /** Table description of table game. Objects of this class serve as prototypes for rows in queries. */
-  class TChange(_tableTag: Tag) extends Table[Change](_tableTag, "change") {
+  class TChange(_tableTag: Tag) extends Table[Change](_tableTag, "CHANGE") {
     def * = (
       id,
       parentRelativePath,
@@ -47,21 +48,21 @@ class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigPr
       user,
       action) <> (Change.tupled, Change.unapply)
 
-    val id: Rep[Long] = column[Long]("id", O.PrimaryKey, O.AutoInc)
+    val id: Rep[Long] = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     val parentRelativePath: Rep[Option[String]] =
-      column[Option[String]]("parentRelativePath", O.Length(512, varying = true), O.Default(None))
-    val relativePath: Rep[String] = column[String]("relativePath", O.Length(512,varying=true))
-    val at: Rep[Instant] = column[Instant]("at")
-    val user: Rep[String] = column[String]("user", O.Length(128, varying = true))
-    val action: Rep[String] = column[String]("action", O.Length(128, varying = true))
+      column[Option[String]]("PARENTRELATIVEPATH", O.Length(512, varying = true), O.Default(None))
+    val relativePath: Rep[String] = column[String]("RELATIVEPATH", O.Length(512,varying=true))
+    val at: Rep[Instant] = column[Instant]("AT")
+    val user: Rep[String] = column[String]("USER", O.Length(128, varying = true))
+    val action: Rep[String] = column[String]("ACTION", O.Length(128, varying = true))
   }
 
   /** Collection-like TableQuery object for table Game */
   lazy val changes = new TableQuery(tag => new TChange(tag))
 
-  override def store(change: Change): Future[Change] = dbConfig.db.run {
-    (changes returning changes).insertOrUpdate(change)
-  }.map(_.getOrElse(change))
+  override def store(change: Change): Future[Unit] = dbConfig.db.run {
+    changes += change
+  }.map(_ => {})
 
   override def countChanges(): Future[Int] = dbConfig.db.run {
     changes.size.result

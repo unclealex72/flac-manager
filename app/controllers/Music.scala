@@ -18,18 +18,18 @@ package controllers
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
-import java.time.{Instant, ZonedDateTime}
+import java.time.{Instant, ZoneId, ZonedDateTime}
 import javax.inject.{Inject, Singleton}
 
 import cats.data.Validated.{Invalid, Valid}
+import com.typesafe.scalalogging.StrictLogging
+import common.async.CommandExecutionContext
 import common.configuration.{Directories, User, UserDao}
 import common.files.{DeviceFileLocation, FileLocationExtensions}
 import common.music.{Tags, TagsService}
-import play.api.http.HeaderNames
 import play.api.mvc._
 import play.utils.UriEncoding
 
-import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 /**
@@ -44,7 +44,7 @@ import scala.util.Try
 class Music @Inject()(val userDao: UserDao, val controllerComponents: ControllerComponents)(
   implicit val directories: Directories,
   val fileLocationExtensions: FileLocationExtensions,
-  val tagsService: TagsService, val executionContext: ExecutionContext) extends BaseController {
+  val tagsService: TagsService, val commandExecutionContext: CommandExecutionContext) extends BaseController with StrictLogging {
 
   /**
     * Stream an audio file
@@ -52,9 +52,9 @@ class Music @Inject()(val userDao: UserDao, val controllerComponents: Controller
     * @param path The relative path of the track.
     * @return An MP3 stream of music from a user's device repository.
     */
-  def music(username: String, path: String): Action[AnyContent] = musicFile(username, path, deviceFileAt) {
+  def music(username: String, path: String): Action[AnyContent] = musicFile("music", username, path, deviceFileAt) {
     deviceFileLocation =>
-      Ok.sendFile(deviceFileLocation.toFile)
+      Ok.sendFile(deviceFileLocation.toFile).as("audio/mpeg")
   }
 
   /**
@@ -64,7 +64,7 @@ class Music @Inject()(val userDao: UserDao, val controllerComponents: Controller
     * @return An MP3 stream of music from a user's device repository.
     */
   def tags(username: String, path: String): Action[AnyContent] =
-    serveTags(username, path, deviceFileAt)(tags => Ok(tags.toJson(false)))
+    serveTags("tags", username, path, deviceFileAt)(tags => Ok(tags.toJson(false)))
 
   /**
     * Serve a response based on an audio file's tags.
@@ -74,10 +74,11 @@ class Music @Inject()(val userDao: UserDao, val controllerComponents: Controller
     * @param responseBuilder A function to build the response given the calculated tags.
     * @return The result of the `responseBuilder` or 404 if the file or user could not be found
     */
-  def serveTags(username: String,
+  def serveTags(requestType: String,
+                username: String,
                 path: String,
                 deviceFileLocator: (User, Path) => Option[DeviceFileLocation])
-               (responseBuilder: Tags => Result): Action[AnyContent] = musicFile(username, path, deviceFileLocator) { deviceFileLocation =>
+               (responseBuilder: Tags => Result): Action[AnyContent] = musicFile(requestType, username, path, deviceFileLocator) { deviceFileLocation =>
     deviceFileLocation.toFlacFileLocation.readTags match {
       case Invalid(_) =>
         NotFound
@@ -94,10 +95,13 @@ class Music @Inject()(val userDao: UserDao, val controllerComponents: Controller
     * @param resultBuilder A function to build the response from the file calculated file location.
     * @return The result of the `responseBuilder` or 404 if the file or user could not be found
     */
-  def musicFile(username: String,
+  def musicFile(
+                requestType: String,
+                username: String,
                 path: String,
                 deviceFileLocator: (User, Path) => Option[DeviceFileLocation])
                (resultBuilder: DeviceFileLocation => Result) = Action { implicit request: Request[AnyContent] =>
+    logger.info(s"Received a request for $requestType for $username at $path")
     val decodedPath = UriEncoding.decodePath(path, StandardCharsets.UTF_8.toString).replace('+', ' ')
     val musicFile = for {
       user <- userDao.allUsers().find(_.name == username)
@@ -113,7 +117,8 @@ class Music @Inject()(val userDao: UserDao, val controllerComponents: Controller
             Try(ZonedDateTime.parse(ifModifiedSinceValue, ResponseHeader.httpDateFormat)).toOption
             if lastModified.isBefore(ifModifiedSinceDate.toInstant)
         } yield NotModified
-        maybeNotModified.getOrElse(resultBuilder(deviceFileLocation)).withDateHeaders("Last-Modified" -> ZonedDateTime.from(lastModified))
+        maybeNotModified.getOrElse(resultBuilder(deviceFileLocation)).
+          withDateHeaders("Last-Modified" -> ZonedDateTime.ofInstant(lastModified, ZoneId.systemDefault()))
       case _ => NotFound
     }
   }
@@ -124,9 +129,9 @@ class Music @Inject()(val userDao: UserDao, val controllerComponents: Controller
     * @param path The path of the track relative to the user's device repository.
     * @return The album artwork or 404 if the track or user could not be found.
     */
-  def artwork(username: String, path: String): Action[AnyContent] = serveTags(username, path, firstDeviceFileIn) { tags =>
+  def artwork(username: String, path: String): Action[AnyContent] = serveTags("artwork", username, path, firstDeviceFileIn) { tags =>
     val coverArt = tags.coverArt
-    Ok(coverArt.imageData).withHeaders(HeaderNames.CONTENT_TYPE -> coverArt.mimeType)
+    Ok(coverArt.imageData).as(coverArt.mimeType)
   }
 
   /**

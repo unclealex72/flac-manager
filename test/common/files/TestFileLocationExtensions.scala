@@ -16,6 +16,8 @@
 
 package common.files
 
+import java.time.Instant
+
 import common.configuration.Directories
 
 /**
@@ -34,6 +36,6 @@ trait TestFileLocationExtensions extends FileLocationExtensions {
 
   def createTemporaryFileLocation(extension: Extension)(implicit directories: Directories): TemporaryFileLocation = null
 
-  def lastModified(fileLocation: FileLocation): Long = 0
+  def lastModified(fileLocation: FileLocation): Instant = Instant.EPOCH
 
 }

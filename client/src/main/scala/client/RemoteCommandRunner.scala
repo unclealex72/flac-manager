@@ -23,8 +23,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.util.ByteString
 import io.circe.Json
-import play.api.http.Writeable
-import play.api.libs.ws.{StreamedResponse, WSClient}
+import play.api.libs.ws.{BodyWritable, StreamedResponse, WSClient}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,8 +34,8 @@ import scala.concurrent.{ExecutionContext, Future}
   **/
 object RemoteCommandRunner {
 
-  implicit val jsonWriteable: Writeable[Json] =
-    Writeable(json => ByteString(json.noSpaces), Some("application/json"))
+  implicit val jsonWriteable: BodyWritable[Json] =
+    BodyWritable(json => ByteString(json.noSpaces), "application/json")
 
   def apply(
              ws: WSClient,

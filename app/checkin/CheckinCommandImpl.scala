@@ -20,10 +20,11 @@ import javax.inject.Inject
 
 import cats.data.Validated.{Invalid, Valid}
 import checkin.Action._
+import common.async.CommandExecutionContext
 import common.files._
 import common.message._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
   * The default implementation of [[CheckinCommand]]
@@ -35,7 +36,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class CheckinCommandImpl @Inject()(
                                     val directoryService: DirectoryService,
                                     val actionGenerator: CheckinActionGenerator,
-                                    val checkinService: CheckinService)(implicit val ec: ExecutionContext) extends CheckinCommand with Messaging {
+                                    val checkinService: CheckinService)
+                                  (implicit val commandExecutionContext: CommandExecutionContext) extends CheckinCommand with Messaging {
 
   /**
     * @inheritdoc
