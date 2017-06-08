@@ -19,6 +19,7 @@ package common.music
 import java.nio.file.Path
 import javax.inject.Inject
 
+import com.typesafe.scalalogging.StrictLogging
 import org.jaudiotagger.audio.{AudioFile, AudioFileIO}
 import org.jaudiotagger.tag.FieldKey.{ALBUM => J_ALBUM, ALBUM_ARTIST => J_ALBUM_ARTIST, ALBUM_ARTIST_SORT => J_ALBUM_ARTIST_SORT, AMAZON_ID => J_AMAZON_ID, ARTIST => J_ARTIST, ARTIST_SORT => J_ARTIST_SORT, DISC_NO => J_DISC_NO, DISC_TOTAL => J_DISC_TOTAL, MUSICBRAINZ_ARTISTID => J_MUSICBRAINZ_ARTISTID, MUSICBRAINZ_RELEASEARTISTID => J_MUSICBRAINZ_RELEASEARTISTID, MUSICBRAINZ_RELEASEID => J_MUSICBRAINZ_RELEASEID, MUSICBRAINZ_TRACK_ID => J_MUSICBRAINZ_TRACK_ID, TITLE => J_TITLE, TRACK => J_TRACK, TRACK_TOTAL => J_TRACK_TOTAL}
 import org.jaudiotagger.tag.datatype.Artwork
@@ -28,7 +29,7 @@ import org.jaudiotagger.tag.{FieldKey, Tag}
  * A [[TagsService]] that uses JAudioTagger.
  * Created by alex on 02/11/14.
  */
-class JaudioTaggerTagsService @Inject() extends TagsService {
+class JaudioTaggerTagsService @Inject() extends TagsService with StrictLogging {
 
   import JaudioTaggerTagsService._
   /**
@@ -75,6 +76,7 @@ class JaudioTaggerTagsService @Inject() extends TagsService {
     * @return The audio file.
     */
   def loadAudioFile(path: Path): AudioFile = {
+    logger.info(s"Loading tags for $path")
     val audioFile = AudioFileIO.read(path.toFile)
     var tag: Tag = audioFile.getTag
     if (tag == null) {
