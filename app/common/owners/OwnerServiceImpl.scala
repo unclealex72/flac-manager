@@ -109,7 +109,7 @@ class OwnerServiceImpl @Inject()(
         encodedFileLocations.foldLeft(addRelease(user, tags)) { (acc, encodedFileLocation) =>
           val deviceFileLocation = encodedFileLocation.toDeviceFileLocation(user)
           fileSystem.link(encodedFileLocation, deviceFileLocation)
-          acc.flatMap(_ => changeDao.store(Change.added(deviceFileLocation))).map(_ => {})
+          acc.flatMap(_ => changeDao.store(Change.added(deviceFileLocation, Instant.now(clock)))).map(_ => {})
         }
       case Unown =>
         encodedFileLocations.foldLeft(removeRelease(user, tags)) { (acc, encodedFileLocation) =>

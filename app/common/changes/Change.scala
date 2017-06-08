@@ -41,13 +41,24 @@ case class Change(
 object Change {
 
   /**
-    * Create a change that indicates a file has been added.
+    * Create a change that indicates a file has been added, using the last modified time of the file as the time of addition.
     * @param deviceFileLocation The location of the device file.
     * @param fileLocationExtensions The typeclass to give [[java.nio.file.Path]] functionality
     *                               to [[common.files.FileLocation]]s
     * @return A change timed at when the file was last modified.
     */
   def added(deviceFileLocation: DeviceFileLocation)(implicit fileLocationExtensions: FileLocationExtensions): Change =
+    create("added", deviceFileLocation, storeParent = true, deviceFileLocation.lastModified)
+
+  /**
+    * Create a change that indicates a file has been added.
+    * @param deviceFileLocation The location of the device file.
+    * @param at The time the file was added.
+    * @param fileLocationExtensions The typeclass to give [[java.nio.file.Path]] functionality
+    *                               to [[common.files.FileLocation]]s
+    * @return A change timed at when the file was last modified.
+    */
+  def added(deviceFileLocation: DeviceFileLocation, at: Instant)(implicit fileLocationExtensions: FileLocationExtensions): Change =
     create("added", deviceFileLocation, storeParent = true, deviceFileLocation.lastModified)
 
   /**
