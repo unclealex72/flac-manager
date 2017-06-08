@@ -16,10 +16,8 @@
 
 package initialise
 
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-import cats.data.NonEmptyList
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
 import common.changes.{Change, ChangeDao}
@@ -27,13 +25,11 @@ import common.configuration.{Directories, User, UserDao}
 import common.files.{DeviceFileLocation, DirectoryService, FileLocationExtensions}
 import common.message.Messages._
 import common.message.{MessageService, Messaging}
-import common.music.{Tags, TagsService}
+import common.music.TagsService
 import common.owners.OwnerService
-import own.OwnAction
 
 import scala.collection.SortedSet
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
 /**
   * The default implementation of [[InitialiseCommand]]. This implementation scans all user repositories and
@@ -58,7 +54,7 @@ class InitialiseCommandImpl @Inject()(
                             val fileLocationExtensions: FileLocationExtensions,
                             val commandExecutionContext: CommandExecutionContext) extends InitialiseCommand with Messaging with StrictLogging {
 
-  case class InitialFile(deviceFileLocation: DeviceFileLocation, tags: Tags, user: User)
+  case class InitialFile(deviceFileLocation: DeviceFileLocation, user: User)
 
   implicit val initialFileOrdering: Ordering[InitialFile] = Ordering.by(i => (i.user, i.deviceFileLocation))
   private val emptyFuture: Future[Unit] = Future.successful({})
@@ -75,12 +71,14 @@ class InitialiseCommandImpl @Inject()(
           user <- userDao.allUsers().toSeq
           deviceFileLocation <- listFiles(user)
         } yield {
-          InitialFile(deviceFileLocation, tagsService.readTags(deviceFileLocation.path), user)
+          InitialFile(deviceFileLocation, user)
         }
-        val releasesByUserAndAlbumId =
-          initialFiles.sorted.groupBy(i => (i.user, i.tags.albumId)).mapValues(is => is.head.deviceFileLocation)
-        releasesByUserAndAlbumId.foldLeft(addDeviceFileChanges(initialFiles)) { (acc, entry) =>
-          val ((user, _), deviceFileLocation) = entry
+        val releasesByUserAndDirectory =
+          initialFiles.groupBy(i => (i.user, i.deviceFileLocation.path.getParent)).mapValues(is => is.head.deviceFileLocation).toSeq.map {
+            case ((user, directory), deviceFileLocation) => (user, directory, deviceFileLocation)
+          }.sortBy(udd => (udd._1.name, udd._2))
+        releasesByUserAndDirectory.foldLeft(addDeviceFileChanges(initialFiles)) { (acc, userDirectoryAndFile) =>
+          val (user, _, deviceFileLocation) = userDirectoryAndFile
           for {
             _ <- acc
             _ <- addRelease(user, deviceFileLocation)

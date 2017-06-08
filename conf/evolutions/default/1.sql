@@ -8,6 +8,10 @@ create table `CHANGE` (
   action varchar(128) not null,
   user varchar(128) not null
 );
+create index CHANGE_RELATIVE_PATH on `CHANGE`(relativePath);
+create index CHANGE_ACTION on `CHANGE`(action);
+create index CHANGE_USER on `CHANGE`(user);
+
 create table COLLECTIONITEM (
   id bigint not null primary key auto_increment,
   releaseId varchar(128) not null,
@@ -19,4 +23,5 @@ create table COLLECTIONITEM (
 # --- !Downs
 
 DROP TABLE collectionitem;
+DROP INDEX CHANGE_RELATIVE_PATH;
 DROP TABLE `change`;
