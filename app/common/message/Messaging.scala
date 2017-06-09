@@ -19,6 +19,7 @@ package common.message
 import java.io.{PrintWriter, StringWriter}
 
 import cats.data.ValidatedNel
+import common.changes.Change
 import common.configuration.User
 import common.files.{DeviceFileLocation, FileLocation, FlacFileLocation, StagedFlacFileLocation}
 
@@ -152,8 +153,18 @@ object Messages {
     */
   case class SPLIT_ALBUM(albumTitle: String) extends Message("splitAlbum", albumTitle)
 
+  /**
+    * The key for producing a message to say that a file is being initialised.
+    * @param deviceFileLocation The file being initialised.
+    */
   case class INITIALISING(deviceFileLocation: DeviceFileLocation) extends
     Message("initialising", deviceFileLocation)
+
+  /**
+    * The key for producing a message to say that a change is being added to the database.
+    * @param change The change to be added.
+    */
+  case class ADD_CHANGE(change: Change) extends Message("addChange", change.action, change.relativePath, change.user)
 
   /**
    * The key for producing error keys.

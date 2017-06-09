@@ -18,9 +18,12 @@ package common.changes
 import java.time.Instant
 import javax.inject.Inject
 
+import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
 import common.configuration.User
 import common.db.SlickDao
+import common.message.Messages.ADD_CHANGE
+import common.message.{MessageService, Messaging}
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future
@@ -29,7 +32,7 @@ import scala.concurrent.Future
  * The Slick implementation of [[ChangeDao]].
  */
 class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)
-                               (implicit val commandExecutionContext: CommandExecutionContext) extends ChangeDao with SlickDao {
+                               (implicit val commandExecutionContext: CommandExecutionContext) extends ChangeDao with SlickDao with StrictLogging with Messaging {
 
   import dbConfig.profile.api._
 
@@ -60,7 +63,8 @@ class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigPr
   /** Collection-like TableQuery object for table Game */
   lazy val changes = new TableQuery(tag => new TChange(tag))
 
-  override def store(change: Change): Future[Unit] = dbConfig.db.run {
+  override def store(change: Change)(implicit messageService: MessageService): Future[Unit] = dbConfig.db.run {
+    log(ADD_CHANGE(change))
     changes += change
   }.map(_ => {})
 

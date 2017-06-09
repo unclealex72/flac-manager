@@ -16,14 +16,17 @@ lazy val shared = (project in file("shared")).
     scalaVersion := "2.12.2",
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats" % "0.9.0",
-      "com.beachape" %% "enumeratum" % "1.5.12") ++
-    Seq(
-      "io.circe" %% "circe-core",
-      "io.circe" %% "circe-generic",
-      "io.circe" %% "circe-parser"
-    ).map(_ % "0.7.0") ++
-      testingDependencies
+        "org.typelevel" %% "cats" % "0.9.0",
+        "com.beachape" %% "enumeratum" % "1.5.12") ++
+      Seq(
+        "io.circe" %% "circe-core",
+        "io.circe" %% "circe-generic",
+        "io.circe" %% "circe-parser"
+      ).map(_ % "0.7.0") ++
+      testingDependencies ++
+      Seq(
+        "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
+        "ch.qos.logback" % "logback-classic" % "1.1.7")
   )
 
 lazy val root = (project in file(".")).
@@ -34,8 +37,7 @@ lazy val root = (project in file(".")).
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% "play-slick" % "3.0.0-RC1",
       "com.typesafe.play" %% "play-slick-evolutions" % "3.0.0-RC1",
-      "com.h2database" % "h2" % "1.4.195",
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
+      "org.xerial" % "sqlite-jdbc" % "3.18.0",
       "com.wix" %% "accord-core" % "0.6.1",
       "org" % "jaudiotagger" % "2.0.3",
       "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
@@ -47,8 +49,7 @@ lazy val root = (project in file(".")).
       "org.fourthline.cling" % "cling-core" % "2.1.1",
       "commons-io" % "commons-io" % "2.5",
       "org.mockito" % "mockito-core" % "1.9.5" % "test",
-      "org.eclipse.jetty" % "jetty-servlet" % "9.3.0.M0" % "test",
-      "com.h2database" % "h2" % "1.4.182" % "test"
+      "org.eclipse.jetty" % "jetty-servlet" % "9.3.0.M0" % "test"
     ),
     libraryDependencies ++= testingDependencies,
     unmanagedResourceDirectories in Compile <+= baseDirectory(_ / "resources"),
@@ -69,12 +70,22 @@ lazy val root = (project in file(".")).
         }
         firstRunCommand + 1
       }
+      val sqliteCommands = Seq(
+        Cmd("RUN", "wget", "http://www.sqlite.org/2017/sqlite-autoconf-3180000.tar.gz"),
+        Cmd("RUN", "tar", "xvfz", "sqlite-autoconf-3180000.tar.gz"),
+        Cmd("RUN", "apk", "add", "--update alpine-sdk"),
+        Cmd("RUN", "./sqlite-autoconf-3180000/configure", "--prefix=/usr"),
+        Cmd("RUN", "make"),
+        Cmd("RUN", "make", "install"),
+        Cmd("RUN", "rm", "sqlite-autoconf-3180000.tar.gz"),
+        Cmd("RUN", "chmod", "777", "/tmp")
+      )
       val installPackageCommands = Seq("flac", "lame").map { pkg =>
         Cmd("RUN", "apk", "add", "--update", "--no-cache", pkg)
       }
       val createUserCommands = Seq(Cmd("RUN", "adduser", "-D",  "-u", "1000", "music"))
       val mkDirCommands = Seq(Cmd("RUN", "mkdir", "-p", "/music"), Cmd("VOLUME", "/music"))
-      prefixCommands ++ installPackageCommands ++ createUserCommands ++ mkDirCommands ++ suffixCommands
+      prefixCommands ++ sqliteCommands ++ installPackageCommands ++ createUserCommands ++ mkDirCommands ++ suffixCommands
     },
     javaOptions in Docker ++= Seq("-DapplyEvolutions.default=true")
   ).

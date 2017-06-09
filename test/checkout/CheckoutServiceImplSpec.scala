@@ -127,7 +127,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
     implicit val tagsService: TagsService = mock[TagsService]
     implicit val messageService: MessageService = mock[MessageService]
     implicit val changeDao: ChangeDao = mock[ChangeDao]
-    changeDao.store(any[Change]).returns(Future.successful({}))
+    changeDao.store(any[Change])(any[MessageService]).returns(Future.successful({}))
     val fileSystem: FileSystem = mock[FileSystem]
     val ownerService: OwnerService = mock[OwnerService]
     ownerService.unown(any[User], any[Set[Tags]])(any[MessageService]).returns(Future.successful({}))
@@ -157,12 +157,12 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
       there was one(fileSystem).remove(freddiesJazzMp3(Mustapha.mp3))
       there was one(fileSystem).remove(freddiesJazzMp3(FatBottomedGirls.mp3))
       // check that changes are recorded
-      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansAKindOfMagicMp3(OneVision.mp3), now)))
-      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansAKindOfMagicMp3(AKindOfMagic.mp3), now)))
-      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansJazzMp3(Mustapha.mp3), now)))
-      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansJazzMp3(FatBottomedGirls.mp3), now)))
-      there was one(changeDao).store(beTheSameChangeAs(Change.removed(freddiesJazzMp3(Mustapha.mp3), now)))
-      there was one(changeDao).store(beTheSameChangeAs(Change.removed(freddiesJazzMp3(FatBottomedGirls.mp3), now)))
+      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansAKindOfMagicMp3(OneVision.mp3), now)))(be_===(messageService))
+      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansAKindOfMagicMp3(AKindOfMagic.mp3), now)))(be_===(messageService))
+      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansJazzMp3(Mustapha.mp3), now)))(be_===(messageService))
+      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansJazzMp3(FatBottomedGirls.mp3), now)))(be_===(messageService))
+      there was one(changeDao).store(beTheSameChangeAs(Change.removed(freddiesJazzMp3(Mustapha.mp3), now)))(be_===(messageService))
+      there was one(changeDao).store(beTheSameChangeAs(Change.removed(freddiesJazzMp3(FatBottomedGirls.mp3), now)))(be_===(messageService))
     }
 
     def OneVision = Track("01 One Vision")

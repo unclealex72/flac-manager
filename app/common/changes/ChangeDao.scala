@@ -18,6 +18,8 @@ package common.changes
 import java.time.Instant
 
 import common.configuration.User
+import common.message.MessageService
+
 import scala.concurrent.Future
 
 /**
@@ -29,9 +31,10 @@ trait ChangeDao {
   /**
     * Persist a change.
     * @param change The [[Change]] to persist.
+    * @param messageService The message service used to report progress and errors.
     * @return The persisted change.
     */
-  def store(change: Change): Future[Unit]
+  def store(change: Change)(implicit messageService: MessageService): Future[Unit]
 
   /**
     * Count the total number of changes.

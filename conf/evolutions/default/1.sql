@@ -4,7 +4,7 @@ create table `CHANGE` (
   relativePath varchar(512) not null,
   parentRelativePath varchar(512),
   at timestamp not null,
-  id bigint not null primary key auto_increment,
+  id integer primary key,
   action varchar(128) not null,
   user varchar(128) not null
 );
@@ -13,7 +13,7 @@ create index CHANGE_ACTION on `CHANGE`(action);
 create index CHANGE_USER on `CHANGE`(user);
 
 create table COLLECTIONITEM (
-  id bigint not null primary key auto_increment,
+  id integer primary key,
   releaseId varchar(128) not null,
   artist varchar(512) not null,
   album varchar(512) not null,

@@ -23,6 +23,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import common.async.{CommandExecutionContext, GlobalExecutionContext}
 import common.configuration.{TestDirectories, User}
 import common.files._
+import common.message.{MessageService, NoOpMessageService}
 import logging.ApplicationLogging
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.execute.{AsResult, Result}
@@ -120,10 +121,12 @@ trait DatabaseContext extends ForEach[Db] {
   val weAreTheChampionsAdded: Change = ("News of the World", "We Are The Champions.mp3") ownedBy freddie addedAt "05/09/1972 09:14:00"
   val weAreTheChampionsRemoved: Change = ("News of the World", "We Are The Champions.mp3") ownedBy freddie removedAt "05/09/1972 09:14:30"
 
-  // you need to define the "foreach" method
+  implicit val messageService: MessageService = NoOpMessageService
+
   def foreach[R: AsResult](f: Db => R): Result = {
     val ee: ExecutionEnv = ExecutionEnv.fromGlobalExecutionContext
     implicit val ec = ee.ec
+
     val result = for {
       changeDaoAndConfig <- openDatabaseTransaction
       changeDao = changeDaoAndConfig._1
@@ -149,10 +152,10 @@ trait DatabaseContext extends ForEach[Db] {
         |play.slick.db.config="slick.dbs"
         |play.slick.db.default="default"
         |slick.dbs.default {
-        |  profile = "slick.jdbc.H2Profile$"
+        |  profile = "slick.jdbc.SQLiteProfile$"
         |  db {
-        |    driver = "org.h2.Driver"
-        |    url = "jdbc:h2:mem:hammers"
+        |    driver = "org.sqlite.JDBC"
+        |    url = "jdbc:sqlite::memory:"
         |  }
         |}""".stripMargin)
 
