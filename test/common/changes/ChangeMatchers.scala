@@ -25,5 +25,5 @@ import org.specs2.matcher.{Matcher, MustMatchers}
 trait ChangeMatchers extends MustMatchers {
 
   def beTheSameChangeAs: Change => Matcher[Change] =
-    (be_==(_:(String, String, Long, String))) ^^^ ((c: Change) => (c.user, c.action, c.at.toEpochMilli, c.relativePath))
+    (be_==(_:(String, String, Long, String))) ^^^ ((c: Change) => (c.user.name, c.action.action, c.at.toEpochMilli, c.relativePath.toString))
 }

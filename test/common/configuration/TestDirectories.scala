@@ -16,7 +16,7 @@
 
 package common.configuration
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.{FileSystem, Path, Paths}
 
 /**
  * A common.configuration interface that is used to hold where the various directories are.
@@ -39,9 +39,9 @@ case class TestDirectories(
 
 object TestDirectories {
 
-  def apply(
-             temp: String = "/temp",
+  def apply(fs: FileSystem,
+             temp: String = "/tmp",
              datum: String = "/datum"): TestDirectories = {
-    TestDirectories(Paths.get(temp), Paths.get(datum))
+    TestDirectories(fs.getPath(temp), fs.getPath(datum))
   }
 }

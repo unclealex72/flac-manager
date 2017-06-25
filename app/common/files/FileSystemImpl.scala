@@ -34,31 +34,31 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
   /**
     * @inheritdoc
     */
-  override def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)
+  override def move(sourceFile: File, targetFile: File)
                    (implicit messageService: MessageService): Unit = {
-    log(MOVE(sourceFileLocation, targetFileLocation))
-    val sourcePath = sourceFileLocation.toPath
-    val targetPath = targetFileLocation.toPath
+    log(MOVE(sourceFile, targetFile))
+    val sourcePath = sourceFile.absolutePath
+    val targetPath = targetFile.absolutePath
     Files.createDirectories(targetPath.getParent)
     tryAtomicMove(sourcePath, targetPath)
     val currentDirectory = sourcePath.getParent
-    remove(sourceFileLocation.basePath, currentDirectory)
+    remove(sourceFile.basePath, currentDirectory)
   }
 
   /**
     * @inheritdoc
     */
-  override def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)
+  override def copy(sourceFile: File, targetFile: File)
                    (implicit messageService: MessageService): Unit = {
-    val sourcePath = sourceFileLocation.toPath
-    val targetPath = targetFileLocation.toPath
+    val sourcePath = sourceFile.absolutePath
+    val targetPath = targetFile.absolutePath
     val parentTargetPath = targetPath.getParent
     Files.createDirectories(parentTargetPath)
     val tempPath = Files.createTempFile(parentTargetPath, "device-file-", ".tmp")
     Files.copy(sourcePath, tempPath, StandardCopyOption.REPLACE_EXISTING)
     tryAtomicMove(tempPath, targetPath, StandardCopyOption.REPLACE_EXISTING)
     val currentDirectory = sourcePath.getParent
-    remove(sourceFileLocation.basePath, currentDirectory)
+    remove(sourceFile.basePath, currentDirectory)
   }
 
   /**
@@ -81,9 +81,9 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
   /**
     * @inheritdoc
     */
-  override def remove(fileLocation: FileLocation)(implicit messageService: MessageService): Unit = {
-    log(DELETE(fileLocation))
-    remove(fileLocation.basePath, fileLocation.toPath)
+  override def remove(file: File)(implicit messageService: MessageService): Unit = {
+    log(DELETE(file))
+    remove(file.basePath, file.absolutePath)
   }
 
   /**
@@ -93,7 +93,7 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     * @return A [[Try]] containing an exception if one occurred.
     */
   def remove(basePath: Path, path: Path): Try[Unit] = Try {
-    if (Files.isSameFile(basePath, path)) {
+    if (basePath.equals(path)) {
       // Do nothing
     }
     else if (Files.isDirectory(path)) {
@@ -115,13 +115,13 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     * @inheritdoc
     *
     */
-  override def link(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService): Unit = {
-    log(LINK(fileLocation, linkLocation))
-    val target = fileLocation.toPath
-    val link = linkLocation.toPath
-    val parent = link.getParent
+  override def link(file: File, link: File)(implicit messageService: MessageService): Unit = {
+    log(LINK(file, link))
+    val target = file.absolutePath
+    val lnk = link.absolutePath
+    val parent = lnk.getParent
     Files.createDirectories(parent)
     val relativeTarget = parent.relativize(target)
-    Files.createSymbolicLink(link, relativeTarget)
+    Files.createSymbolicLink(lnk, relativeTarget)
   }
 }

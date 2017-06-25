@@ -16,10 +16,12 @@
 
 package multidisc
 
-import common.files.StagedFlacFileLocation
-import common.message.MessageService
+import cats.data.ValidatedNel
+import common.files.Directory.StagingDirectory
+import common.message.{Message, MessageService}
 import json.MultiAction
 
+import scala.collection.SortedSet
 import scala.concurrent.Future
 
 /**
@@ -32,12 +34,12 @@ trait MultiDiscCommand {
 
   /**
     * Either join or split a multi-album
-    * @param stagedFlacFileLocations The directories containing the tracks to split or join.
+    * @param directories The directories containing the tracks to split or join.
     * @param multiAction Either join or split.
     * @param messageService The message service used to report progress and errors.
     * @return A command execution that will split or join a multi-disc album.
     */
-  def mutateMultiDiscAlbum(stagedFlacFileLocations: Seq[StagedFlacFileLocation], multiAction: MultiAction)
-                          (implicit messageService: MessageService): Future[_]
+  def mutateMultiDiscAlbum(directories: SortedSet[StagingDirectory], multiAction: MultiAction)
+                          (implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]]
 
 }

@@ -15,10 +15,14 @@
  */
 package common.changes
 
+import java.nio.file.Path
 import java.time.Instant
 
-import common.files.{DeviceFileLocation, FileLocationExtensions}
+import common.configuration.User
+import common.files.DeviceFile
+import enumeratum._
 
+import scala.collection.immutable
 /**
   * A persistable unit that represents a change to a user's encoded repository.
   * @param id The primary key of the change.
@@ -30,11 +34,32 @@ import common.files.{DeviceFileLocation, FileLocationExtensions}
   */
 case class Change(
                    id: Long,
-                   parentRelativePath: Option[String],
-                   relativePath: String,
+                   parentRelativePath: Option[Path],
+                   relativePath: Path,
                    at: Instant,
-                   user: String,
-                   action: String)
+                   user: User,
+                   action: ChangeType)
+
+/**
+  * A type safe enumeration for change types.
+  */
+sealed case class ChangeType(action: String) extends EnumEntry
+
+object ChangeType extends Enum[ChangeType] {
+  object Added extends ChangeType("added")
+  object Removed extends ChangeType("removed")
+  override def values: immutable.IndexedSeq[ChangeType] = findValues
+}
+/**
+  * The "added" type of change.
+  */
+object AddedChange extends ChangeType("added")
+
+/**
+  * The removed type of change.
+  */
+object RemovedChange extends ChangeType("removed")
+
 /**
   * Used to create [[Change]] instances.
   */
@@ -42,43 +67,32 @@ object Change {
 
   /**
     * Create a change that indicates a file has been added, using the last modified time of the file as the time of addition.
-    * @param deviceFileLocation The location of the device file.
-    * @param fileLocationExtensions The typeclass to give [[java.nio.file.Path]] functionality
-    *                               to [[common.files.FileLocation]]s
+    * @param deviceFile The location of the device file.
     * @return A change timed at when the file was last modified.
     */
-  def added(deviceFileLocation: DeviceFileLocation)(implicit fileLocationExtensions: FileLocationExtensions): Change =
-    create("added", deviceFileLocation, storeParent = true, deviceFileLocation.lastModified)
+  def added(deviceFile: DeviceFile): Change =
+    added(deviceFile, deviceFile.lastModified)
 
   /**
     * Create a change that indicates a file has been added.
-    * @param deviceFileLocation The location of the device file.
+    * @param deviceFile The location of the device file.
     * @param at The time the file was added.
-    * @param fileLocationExtensions The typeclass to give [[java.nio.file.Path]] functionality
-    *                               to [[common.files.FileLocation]]s
     * @return A change timed at when the file was last modified.
     */
-  def added(deviceFileLocation: DeviceFileLocation, at: Instant)(implicit fileLocationExtensions: FileLocationExtensions): Change =
-    create("added", deviceFileLocation, storeParent = true, deviceFileLocation.lastModified)
+  def added(deviceFile: DeviceFile, at: Instant): Change =
+    create(AddedChange, deviceFile, storeParent = true, at)
 
   /**
     * Create a change that indicates a file has been removed.
-    * @param deviceFileLocation The location of the device file that was removed.
+    * @param deviceFile The location of the device file that was removed.
     * @param at The time when the file was removed.
     * @return A new removal change.
     */
-  def removed(deviceFileLocation: DeviceFileLocation, at: Instant): Change = create("removed", deviceFileLocation, storeParent = false, at)
+  def removed(deviceFile: DeviceFile, at: Instant): Change = create(RemovedChange, deviceFile, storeParent = false, at)
 
-  private def create(action: String, deviceFileLocation: DeviceFileLocation, storeParent: Boolean, at: Instant): Change = {
-    val relativePath = deviceFileLocation.relativePath
-    val parentPath = if (storeParent) Some(relativePath.getParent.toString) else None
-    Change(0, parentPath, relativePath.toString, at, deviceFileLocation.user, action)
+  private def create(action: ChangeType, deviceFile: DeviceFile, storeParent: Boolean, at: Instant): Change = {
+    val relativePath = deviceFile.relativePath
+    val parentPath = if (storeParent) Some(relativePath.getParent) else None
+    Change(0, parentPath, relativePath, at, deviceFile.user, action)
   }
-
-  /**
-    * Explicitly required for Slick.
-    * @return A function to create a change from a tuple.
-    */
-  def tupled: ((Long, Option[String], String, Instant, String, String)) => Change = (Change.apply _).tupled
-
 }

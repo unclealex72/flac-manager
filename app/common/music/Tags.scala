@@ -16,13 +16,18 @@
 
 package common.music
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.{FileSystem, Path, Paths}
 import java.text.Normalizer
 
+import cats.data.{Validated, ValidatedNel}
+import cats.implicits._
 import com.wix.accord.transform.ValidationTransform
 import common.files.Extension
-import play.api.libs.json.{JsObject, Json}
+import common.message.Message
+import common.message.Messages.INVALID_TAGS
+import play.api.libs.json._
 
+import scala.collection.Map
 /**
   * A case class that encapsulates information about a music file.
   * @param albumArtistSort The string used to sort the artist for the album of this track.
@@ -55,7 +60,7 @@ case class Tags(
                  albumArtistId: String,
                  albumId: String,
                  artistId: String,
-                 trackId: String,
+                 trackId: Option[String],
                  asin: Option[String],
                  trackNumber: Int,
                  coverArt: CoverArt) {
@@ -63,9 +68,10 @@ case class Tags(
   /**
    * Create the following relative path:
    * `firstLetterOfSortedAlbumArtist/sortedAlbumArtist/album (diskNumber)/trackNumber title.ext` in ASCII
+    * @param fs The underlying file system.
     * @param extension The extension for the path.
    */
-  def asPath(extension: Extension): Path = {
+  def asPath(fs: FileSystem, extension: Extension): Path = {
     def normalise(str: CharSequence): String = {
       val nfdNormalizedString = Normalizer.normalize(str, Normalizer.Form.NFD)
       val nonAccentedString = """\p{InCombiningDiacriticalMarks}+""".r.replaceAllIn(nfdNormalizedString, "")
@@ -80,7 +86,7 @@ case class Tags(
     }
     val normalisedAlbum = normalise(Seq(Some(album), discNumberSuffix).flatten.mkString(" "))
     val normalisedTitle = normalise(f"$trackNumber%02d $title%s")
-    Paths.get(firstLetter, normalisedAlbumArtistSort, normalisedAlbum, normalisedTitle + "." + extension.extension)
+    fs.getPath(firstLetter, normalisedAlbumArtistSort, normalisedAlbum, normalisedTitle + "." + extension.extension)
   }
 
   /**
@@ -115,6 +121,56 @@ case class Tags(
  */
 object Tags {
 
+  import JsonSupport._
+
+  def fromJson(json: JsValue): ValidatedNel[Message, Tags] = {
+    def coverArtO(fields: Map[String, JsValue], field: String): ValidatedNel[Message, Option[CoverArt]] =
+      extract(fields, field) { case coverArtJson => CoverArt.fromJson(coverArtJson) }
+    val coverArt = mandatory(coverArtO) _
+    json match {
+      case JsObject(fields) =>
+        (str(fields, "albumArtistSort") |@|
+          str(fields, "albumArtist") |@|
+          str(fields, "album") |@|
+          str(fields, "artist") |@|
+          str(fields, "artistSort") |@|
+          str(fields, "title") |@|
+          int(fields, "totalDiscs") |@|
+          int(fields, "totalTracks") |@|
+          int(fields, "discNumber") |@|
+          str(fields, "albumArtistId") |@|
+          str(fields, "albumId") |@|
+          str(fields, "artistId") |@|
+          strO(fields, "trackId") |@|
+          strO(fields, "asin") |@|
+          int(fields, "trackNumber") |@|
+          coverArt(fields, "coverArt")).map { (albumArtistSort, albumArtist, album, artist, artistSort, title,
+                                               totalDiscs, totalTracks, discNumber, albumArtistId, albumId,
+                                               artistId, trackId, asin, trackNumber, coverArt) =>
+            Tags(
+              albumArtistSort = albumArtistSort,
+              albumArtist = albumArtist,
+              album = album,
+              artist = artist,
+              artistSort = artistSort,
+              title = title,
+              totalDiscs = totalDiscs,
+              totalTracks = totalTracks,
+              discNumber = discNumber,
+              albumArtistId = albumArtistId,
+              albumId = albumId,
+              artistId = artistId,
+              trackId = trackId,
+              asin = asin,
+              trackNumber = trackNumber,
+              coverArt = coverArt
+            )
+        }
+
+      case _ => Validated.invalidNel(INVALID_TAGS("Cannot parse tags."))
+    }
+
+  }
   import com.wix.accord.dsl._
 
   /**

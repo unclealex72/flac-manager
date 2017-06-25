@@ -75,12 +75,6 @@ object Extension extends Enum[Extension] {
     * @return All known extensions.
     */
   override def values: immutable.IndexedSeq[Extension] = findValues
-}
-
-/**
-  * Implicits for [[Path]]s that supply functionality to check the extension of a path or to change it.
-  */
-object PathImplicits {
 
   /**
     * Implicits for [[Path]]s that supply functionality to check the extension of a path or to change it.
@@ -113,5 +107,4 @@ object PathImplicits {
       path.getFileName.toString.endsWith(s".$extension")
     }
   }
-
 }

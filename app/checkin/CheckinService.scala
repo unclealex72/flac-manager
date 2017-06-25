@@ -31,6 +31,6 @@ trait CheckinService {
     * @param messagingService The [[MessageService]] used to report progress and errors.
     * @return A [[Future]] that will perform the checkin actions.
     */
-  def checkin(actions: Seq[Action])(implicit messagingService: MessageService): Future[_]
+  def checkin(actions: Seq[Action])(implicit messagingService: MessageService): Future[Unit]
 
 }

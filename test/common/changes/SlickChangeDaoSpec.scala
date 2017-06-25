@@ -19,12 +19,14 @@ import java.nio.file.{Path, Paths}
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneId, ZonedDateTime}
 
+import cats.data.Validated
 import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.scalalogging.StrictLogging
 import common.async.{CommandExecutionContext, GlobalExecutionContext}
-import common.configuration.{TestDirectories, User}
-import common.files._
+import common.configuration.User
+import common.files.{DeviceFile, TagsContainer}
+import common.message.Messages.INVALID_TAGS
 import common.message.{MessageService, NoOpMessageService}
-import logging.ApplicationLogging
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.execute.{AsResult, Result}
 import org.specs2.mutable._
@@ -37,12 +39,11 @@ import slick.jdbc.JdbcProfile
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-
 /**
  * @author alex
  *
  */
-class SlickChangeDaoSpec extends Specification with ApplicationLogging with DatabaseContext {
+class SlickChangeDaoSpec extends Specification with ForEach[Db] with StrictLogging {
 
   sequential
 
@@ -70,45 +71,6 @@ class SlickChangeDaoSpec extends Specification with ApplicationLogging with Data
     }
   }
 
-
-  object Dsl {
-
-    val df: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss").withZone(ZoneId.systemDefault())
-
-    implicit def asDateTime(str: String): Instant = ZonedDateTime.parse(str, df).toInstant
-
-    implicit def asUser(name: String): User = User(name)
-
-    implicit class ChangeBuilderA(albumAndTitle: (String, String)) {
-      def ownedBy(user: User): (String, User) = (Paths.get(albumAndTitle._1, albumAndTitle._2).toString, user)
-    }
-
-    implicit class ChangeBuilderB(relativePathAndUser: (String, User)) {
-      implicit val directories: TestDirectories = TestDirectories()
-
-      def addedAt(instant: Instant): Change = {
-        Change.added(DeviceFileLocation(relativePathAndUser._2, relativePathAndUser._1))(fileLocationExtensions(instant))
-      }
-
-      def fileLocationExtensions(instant: Instant) = new TestFileLocationExtensions {
-        override def lastModified(fileLocation: FileLocation): Instant = instant
-
-        override def firstFileIn[F <: FileLocation](parentFileLocation: F, extension: Extension, builder: (Path) => F): Option[F] = None
-      }
-
-      def removedAt(instant: Instant): Change = {
-        Change.removed(DeviceFileLocation(relativePathAndUser._2, relativePathAndUser._1), instant)
-      }
-    }
-  }
-}
-
-case class Db(changeDao: ChangeDao, ee: ExecutionEnv)
-
-trait DatabaseContext extends ForEach[Db] {
-
-  import Dsl._
-
   val freddie: User = "Freddie"
   val brian: User = "Brian"
 
@@ -121,7 +83,7 @@ trait DatabaseContext extends ForEach[Db] {
   val weAreTheChampionsAdded: Change = ("News of the World", "We Are The Champions.mp3") ownedBy freddie addedAt "05/09/1972 09:14:00"
   val weAreTheChampionsRemoved: Change = ("News of the World", "We Are The Champions.mp3") ownedBy freddie removedAt "05/09/1972 09:14:30"
 
-  implicit val messageService: MessageService = NoOpMessageService
+  implicit val messageService: MessageService = NoOpMessageService(this)
 
   def foreach[R: AsResult](f: Db => R): Result = {
     val ee: ExecutionEnv = ExecutionEnv.fromGlobalExecutionContext
@@ -190,35 +152,38 @@ trait DatabaseContext extends ForEach[Db] {
   def closeDatabaseTransaction(changeDao: SlickChangeDao, dbConfigForTesting: DatabaseConfig[JdbcProfile])(implicit ec: ExecutionContext): Future[Unit] = {
     dbConfigForTesting.db.run(changeDao.drop)
   }
+
 }
+
+case class Db(changeDao: ChangeDao, ee: ExecutionEnv)
 
 object Dsl {
 
   val df: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss").withZone(ZoneId.systemDefault())
 
-  implicit def asDateTime(str: String): Instant = ZonedDateTime.parse(str, df).toInstant
-
-  implicit def asUser(name: String): User = User(name)
+    implicit def stringAsInstant(str: String): Instant = ZonedDateTime.parse(str, df).toInstant
+    implicit def stringAsUser(str: String): User = User(str)
+    implicit def stringAsPath(str: String): Path = Paths.get(str)
 
   implicit class ChangeBuilderA(albumAndTitle: (String, String)) {
     def ownedBy(user: User): (String, User) = (Paths.get(albumAndTitle._1, albumAndTitle._2).toString, user)
   }
 
   implicit class ChangeBuilderB(relativePathAndUser: (String, User)) {
-    implicit val directories: TestDirectories = TestDirectories()
 
-    def addedAt(instant: Instant): Change = {
-      Change.added(DeviceFileLocation(relativePathAndUser._2, relativePathAndUser._1))(fileLocationExtensions(instant))
+    case class SimpleDeviceFile(user: User, relativePath: Path, lastModified: Instant) extends DeviceFile {
+      override val readOnly: Boolean = false
+      override val basePath: Path = Paths.get("/")
+      override val absolutePath: Path = relativePath
+      override val tags: TagsContainer = () => Validated.invalidNel(INVALID_TAGS("Nope"))
+      override val exists: Boolean = false
     }
-
-    def fileLocationExtensions(instant: Instant) = new TestFileLocationExtensions {
-      override def lastModified(fileLocation: FileLocation): Instant = instant
-
-      override def firstFileIn[F <: FileLocation](parentFileLocation: F, extension: Extension, builder: (Path) => F): Option[F] = None
+    def addedAt(instant: Instant): Change = {
+      Change.added(SimpleDeviceFile(relativePathAndUser._2, Paths.get(relativePathAndUser._1), instant))
     }
 
     def removedAt(instant: Instant): Change = {
-      Change.removed(DeviceFileLocation(relativePathAndUser._2, relativePathAndUser._1), instant)
+      Change.removed(SimpleDeviceFile(relativePathAndUser._2, Paths.get(relativePathAndUser._1), instant), instant)
     }
   }
 }

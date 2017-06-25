@@ -25,8 +25,9 @@ import cats.data.Validated.{Invalid, Valid}
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
-import common.changes.ChangeDao
+import common.changes.{AddedChange, ChangeDao}
 import common.configuration.{User, UserDao}
+import java.nio.file.FileSystem
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc._
 
@@ -39,7 +40,7 @@ import scala.util.Try
   * @param changeDao The [[ChangeDao]] used to get changes.
   */
 @Singleton
-class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val controllerComponents: ControllerComponents)
+class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val controllerComponents: ControllerComponents, val fs: FileSystem)
                        (implicit val commandExecutionContext: CommandExecutionContext) extends BaseController with StrictLogging {
 
   val formatter: DateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.systemDefault())
@@ -85,15 +86,13 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
     changes =>
       val jsonChanges = changes.map { change =>
         val changeObj = Json.obj(
-          "action" -> change.action,
-          "relativePath" -> change.relativePath,
+          "action" -> change.action.action,
+          "relativePath" -> change.relativePath.toString,
           "at" -> formatter.format(change.at)
         )
-        if (change.action == "added") {
-          changeObj ++ links(username, change.relativePath)
-        }
-        else {
-          changeObj
+        change.action match {
+          case AddedChange => changeObj ++ links(username, change.relativePath.toString)
+          case _ => changeObj
         }
       }.distinct
       Json.obj("changes" -> jsonChanges)
@@ -111,7 +110,7 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
     def url(callBuilder: (String, String) => Call, path: Path): String =
       callBuilder(user, path.toString).absoluteURL().replace(' ', '+')
 
-    val path = Paths.get(relativePath)
+    val path = fs.getPath(relativePath)
     Json.obj(
       "_links" -> Json.obj(
         "music" -> url(routes.Music.music, path),
@@ -133,10 +132,10 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
         "total" -> changelog.size,
         "changelog" -> changelog.map { changelogItem =>
           Json.obj(
-            "parentRelativePath" -> changelogItem.parentRelativePath,
+            "parentRelativePath" -> changelogItem.parentRelativePath.toString,
             "at" -> formatter.format(changelogItem.at),
-            "relativePath" -> changelogItem.relativePath
-          ) ++ links(username, changelogItem.relativePath)
+            "relativePath" -> changelogItem.relativePath.toString
+          ) ++ links(username, changelogItem.relativePath.toString)
         }
       )
     }

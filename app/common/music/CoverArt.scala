@@ -16,8 +16,12 @@
 
 package common.music
 
+import cats.data.{Validated, ValidatedNel}
 import org.apache.commons.codec.binary.Base64
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
+import cats.implicits._
+import common.message.Message
+import common.message.Messages.INVALID_TAGS
 
 /**
  *
@@ -37,4 +41,25 @@ case class CoverArt(imageData: Array[Byte], mimeType: String) {
     * @return A JSON object with mimeType and image fields.
     */
   def toJson: JsObject = Json.obj("mimeType" -> mimeType, "image" -> Base64.encodeBase64String(imageData))
+
+  override def equals(obj: Any): Boolean = obj match {
+    case cv: CoverArt => this.toJson == cv.toJson
+    case _ => false
+  }
+}
+
+object CoverArt {
+  import JsonSupport._
+
+  def fromJson(json: JsValue): ValidatedNel[Message, CoverArt] = {
+    json match {
+      case JsObject(fields) =>
+        val vImage = str(fields, "image")
+        val vMimeType = str(fields, "mimeType")
+        (vImage |@| vMimeType).map { (image, mimeType) =>
+          CoverArt(Base64.decodeBase64(image), mimeType)
+        }
+      case _ => Validated.invalidNel(INVALID_TAGS("Cannot parse cover art."))
+    }
+  }
 }

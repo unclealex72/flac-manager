@@ -6,6 +6,7 @@ import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 resolvers += "4thline resolver" at "http://4thline.org/m2"
 resolvers ++= Seq("releases").map(Resolver.sonatypeRepo)
 resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/"
+resolvers += "JaudioTagger Repository" at "https://dl.bintray.com/ijabz/maven"
 
 lazy val testingDependencies = Seq("core", "mock", "junit").
   map(name => "org.specs2" %% s"specs2-$name" % "3.8.9" % "test")
@@ -39,7 +40,7 @@ lazy val root = (project in file(".")).
       "com.typesafe.play" %% "play-slick-evolutions" % "3.0.0-RC1",
       "org.xerial" % "sqlite-jdbc" % "3.18.0",
       "com.wix" %% "accord-core" % "0.6.1",
-      "org" % "jaudiotagger" % "2.0.3",
+      "net.jthink" % "jaudiotagger" % "2.2.5",
       "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
       ws,
       guice,
@@ -49,7 +50,9 @@ lazy val root = (project in file(".")).
       "org.fourthline.cling" % "cling-core" % "2.1.1",
       "commons-io" % "commons-io" % "2.5",
       "org.mockito" % "mockito-core" % "1.9.5" % "test",
-      "org.eclipse.jetty" % "jetty-servlet" % "9.3.0.M0" % "test"
+      "org.eclipse.jetty" % "jetty-servlet" % "9.3.0.M0" % "test",
+      "com.github.marschall" % "memoryfilesystem" % "0.9.2" % "test",
+      "com.jsuereth" %% "scala-arm" % "2.0" % "test"
     ),
     libraryDependencies ++= testingDependencies,
     unmanagedResourceDirectories in Compile <+= baseDirectory(_ / "resources"),

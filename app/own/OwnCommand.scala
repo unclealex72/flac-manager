@@ -16,12 +16,13 @@
 
 package own
 
+import cats.data.ValidatedNel
 import common.configuration.User
-import common.files.{FlacFileLocation, StagedFlacFileLocation}
-import common.message.MessageService
+import common.files.Directory.{FlacDirectory, StagingDirectory}
+import common.message.{Message, MessageService}
 import enumeratum._
 
-import scala.collection.immutable
+import scala.collection.{SortedSet, immutable}
 import scala.concurrent.Future
 
 /**
@@ -33,12 +34,12 @@ trait OwnCommand {
     * Change the ownership of a list of either flac or staged files.
     * @param action Whether to own or unown.
     * @param users The users who will be owning or unowning the files.
-    * @param directoryLocations The locations of the directories to own or unown.
+    * @param directories The locations of the directories to own or unown.
     * @param messageService The [[MessageService]] used to report progress and errors.
     * @return A command to be executed.
     */
-  def changeOwnership(action: OwnAction, users: Seq[User], directoryLocations: Seq[Either[StagedFlacFileLocation, FlacFileLocation]])
-                     (implicit messageService: MessageService): Future[_]
+  def changeOwnership(action: OwnAction, users: SortedSet[User], directories: SortedSet[Either[StagingDirectory, FlacDirectory]])
+                     (implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]]
 
 }
 

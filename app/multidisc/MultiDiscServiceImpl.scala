@@ -21,22 +21,21 @@ import javax.inject.Inject
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{Validated, _}
 import cats.implicits._
-import common.files.{DirectoryService, FlacFileChecker, StagedFlacFileLocation}
-import common.message.Messages.{INVALID_FLAC, JOIN_ALBUM, SPLIT_ALBUM}
+import common.files.Directory.StagingDirectory
+import common.files.StagingFile
+import common.message.Messages.{JOIN_ALBUM, SPLIT_ALBUM}
 import common.message.{Message, MessageService, Messaging}
-import common.music.{Tags, TagsService}
+import common.music.Tags
 
 /**
   * Created by alex on 22/05/17
   **/
-class MultiDiscServiceImpl @Inject()(val directoryService: DirectoryService)
-                                    (implicit val tagsService: TagsService,
-                                     val flacFileChecker: FlacFileChecker) extends MultiDiscService with Messaging {
+class MultiDiscServiceImpl @Inject() extends MultiDiscService with Messaging {
 
 
-  override def createSingleAlbum(stagedFlacFileLocations: Seq[StagedFlacFileLocation])
-                          (implicit messageService: MessageService): Unit = {
-    mutateAlbums(stagedFlacFileLocations, JOIN_ALBUM) { multiDiscAlbum =>
+  override def createSingleAlbum(stagingDirectories: Seq[StagingDirectory])
+                          (implicit messageService: MessageService): ValidatedNel[Message, Unit] = {
+    mutateAlbums(stagingDirectories, JOIN_ALBUM) { multiDiscAlbum =>
       val firstDisc = multiDiscAlbum.firstDisc
       val baseTrackNumber = firstDisc.size + 1
       val otherDiscs = multiDiscAlbum.otherDiscs.zipWithIndex.map {
@@ -48,9 +47,9 @@ class MultiDiscServiceImpl @Inject()(val directoryService: DirectoryService)
     }
   }
 
-  override def createAlbumWithExtras(stagedFlacFileLocations: Seq[StagedFlacFileLocation])
-                           (implicit messageService: MessageService): Unit = {
-    mutateAlbums(stagedFlacFileLocations, SPLIT_ALBUM) { multiDiscAlbum =>
+  override def createAlbumWithExtras(stagingDirectories: Seq[StagingDirectory])
+                           (implicit messageService: MessageService): ValidatedNel[Message, Unit] = {
+    mutateAlbums(stagingDirectories, SPLIT_ALBUM) { multiDiscAlbum =>
       val firstDisc = multiDiscAlbum.firstDisc
       val otherDiscs = multiDiscAlbum.otherDiscs.zipWithIndex.map {
         case (tfl, idx) =>
@@ -64,82 +63,69 @@ class MultiDiscServiceImpl @Inject()(val directoryService: DirectoryService)
   }
 
   def mutateAlbums(
-                    stagedFlacFileLocations: Seq[StagedFlacFileLocation], logMessage: String => Message)
-                  (mutator: MultiDiscAlbum => Seq[TagsAndFileLocation])
-                  (implicit messageService: MessageService): Unit = {
-    read(stagedFlacFileLocations) match {
-      case Valid(tagsAndFileLocations) =>
-        val multiDiscAlbums = findMultiDiscAlbums(tagsAndFileLocations)
-        multiDiscAlbums.foreach { multiDiscAlbum =>
-          multiDiscAlbum.firstDisc.map(_.tags).headOption.foreach { tags =>
-            log(logMessage(tags.album))
-          }
-          val newTagsByFileLocation = fixTrackAndDiscNumbers(mutator(multiDiscAlbum)).sorted(tagsAndFileLocationOrdering)
-          newTagsByFileLocation.foreach {
-            case TagsAndFileLocation(newTags, fileLocation) =>
-              if (multiDiscAlbum.tagsHaveChanged(fileLocation, newTags)) {
-                fileLocation.writeTags(newTags)
-              }
-          }
+                    stagingDirectories: Seq[StagingDirectory], logMessage: String => Message)
+                  (mutator: MultiDiscAlbum => Seq[StagingFileAndTags])
+                  (implicit messageService: MessageService): ValidatedNel[Message, Unit] = {
+    read(stagingDirectories).map { stagingFilesAndTags =>
+      val multiDiscAlbums = findMultiDiscAlbums(stagingFilesAndTags)
+      multiDiscAlbums.foreach { multiDiscAlbum =>
+        multiDiscAlbum.firstDisc.map(_.tags).headOption.foreach { tags =>
+          log(logMessage(tags.album))
         }
-      case Invalid(messages) =>
-        messages.toList.foreach(message => log(message))
+        val newTagsByFileLocation = fixTrackAndDiscNumbers(mutator(multiDiscAlbum)).sorted(stagingFileAndTagsOrdering)
+        newTagsByFileLocation.foreach {
+          case StagingFileAndTags(stagingFile, newTags) =>
+            stagingFile.writeTags(newTags)
+        }
+      }
     }
-
   }
 
-  def fixTrackAndDiscNumbers(tagsAndFileLocations: Seq[TagsAndFileLocation]): Seq[TagsAndFileLocation] = {
-    val empty: Seq[TagsAndFileLocation] = Seq.empty
-    tagsAndFileLocations.groupBy(_.tags.albumId).values.foldLeft(empty) { (acc, tagsAndFileLocationsForDisc) =>
-      val totalTracks = tagsAndFileLocationsForDisc.size
-      val newTagsAndFileLocationsForDisc = tagsAndFileLocationsForDisc.sorted(tagsAndFileLocationOrdering).zipWithIndex.map {
+  def fixTrackAndDiscNumbers(stagingFilesAndTags: Seq[StagingFileAndTags]): Seq[StagingFileAndTags] = {
+    val empty: Seq[StagingFileAndTags] = Seq.empty
+    stagingFilesAndTags.groupBy(_.tags.albumId).values.foldLeft(empty) { (acc, stagingFilesAndTagsForDisc) =>
+      val totalTracks = stagingFilesAndTagsForDisc.size
+      val newStagingFilesAndTagsForDisc = stagingFilesAndTagsForDisc.sorted(stagingFileAndTagsOrdering).zipWithIndex.map {
         case(tagsAndFileLocation, idx) =>
           val newTags = tagsAndFileLocation.tags.copy(
             trackNumber = idx + 1, totalTracks = totalTracks, discNumber = 1, totalDiscs = 1)
           tagsAndFileLocation.copy(tags = newTags)
       }
-      acc ++ newTagsAndFileLocationsForDisc
+      acc ++ newStagingFilesAndTagsForDisc
     }
   }
 
-  case class MultiDiscAlbum(firstDisc: IndexedSeq[TagsAndFileLocation], otherDiscs: IndexedSeq[TagsAndFileLocation]) {
-    private val tagsByFileLocation = (firstDisc ++ otherDiscs).groupBy(_.fileLocation).mapValues(_.map(_.tags).headOption)
+  case class MultiDiscAlbum(firstDisc: IndexedSeq[StagingFileAndTags], otherDiscs: IndexedSeq[StagingFileAndTags])
 
-    def tagsHaveChanged(stagedFlacFileLocation: StagedFlacFileLocation, newTags: Tags): Boolean = {
-      !tagsByFileLocation.get(stagedFlacFileLocation).flatten.contains(newTags)
+  case class StagingFileAndTags(stagingFile: StagingFile, tags: Tags)
+  object StagingFileAndTags {
+    def apply(stagingFile: StagingFile)(implicit messageService: MessageService): ValidatedNel[Message, StagingFileAndTags] = {
+      stagingFile.tags.read().map(tags => StagingFileAndTags(stagingFile, tags))
     }
   }
 
-
-  case class TagsAndFileLocation(tags: Tags, fileLocation: StagedFlacFileLocation)
-  object TagsAndFileLocation {
-    def apply(fileLocation: StagedFlacFileLocation): ValidatedNel[Message, TagsAndFileLocation] = {
-      fileLocation.readTags.map(tags => TagsAndFileLocation(tags, fileLocation)).leftMap(_ => NonEmptyList.of(INVALID_FLAC(fileLocation)))
-    }
-  }
-
-  def read(directories: Seq[StagedFlacFileLocation])
-          (implicit messageService: MessageService): ValidatedNel[Message, Seq[TagsAndFileLocation]] = {
-    val empty: ValidatedNel[Message, Seq[TagsAndFileLocation]] = Validated.valid(Seq.empty)
-    directoryService.listFiles(directories).filter(_.isFlacFile).foldLeft(empty) { (acc, fl) =>
-      val tagsAndFileLocationValidation = TagsAndFileLocation(fl)
+  def read(directories: Seq[StagingDirectory])
+          (implicit messageService: MessageService): ValidatedNel[Message, Seq[StagingFileAndTags]] = {
+    val empty: ValidatedNel[Message, Seq[StagingFileAndTags]] = Validated.valid(Seq.empty)
+    directories.flatMap(_.list).filter(_.isFlacFile).foldLeft(empty) { (acc, fl) =>
+      val tagsAndFileLocationValidation = StagingFileAndTags(fl)
       (acc |@| tagsAndFileLocationValidation).map(_ :+ _)
     }
   }
 
-  def findMultiDiscAlbums(tagsAndFileLocations: Seq[TagsAndFileLocation]): Seq[MultiDiscAlbum] = {
-    val allAlbumsById = tagsAndFileLocations.groupBy(tfl => tfl.tags.albumId)
+  def findMultiDiscAlbums(stagingFilesAndTags: Seq[StagingFileAndTags]): Seq[MultiDiscAlbum] = {
+    val allAlbumsById = stagingFilesAndTags.groupBy(tfl => tfl.tags.albumId)
     val multiDiscAlbumsById = allAlbumsById.filter {
       case (_, tracks) => tracks.exists(track => track.tags.discNumber > 1)
     }
     multiDiscAlbumsById.values.map(toMultiDiscAlbum).toSeq
   }
 
-  def toMultiDiscAlbum(tagsAndFileLocations: Seq[TagsAndFileLocation]): MultiDiscAlbum = {
-    val maybeLowestDiscNumber = tagsAndFileLocations.map(_.tags.discNumber).sorted.headOption
-    val (firstDisc, nextDiscs) = tagsAndFileLocations.partition(tfl => maybeLowestDiscNumber.contains(tfl.tags.discNumber))
-    def index(tracks: Seq[TagsAndFileLocation]): IndexedSeq[TagsAndFileLocation] =
-      tracks.sorted(tagsAndFileLocationOrdering).toIndexedSeq
+  def toMultiDiscAlbum(stagingFilesAndTags: Seq[StagingFileAndTags]): MultiDiscAlbum = {
+    val maybeLowestDiscNumber = stagingFilesAndTags.map(_.tags.discNumber).sorted.headOption
+    val (firstDisc, nextDiscs) = stagingFilesAndTags.partition(tfl => maybeLowestDiscNumber.contains(tfl.tags.discNumber))
+    def index(tracks: Seq[StagingFileAndTags]): IndexedSeq[StagingFileAndTags] =
+      tracks.sorted(stagingFileAndTagsOrdering).toIndexedSeq
     MultiDiscAlbum(index(firstDisc), index(nextDiscs))
   }
 
@@ -148,5 +134,5 @@ class MultiDiscServiceImpl @Inject()(val directoryService: DirectoryService)
     */
   val tagsOrdering: Ordering[Tags] = Ordering.by(tags => (tags.discNumber, tags.trackNumber))
 
-  val tagsAndFileLocationOrdering: Ordering[TagsAndFileLocation] = tagsOrdering.on(_.tags)
+  val stagingFileAndTagsOrdering: Ordering[StagingFileAndTags] = tagsOrdering.on(_.tags)
 }

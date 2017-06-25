@@ -23,7 +23,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.util.ByteString
 import io.circe.Json
-import play.api.libs.ws.{BodyWritable, StreamedResponse, WSClient}
+import play.api.libs.ws.{BodyWritable, InMemoryBody, StandaloneWSResponse, WSClient}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,7 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 object RemoteCommandRunner {
 
   implicit val jsonWriteable: BodyWritable[Json] =
-    BodyWritable(json => ByteString(json.noSpaces), "application/json")
+    BodyWritable(json => InMemoryBody(ByteString(json.noSpaces)), "application/json")
 
   def apply(
              ws: WSClient,
@@ -44,13 +44,13 @@ object RemoteCommandRunner {
              out: OutputStream)
            (implicit materializer: Materializer, executionContext: ExecutionContext): Future[Unit] = {
     val commandUri = serverUri.resolve(new URI(s"/commands"))
-    val futureResponse: Future[StreamedResponse] =
+    val futureResponse: Future[StandaloneWSResponse] =
       ws.url(commandUri.toString).withRequestTimeout(Duration.Inf).withMethod("POST").withBody(body).stream()
     futureResponse.flatMap { res =>
       val sink = Sink.foreach[ByteString] { bytes =>
         out.write(bytes.toArray)
       }
-      res.body.runWith(sink).andThen {
+      res.bodyAsSource.runWith(sink).andThen {
         case result =>
           result.get
       }

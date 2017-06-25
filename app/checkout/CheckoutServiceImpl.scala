@@ -20,12 +20,15 @@ import java.time.{Clock, Instant}
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+import cats.data.Validated.Valid
+import cats.data.ValidatedNel
 import common.async.CommandExecutionContext
 import common.changes.{Change, ChangeDao}
-import common.configuration.{Directories, User, UserDao}
+import common.configuration.{User, UserDao}
+import common.files.Directory.FlacDirectory
 import common.files._
-import common.message.MessageService
-import common.music.{Tags, TagsService}
+import common.message.{Message, MessageService}
+import common.music.Tags
 import common.owners.OwnerService
 
 import scala.collection.{SortedMap, SortedSet}
@@ -48,19 +51,16 @@ class CheckoutServiceImpl @Inject()(
                                      val fileSystem: FileSystem,
                                      val userDao: UserDao,
                                      val ownerService: OwnerService,
+                                     val changeDao: ChangeDao,
                                      val clock: Clock)
-                         (implicit val changeDao: ChangeDao,
-                          val directories: Directories,
-                          val fileLocationExtensions: FileLocationExtensions,
-                          val tagsService: TagsService,
-                          val commandExecutionContext: CommandExecutionContext)
+                         (implicit val commandExecutionContext: CommandExecutionContext)
   extends CheckoutService {
 
   /**
     * @inheritdoc
     */
   override def checkout(
-                         flacFileLocationsByParent: SortedMap[FlacFileLocation, SortedSet[FlacFileLocation]],
+                         flacFileLocationsByParent: SortedMap[FlacDirectory, SortedSet[FlacFile]],
                          unown: Boolean)(implicit messageService: MessageService): Future[Unit] = {
     val eventualTagsForUsers = Future(flacFileLocationsByParent.foldLeft(Map.empty[User, Set[Tags]])(findTagsAndDeleteFiles))
     if (unown) {
@@ -73,7 +73,7 @@ class CheckoutServiceImpl @Inject()(
       }
     }
     else {
-      eventualTagsForUsers.map(_ => {})
+      eventualTagsForUsers.map(_ => Valid({}))
     }
   }
 
@@ -86,7 +86,7 @@ class CheckoutServiceImpl @Inject()(
     */
   def findTagsAndDeleteFiles(
                               tagsForUsers: Map[User, Set[Tags]],
-                              fls: (FlacFileLocation, SortedSet[FlacFileLocation]))
+                              fls: (FlacDirectory, SortedSet[FlacFile]))
                             (implicit messageService: MessageService): Map[User, Set[Tags]] = {
     val directory = fls._1
     val flacFileLocations = fls._2
@@ -100,25 +100,25 @@ class CheckoutServiceImpl @Inject()(
     * Here be dragons!
     * @param tagsForUsers The currently known tags for users
     * @param directory A directory containing flac files.
-    * @param firstFlacFileLocation The first flac file in the directory.
-    * @param flacFileLocations The flac files in the directory.
+    * @param firstFlacFile The first flac file in the directory.
+    * @param flacFiles The flac files in the directory.
     * @param messageService The [[MessageService]] used to report progress and log errors.
     * @return A map of users and the tags of the files they one.
     */
   def findTagsAndDeleteFiles(
-                              tagsForUsers: Map[User, Set[Tags]], directory: FlacFileLocation,
-                              firstFlacFileLocation: FlacFileLocation, flacFileLocations: SortedSet[FlacFileLocation])(implicit messageService: MessageService): Map[User, Set[Tags]] = {
-    val owners = quickOwners(firstFlacFileLocation)
-    val tags = firstFlacFileLocation.readTags.toOption
-    flacFileLocations.foreach { flacFileLocation =>
-      val encodedFileLocation = flacFileLocation.toEncodedFileLocation
-      val deviceFileLocations: Set[DeviceFileLocation] = owners.map { user => encodedFileLocation.toDeviceFileLocation(user)}
-      deviceFileLocations.foreach { deviceFileLocation =>
-        Await.result(changeDao.store(Change.removed(deviceFileLocation, Instant.now(clock))), Duration.apply(1, TimeUnit.HOURS))
-        fileSystem.remove(deviceFileLocation)
+                              tagsForUsers: Map[User, Set[Tags]], directory: FlacDirectory,
+                              firstFlacFile: FlacFile, flacFiles: SortedSet[FlacFile])(implicit messageService: MessageService): Map[User, Set[Tags]] = {
+    val owners = quickOwners(firstFlacFile)
+    val tags = firstFlacFile.tags.read().toOption
+    flacFiles.foreach { flacFile =>
+      val encodedFile = flacFile.toEncodedFile
+      val deviceFiles: Set[DeviceFile] = owners.map { user => encodedFile.toDeviceFile(user)}
+      deviceFiles.foreach { deviceFile =>
+        Await.result(changeDao.store(Change.removed(deviceFile, Instant.now(clock))), Duration.apply(1, TimeUnit.HOURS))
+        fileSystem.remove(deviceFile)
       }
-      fileSystem.remove(encodedFileLocation)
-      fileSystem.move(flacFileLocation, flacFileLocation.toStagedFlacFileLocation)
+      fileSystem.remove(encodedFile)
+      fileSystem.move(flacFile, flacFile.toStagingFile)
     }
     owners.foldLeft(tagsForUsers) { (tagsForUsers, owner) =>
       tagsForUsers.get(owner) match {
@@ -131,10 +131,11 @@ class CheckoutServiceImpl @Inject()(
 
   /**
    * Find out quickly who owns an album by looking for links in the users' device repository.
-   * @param flacFileLocation A flac file for the album.
+   * @param flacFile A flac file for the album.
    * @return A list of users who own the album.
    */
-  def quickOwners(flacFileLocation: FlacFileLocation): Set[User] = userDao.allUsers().filter { user =>
-    flacFileLocation.toEncodedFileLocation.toDeviceFileLocation(user).exists
+  def quickOwners(flacFile: FlacFile): Set[User] = userDao.allUsers().filter { user =>
+    val deviceFile = flacFile.toEncodedFile.toDeviceFile(user)
+    deviceFile.exists
   }
 }

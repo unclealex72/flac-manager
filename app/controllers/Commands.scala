@@ -20,7 +20,7 @@ import java.io.{PrintWriter, StringWriter}
 import javax.inject.{Inject, Singleton}
 
 import akka.stream.OverflowStrategy
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{Source, SourceQueue}
 import cats.data.Validated.{Invalid, Valid}
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
@@ -29,6 +29,7 @@ import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
 
 /**
   * The controller that executes commands that alter repositories.
@@ -50,23 +51,8 @@ class Commands @Inject()(
     * @return A HTTP chunked response containing the feedback from the command.
     */
   def commands: Action[JsValue] = Action(parse.json) { implicit request: Request[JsValue] =>
-    val validatedCommandTypeBuilder = commandBuilder(request.body)
-    validatedCommandTypeBuilder match {
-      case Valid(commandFactory) =>
-        val responseSource: Source[String, _] = generateResponse(commandFactory)
-        Ok.chunked(responseSource).as(TEXT)
-      case Invalid(neMessages) =>
-        val messages = neMessages.toList
-        messages.foreach { message =>
-          logger.error(message)
-        }
-        BadRequest(messages.mkString("\n")).as(TEXT)
-    }
-  }
-
-  def generateResponse(commandFactory: MessageService => Future[_]): Source[String, _] = {
-    val (queueSource, futureQueue) = peekMatValue(Source.queue[String](128, OverflowStrategy.backpressure))
-    futureQueue.map { queue =>
+    val (queueSource, eventualQueue) = peekMatValue(Source.queue[String](128, OverflowStrategy.backpressure))
+    eventualQueue.map { queue =>
       def offer(message: Any) = queue.offer(s"$message\n")
       def printer(message: String): Unit = offer(message)
       def exceptionHandler(t: Throwable): Unit = {
@@ -74,22 +60,23 @@ class Commands @Inject()(
         t.printStackTrace(new PrintWriter(sw))
         offer(sw)
       }
-
-      val messageService = messageServiceBuilder.
-        withPrinter(printer).
-        withExceptionHandler(exceptionHandler).build
-
-      commandFactory(messageService).andThen {
-        case _ =>
-          printer("The command has completed successfully.")
-          queue.complete()
-      }.recover {
-        case t =>
-          exceptionHandler(t)
+      implicit val messageService =
+        messageServiceBuilder.
+          withPrinter(printer).
+          withExceptionHandler(exceptionHandler).build
+      commandBuilder(request.body).andThen {
+        case Success(Valid(_)) =>
+          queue.offer("Success").map(_ => queue.complete())
+        case Success(Invalid(messages)) =>
+          messages.foldLeft(Future.successful({})) { (acc, message) =>
+            acc.map(_ => log(message))
+          }.map(_ => queue.complete())
+        case Failure(e) =>
+          messageService.exception(e)
           queue.complete()
       }
     }
-    queueSource
+    Ok.chunked(queueSource).as(TEXT)
   }
 
   def peekMatValue[T, M](src: Source[T, M]): (Source[T, M], Future[M]) = {

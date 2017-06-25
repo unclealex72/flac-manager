@@ -18,6 +18,7 @@ package common.collections
 import javax.inject.Inject
 
 import common.async.CommandExecutionContext
+import common.configuration.User
 import common.db.SlickDao
 import play.api.db.slick.DatabaseConfigProvider
 
@@ -50,7 +51,7 @@ class SlickCollectionDao  @Inject() (protected val dbConfigProvider: DatabaseCon
     val id: Rep[Long] = column[Long]("ID", O.PrimaryKey, O.AutoInc)
     val parentRelativePath: Rep[Option[String]] =
       column[Option[String]]("PARENTRELATIVEPATH", O.Length(512, varying = true), O.Default(None))
-    val user: Rep[String] = column[String]("USER", O.Length(128, varying = true))
+    val user: Rep[User] = column[User]("USER", O.Length(128, varying = true))
     val releaseId: Rep[String] = column[String]("RELEASEID", O.Length(128, varying = true))
     val artist: Rep[String] = column[String]("ARTIST", O.Length(512, varying = true))
     val album: Rep[String] = column[String]("ALBUM", O.Length(512, varying = true))
@@ -63,8 +64,8 @@ class SlickCollectionDao  @Inject() (protected val dbConfigProvider: DatabaseCon
   /**
     * @inheritdoc
     */
-  override def addRelease(username: String, releaseId: String, artist: String, album: String): Future[Unit] = dbConfig.db.run {
-    val collectionItemsQuery = collectionItems.filter(ci => ci.user === username && ci.releaseId === releaseId)
+  override def addRelease(user: User, releaseId: String, artist: String, album: String): Future[Unit] = dbConfig.db.run {
+    val collectionItemsQuery = collectionItems.filter(ci => ci.user === user && ci.releaseId === releaseId)
     val existingCollectionItemsResult = collectionItemsQuery.result
     existingCollectionItemsResult.flatMap[Int, NoStream, Nothing] { existingCollectionItems =>
       existingCollectionItems.headOption match {
@@ -72,7 +73,7 @@ class SlickCollectionDao  @Inject() (protected val dbConfigProvider: DatabaseCon
           collectionItemsQuery.map(ci => (ci.artist, ci.album)).update((artist, album))
         case None =>
           collectionItems.map(ci => (ci.user, ci.releaseId, ci.artist, ci.album)) +=
-            (username, releaseId, artist, album)
+            (user, releaseId, artist, album)
       }
     }
   }.map(_ => {})
@@ -80,9 +81,9 @@ class SlickCollectionDao  @Inject() (protected val dbConfigProvider: DatabaseCon
   /**
     * @inheritdoc
     */
-  override def removeRelease(username: String, releaseId: String): Future[Unit] = dbConfig.db.run {
+  override def removeRelease(user: User, releaseId: String): Future[Unit] = dbConfig.db.run {
     collectionItems.
-      filter(ci => ci.user === username && ci.releaseId === releaseId).
+      filter(ci => ci.user === user && ci.releaseId === releaseId).
       delete
   }.map(_ => {})
 
@@ -91,7 +92,7 @@ class SlickCollectionDao  @Inject() (protected val dbConfigProvider: DatabaseCon
     *
     * @return All map of owners keyed by the album ID that they own.
     */
-  override def allOwnersByRelease(): Future[Map[String, Seq[String]]] = dbConfig.db.run {
+  override def allOwnersByRelease(): Future[Map[String, Seq[User]]] = dbConfig.db.run {
     collectionItems.result
   }.map(_.groupBy(_.releaseId).mapValues(_.map(_.user)))
 }

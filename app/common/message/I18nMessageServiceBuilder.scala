@@ -41,7 +41,7 @@ class I18nMessageServiceBuilder(
 
     override def printMessage(template: Message): Unit = {
       val message = messagesApi(template.key, template.parameters :_*)
-      logger.debug(message)
+      logger.info(message)
       printers.foreach(printer => printer(message))
     }
 

@@ -15,10 +15,11 @@
  */
 
 package json
-import java.nio.file.{Path, Paths}
+import java.nio.file.{FileSystem, Path}
 
 import io.circe._
 import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
+import json.PathCodec._
 
 /**
   * A marker trait for server command parameters. Each command parameter object is an RPC style JSON payload that
@@ -103,9 +104,7 @@ object Parameters {
   /**
     * A [[https://circe.github.io/circe/ circe]] decoder for parameters.
     */
-  implicit val parametersDecoder: Decoder[Parameters] = {
-
-    implicit val pathDecoder: Decoder[Path] = Decoder.decodeString.map(Paths.get(_))
+  implicit def parametersDecoder(implicit fs: FileSystem): Decoder[Parameters] = {
 
     def enumDecoder[E <: IdentifiableEnumEntry](name: String, values: Seq[E]): Decoder[E] = Decoder.decodeString.flatMap { str =>
       values.find(rt => rt.identifier == str) match {
@@ -167,7 +166,7 @@ object Parameters {
   /**
     * A [[https://circe.github.io/circe/ circe]] encoder for parameters.
     */
-  implicit val parametersEncoder: Encoder[Parameters] = {
+  implicit def parametersEncoder(implicit fs: FileSystem): Encoder[Parameters] = {
     implicit val pathEncoder: Encoder[Path] = Encoder.encodeString.contramap(_.toString)
     def enumEncoder[E <: IdentifiableEnumEntry]: Encoder[E] = Encoder.encodeString.contramap(_.identifier)
     implicit val repositoryTypeEncoder: Encoder[RepositoryType] = enumEncoder[RepositoryType]

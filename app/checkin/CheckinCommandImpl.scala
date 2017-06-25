@@ -19,11 +19,14 @@ package checkin
 import javax.inject.Inject
 
 import cats.data.Validated.{Invalid, Valid}
+import cats.data.ValidatedNel
 import checkin.Action._
 import common.async.CommandExecutionContext
+import common.files.Directory.StagingDirectory
 import common.files._
 import common.message._
 
+import scala.collection.SortedSet
 import scala.concurrent.Future
 
 /**
@@ -34,7 +37,6 @@ import scala.concurrent.Future
   * @param ec The execution context used to execute the command.
   */
 class CheckinCommandImpl @Inject()(
-                                    val directoryService: DirectoryService,
                                     val actionGenerator: CheckinActionGenerator,
                                     val checkinService: CheckinService)
                                   (implicit val commandExecutionContext: CommandExecutionContext) extends CheckinCommand with Messaging {
@@ -42,17 +44,13 @@ class CheckinCommandImpl @Inject()(
   /**
     * @inheritdoc
     */
-  override def checkin(locations: Seq[StagedFlacFileLocation],
-                       allowUnowned: Boolean)(implicit messageService: MessageService): Future[_] = {
-    val fileLocations = directoryService.listFiles(locations).toSeq
-    actionGenerator.generate(fileLocations, allowUnowned).flatMap {
+  override def checkin(directories: SortedSet[StagingDirectory],
+                       allowUnowned: Boolean)(implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
+    val fileLocations = directories.flatMap(_.list)
+    actionGenerator.generate(fileLocations.toSeq, allowUnowned).flatMap {
       case Valid(actions) =>
-        checkinService.checkin(actions.sorted)
-      case Invalid(messageTypes) => Future {
-        messageTypes.toList.foreach { messageType =>
-          log(messageType)
-        }
-      }
+        checkinService.checkin(actions.sorted).map(_ => Valid({}))
+      case iv @ Invalid(_) => Future.successful(iv)
     }
   }
 }

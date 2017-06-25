@@ -16,45 +16,64 @@
 
 package common.controllers
 
-import java.nio.file.Paths
+import java.nio.file.FileSystem
 import java.util.concurrent.TimeUnit
 
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
-import common.configuration.{TestDirectories, User, UserDao}
-import common.files.{FlacFileLocation, StagedFlacFileLocation}
-import common.message.{MessageService, NoOpMessageService}
+import com.typesafe.scalalogging.StrictLogging
+import common.configuration.{User, UserDao}
+import common.files.Directory.{FlacDirectory, StagingDirectory}
+import common.files.{Repositories, RepositoryEntry, TestRepositories}
+import common.message.Messages._
+import common.message.{Message, MessageService}
 import controllers.CommandBuilderImpl
 import initialise.InitialiseCommand
 import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
 import json._
 import multidisc.MultiDiscCommand
+import org.specs2.matcher.MatchResult
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import own.OwnAction._
 import own.{OwnAction, OwnCommand}
 import play.api.libs.json._
 
+import scala.collection.SortedSet
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future, Promise}
+import scala.concurrent.{Await, Future}
+
+import common.files.RepositoryEntry
+
 /**
   * Created by alex on 23/04/17
   **/
-class CommandBuilderImplSpec extends Specification {
+class CommandBuilderImplSpec extends Specification with StrictLogging with TestRepositories[(FileSystem, Repositories)] with Mockito with RepositoryEntry.Dsl {
+
+  val entries: Seq[FsEntryBuilder] = Repos(
+    staging = Seq(D("A"), D("B")),
+    flac = Artists(
+      "Queen" -> Albums(Album("A Night at the Opera", Tracks("Death on Two Legs"))),
+      "Slayer" -> Albums(Album("Reign in Blood", Tracks("Angel of Death")))
+    )
+  )
 
   "running the initialise command" should {
-    "only require a command to call successfully" in {
+    "only require a command to call successfully" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(Seq("command" -> JsString("initialise")))
       }
-      validatedResult must beRight { (p: Parameters) =>
-        p must be_==(InitialiseParameters())
+      validatedResult must beRight { (c: Commands) =>
+        there was one(c.initialiseCommand).initialiseDb
+        c.noMore()
       }
     }
   }
 
   "running the checkin command" should {
-    "require directories" in {
+    "require directories" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
@@ -62,23 +81,25 @@ class CommandBuilderImplSpec extends Specification {
             "allowUnowned" -> JsBoolean(false),
             "relativeDirectories" -> JsArray()))
       }
-      validatedResult must beLeft { (es: NonEmptyList[String]) =>
-        es.toList must contain(exactly("You must supply at least 1 staging directory."))
+      validatedResult must beLeft { (es: NonEmptyList[Message]) =>
+        es.toList must containTheSameElementsAs(Seq(NO_DIRECTORIES("staging")))
       }
     }
-    "not allow flac directories" in {
+    "not allow flac directories" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
             "command" -> JsString("checkin"),
             "allowUnowned" -> JsBoolean(false),
-            "relativeDirectories" -> JsArray(Seq(flacObj("A"), stagingObj("B")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("Q"), stagingObj("B")))))
       }
-      validatedResult must beLeft { (es: NonEmptyList[String]) =>
-        es.toList must contain(exactly("A is not a staging directory."))
+      validatedResult must beLeft { (es: NonEmptyList[Message]) =>
+        es.toList must containTheSameElementsAs(Seq(NOT_A_DIRECTORY(fs.getPath("Q"), "staging")))
       }
     }
-    "pass on its parameters" in {
+    "pass on its parameters" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
@@ -86,14 +107,20 @@ class CommandBuilderImplSpec extends Specification {
             "allowUnowned" -> JsBoolean(true),
             "relativeDirectories" -> JsArray(Seq(stagingObj("A"), stagingObj("B")))))
       }
-      validatedResult must beRight { (p: Parameters) =>
-        p must be_==(CheckinParameters(List(staging("A"), staging("B")), allowUnowned = true))
+      validatedResult must beRight { (c: Commands) =>
+        repositories.staging.directory(fs.getPath("A")).toEither must beRight { a: StagingDirectory =>
+          repositories.staging.directory(fs.getPath("B")).toEither must beRight { b: StagingDirectory =>
+            there was one(c.checkinCommand).checkin(SortedSet(a, b), allowUnowned = true)
+            c.noMore()
+          }
+        }
       }
     }
   }
 
   "running the multi command" should {
-    "require directories" in {
+    "require directories" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
@@ -101,32 +128,38 @@ class CommandBuilderImplSpec extends Specification {
             "action" -> JsString("join"),
             "relativeDirectories" -> JsArray()))
       }
-      validatedResult must beLeft { (es: NonEmptyList[String]) =>
-        es.toList must contain(exactly("You must supply at least 1 staging directory."))
+      validatedResult must beLeft { (es: NonEmptyList[Message]) =>
+        es.toList must containTheSameElementsAs(Seq(NO_DIRECTORIES("staging")))
       }
     }
-    "not allow flac directories" in {
+    "not allow flac directories" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
             "command" -> JsString("multidisc"),
             "action" -> JsString("join"),
-            "relativeDirectories" -> JsArray(Seq(flacObj("A"), stagingObj("B")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("Q"), stagingObj("B")))))
       }
-      validatedResult must beLeft { (es: NonEmptyList[String]) =>
-        es.toList must contain(exactly("A is not a staging directory."))
+      validatedResult must beLeft { (es: NonEmptyList[Message]) =>
+        es.toList must containTheSameElementsAs(Seq(NOT_A_DIRECTORY(fs.getPath("Q"), "staging")))
       }
     }
-    "require an action" in {
-      val validatedMultiDiscResult = execution {
+    "require an action" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
+      val validatedResult = execution {
         JsObject(
           Seq(
             "command" -> JsString("multidisc"),
             "relativeDirectories" -> JsArray(Seq(stagingObj("A"), stagingObj("B")))))
       }
-      validatedMultiDiscResult must beLeft(NonEmptyList.of("You must include an action to deal with multiple disc albums."))
+      validatedResult must beLeft { (es: NonEmptyList[Message]) =>
+        es.toList must containTheSameElementsAs(Seq(MULTI_ACTION_REQUIRED))
+      }
     }
-    "pass on its parameters" in {
+
+    "pass on its parameters" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedJoinResult = execution {
         JsObject(
           Seq(
@@ -134,8 +167,13 @@ class CommandBuilderImplSpec extends Specification {
             "action" -> JsString("join"),
             "relativeDirectories" -> JsArray(Seq(stagingObj("A"), stagingObj("B")))))
       }
-      validatedJoinResult must beRight { (p: Parameters) =>
-        p must be_==(MultiDiscParameters(List(staging("A"), staging("B")), Some(MultiAction.Join)))
+      validatedJoinResult must beRight { (c: Commands) =>
+        repositories.staging.directory(fs.getPath("A")).toEither must beRight { a: StagingDirectory =>
+          repositories.staging.directory(fs.getPath("B")).toEither must beRight { b: StagingDirectory =>
+            there was one(c.multiDiscCommand).mutateMultiDiscAlbum(SortedSet(a, b), MultiAction.Join)
+            c.noMore()
+          }
+        }
       }
       val validatedSplitResult = execution {
         JsObject(
@@ -144,14 +182,20 @@ class CommandBuilderImplSpec extends Specification {
             "action" -> JsString("split"),
             "relativeDirectories" -> JsArray(Seq(stagingObj("A"), stagingObj("B")))))
       }
-      validatedSplitResult must beRight { (p: Parameters) =>
-        p must be_==(MultiDiscParameters(List(staging("A"), staging("B")), Some(MultiAction.Split)))
+      validatedSplitResult must beRight { (c: Commands) =>
+        repositories.staging.directory(fs.getPath("A")).toEither must beRight { a: StagingDirectory =>
+          repositories.staging.directory(fs.getPath("B")).toEither must beRight { b: StagingDirectory =>
+            there was one(c.multiDiscCommand).mutateMultiDiscAlbum(SortedSet(a, b), MultiAction.Split)
+            c.noMore()
+          }
+        }
       }
     }
   }
 
   "running the checkout command" should {
-    "require directories" in {
+    "require directories" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
@@ -159,38 +203,46 @@ class CommandBuilderImplSpec extends Specification {
             "unown" -> JsBoolean(true),
             "relativeDirectories" -> JsArray()))
       }
-      validatedResult must beLeft { (es: NonEmptyList[String]) =>
-        es.toList must contain(exactly("You must supply at least 1 flac directory."))
+      validatedResult must beLeft { (es: NonEmptyList[Message]) =>
+        es.toList must containTheSameElementsAs(Seq(NO_DIRECTORIES("flac")))
       }
     }
-    "not allow staging directories" in {
+    "not allow staging directories" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
             "command" -> JsString("checkout"),
             "unown" -> JsBoolean(true),
-            "relativeDirectories" -> JsArray(Seq(flacObj("A"), stagingObj("B")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("Q"), stagingObj("B")))))
       }
-      validatedResult must beLeft { (es: NonEmptyList[String]) =>
-        es.toList must contain(exactly("B is not a flac directory."))
+      validatedResult must beLeft { (es: NonEmptyList[Message]) =>
+        es.toList must containTheSameElementsAs(Seq(NOT_A_DIRECTORY(fs.getPath("B"), "flac")))
       }
     }
-    "pass on its parameters" in {
+    "pass on its parameters" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
             "command" -> JsString("checkout"),
             "unown" -> JsBoolean(true),
-            "relativeDirectories" -> JsArray(Seq(flacObj("A"), flacObj("B")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("Q"), flacObj("S")))))
       }
-      validatedResult must beRight { (p: Parameters) =>
-        p must be_==(CheckoutParameters(List(flac("A"), flac("B")), unown = true))
+      validatedResult must beRight { (c: Commands) =>
+        repositories.flac.directory(fs.getPath("Q")).toEither must beRight { a: FlacDirectory =>
+          repositories.flac.directory(fs.getPath("S")).toEither must beRight { b: FlacDirectory =>
+            there was one(c.checkoutCommand).checkout(SortedSet(a, b), unown = true)
+            c.noMore()
+          }
+        }
       }
     }
   }
 
   "running the own command" should {
-    "require directories and users" in {
+    "require directories and users" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
@@ -198,38 +250,46 @@ class CommandBuilderImplSpec extends Specification {
             "users" -> JsArray(),
             "relativeDirectories" -> JsArray()))
       }
-      validatedResult must beLeft { (es: NonEmptyList[String]) =>
-        es.toList must contain(exactly("You must supply at least 1 staging or flac directory.", "You must supply at least one user."))
+      validatedResult must beLeft { (es: NonEmptyList[Message]) =>
+        es.toList must containTheSameElementsAs(Seq(NO_DIRECTORIES("staging or flac"), NO_USERS))
       }
     }
-    "require valid users" in {
+    "require valid users" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
             "command" -> JsString("own"),
             "users" -> JsArray(Seq(JsString("Roger"))),
-            "relativeDirectories" -> JsArray(Seq(flacObj("A")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("Q")))))
       }
-      validatedResult must beLeft { (es: NonEmptyList[String]) =>
-        es.toList must contain(exactly("Roger is not a valid user."))
+      validatedResult must beLeft { (es: NonEmptyList[Message]) =>
+        es.toList must containTheSameElementsAs(Seq(INVALID_USER("Roger")))
       }
     }
-    "pass on its parameters" in {
+    "pass on its parameters" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
             "command" -> JsString("own"),
             "users" -> JsArray(Seq(JsString("Brian"))),
-            "relativeDirectories" -> JsArray(Seq(flacObj("A"), stagingObj("B")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("Q"), stagingObj("B")))))
       }
-      validatedResult must beRight { (p: Parameters) =>
-        p must be_==(OwnParameters(List(flac("A"), staging("B")), List("Brian")))
+      validatedResult must beRight { (c: Commands) =>
+        repositories.flac.directory(fs.getPath("Q")).toEither must beRight { a: FlacDirectory =>
+          repositories.staging.directory(fs.getPath("B")).toEither must beRight { b: StagingDirectory =>
+            there was one(c.ownCommand).changeOwnership(OwnAction.Own, SortedSet(User("Brian")), SortedSet(Right(a), Left(b)))
+            c.noMore()
+          }
+        }
       }
     }
   }
 
   "running the unown command" should {
-    "require directories and users" in {
+    "require directories and users" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
@@ -237,101 +297,86 @@ class CommandBuilderImplSpec extends Specification {
             "users" -> JsArray(),
             "relativeDirectories" -> JsArray()))
       }
-      validatedResult must beLeft { (es: NonEmptyList[String]) =>
-        es.toList must contain(exactly("You must supply at least 1 staging or flac directory.", "You must supply at least one user."))
+      validatedResult must beLeft { (es: NonEmptyList[Message]) =>
+        es.toList must containTheSameElementsAs(Seq(NO_DIRECTORIES("staging or flac"), NO_USERS))
       }
     }
-    "require valid users" in {
+    "require valid users" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
             "command" -> JsString("unown"),
             "users" -> JsArray(Seq(JsString("Roger"))),
-            "relativeDirectories" -> JsArray(Seq(flacObj("A")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("Q")))))
       }
-      validatedResult must beLeft { (es: NonEmptyList[String]) =>
-        es.toList must contain(exactly("Roger is not a valid user."))
+      validatedResult must beLeft { (es: NonEmptyList[Message]) =>
+        es.toList must containTheSameElementsAs(Seq(INVALID_USER("Roger")))
       }
     }
-    "pass on its parameters" in {
+    "pass on its parameters" in { fsr: (FileSystem, Repositories) =>
+      implicit val (fs, repositories) = fsr
       val validatedResult = execution {
         JsObject(
           Seq(
             "command" -> JsString("unown"),
             "users" -> JsArray(Seq(JsString("Brian"))),
-            "relativeDirectories" -> JsArray(Seq(flacObj("A"), stagingObj("B")))))
+            "relativeDirectories" -> JsArray(Seq(flacObj("Q"), stagingObj("B")))))
       }
-      validatedResult must beRight { (p: Parameters) =>
-        p must be_==(UnownParameters(List(flac("A"), staging("B")), List("Brian")))
-      }
-    }
-  }
-
-  def execution(jsValue: JsValue): Either[NonEmptyList[String], Parameters] = {
-    val promise = Promise[Parameters]
-    def commandType(parameters: Parameters): Future[_] = {
-      promise.success(parameters)
-      promise.future
-    }
-
-    val checkinCommand: CheckinCommand = new CheckinCommand {
-      override def checkin(locations: Seq[StagedFlacFileLocation], allowUnowned: Boolean)(implicit messageService: MessageService): Future[_] = {
-        commandType(CheckinParameters(locations.map(l => PathAndRepository(l.relativePath, StagingRepositoryType)), allowUnowned))
-      }
-    }
-    val checkoutCommand: CheckoutCommand = new CheckoutCommand {
-      override def checkout(locations: Seq[FlacFileLocation], unown: Boolean)
-                           (implicit messageService: MessageService): Future[_] = {
-        commandType(CheckoutParameters(locations.map(l => PathAndRepository(l.relativePath, FlacRepositoryType)), unown))
-      }
-    }
-    val initialiseCommand: InitialiseCommand = new InitialiseCommand {
-      override def initialiseDb(implicit messageService: MessageService): Future[_] = {
-        commandType(InitialiseParameters())
-      }
-    }
-    val multiDiscCommand: MultiDiscCommand = new MultiDiscCommand {
-      override def mutateMultiDiscAlbum(locations: Seq[StagedFlacFileLocation], multiAction: MultiAction)
-                                       (implicit messageService: MessageService): Future[_] = {
-        commandType(MultiDiscParameters(locations.map(l => PathAndRepository(l.relativePath, StagingRepositoryType)), Some(multiAction)))
-      }
-    }
-    val ownCommand: OwnCommand = new OwnCommand {
-      def changeOwnership(action: OwnAction, users: Seq[User], locations: Seq[Either[StagedFlacFileLocation, FlacFileLocation]])
-                         (implicit messageService: MessageService): Future[_] = {
-        commandType {
-          val pathAndRepositories = locations.map {
-            case Left(sffl) => PathAndRepository(sffl.relativePath, StagingRepositoryType)
-            case Right(ffl) => PathAndRepository(ffl.relativePath, FlacRepositoryType)
-          }
-          if (action == Own) {
-            OwnParameters(pathAndRepositories, users.map(_.name))
-          }
-          else {
-            UnownParameters(pathAndRepositories, users.map(_.name))
+      validatedResult must beRight { (c: Commands) =>
+        repositories.flac.directory(fs.getPath("Q")).toEither must beRight { a: FlacDirectory =>
+          repositories.staging.directory(fs.getPath("B")).toEither must beRight { b: StagingDirectory =>
+            there was one(c.ownCommand).changeOwnership(OwnAction.Unown, SortedSet(User("Brian")), SortedSet(Right(a), Left(b)))
+            c.noMore()
           }
         }
       }
     }
+  }
 
-    implicit val directories = TestDirectories(datum = "/music/.datum")
+  override def generate(fs: FileSystem, repositories: Repositories): (FileSystem, Repositories) = {
+    fs.add(entries :_*)
+    (fs, repositories)
+  }
+
+  def execution(jsValue: JsValue)(implicit repositories: Repositories, fs: FileSystem): Either[NonEmptyList[Message], Commands] = {
     val userDao = new UserDao {
       override def allUsers(): Set[User] = Set("Freddie", "Brian").map(User(_))
     }
+    val commands = Commands()
+    val result: Future[ValidatedNel[Message, Unit]] = Future.successful(Validated.valid({}))
+    commands.checkinCommand.checkin(any[SortedSet[StagingDirectory]], any[Boolean])(any[MessageService]) returns result
+    commands.checkoutCommand.checkout(any[SortedSet[FlacDirectory]], any[Boolean])(any[MessageService]) returns result
+    commands.ownCommand.changeOwnership(any[OwnAction], any[SortedSet[User]], any[SortedSet[Either[StagingDirectory, FlacDirectory]]])(any[MessageService]) returns result
+    commands.initialiseCommand.initialiseDb(any[MessageService]) returns result
+    commands.multiDiscCommand.mutateMultiDiscAlbum(any[SortedSet[StagingDirectory]], any[MultiAction])(any[MessageService]) returns result
+
     val commandBuilder = new CommandBuilderImpl(
-      checkinCommand, checkoutCommand, ownCommand, initialiseCommand, multiDiscCommand, userDao)
-    commandBuilder(jsValue).map { builder =>
-      builder(NoOpMessageService)
-      Await.result(promise.future, Duration(1, TimeUnit.SECONDS))
-    }.toEither
+      commands.checkinCommand, commands.checkoutCommand, commands.ownCommand, commands.initialiseCommand, commands.multiDiscCommand, userDao, repositories)
+    Await.result(commandBuilder(jsValue), Duration(1, TimeUnit.SECONDS)).toEither.map(_ => commands)
   }
 
-  def staging(path: String): PathAndRepository = PathAndRepository(Paths.get(path), StagingRepositoryType)
-  def flac(path: String): PathAndRepository = PathAndRepository(Paths.get(path), FlacRepositoryType)
+  def staging(path: String)(implicit fs: FileSystem): PathAndRepository = PathAndRepository(fs.getPath(path), StagingRepositoryType)
+  def flac(path: String)(implicit fs: FileSystem): PathAndRepository = PathAndRepository(fs.getPath(path), FlacRepositoryType)
 
   def stagingObj: (String) => JsObject = pathObj(StagingRepositoryType)
   def flacObj: (String) => JsObject = pathObj(FlacRepositoryType)
   def pathObj(repositoryType: RepositoryType)(path: String): JsObject = {
     JsObject(Seq("path" -> JsString(path), "repositoryType" -> JsString(repositoryType.identifier)))
+  }
+
+  case class Commands(
+                       checkinCommand: CheckinCommand = mock[CheckinCommand],
+                       checkoutCommand: CheckoutCommand = mock[CheckoutCommand],
+                       initialiseCommand: InitialiseCommand = mock[InitialiseCommand],
+                       multiDiscCommand: MultiDiscCommand = mock[MultiDiscCommand],
+                       ownCommand: OwnCommand = mock[OwnCommand]) {
+    def noMore(): MatchResult[Unit] = {
+      there were noMoreCallsTo(checkinCommand)
+      there were noMoreCallsTo(checkoutCommand)
+      there were noMoreCallsTo(initialiseCommand)
+      there were noMoreCallsTo(multiDiscCommand)
+      there were noMoreCallsTo(ownCommand)
+    }
   }
 }

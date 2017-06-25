@@ -16,9 +16,11 @@
 
 package checkout
 
-import common.files.FlacFileLocation
-import common.message.MessageService
+import cats.data.ValidatedNel
+import common.files.Directory.FlacDirectory
+import common.message.{Message, MessageService}
 
+import scala.collection.SortedSet
 import scala.concurrent.Future
 
 /**
@@ -29,10 +31,10 @@ trait CheckoutCommand {
 
   /**
     * Check out a sequence of flac files.
-    * @param locations The locations of the flac files to check out.
+    * @param directories The locations of the flac files to check out.
     * @param unown True if each flac file should also lose its owners, false otherwise.
     * @param messageService The [[MessageService]] used to report progress and errors.
     * @return A [[Future]] that checks out flac files.
     */
-  def checkout(locations: Seq[FlacFileLocation], unown: Boolean)(implicit messageService: MessageService): Future[_]
+  def checkout(directories: SortedSet[FlacDirectory], unown: Boolean)(implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]]
 }

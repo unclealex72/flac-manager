@@ -16,6 +16,8 @@
 
 package common.collections
 
+import common.configuration.User
+
 import scala.concurrent.Future
 
 /**
@@ -33,21 +35,23 @@ trait CollectionDao {
    *
    * @return All map of owners keyed by the album ID that they own.
    */
-  def allOwnersByRelease(): Future[Map[String, Seq[String]]]
+  def allOwnersByRelease(): Future[Map[String, Seq[User]]]
 
   /**
    * Add a release to an owner's collection.
-   * @param username The name of the user whose collection needs changing.
+    *
+    * @param user The name of the user whose collection needs changing.
    * @param releaseId The new release to add to the user's collection.
    * @param artist The name of the artist being added.
    * @param album The name of the album being added.
    */
-  def addRelease(username: String, releaseId: String, artist: String, album: String): Future[Unit]
+  def addRelease(user: User, releaseId: String, artist: String, album: String): Future[Unit]
 
   /**
    * Remove a release from an owner's collection.
-   * @param username The name of the user whose collection needs changing.
+    *
+    * @param user The name of the user whose collection needs changing.
    * @param releaseId The release to remove from the user's collection.
    */
-  def removeRelease(username: String, releaseId: String): Future[Unit]
+  def removeRelease(user: User, releaseId: String): Future[Unit]
 }

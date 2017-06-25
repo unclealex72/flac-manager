@@ -16,7 +16,8 @@
 
 package checkout
 
-import common.files.FlacFileLocation
+import common.files.Directory.FlacDirectory
+import common.files.FlacFile
 import common.message.MessageService
 
 import scala.collection.{SortedMap, SortedSet}
@@ -34,6 +35,6 @@ trait CheckoutService {
     * @param messageService The [[MessageService]] used to report progress and log errors.
     */
   def checkout(
-                flacFileLocationsByParent: SortedMap[FlacFileLocation, SortedSet[FlacFileLocation]],
+                flacFileLocationsByParent: SortedMap[FlacDirectory, SortedSet[FlacFile]],
                 unown: Boolean)(implicit messageService: MessageService): Future[Unit]
 }

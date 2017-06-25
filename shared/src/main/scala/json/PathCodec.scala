@@ -16,7 +16,7 @@
 
 package json
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.{FileSystem, Path, Paths}
 
 import io.circe.{Decoder, Encoder}
 
@@ -33,5 +33,5 @@ object PathCodec {
   /**
     * A [[https://circe.github.io/circe/ circe]] decoder for paths.
     */
-  implicit val pathDecoder: Decoder[Path] = Decoder.decodeString.map(str => Paths.get(str))
+  implicit def pathDecoder(implicit fs: FileSystem): Decoder[Path] = Decoder.decodeString.map(str => fs.getPath(str))
 }

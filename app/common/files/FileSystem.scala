@@ -32,38 +32,38 @@ trait FileSystem {
     * file system move, creating any required directories. Any directories left
     * empty in the source base path due to the move operation will be removed.
     *
-    * @param sourceFileLocation The source file location
-    * @param targetFileLocation The target file location
+    * @param sourceFile The source file location
+    * @param targetFile The target file location
     * @param messageService The [[MessageService]] used to log progress or report errors.
     */
-  def move(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit
+  def move(sourceFile: File, targetFile: File)(implicit messageService: MessageService): Unit
 
   /**
     * Copy a path from a source directory to a target directory using an atomic
     * file system copy, creating any required directories.
     *
-    * @param sourceFileLocation The source file location
-    * @param targetFileLocation The target file location
+    * @param sourceFile The source file location
+    * @param targetFile The target file location
     * @param messageService The [[MessageService]] used to log progress or report errors.
     */
-  def copy(sourceFileLocation: FileLocation, targetFileLocation: FileLocation)(implicit messageService: MessageService): Unit
+  def copy(sourceFile: File, targetFile: File)(implicit messageService: MessageService): Unit
 
   /**
     * Remove directories if they are empty and recurse up the directory tree.
     *
-    * @param fileLocation The file location to remove.
+    * @param file The file location to remove.
     * @param messageService The [[MessageService]] used to log progress or report errors.
    */
-  def remove(fileLocation: FileLocation)(implicit messageService: MessageService): Unit
+  def remove(file: File)(implicit messageService: MessageService): Unit
 
   /**
     * Create a relative symbolic link from one file to another, creating any
     * required parent directories for the new link.
     *
-    * @param fileLocation The location of the file to link to.
-    * @param linkLocation The location of the new symbolic link.
+    * @param file The location of the file to link to.
+    * @param link The location of the new symbolic link.
     * @param messageService The [[MessageService]] used to log progress or report errors.
     */
-  def link(fileLocation: FileLocation, linkLocation: FileLocation)(implicit messageService: MessageService): Unit
+  def link(file: File, link: File)(implicit messageService: MessageService): Unit
 
 }

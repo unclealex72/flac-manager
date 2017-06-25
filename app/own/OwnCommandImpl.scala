@@ -18,12 +18,14 @@ package own
 
 import javax.inject.Inject
 
-import cats.data.NonEmptyList
+import cats.data.Validated.{Invalid, Valid}
+import cats.data.{NonEmptyList, ValidatedNel}
+import cats.implicits._
 import common.async.CommandExecutionContext
 import common.configuration.User
-import common.files.FileLocation._
+import common.files.Directory.{FlacDirectory, StagingDirectory}
 import common.files._
-import common.message.MessageService
+import common.message.{Message, MessageService}
 import common.music.TagsService
 import common.owners.OwnerService
 
@@ -40,58 +42,75 @@ import scala.concurrent.Future
   */
 class OwnCommandImpl @Inject()(
                                 ownerService: OwnerService,
-                                directoryService: DirectoryService)
-                              (implicit flacFileChecker: FlacFileChecker,
-                               tagsService: TagsService,
-                               fileLocationExtensions: FileLocationExtensions,
-                               commandExecutionContext: CommandExecutionContext) extends OwnCommand {
+                                repositories: Repositories)
+                              (implicit commandExecutionContext: CommandExecutionContext) extends OwnCommand {
 
   /**
     * @inheritdoc
     */
   override def changeOwnership(action: OwnAction,
-                               users: Seq[User],
-                               directoryLocations: Seq[Either[StagedFlacFileLocation, FlacFileLocation]])
-                              (implicit messageService: MessageService): Future[_] = {
-    val (stagedLocations, flacLocations) = {
-      val empty: (SortedMap[String, Seq[StagedFlacFileLocation]], SortedMap[String, Seq[FlacFileLocation]]) =
-        (SortedMap.empty[String, Seq[StagedFlacFileLocation]], SortedMap.empty[String, Seq[FlacFileLocation]])
-      directoryLocations.foldLeft(empty){ (acc, location) =>
-        val (stagedLocations, flacLocations) = acc
-        location match {
-          case Left(sfl) => (stagedLocations ++ childrenByAlbumId[StagedFlacFileLocation](sfl, _.isFlacFile), flacLocations)
-          case Right(fl) => (stagedLocations, flacLocations ++ childrenByAlbumId[FlacFileLocation](fl, _ => true))
-        }
-      }
+                               users: SortedSet[User],
+                               directories: SortedSet[Either[StagingDirectory, FlacDirectory]])
+                              (implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
+    case class StagingOrFlacFiles(
+      stagingFiles: SortedMap[String, Seq[StagingFile]] = SortedMap.empty,
+      flacFiles: SortedMap[String, Seq[FlacFile]] = SortedMap.empty) {
+      def +(stagingOrFlacFiles: StagingOrFlacFiles): StagingOrFlacFiles =
+        StagingOrFlacFiles(stagingFiles ++ stagingOrFlacFiles.stagingFiles, flacFiles ++ stagingOrFlacFiles.flacFiles)
     }
-    def executeChanges[FL <: FileLocation](locationsById: SortedMap[String, Seq[FL]],
-                                           changer: (User, OwnAction, NonEmptyList[FL]) => Future[Unit]) = {
-      val empty: Future[Unit] = Future.successful({})
+
+    object StagingOrFlacFiles {
+
+      def staging(stagingFiles: SortedMap[String, Seq[StagingFile]]): StagingOrFlacFiles =
+        StagingOrFlacFiles(stagingFiles = stagingFiles)
+
+      def flac(flacFiles: SortedMap[String, Seq[FlacFile]]): StagingOrFlacFiles =
+        StagingOrFlacFiles(flacFiles = flacFiles)
+    }
+
+    def executeChanges[FL <: File](filesByAlbumId: SortedMap[String, Seq[FL]],
+                                           changer: (User, OwnAction, NonEmptyList[FL]) => Future[ValidatedNel[Message, Unit]]) = {
+      val empty: Future[ValidatedNel[Message, Unit]] = Future.successful(Valid({}))
       users.foldLeft(empty){(accA, user) =>
         accA.flatMap { _ =>
-          locationsById.foldLeft(accA){ (accB, albumIdAndLocation) =>
-            val (_, locations) = albumIdAndLocation
-            accB.flatMap(_ => changer(user, action, NonEmptyList.fromListUnsafe(locations.toList)))
+          filesByAlbumId.foldLeft(accA){ (accB, albumIdAndFiles) =>
+            val (_, files) = albumIdAndFiles
+            accB.flatMap(_ => changer(user, action, NonEmptyList.fromListUnsafe(files.toList)))
           }
         }
       }
     }
-    for {
-      _ <- executeChanges(stagedLocations, ownerService.changeStagedOwnership)
-      _ <- executeChanges(flacLocations, ownerService.changeFlacOwnership)
-    } yield {}
+
+    val validatedStagingOrFlacFiles = {
+      val empty: ValidatedNel[Message, StagingOrFlacFiles] = Valid(StagingOrFlacFiles())
+      directories.foldLeft(empty){ (acc, directory) =>
+        val validatedNewStagingOrFlacFiles = directory match {
+          case Left(sfl) => childrenByAlbumId[StagingFile](sfl, _.isFlacFile).map(StagingOrFlacFiles.staging)
+          case Right(fl) => childrenByAlbumId[FlacFile](fl, _ => true).map(StagingOrFlacFiles.flac)
+        }
+        (acc |@| validatedNewStagingOrFlacFiles).map(_ + _)
+      }
+    }
+    validatedStagingOrFlacFiles match {
+      case Valid(stagingOrFlacFiles) =>
+        for {
+          validatedStagingChanges <- executeChanges(stagingOrFlacFiles.stagingFiles, ownerService.changeStagingOwnership)
+          validatedFlacChanges <- executeChanges(stagingOrFlacFiles.flacFiles, ownerService.changeFlacOwnership)
+        } yield (validatedStagingChanges |@| validatedFlacChanges).map((_,_) => {})
+      case iv @ Invalid(_) =>
+        Future.successful(iv)
+    }
   }
 
-  def childrenByAlbumId[FL <: FileLocation](fl: FL, filter: FL => Boolean)
-                                           (implicit messageService: MessageService): Map[String, Seq[FL]] = {
-    val fileLocations: SortedSet[FL] = directoryService.listFiles(Seq(fl)).filter(fl => filter(fl) && !fl.isDirectory)
-    val fileLocationsByMaybeAlbumId: Map[Option[String], SortedSet[FL]] =
-      fileLocations.groupBy(fl => fl.readTags.toOption.map(_.albumId))
-    val empty: Map[String, Seq[FL]] = Map.empty
-    fileLocationsByMaybeAlbumId.foldLeft(empty) { (fileLocationsByAlbumId, maybeAlbumIdAndFileLocation) =>
-      maybeAlbumIdAndFileLocation match {
-        case (Some(albumId), fls) => fileLocationsByAlbumId + (albumId -> fls.toSeq)
-        case _ => fileLocationsByAlbumId
+  def childrenByAlbumId[FL <: File](directory: Directory[FL], filter: FL => Boolean)
+                                           (implicit messageService: MessageService): ValidatedNel[Message, SortedMap[String, Seq[FL]]] = {
+    val files: SortedSet[FL] = directory.list.filter(filter)
+    val empty: ValidatedNel[Message, SortedMap[String, Seq[FL]]] = Valid(SortedMap.empty)
+    files.foldLeft(empty) { (acc, file) =>
+      (acc |@| file.tags.read).map { (filesByAlbumId, tags) =>
+        val albumId = tags.albumId
+        val filesForAlbumId = filesByAlbumId.getOrElse(albumId, Seq.empty)
+        filesByAlbumId + (albumId -> (filesForAlbumId :+ file))
       }
     }
   }

@@ -16,9 +16,11 @@
 
 package common.db
 
+import java.nio.file.{Path, Paths}
 import java.sql.Timestamp
 import java.time.Instant
 
+import common.configuration.User
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
@@ -29,10 +31,12 @@ trait SlickDao extends HasDatabaseConfigProvider[JdbcProfile] {
 
   import dbConfig.profile.api._
 
-  implicit val dateTimeColumnType: BaseColumnType[Instant] = MappedColumnType.base[Instant, Timestamp](
-    { dt => new Timestamp(dt.toEpochMilli) },
-    { ts => Instant.ofEpochMilli(ts.getTime) }
+  implicit val dateTimeIsomorphism: Isomorphism[Instant, Timestamp] = new Isomorphism(
+    dt => new Timestamp(dt.toEpochMilli),
+    ts => Instant.ofEpochMilli(ts.getTime)
   )
 
+  implicit val userColumnIsomorphism: Isomorphism[User, String] = new Isomorphism(_.name, User(_))
 
+  implicit val pathColumnIsomorphism: Isomorphism[Path, String] = new Isomorphism(_.toString, Paths.get(_))
 }

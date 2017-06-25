@@ -18,8 +18,10 @@ package common.music
 import java.nio.file.Path
 
 import cats.data.Validated.{Invalid, Valid}
-import cats.data.{NonEmptyList, ValidatedNel}
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import com.wix.accord.{Descriptions, validate, Failure => WixFailure, Success => WixSuccess}
+import common.message.{Message, MessageService}
+import common.message.Messages.{EXCEPTION, INVALID_FLAC, INVALID_TAGS}
 import common.music.Tags._
 
 import scala.util.{Failure, Success, Try}
@@ -41,17 +43,17 @@ trait TagsService {
     * @param path The path of the audio file.
     * @return A validated tags object.
     */
-  def read(path: Path): ValidatedNel[String, Tags] = {
+  def read(path: Path): ValidatedNel[Message, Tags] = {
     Try(readTags(path)) match {
       case Success(tags) =>
         validate(tags) match {
           case WixSuccess => Valid(tags)
           case WixFailure(violations) =>
             val descriptions = violations.map(violation => Descriptions.render(violation.description))
-            Invalid(NonEmptyList.fromListUnsafe(descriptions.toList))
+            Invalid(NonEmptyList.fromListUnsafe(descriptions.toList).map(INVALID_TAGS))
         }
       case Failure(e) =>
-        Invalid(NonEmptyList.of(e.getMessage))
+        Validated.invalidNel(EXCEPTION(e))
     }
   }
 

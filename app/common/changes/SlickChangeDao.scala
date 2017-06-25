@@ -15,6 +15,7 @@
  */
 package common.changes
 
+import java.nio.file.Path
 import java.time.Instant
 import javax.inject.Inject
 
@@ -36,6 +37,11 @@ class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigPr
 
   import dbConfig.profile.api._
 
+  implicit val changeTypeIsomorphism: Isomorphism[ChangeType, String] = new Isomorphism(
+    _.action,
+    action => ChangeType.values.find(ct => ct.action == action).get
+  )
+
   //noinspection TypeAnnotation
   val create = changes.schema.create
   //noinspection TypeAnnotation
@@ -49,16 +55,18 @@ class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigPr
       relativePath,
       at,
       user,
-      action) <> (Change.tupled, Change.unapply)
+      action) <> ((Change.apply _).tupled, Change.unapply)
 
     val id: Rep[Long] = column[Long]("ID", O.PrimaryKey, O.AutoInc)
-    val parentRelativePath: Rep[Option[String]] =
-      column[Option[String]]("PARENTRELATIVEPATH", O.Length(512, varying = true), O.Default(None))
-    val relativePath: Rep[String] = column[String]("RELATIVEPATH", O.Length(512,varying=true))
+    val parentRelativePath: Rep[Option[Path]] =
+      column[Option[Path]]("PARENTRELATIVEPATH", O.Length(512, varying = true), O.Default(None))
+    val relativePath: Rep[Path] = column[Path]("RELATIVEPATH", O.Length(512,varying=true))
     val at: Rep[Instant] = column[Instant]("AT")
-    val user: Rep[String] = column[String]("USER", O.Length(128, varying = true))
-    val action: Rep[String] = column[String]("ACTION", O.Length(128, varying = true))
+    val user: Rep[User] = column[User]("USER", O.Length(128, varying = true))
+    val action: Rep[ChangeType] = column[ChangeType]("ACTION", O.Length(128, varying = true))
   }
+
+  val ADDED : Rep[ChangeType] = LiteralColumn("added").mapTo[ChangeType]
 
   /** Collection-like TableQuery object for table Game */
   lazy val changes = new TableQuery(tag => new TChange(tag))
@@ -68,22 +76,41 @@ class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     changes += change
   }.map(_ => {})
 
+  private val countChangesQuery = Compiled { changes.size }
+
   override def countChanges(): Future[Int] = dbConfig.db.run {
-    changes.size.result
+    countChangesQuery.result
   }
 
-  override def getAllChangesSince(user: User, since: Instant): Future[Seq[Change]] = dbConfig.db.run {
+  private val getAllChangesSinceQuery = Compiled { (user: Rep[User], since: Rep[Instant]) =>
     val latest =
-      changes.filter(c => c.at >= since && c.user === user.name).groupBy(_.relativePath).map {
+      changes.filter(c => c.at >= since && c.user === user).groupBy(_.relativePath).map {
         case (relativePath, change) => (relativePath, change.map(_.at).max)
       }
     val changesSince = for {
       c <- changes
       l <- latest if l._1 === c.relativePath && l._2 === c.at
     } yield c
-    changesSince.sortBy(c => (c.action.desc, c.relativePath.asc)).result
+    changesSince.sortBy(c => (c.action.desc, c.relativePath.asc))
   }
 
+  override def getAllChangesSince(user: User, since: Instant): Future[Seq[Change]] = dbConfig.db.run {
+    getAllChangesSinceQuery(user, since).result
+  }
+
+  private val changelogQuery = Compiled { (user: Rep[User], since: Rep[Instant]) =>
+    changes.filter {
+      c => c.action === LiteralColumn[ChangeType](AddedChange) && c.user === user && c.parentRelativePath.isDefined && c.at >= since
+    }.
+      groupBy(_.parentRelativePath).
+      map {
+        case (parentRelativePath, c) =>
+          (parentRelativePath, (c.map(_.at).min, c.map(_.relativePath).min))
+      }.sortBy {
+      case (parentRelativePath, c) =>
+        (c._1.desc, parentRelativePath.asc)
+    }
+  }
   /**
     * Get a list of changelog items for a given user since a given amount of time. A changelog item
     * indicates that an album has been added or removed.
@@ -93,17 +120,7 @@ class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     * @return A list of changelog items.
     */
   override def changelog(user: User, since: Instant): Future[Seq[ChangelogItem]] = dbConfig.db.run {
-    changes.filter {
-      c => c.action === "added" && c.user === user.name && c.parentRelativePath.isDefined && c.at >= since
-    }.
-    groupBy(_.parentRelativePath).
-    map {
-      case (parentRelativePath, c) =>
-        (parentRelativePath, (c.map(_.at).min, c.map(_.relativePath).min))
-    }.sortBy {
-      case (parentRelativePath, c) =>
-        (c._1.desc, parentRelativePath.asc)
-    }.result
+    changelogQuery(user, since).result
   }.map { results =>
     results.flatMap {
       case (Some(parentRelativePath), (Some(at), Some(relativePath))) =>

@@ -16,105 +16,191 @@
 
 package common.files
 
-import java.nio.file.{Files, Path, Paths}
-
-import common.message.Messages._
-import common.message.TestMessageService
-import org.specs2.mock.Mockito
+import java.time.{Clock, Instant}
+import java.nio.file.{FileSystem => JFS}
+import common.configuration.User
 import org.specs2.mutable._
-import tempfs.TempFileSystem
+import testfilesystem._
 
 /**
  * @author alex
  *
  */
-class FileSystemImplSpec extends Specification with PathMatchers with Mockito {
+class FileSystemImplSpec extends Specification with PathMatchers with TestRepositories[JFSRepositoriesAndFileSystem] with RepositoryEntry.Dsl {
 
-  val fileSystem = new FileSystemImpl
-
-  trait fs extends TempFileSystem {
-    lazy val source = rootDirectory.resolve("source")
-    lazy val target = rootDirectory.resolve("target")
-    implicit val messageService: TestMessageService = TestMessageService()
-    implicit val fileLocationExtensions = new FileLocationExtensionsImpl()
-    def before(rootDirectory: Path): Unit = {}
-  }
+  val now: Instant = Clock.systemDefaultZone().instant()
 
   "Moving a file with siblings" should {
-    "move only the file and not its siblings" in new fs {
-      Files.createDirectories(target)
-      val fileToMove = TestFileLocation(source, "dir", "moveme.txt")
-      val fileToKeep = TestFileLocation(source, "dir", "keepme.txt")
-      Seq(fileToMove, fileToKeep).foreach { fl =>
-        Files.createDirectories(fl.toPath.getParent)
-        Files.createFile(fl.toPath);
+    "move only the file and not its siblings" in { jfsRepositoriesAndFs : JFSRepositoriesAndFileSystem =>
+      val fs = jfsRepositoriesAndFs.fs
+      val fileSystem = jfsRepositoriesAndFs.fileSystem
+      val repositories = jfsRepositoriesAndFs.repositories
+      fs.add(
+        D("flac",
+          D("dir",
+            F("moveme.txt"),
+            F("keepme.txt")
+          )
+        )
+      )
+      val validatedSource = repositories.flac.file(fs.getPath("dir", "moveme.txt"))
+      validatedSource.toEither must beRight { source : FlacFile =>
+        val target = source.toStagingFile
+        fileSystem.move(source, target)
+        fs.entries must containTheSameElementsAs {
+          fs.expected(
+            D("flac",
+              D("dir",
+                F("keepme.txt")
+              )
+            ),
+            D("staging",
+              D("dir",
+                F("moveme.txt")
+              )
+            )
+          )
+        }
       }
-      val targetLocation = TestFileLocation(target, "otherdir", "movedme.txt")
-      fileSystem.move(fileToMove, targetLocation)
-      target.resolve(Paths.get("otherdir", "movedme.txt")) must exist
-      target.resolve(Paths.get("otherdir", "movedme.txt")) must not(beADirectory)
-      fileToKeep.toPath must exist
-      fileToMove.toPath must not(exist)
-      there was one(messageService).printMessage(MOVE(fileToMove, targetLocation))
-    }
-  }
-
-  "Linking to a file" should {
-    "create a relative link that points to the original file" in new fs {
-      val targetLocation = TestFileLocation(rootDirectory, "here.txt")
-      Files.createFile(targetLocation.toPath)
-      val linkLocation = TestFileLocation(rootDirectory, "link.d", "link.txt")
-      fileSystem.link(targetLocation, linkLocation)
-      linkLocation.toPath must beASymbolicLink
-      val symlink = Files.readSymbolicLink(linkLocation.toPath)
-      symlink must not(beAbsolute)
-      linkLocation.toPath.getParent.resolve(symlink).toAbsolutePath must beTheSameFileAs(targetLocation.toPath.toAbsolutePath)
-      there was one(messageService).printMessage(LINK(targetLocation, linkLocation))
     }
   }
 
   "Moving a file without siblings" should {
-    "move the file and remove all empty directories" in new fs {
-      Files.createDirectories(target)
-      val fileToMove = TestFileLocation(source, "dir", "moveme.txt")
-      Files.createDirectories(fileToMove.toPath.getParent)
-      Files.createFile(fileToMove.toPath)
-      val targetLocation = TestFileLocation(target, "otherdir", "movedme.txt")
-      fileSystem.move(fileToMove, targetLocation)
-      target.resolve(Paths.get("otherdir", "movedme.txt")) must exist
-      target.resolve(Paths.get("otherdir", "movedme.txt")) must not(beADirectory)
-      fileToMove.toPath.getParent must not(exist)
-      source must exist
-      there was one(messageService).printMessage(MOVE(fileToMove, targetLocation))
+    "move only the file and remove empty directories" in { jfsRepositoriesAndFs : JFSRepositoriesAndFileSystem =>
+      val fs = jfsRepositoriesAndFs.fs
+      val fileSystem = jfsRepositoriesAndFs.fileSystem
+      val repositories = jfsRepositoriesAndFs.repositories
+
+      fs.add(
+        D("flac",
+          D("dir",
+            F("moveme.txt")
+          )
+        )
+      )
+      val validatedSource = repositories.flac.file(fs.getPath("dir", "moveme.txt"))
+      validatedSource.toEither must beRight { source : FlacFile =>
+        val target = source.toStagingFile
+        fileSystem.move(source, target)
+        fs.entries must containTheSameElementsAs {
+          fs.expected(
+            D("flac"),
+            D("staging",
+              D("dir",
+                F("moveme.txt")
+              )
+            )
+          )
+        }
+      }
+    }
+  }
+
+  "Removing a file without siblings" should {
+    "remove the  file and remove empty directories" in { jfsRepositoriesAndFs : JFSRepositoriesAndFileSystem =>
+      val fs = jfsRepositoriesAndFs.fs
+      val fileSystem = jfsRepositoriesAndFs.fileSystem
+      val repositories = jfsRepositoriesAndFs.repositories
+
+      fs.add(
+        D("flac",
+          D("dira",
+            D("dirb",
+              F("deleteme.txt", None)
+            ),
+            F("keepme.txt", None)
+          )
+        )
+      )
+      val validatedSource = repositories.flac.file(fs.getPath("dira", "dirb", "deleteme.txt"))
+      validatedSource.toEither must beRight { source : FlacFile =>
+        fileSystem.remove(source)
+        fs.entries must containTheSameElementsAs {
+          fs.expected(
+            D("flac",
+              D("dira",
+                F("keepme.txt")
+              )
+            )
+          )
+        }
+      }
     }
   }
 
   "Copying a file" should {
-    "also create any required missing directories" in new fs {
-      Files.createDirectories(target)
-      val fileToCopy = TestFileLocation(source, "dir", "copyme.txt")
-      Files.createDirectories(fileToCopy.toPath.getParent)
-      Files.createFile(fileToCopy.toPath)
-      fileSystem.copy(fileToCopy, TestFileLocation(target, "otherdir", "copiedme.txt"))
-      target.resolve(Paths.get("otherdir", "copiedme.txt")) must exist
-      target.resolve(Paths.get("otherdir", "copiedme.txt")) must not(beADirectory)
-      fileToCopy.toPath must exist
+    "create all required directories" in { jfsRepositoriesAndFs : JFSRepositoriesAndFileSystem =>
+      val fs = jfsRepositoriesAndFs.fs
+      val fileSystem = jfsRepositoriesAndFs.fileSystem
+      val repositories = jfsRepositoriesAndFs.repositories
+
+      fs.add(
+        D("flac",
+          D("dir",
+            F("copyme.txt", None)
+          )
+        )
+      )
+      val validatedSource = repositories.flac.file(fs.getPath("dir", "copyme.txt"))
+      validatedSource.toEither must beRight { source : FlacFile =>
+        val target = source.toStagingFile
+        fileSystem.copy(source, target)
+        fs.entries must containTheSameElementsAs {
+          fs.expected(
+            D("flac",
+              D("dir",
+                F("copyme.txt")
+              )
+            ),
+            D("staging",
+              D("dir",
+                F("copyme.txt")
+              )
+            )
+          )
+        }
+      }
     }
   }
 
-  "Checking whether a file is a directory or not" should {
-    "return true for a directory" in new fs {
-      Files.createDirectories(source.resolve("dir"))
-      TestFileLocation(source, "dir").isDirectory must beTrue
-    }
-    "return false for a file" in new fs {
-      Files.createDirectories(source)
-      Files.createFile(source.resolve("file"))
-      TestFileLocation(source, "file").isDirectory must beFalse
-    }
-    "return false for a file that does not exist" in new fs {
-      Files.createDirectories(source)
-      TestFileLocation(source, "nodir").isDirectory must beFalse
+  "Linking to a file" should {
+    "create all required directories and link to the file" in { jfsRepositoriesAndFs : JFSRepositoriesAndFileSystem =>
+      val fs = jfsRepositoriesAndFs.fs
+      val fileSystem = jfsRepositoriesAndFs.fileSystem
+      val repositories = jfsRepositoriesAndFs.repositories
+
+      fs.add(
+        D("encoded",
+          D("dir",
+            F("linktome.txt", None)
+          )
+        )
+      )
+      val validatedSource = repositories.encoded.file(fs.getPath("dir", "linktome.txt"))
+      validatedSource.toEither must beRight { source : EncodedFile =>
+        val target = source.toDeviceFile(User("freddie"))
+        fileSystem.link(source, target)
+        fs.entries must containTheSameElementsAs {
+          fs.expected(
+            D("devices",
+              D("freddie",
+                D("dir",
+                  L("linktome.txt", "../../../encoded/dir/linktome.txt")
+                )
+              )
+            ),
+            D("encoded",
+              D("dir",
+                F("linktome.txt")
+              )
+            )
+          )
+        }
+      }
     }
   }
+
+  override def generate(fs: JFS, repositories: Repositories): JFSRepositoriesAndFileSystem = JFSRepositoriesAndFileSystem(fs, repositories, new FileSystemImpl)
 }
+
+case class JFSRepositoriesAndFileSystem(fs: JFS, repositories: Repositories, fileSystem: FileSystem)

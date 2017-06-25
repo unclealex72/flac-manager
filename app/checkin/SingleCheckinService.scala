@@ -17,9 +17,8 @@
 package checkin
 
 import common.configuration.User
-import common.files.{FlacFileLocation, StagedFlacFileLocation}
+import common.files.{FlacFile, StagingFile}
 import common.message.MessageService
-import common.music.Tags
 
 import scala.concurrent.Future
 
@@ -30,25 +29,23 @@ trait SingleCheckinService {
 
   /**
     * Check in a file in the staging repository.
-    * @param stagedFileLocation The file to check in.
-    * @param flacFileLocation The location where it will end up.
-    * @param tags The tags for the file.
+    * @param stagingFile The file to check in.
+    * @param flacFile The location where it will end up.
     * @param owners The owners of the file.
     * @param messagingService The messaging service used to report errors and progress.
     * @return Eventually nothing.
     */
-  def encode(stagedFileLocation: StagedFlacFileLocation,
-             flacFileLocation: FlacFileLocation,
-             tags: Tags,
-             owners: Set[User])(implicit messagingService: MessageService): Future[_]
+  def encode(stagingFile: StagingFile,
+             flacFile: FlacFile,
+             owners: Set[User])(implicit messagingService: MessageService): Future[Unit]
 
 
   /**
     * Remove a file in the staging repository that is not a flac file.
-    * @param stagedFlacFileLocation The location of the file to remove.
+    * @param stagingFile The location of the file to remove.
     * @param messagingService The messaging service used to report errors and progress.
     * @return Eventually nothing.
     */
-  def remove(stagedFlacFileLocation: StagedFlacFileLocation)(implicit messagingService: MessageService): Future[_]
+  def remove(stagingFile: StagingFile)(implicit messagingService: MessageService): Future[Unit]
 
 }

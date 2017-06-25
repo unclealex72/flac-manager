@@ -16,17 +16,20 @@
 
 package controllers
 
+import java.nio.file.Path
 import javax.inject.Inject
 
 import cats.data.Validated.{Invalid, Valid}
-import cats.data.{NonEmptyList, Validated, ValidatedNel}
+import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
 import com.typesafe.scalalogging.StrictLogging
-import common.configuration.{Directories, User, UserDao}
-import common.files.{FileLocation, FlacFileLocation, StagedFlacFileLocation}
-import common.message.MessageService
+import common.configuration.{User, UserDao}
+import common.files.Directory._
+import common.files._
+import common.message.Messages._
+import common.message.{Message, MessageService}
 import initialise.InitialiseCommand
 import io.circe.Json
 import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
@@ -36,6 +39,7 @@ import own.OwnAction._
 import own.OwnCommand
 import play.api.libs.json._
 
+import scala.collection.SortedSet
 import scala.concurrent.Future
 
 /**
@@ -45,7 +49,6 @@ import scala.concurrent.Future
   * @param ownCommand The [[OwnCommand]] for changing the ownership of albums.
   * @param initialiseCommand The [[InitialiseCommand]] used to initialise the database.
   * @param userDao The [[UserDao]] used to find the known users.
-  * @param directories The [[Directories]] used to locate the repositories.
   */
 class CommandBuilderImpl @Inject()(
                                     checkinCommand: CheckinCommand,
@@ -53,8 +56,9 @@ class CommandBuilderImpl @Inject()(
                                     ownCommand: OwnCommand,
                                     initialiseCommand: InitialiseCommand,
                                     multiDiscCommand: MultiDiscCommand,
-                                    userDao: UserDao
-                                  )(implicit val directories: Directories) extends CommandBuilder with StrictLogging {
+                                    userDao: UserDao,
+                                    repositories: Repositories
+                                  )(implicit val fs: java.nio.file.FileSystem) extends CommandBuilder with StrictLogging {
 
 
   /**
@@ -62,7 +66,7 @@ class CommandBuilderImpl @Inject()(
     * @param jsValue The [[JsValue]] to parse.
     * @return A [[Parameters]] object or a list of errors if the JSON object could not be parsed.
     */
-  def jsonToParameters(jsValue: JsValue): ValidatedNel[String, Parameters] = {
+  def jsonToParameters(jsValue: JsValue): ValidatedNel[Message, Parameters] = {
     def jsValueToJson: JsValue => Json = {
       case JsArray(values) => Json.arr(values.map(jsValueToJson):_*)
       case JsNull => Json.Null
@@ -73,7 +77,7 @@ class CommandBuilderImpl @Inject()(
     }
     Parameters.parametersDecoder.decodeJson(jsValueToJson(jsValue)) match {
       case Right(parameters) => Valid(parameters)
-      case Left(error) => Validated.invalidNel(error.getMessage())
+      case Left(error) => Validated.invalidNel(JSON_ERROR(error))
     }
   }
 
@@ -82,19 +86,19 @@ class CommandBuilderImpl @Inject()(
     * @param usernames A list of usernames to check.
     * @return The users with the usernames or a list of errors.
     */
-  def validateUsers(usernames: Seq[String]): ValidatedNel[String, Seq[User]] = {
-    val empty: ValidatedNel[String, Seq[User]] = Valid(Seq.empty)
+  def validateUsers(usernames: Seq[String]): ValidatedNel[Message, SortedSet[User]] = {
+    val empty: ValidatedNel[Message, SortedSet[User]] = Valid(SortedSet.empty)
     val allUsers = userDao.allUsers()
     if (usernames.isEmpty) {
-      Validated.invalidNel("You must supply at least one user.")
+      Validated.invalidNel(NO_USERS)
     }
     else {
       usernames.foldLeft(empty) { (validatedUsers, username) =>
         val validatedUser = allUsers.find(_.name == username) match {
           case Some(user) => Valid(user)
-          case None => Invalid(NonEmptyList.of(s"$username is not a valid user."))
+          case None => Invalid(INVALID_USER(username)).toValidatedNel
         }
-        (validatedUsers |@| validatedUser).map(_ :+ _)
+        (validatedUsers |@| validatedUser).map(_ + _)
       }
     }
   }
@@ -104,12 +108,9 @@ class CommandBuilderImpl @Inject()(
     * @param pathAndRepositories A list of relative paths to check.
     * @return A list of [[StagedFlacFileLocation]]s or a list of errors.
     */
-  def validateStagingDirectories(pathAndRepositories: Seq[PathAndRepository]): ValidatedNel[String, Seq[StagedFlacFileLocation]] =
-    validateDirectories("staging", pathAndRepositories) { pathAndRepository =>
-      pathAndRepository.repositoryType match {
-        case StagingRepositoryType => Validated.valid(StagedFlacFileLocation(pathAndRepository.path))
-        case _ => Validated.invalid(s"${pathAndRepository.path} is not a staging directory.")
-      }
+  def validateStagingDirectories(pathAndRepositories: Seq[PathAndRepository])(implicit messageService: MessageService): ValidatedNel[Message, SortedSet[StagingDirectory]] =
+    validateDirectories("staging", pathAndRepositories) {
+      case StagingRepositoryType => repositories.staging.directory
     }
 
   /**
@@ -117,8 +118,8 @@ class CommandBuilderImpl @Inject()(
     * @param maybeMultiAction The multi action that may have been provided.
     * @return The provided multi action or an error.
     */
-  def requireMultiAction(maybeMultiAction: Option[MultiAction]): ValidatedNel[String, MultiAction] = {
-    maybeMultiAction.toValidNel("You must include an action to deal with multiple disc albums.")
+  def requireMultiAction(maybeMultiAction: Option[MultiAction]): ValidatedNel[Message, MultiAction] = {
+    maybeMultiAction.toValidNel(MULTI_ACTION_REQUIRED)
   }
 
   /**
@@ -126,12 +127,9 @@ class CommandBuilderImpl @Inject()(
     * @param pathAndRepositories A list of relative paths to check.
     * @return A list of [[FlacFileLocation]]s or a list of errors.
     */
-  def validateFlacDirectories(pathAndRepositories: Seq[PathAndRepository]): ValidatedNel[String, Seq[FlacFileLocation]] =
-    validateDirectories("flac", pathAndRepositories) { pathAndRepository =>
-      pathAndRepository.repositoryType match {
-        case FlacRepositoryType => Validated.valid(FlacFileLocation(pathAndRepository.path))
-        case _ => Validated.invalid(s"${pathAndRepository.path} is not a flac directory.")
-      }
+  def validateFlacDirectories(pathAndRepositories: Seq[PathAndRepository])(implicit messageService: MessageService): ValidatedNel[Message, SortedSet[FlacDirectory]] =
+    validateDirectories("flac", pathAndRepositories) {
+      case FlacRepositoryType => repositories.flac.directory
     }
 
   /**
@@ -139,12 +137,10 @@ class CommandBuilderImpl @Inject()(
     * @param pathAndRepositories A list of relative paths to check.
     * @return A list of [[FlacFileLocation]]s and [[StagedFlacFileLocation]]s or a list of errors.
     */
-  def validateStagingOrFlacDirectories(pathAndRepositories: Seq[PathAndRepository]): ValidatedNel[String, Seq[Either[StagedFlacFileLocation, FlacFileLocation]]] =
-    validateDirectories("staging or flac", pathAndRepositories) { pathAndRepository =>
-      pathAndRepository.repositoryType match {
-        case FlacRepositoryType => Validated.valid(Right(FlacFileLocation(pathAndRepository.path)))
-        case StagingRepositoryType => Validated.valid(Left(StagedFlacFileLocation(pathAndRepository.path)))
-      }
+  def validateStagingOrFlacDirectories(pathAndRepositories: Seq[PathAndRepository])(implicit messageService: MessageService): ValidatedNel[Message, SortedSet[Either[StagingDirectory, FlacDirectory]]] =
+    validateDirectories("staging or flac", pathAndRepositories) {
+      case FlacRepositoryType => path => repositories.flac.directory(path).map(Right(_))
+      case StagingRepositoryType => path => repositories.staging.directory(path).map(Left(_))
     }
 
   /**
@@ -157,49 +153,61 @@ class CommandBuilderImpl @Inject()(
     * @tparam R The result type.
     * @return A list of results or a list of errors.
     */
-  def validateDirectories[R](repositoryType: String, pathAndRepositories: Seq[PathAndRepository])
-                               (builder: PathAndRepository => Validated[String, R]): ValidatedNel[String, Seq[R]] = {
-    val empty: ValidatedNel[String, Seq[R]] = if (pathAndRepositories.isEmpty) {
-      Validated.invalidNel(s"You must supply at least 1 $repositoryType directory.")
+  def validateDirectories[F](repositoryType: String, pathAndRepositories: Seq[PathAndRepository])
+                               (builder: PartialFunction[RepositoryType, Path => ValidatedNel[Message, F]])(implicit ord: Ordering[F]): ValidatedNel[Message, SortedSet[F]] = {
+    val empty: ValidatedNel[Message, SortedSet[F]] = if (pathAndRepositories.isEmpty) {
+      Validated.invalidNel(NO_DIRECTORIES(repositoryType))
     }
     else {
-      Validated.valid(Seq.empty)
+      Validated.valid(SortedSet.empty[F])
     }
     pathAndRepositories.foldLeft(empty) { (validatedLocations, pathAndRepository) =>
-      val validatedLocation = builder(pathAndRepository)
-      (validatedLocations |@| validatedLocation.toValidatedNel).map(_ :+ _)
+      val validatedLocationFunction =
+        builder.lift(pathAndRepository.repositoryType).
+          getOrElse((path: Path) => Validated.invalidNel(NOT_A_DIRECTORY(path, repositoryType)))
+      val validatedLocation = validatedLocationFunction(pathAndRepository.path)
+      (validatedLocations |@| validatedLocation).map(_ + _)
     }
   }
 
   /**
     * @inheritdoc
     */
-  override def apply(jsValue: JsValue): ValidatedNel[String, (MessageService) => Future[_]] = {
+  override def apply(jsValue: JsValue)(implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
     logger.info(s"Received body $jsValue")
     val validatedParameters = jsonToParameters(jsValue)
-    validatedParameters.andThen {
+    def execute(parameters: Parameters): ValidatedNel[Message, Future[ValidatedNel[Message, Unit]]] = parameters match {
       case CheckinParameters(relativeDirectories, allowUnowned) =>
         validateStagingDirectories(relativeDirectories).map { fls =>
-          (messageService: MessageService) => checkinCommand.checkin(fls, allowUnowned)(messageService) }
+          checkinCommand.checkin(fls, allowUnowned)
+        }
       case CheckoutParameters(relativeDirectories, unown) =>
         validateFlacDirectories(relativeDirectories).map { fls =>
-          (messageService: MessageService) => checkoutCommand.checkout(fls, unown)(messageService)
+          checkoutCommand.checkout(fls, unown)
         }
       case OwnParameters(relativeStagingOrFlacDirectories, usernames) =>
         (validateStagingOrFlacDirectories(relativeStagingOrFlacDirectories) |@| validateUsers(usernames)).map { (fls, us) =>
-          (messageService: MessageService) => ownCommand.changeOwnership(Own, us, fls)(messageService)
+          ownCommand.changeOwnership(Own, us, fls)
         }
       case UnownParameters(relativeStagingOrFlacDirectories, usernames) =>
         (validateStagingOrFlacDirectories(relativeStagingOrFlacDirectories) |@| validateUsers(usernames)).map { (fls, us) =>
-          (messageService: MessageService) => ownCommand.changeOwnership(Unown, us, fls)(messageService)
+          ownCommand.changeOwnership(Unown, us, fls)
         }
       case InitialiseParameters() => Valid {
-        (messageService: MessageService) => initialiseCommand.initialiseDb(messageService)
+        initialiseCommand.initialiseDb(messageService)
       }
       case MultiDiscParameters(relativeDirectories, maybeMultiAction) =>
         (validateStagingDirectories(relativeDirectories) |@| requireMultiAction(maybeMultiAction)).map { (fls, multiAction) =>
-          (messageService: MessageService) => multiDiscCommand.mutateMultiDiscAlbum(fls, multiAction)(messageService)
+          multiDiscCommand.mutateMultiDiscAlbum(fls, multiAction)(messageService)
         }
+    }
+    validatedParameters match {
+      case Valid(parameters) =>
+        execute(parameters) match {
+          case Valid(future) => future
+          case iv @ Invalid(_) => Future.successful(iv)
+        }
+      case iv @ Invalid(_) => Future.successful(iv)
     }
   }
 }

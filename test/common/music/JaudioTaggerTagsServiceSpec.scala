@@ -23,7 +23,6 @@ import com.google.common.io.ByteStreams
 import io.github.marklister.base64.Base64._
 import org.slf4j.bridge.SLF4JBridgeHandler
 import org.specs2.mutable._
-import tempfs.DefaultTempFileSystem
 
 import scala.sys.process._
 
@@ -33,8 +32,6 @@ import scala.sys.process._
  */
 class JaudioTaggerTagsServiceSpec extends Specification {
 
-  SLF4JBridgeHandler.removeHandlersForRootLogger()
-  SLF4JBridgeHandler.install()
   val tagsService = new JaudioTaggerTagsService
 
   val coverIn: InputStream = getClass.getClassLoader.getResourceAsStream("cover.jpg")
@@ -44,11 +41,11 @@ class JaudioTaggerTagsServiceSpec extends Specification {
   val coverArt = CoverArt(coverOut.toByteArray, "image/jpeg")
 
   "Reading a tagged file" should {
-    "correctly read all the tags" in new DefaultTempFileSystem {
+    "correctly read all the tags" in {
       val flacIn = getClass.getClassLoader.getResourceAsStream("tagged.flac")
-      val tempMusicFile = rootDirectory.resolve("tagged.flac")
+      val tempMusicFile = Files.createTempFile("tagged", ".flac")
       Files.copy(flacIn, tempMusicFile, StandardCopyOption.REPLACE_EXISTING)
-      flacIn.close
+      flacIn.close()
       val tags: Tags = tagsService.readTags(tempMusicFile)
       tags.album must be equalTo "Metal: A Headbanger's Companion"
       tags.albumArtist must be equalTo "Various Artists"
@@ -60,7 +57,7 @@ class JaudioTaggerTagsServiceSpec extends Specification {
       tags.artistSort must be equalTo "Napalm Death Sort"
       tags.asin must be equalTo Some("B000Q66HUA")
       tags.title must be equalTo "Suffer The Children"
-      tags.trackId must be equalTo "5b0ef8e9-9b55-4a3e-aca6-d816d6bbc00f"
+      tags.trackId must be equalTo Some("5b0ef8e9-9b55-4a3e-aca6-d816d6bbc00f")
       tags.coverArt.imageData.toBase64 must be equalTo coverArt.imageData.toBase64
       tags.coverArt.mimeType must be equalTo coverArt.mimeType
       tags.discNumber.intValue must be equalTo 1
@@ -83,19 +80,19 @@ class JaudioTaggerTagsServiceSpec extends Specification {
     "89ad4ac3-39f7-470e-963a-56509c546377",
     "6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e",
     "ce7bba8b-026b-4aa6-bddb-f98ed6d595e4",
-    "5b0ef8e9-9b55-4a3e-aca6-d816d6bbc00f",
+    Some("5b0ef8e9-9b55-4a3e-aca6-d816d6bbc00f"),
     Some("B000Q66HUA"),
     3,
     coverArt)
 
   "Writing a tagged mp3 file" should {
-    "correctly write all the tags" in new DefaultTempFileSystem {
+    "correctly write all the tags" in {
       val flacIn = getClass.getClassLoader.getResourceAsStream("untagged.mp3")
-      val tempMusicFile = rootDirectory.resolve("tagged.mp3")
+      val tempMusicFile = Files.createTempFile("tagged", ".mp3")
       Files.copy(flacIn, tempMusicFile, StandardCopyOption.REPLACE_EXISTING)
-      flacIn.close
+      flacIn.close()
       tagsService.write(tempMusicFile, tagsToWrite)
-      val lines = Seq("id3v2", "-l", tempMusicFile.toString).lineStream.toList
+      val lines = Seq("id3v2", "-l", tempMusicFile.toAbsolutePath.toString).lineStream.toList
       lines must contain(
         "UFID (Unique file identifier): http://musicbrainz.org, 36 bytes",
         "TIT2 (Title/songname/content description): Suffer The Children",
@@ -115,13 +112,13 @@ class JaudioTaggerTagsServiceSpec extends Specification {
   }
 
   "Writing a tagged flac file" should {
-    "correctly write all the tags" in new DefaultTempFileSystem {
+    "correctly write all the tags" in {
       val flacIn = getClass.getClassLoader.getResourceAsStream("untagged.flac")
-      val tempMusicFile = rootDirectory.resolve("tagged.flac")
+      val tempMusicFile = Files.createTempFile("tagged", ".flac")
       Files.copy(flacIn, tempMusicFile, StandardCopyOption.REPLACE_EXISTING)
-      flacIn.close
+      flacIn.close()
       tagsService.write(tempMusicFile, tagsToWrite)
-      val lines = Seq("metaflac", "--export-tags-to=-", tempMusicFile.toString).lineStream.toList
+      val lines = Seq("metaflac", "--export-tags-to=-", tempMusicFile.toAbsolutePath.toString).lineStream.toList
       lines must contain(
         "ALBUMARTISTSORT=Various Artists Sort",
         "ALBUMARTIST=Various Artists",

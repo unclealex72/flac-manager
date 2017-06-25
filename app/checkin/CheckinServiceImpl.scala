@@ -34,15 +34,15 @@ class CheckinServiceImpl @Inject()(singleCheckinService: SingleCheckinService)
   /**
     * @inheritdoc
     */
-  override def checkin(actions: Seq[Action])(implicit messagingService: MessageService): Future[_] = {
+  override def checkin(actions: Seq[Action])(implicit messagingService: MessageService): Future[Unit] = {
     val eventualActions: Seq[Future[Unit]] = actions.map(action => singleCheckin(action).map(_ => {}))
-    Future.sequence(eventualActions)
+    Future.sequence(eventualActions).map(_ => {})
   }
 
-  def singleCheckin(action: Action)(implicit messagingService: MessageService): Future[_] = action match {
-    case Delete(stagedFlacFileLocation) =>
-      singleCheckinService.remove(stagedFlacFileLocation)
-    case Encode(stagedFileLocation, flacFileLocation, tags, owners) =>
-      singleCheckinService.encode(stagedFileLocation, flacFileLocation, tags, owners)
+  def singleCheckin(action: Action)(implicit messagingService: MessageService): Future[Unit] = action match {
+    case Delete(stagingFile) =>
+      singleCheckinService.remove(stagingFile)
+    case Encode(stagingFile, flacFile, _, owners) =>
+      singleCheckinService.encode(stagingFile, flacFile, owners)
   }
 }

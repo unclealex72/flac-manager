@@ -17,7 +17,7 @@
 package checkin
 
 import cats.data.ValidatedNel
-import common.files.StagedFlacFileLocation
+import common.files.StagingFile
 import common.message.{Message, MessageService}
 
 import scala.concurrent.Future
@@ -39,12 +39,12 @@ trait CheckinActionGenerator {
 
   /**
     * Generate actions and validate staged flac file locations as described above.
-    * @param stagedFlacFileLocations The sequence of staged flac files to first validate and then generate the
+    * @param stagingFiles The sequence of staged flac files to first validate and then generate the
     *                                checkin actions for.
     *@param allowUnowned True if unowned files can be checked in, false otherwise.
     * @return A [[ValidatedNel]] that contains either the sequence of actions or a non-empty list of error log
     *         messages.
     */
-  def generate(stagedFlacFileLocations: Seq[StagedFlacFileLocation],
-               allowUnowned: Boolean): Future[ValidatedNel[Message, Seq[Action]]]
+  def generate(stagingFiles: Seq[StagingFile],
+               allowUnowned: Boolean)(implicit messageService: MessageService): Future[ValidatedNel[Message, Seq[Action]]]
 }

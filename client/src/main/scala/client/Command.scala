@@ -157,7 +157,7 @@ object Command extends Enum[Command] {
       }
       parser.parse(arguments, Right(emptyParameters)) match {
         case Some(eParameters) => eParameters.map { parameters =>
-          Parameters.parametersEncoder(parameters)
+          Parameters.parametersEncoder.apply(parameters)
         }
         case None => Left(NonEmptyList.of(""))
       }

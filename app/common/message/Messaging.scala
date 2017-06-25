@@ -17,11 +17,13 @@
 package common.message
 
 import java.io.{PrintWriter, StringWriter}
+import java.nio.file.Path
 
 import cats.data.ValidatedNel
-import common.changes.Change
+import common.changes.{Change, ChangeType}
 import common.configuration.User
-import common.files.{DeviceFileLocation, FileLocation, FlacFileLocation, StagedFlacFileLocation}
+import common.files._
+import io.circe.DecodingFailure
 
 /**
  * An interface for classes that can print internationalised messages to users.
@@ -42,75 +44,81 @@ object Messages {
 
   import common.message.Messages.MessageImplicits._
 
-  case class NO_FILES(fileLocations: Traversable[FileLocation]) extends Message("noFiles", fileLocations)
+  case class NO_FILES(files: Traversable[File]) extends Message("noFiles", files)
 
   /**
    * The key for producing an encoding message.
    */
-  case class ENCODE(sourceFileLocation: FileLocation, targetFileLocation: FileLocation) extends
-    Message("encode", sourceFileLocation, targetFileLocation)
+  case class ENCODE(sourceFile: File, targetFile: File) extends
+    Message("encode", sourceFile, targetFile)
 
   /**
    * The key for producing a delete message.
    */
-  case class DELETE(fileLocation: FileLocation) extends Message("delete", fileLocation)
+  case class DELETE(file: File) extends Message("delete", file)
 
   /**
    * The key for producing a checkin message.
    */
-  case class CHECKIN(stagedFlacFileLocation: StagedFlacFileLocation) extends Message("checkin", stagedFlacFileLocation)
+  case class CHECKIN(stagingFile: StagingFile) extends Message("checkin", stagingFile)
 
   /**
    * The key for producing a checkin message.
    */
-  case class CHECKOUT(flacFileLocation: FlacFileLocation) extends Message("checkout", flacFileLocation)
+  case class CHECKOUT(flacFile: FlacFile) extends Message("checkout", flacFile)
 
   /**
    * The key for producing a move message.
    */
-  case class MOVE(source: FileLocation, target: FileLocation) extends Message("move", source, target)
+  case class MOVE(source: File, target: File) extends Message("move", source, target)
 
   /**
    * The key for producing a not flac file message.
    */
-  case class INVALID_FLAC(fileLocation: FileLocation) extends Message("invalidFlac", fileLocation)
+  case class INVALID_FLAC(file: File) extends Message("invalidFlac", file)
+
+  /**
+    * The key for producing invalid tag messages.
+    * @param tagError The error returned from the tags.
+    */
+  case class INVALID_TAGS(tagError: String) extends Message("invalidTag", tagError)
 
   /**
    * The key for producing an overwrite message.
    */
-  case class OVERWRITE(source: FileLocation, target: FileLocation) extends Message("overwrite", source, target)
+  case class OVERWRITE(source: File, target: File) extends Message("overwrite", source, target)
 
   /**
    * The key for producing non unique messages.
    */
-  case class NON_UNIQUE(flacFileLocation: FlacFileLocation,
-                        stagedFlacFileLocations: Set[StagedFlacFileLocation]) extends
-    Message("nonUnique", flacFileLocation, stagedFlacFileLocations)
+  case class NON_UNIQUE(flacFile: FlacFile,
+                        stagingFiles: Seq[StagingFile]) extends
+    Message("nonUnique", flacFile, stagingFiles)
 
   /**
     * The key for producing multi disc messages.
     */
-  case class MULTI_DISC(stagedFlacFileLocation: StagedFlacFileLocation) extends
-    Message("multiDisc", stagedFlacFileLocation)
+  case class MULTI_DISC(stagingFile: StagingFile) extends
+    Message("multiDisc", stagingFile)
 
   /**
    * The key for producing link messages.
    */
-  case class LINK(fileLocation: FileLocation,
-                  linkLocation: FileLocation) extends Message("link", fileLocation, linkLocation)
+  case class LINK(sourceFile: File,
+                  targetFile: File) extends Message("link", sourceFile, targetFile)
 
   /**
    * The key for producing link messages.
    */
-  case class UNLINK(fileLocation: FileLocation,
-                    linkLocation: FileLocation) extends Message("unlink", fileLocation, linkLocation)
+  case class UNLINK(encodedFile: EncodedFile,
+                    deviceFile: DeviceFile) extends Message("unlink", encodedFile, deviceFile)
 
 
   /**
    * The key for producing add owner messages.
    */
-  case class NOT_OWNED(stagedFlacFileLocation: StagedFlacFileLocation) extends
-    Message("notOwned", stagedFlacFileLocation)
+  case class NOT_OWNED(stagingFile: StagingFile) extends
+    Message("notOwned", stagingFile)
 
   /**
    * The key for producing add owner messages.
@@ -125,7 +133,7 @@ object Messages {
   /**
    * The key for producing a message to say that a file has been found.
    */
-  case class FOUND_FILE(fileLocation: FileLocation) extends Message("foundFile", fileLocation)
+  case class FOUND_FILE(file: File) extends Message("foundFile", file)
 
   /**
    * The key for producing a message to say that devices are being searched.
@@ -155,10 +163,10 @@ object Messages {
 
   /**
     * The key for producing a message to say that a file is being initialised.
-    * @param deviceFileLocation The file being initialised.
+    * @param deviceFile The file being initialised.
     */
-  case class INITIALISING(deviceFileLocation: DeviceFileLocation) extends
-    Message("initialising", deviceFileLocation)
+  case class INITIALISING(deviceFile: DeviceFile) extends
+    Message("initialising", deviceFile)
 
   /**
     * The key for producing a message to say that a change is being added to the database.
@@ -171,23 +179,55 @@ object Messages {
    */
   case class INVALID_PARAMETERS(errorMessage: String) extends Message(errorMessage)
 
-  case class EXCEPTION(e: Exception)(implicit messageService: MessageService) extends Message("exception", {
+  /**
+    * The key for producing te no users message.
+    */
+  case object NO_USERS extends Message("noUsers")
+
+  case class NO_DIRECTORIES(repositoryType: String) extends Message("noDirectories")
+
+  case class NOT_A_DIRECTORY(path: Path, repositoryType: String) extends Message("notADirectory", path, repositoryType)
+
+  case class NOT_A_FILE(path: Path, repositoryType: String) extends Message("notAFile", path, repositoryType)
+
+  object MULTI_ACTION_REQUIRED extends Message("multiActionRequired")
+  /**
+    * The key for producing Json errors.
+    * @param decodingFailure The decoding failure that occurred.
+    */
+  case class JSON_ERROR(decodingFailure: DecodingFailure) extends Message("exception", decodingFailure.getMessage())
+
+  /**
+    * The key for producing invalid user messages.
+    * @param username The invalid user name.
+    */
+  case class INVALID_USER(username: String) extends Message("invalidUser", username)
+
+  case class EXCEPTION(t: Throwable) extends Message("exception", {
     val stringWriter = new StringWriter
     val printWriter = new PrintWriter(stringWriter)
-    printWriter.println(e.getMessage)
-    e.printStackTrace(printWriter)
+    printWriter.println(t.getMessage)
+    t.printStackTrace(printWriter)
     stringWriter.toString
   })
 
+  case class ERROR(message: String) extends Message("exception", message)
+
   private object MessageImplicits {
 
-    implicit def fileLocationsToString[FL <: FileLocation](fls: Traversable[FL]): String = {
-      fls.map(fileLocationToString(_)).mkString(", ")
+    implicit def filesToString[FL <: File](fls: Traversable[FL]): String = {
+      fls.map(fileToString(_)).mkString(", ")
     }
 
-    implicit def fileLocationToString(fileLocation: FileLocation): String = fileLocation.toString
+    implicit def fileToString[FL <: File](file: FL): String = file.toString
+
+    implicit def directoryToString[FL <: File](directory: Directory[FL]): String = directory.toString
 
     implicit def userToString(user: User): String = user.name
+
+    implicit def changeTypeToString(changeType: ChangeType): String = changeType.action
+
+    implicit def pathToString(path: Path): String = path.toString
   }
 
 }

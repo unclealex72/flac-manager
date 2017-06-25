@@ -16,14 +16,19 @@
 
 package common.message
 
+import com.typesafe.scalalogging.Logger
+
 /**
   * Created by alex on 23/04/17
   **/
-object NoOpMessageService extends MessageService {
-  override def printMessage(template: Message): Unit = {}
+object NoOpMessageService {
 
-  override def exception(t: Throwable): Unit = {}
+  def apply(loggerProvider: { val logger: Logger}): MessageService = new MessageService {
+    val logger: Logger = loggerProvider.logger
+    override def printMessage(template: Message): Unit = logger.info(template.toString)
+    override def exception(t: Throwable): Unit = logger.error("Error message", t)
 
-  implicit val messageService: MessageService = this
+  }
+
 }
 

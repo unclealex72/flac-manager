@@ -16,227 +16,120 @@
 
 package checkout
 
-import java.nio.file.{Path, Paths}
-import java.time.{Clock, Instant, ZoneId}
+import java.nio.file.{FileSystem => JFS}
+import java.time.Clock
 
+import cats.data.NonEmptyList
 import cats.data.Validated.Valid
 import common.async.{BackgroundExecutionContext, CommandExecutionContext, GlobalExecutionContext}
 import common.changes.{Change, ChangeDao, ChangeMatchers}
-import common.configuration.{Directories, TestDirectories, User, UserDao}
-import common.files.FileLocationImplicits._
+import common.configuration.{User, UserDao}
+import common.files.Directory.FlacDirectory
 import common.files._
 import common.message.MessageService
-import common.music.{CoverArt, Tags, TagsService}
+import common.music.Tags
 import common.owners.OwnerService
-import org.specs2.matcher.MatchResult
+import org.specs2.matcher.Matcher
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
-import org.specs2.specification.Scope
+import own.OwnAction
+import testfilesystem._
 
-import scala.collection.{SortedMap, SortedSet}
+import scala.collection.GenTraversableOnce
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
 /**
  * Created by alex on 18/11/14.
  */
-class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatchers {
+class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatchers with TestRepositories[Services] with RepositoryEntry.Dsl {
 
   sequential
 
-  trait Context extends Scope {
-    val freddie: User = User("freddie")
-    val brian: User = User("brian")
+  implicit val commandExecutionContext: CommandExecutionContext = new GlobalExecutionContext with CommandExecutionContext
+  implicit val backgroundExecutionContext: BackgroundExecutionContext = new GlobalExecutionContext with BackgroundExecutionContext
 
-    val userDao = new UserDao {
-      override def allUsers(): Set[User] = Set(brian, freddie)
-    }
+  val A_KIND_OF_MAGIC: Album = Album(
+    "A Kind of Magic", Tracks("One Vision", "A Kind of Magic", "One Year of Love")
+  )
 
-    implicit val stringToPath: String => Path = Paths.get(_)
-    implicit val directories: Directories = TestDirectories()
-    val oneVisionTags = Tags(
-      album = "A Kind of Magic",
-      albumArtist = "Queen",
-      albumArtistId = "Queen",
-      albumArtistSort = "Queen",
-      albumId = "A Kind of Magic",
-      artist = "Queen",
-      artistId = "Queen",
-      artistSort = "Queen",
-      asin = Some("AKINDOFMAGIC"),
-      title = "One Vision",
-      trackId = "One Vision",
-      coverArt = CoverArt(Array[Byte](), ""),
-      discNumber = 1,
-      totalDiscs = 1,
-      totalTracks = 10,
-      trackNumber = 1)
+  val INNUENDO: Album = Album(
+    "Innuendo", Tracks("Innuendo", "I'm Going Slightly Mad", "Headlong")
+  )
 
-    import Dsl._
-    val mustaphaTags = Tags(
-      album = "Jazz",
-      albumArtist = "Queen",
-      albumArtistId = "Queen",
-      albumArtistSort = "Queen",
-      albumId = "Jazz",
-      artist = "Queen",
-      artistId = "Queen",
-      artistSort = "Queen",
-      asin = Some("JAZZ"),
-      title = "Mustapha",
-      trackId = "Mustapha",
-      coverArt = CoverArt(Array[Byte](), ""),
-      discNumber = 1,
-      totalDiscs = 1,
-      totalTracks = 10,
-      trackNumber = 1)
-    val aKindOfMagicFlac: Dsl.Album[FlacFileLocation] = "A Kind of Magic" tracks(OneVision.flac, AKindOfMagic.flac) using (p => FlacFileLocation(p))
-    val jazzFlac: Dsl.Album[FlacFileLocation] = "Jazz" tracks(Mustapha.flac, FatBottomedGirls.flac) using (p => FlacFileLocation(p))
-    val aKindOfMagicStagedFlac: Dsl.Album[StagedFlacFileLocation] = "A Kind of Magic" tracks(OneVision.flac, AKindOfMagic.flac) using (p => StagedFlacFileLocation(p))
-    val jazzStagedFlac: Dsl.Album[StagedFlacFileLocation] = "Jazz" tracks(Mustapha.flac, FatBottomedGirls.flac) using (p => StagedFlacFileLocation(p))
-    val aKindOfMagicMp3: Dsl.Album[EncodedFileLocation] = "A Kind of Magic" tracks(OneVision.mp3, AKindOfMagic.mp3) using (p => EncodedFileLocation(p))
-    val jazzMp3: Dsl.Album[EncodedFileLocation] = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => EncodedFileLocation(p))
-    val briansAKindOfMagicMp3: Dsl.Album[DeviceFileLocation] = "A Kind of Magic" tracks(OneVision.mp3, AKindOfMagic.mp3) using (p => DeviceFileLocation(brian, p))
-    val briansJazzMp3: Dsl.Album[DeviceFileLocation] = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => DeviceFileLocation(brian, p))
-    val freddiesJazzMp3: Dsl.Album[DeviceFileLocation] = "Jazz" tracks(Mustapha.mp3, FatBottomedGirls.mp3) using (p => DeviceFileLocation(freddie, p))
-    val allAlbums: Seq[Album[FileLocation]] =
-      Seq(
-        aKindOfMagicFlac.asInstanceOf[Album[FileLocation]],
-        jazzFlac.asInstanceOf[Album[FileLocation]],
-        aKindOfMagicStagedFlac.asInstanceOf[Album[FileLocation]],
-        jazzStagedFlac.asInstanceOf[Album[FileLocation]],
-        aKindOfMagicMp3.asInstanceOf[Album[FileLocation]],
-        jazzMp3.asInstanceOf[Album[FileLocation]],
-        briansAKindOfMagicMp3.asInstanceOf[Album[FileLocation]],
-        briansJazzMp3.asInstanceOf[Album[FileLocation]],
-        freddiesJazzMp3.asInstanceOf[Album[FileLocation]])
-    implicit val fileLocationExtensions = new TestFileLocationExtensions {
-      override def isDirectory(fileLocation: FileLocation): Boolean = allAlbums.map(_.album).contains(fileLocation)
+  val SOUTH_OF_HEAVEN: Album = Album(
+    "South of Heaven", Tracks("South of Heaven", "Silent Scream", "Live Undead")
+  )
 
-      override def exists(fileLocation: FileLocation): Boolean = fileLocation match {
-        case StagedFlacFileLocation(_) => false
-        case _ => isDirectory(fileLocation) || allAlbums.flatMap(a => a.tracks).contains(fileLocation)
-      }
+  val entriesBeforeCheckout = Repos(
+    flac = Artists("Queen" -> Albums(A_KIND_OF_MAGIC, INNUENDO), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
+    encoded = Artists("Queen" -> Albums(A_KIND_OF_MAGIC, INNUENDO), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
+    devices = Users(
+      "Freddie" -> Artists("Queen" -> Albums(A_KIND_OF_MAGIC), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
+      "Brian" -> Artists("Queen" -> Albums(A_KIND_OF_MAGIC, INNUENDO))
+    )
+  )
 
-      override def firstFileIn[F <: FileLocation](parentFileLocation: F, extension: Extension, builder: (Path) => F): Option[F] = None
-    }
+  val expectedEntriesAfterCheckout = Repos(
+    flac = Artists("Queen" -> Seq(A_KIND_OF_MAGIC), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
+    staging = Artists("Queen" -> Albums(INNUENDO)),
+    encoded = Artists("Queen" -> Albums(A_KIND_OF_MAGIC), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
+    devices = Users(
+      "Freddie" -> Artists("Queen" -> Albums(A_KIND_OF_MAGIC), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
+      "Brian" -> Artists("Queen" -> Albums(A_KIND_OF_MAGIC))
+    )
+  )
 
-    lazy implicit val commandExecutionContext: CommandExecutionContext = new GlobalExecutionContext with CommandExecutionContext
-    lazy implicit val backgroundExecutionContext: BackgroundExecutionContext = new GlobalExecutionContext with BackgroundExecutionContext
-
-    implicit val tagsService: TagsService = mock[TagsService]
-    implicit val messageService: MessageService = mock[MessageService]
-    implicit val changeDao: ChangeDao = mock[ChangeDao]
-    changeDao.store(any[Change])(any[MessageService]).returns(Future.successful({}))
-    val fileSystem: FileSystem = mock[FileSystem]
-    val ownerService: OwnerService = mock[OwnerService]
-    ownerService.unown(any[User], any[Set[Tags]])(any[MessageService]).returns(Future.successful({}))
-    ownerService.listOwners().returns(Future.successful(Map("A Kind of Magic" -> Set(brian), "Jazz" -> Set(brian, freddie))))
-    val now: Instant = Instant.now()
-    val clock: Clock = Clock.fixed(now, ZoneId.systemDefault())
-    tagsService.read("/flac/A Kind of Magic/01 One Vision.flac") returns Valid(oneVisionTags)
-    tagsService.read("/flac/Jazz/01 Mustapha.flac") returns Valid(mustaphaTags)
-    val checkoutService = new CheckoutServiceImpl(fileSystem, userDao, ownerService, clock)
-
-    def checkFilesRemoved: MatchResult[Unit] = {
-      // check flac files are moved
-      there was one(fileSystem).move(aKindOfMagicFlac(OneVision.flac), aKindOfMagicStagedFlac(OneVision.flac))
-      there was one(fileSystem).move(aKindOfMagicFlac(AKindOfMagic.flac), aKindOfMagicStagedFlac(AKindOfMagic.flac))
-      there was one(fileSystem).move(jazzFlac(Mustapha.flac), jazzStagedFlac(Mustapha.flac))
-      there was one(fileSystem).move(jazzFlac(FatBottomedGirls.flac), jazzStagedFlac(FatBottomedGirls.flac))
-      // check that encoded files are deleted
-      there was one(fileSystem).remove(aKindOfMagicMp3(OneVision.mp3))
-      there was one(fileSystem).remove(aKindOfMagicMp3(AKindOfMagic.mp3))
-      there was one(fileSystem).remove(jazzMp3(Mustapha.mp3))
-      there was one(fileSystem).remove(jazzMp3(FatBottomedGirls.mp3))
-      // check that device files are deleted
-      there was one(fileSystem).remove(briansAKindOfMagicMp3(OneVision.mp3))
-      there was one(fileSystem).remove(briansAKindOfMagicMp3(AKindOfMagic.mp3))
-      there was one(fileSystem).remove(briansJazzMp3(Mustapha.mp3))
-      there was one(fileSystem).remove(briansJazzMp3(FatBottomedGirls.mp3))
-      there was one(fileSystem).remove(freddiesJazzMp3(Mustapha.mp3))
-      there was one(fileSystem).remove(freddiesJazzMp3(FatBottomedGirls.mp3))
-      // check that changes are recorded
-      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansAKindOfMagicMp3(OneVision.mp3), now)))(be_===(messageService))
-      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansAKindOfMagicMp3(AKindOfMagic.mp3), now)))(be_===(messageService))
-      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansJazzMp3(Mustapha.mp3), now)))(be_===(messageService))
-      there was one(changeDao).store(beTheSameChangeAs(Change.removed(briansJazzMp3(FatBottomedGirls.mp3), now)))(be_===(messageService))
-      there was one(changeDao).store(beTheSameChangeAs(Change.removed(freddiesJazzMp3(Mustapha.mp3), now)))(be_===(messageService))
-      there was one(changeDao).store(beTheSameChangeAs(Change.removed(freddiesJazzMp3(FatBottomedGirls.mp3), now)))(be_===(messageService))
-    }
-
-    def OneVision = Track("01 One Vision")
-
-    def AKindOfMagic = Track("02 A Kind of Magic")
-
-    def Mustapha = Track("01 Mustapha")
-
-    def FatBottomedGirls = Track("02 Fat Bottomed Girls")
-
-    case class Track(title: String) {
-      def mp3 = s"$title.mp3"
-
-      def flac = s"$title.flac"
-    }
-
-    object Dsl {
-
-      implicit def albumsToMap[FL <: FileLocation](albums: Seq[Album[FL]]): SortedMap[FL, SortedSet[FL]] =
-        SortedMap.empty[FL, SortedSet[FL]] ++ albums.map(albumToPair)
-
-      implicit def albumToPair[FL <: FileLocation](album: Album[FL]): (FL, SortedSet[FL]) = (album.album, album.tracks)
-
-      implicit def genericAlbum[FL <: FileLocation](album: Album[FL]): Album[FileLocation] = {
-        val newTracks = album.tracksByTitle.map { case (k, v) => k -> v }
-        Album[FileLocation](album.album, newTracks)
-      }
-
-      implicit class ImplicitAlbumBuilder(title: String) {
-        def tracks(tracks: String*): AlbumBuilder = {
-          AlbumBuilder(title, tracks)
-        }
-      }
-
-      case class AlbumBuilder(title: String, tracks: Seq[String]) {
-        def using[FL <: FileLocation](factory: Path => FL): Album[FL] = {
-          val album = factory(Paths.get(title))
-          val songs = tracks.foldLeft(Map.empty[String, FL])((fls, track) => fls + (track -> factory(Paths.get(title, track))))
-          Album(album, songs)
-        }
-      }
-
-      case class Album[FL <: FileLocation](album: FL, tracksByTitle: Map[String, FL]) {
-        val tracks: SortedSet[FL] = tracksByTitle.values.foldLeft(SortedSet.empty[FL])(_ + _)
-
-        def apply(trackTitle: String): FL = tracksByTitle(trackTitle)
+  "Checking out but not unowning an album" should {
+    "remove the album but keep it owned" in { services: Services =>
+      val fs = services.fileSystem
+      fs.add(entriesBeforeCheckout :_*)
+      services.repositories.flac.directory(fs.getPath("Q/Queen/Innuendo")).toEither must beRight { flacDirectory: FlacDirectory =>
+        Await.result(services.checkoutService.checkout(flacDirectory.group, unown = false), 1.hour)
+        val entries = fs.entries
+        entries must containTheSameElementsAs(fs.expected(expectedEntriesAfterCheckout :_*))
+        there were noCallsTo(services.ownerService)
       }
     }
-
   }
 
-  "Checking out albums" should {
+  def hasAlbumId(albumId: String): Matcher[Tags] = be_===(albumId) ^^ { (t: Tags) => t.albumId }
+  def hasOneElementThat[E](matcher: Matcher[E]): Matcher[Set[E]] = (be_===(1) ^^ ((es: Set[E]) => es.size)) and contain(matcher)
 
-    "remove all traces of the album, excluding ownership if not asked for" in new Context {
-      Await.result(checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac), unown = false), 1.minute)
-      checkFilesRemoved
-
-      noMoreCallsTo(fileSystem)
-      noMoreCallsTo(ownerService)
-      noMoreCallsTo(changeDao)
+  "Checking out and unowning an album" should {
+    "remove the album and unown in" in { services: Services =>
+      val fs = services.fileSystem
+      fs.add(entriesBeforeCheckout :_*)
+      services.repositories.flac.directory(fs.getPath("Q/Queen/Innuendo")).toEither must beRight { flacDirectory: FlacDirectory =>
+        Await.result(services.checkoutService.checkout(flacDirectory.group, unown = true), 1.hour)
+        val entries = fs.entries
+        entries must containTheSameElementsAs(fs.expected(expectedEntriesAfterCheckout :_*))
+        there was one(services.ownerService).unown(
+          be_===(User("Brian")),
+          argThat(hasOneElementThat(hasAlbumId("Innuendo"))))(any[MessageService])
+        there were noCallsTo(services.ownerService)
+      }
     }
+  }
 
-    "remove all traces of the album, including ownership if asked for" in new Context {
-      Await.result(checkoutService.checkout(Seq(aKindOfMagicFlac, jazzFlac), unown = true), 1.minute)
-      checkFilesRemoved
-
-      //check that albums were disowned
-      there was one(ownerService).unown(brian, Set(oneVisionTags, mustaphaTags))
-      there was one(ownerService).unown(freddie, Set(mustaphaTags))
-      noMoreCallsTo(fileSystem)
-      noMoreCallsTo(ownerService)
-      noMoreCallsTo(changeDao)
-    }
-
+  override def generate(fs: JFS, repositories: Repositories): Services = {
+    val userDao: UserDao = () => Set(User("Brian"), User("Freddie"))
+    val ownerService = mock[OwnerService]
+    val changeDao = mock[ChangeDao]
+    changeDao.store(any[Change])(any[MessageService]) returns Future.successful({})
+    ownerService.changeFlacOwnership(any[User], any[OwnAction], any[NonEmptyList[FlacFile]])(any[MessageService]) returns Future.successful(Valid({}))
+    ownerService.changeStagingOwnership(any[User], any[OwnAction], any[NonEmptyList[StagingFile]])(any[MessageService]) returns Future.successful(Valid({}))
+    ownerService.unown(any[User], any[Set[Tags]])(any[MessageService]) returns Future.successful(Valid({}))
+    val fileSystem = new ProtectionAwareFileSystem(new FileSystemImpl)
+    val checkoutService = new CheckoutServiceImpl(fileSystem, userDao, ownerService, changeDao, Clock.systemDefaultZone())
+    Services(fs, repositories, ownerService, changeDao, checkoutService)
   }
 
 }
+
+case class Services(
+                     fileSystem: JFS,
+                     repositories: Repositories,
+                     ownerService: OwnerService,
+                     changeDao: ChangeDao,
+                     checkoutService: CheckoutService)

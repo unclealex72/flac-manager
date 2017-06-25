@@ -16,18 +16,19 @@
 
 package multidisc
 
-import common.files.StagedFlacFileLocation
-import common.message.MessageService
+import cats.data.ValidatedNel
+import common.files.Directory.StagingDirectory
+import common.message.{Message, MessageService}
 
 /**
   * Created by alex on 24/05/17
   **/
 trait MultiDiscService {
 
-  def createSingleAlbum(stagedFlacFileLocations: Seq[StagedFlacFileLocation])
-                       (implicit messageService: MessageService): Unit
+  def createSingleAlbum(stagingDirectories: Seq[StagingDirectory])
+                       (implicit messageService: MessageService): ValidatedNel[Message, Unit]
 
-  def createAlbumWithExtras(stagedFlacFileLocations: Seq[StagedFlacFileLocation])
-                           (implicit messageService: MessageService): Unit
+  def createAlbumWithExtras(stagingDirectories: Seq[StagingDirectory])
+                           (implicit messageService: MessageService): ValidatedNel[Message, Unit]
 
 }

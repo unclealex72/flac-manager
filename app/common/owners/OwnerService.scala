@@ -16,10 +16,10 @@
 
 package common.owners
 
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, ValidatedNel}
 import common.configuration.User
-import common.files.{DeviceFileLocation, FlacFileLocation, StagedFlacFileLocation}
-import common.message.MessageService
+import common.files._
+import common.message.{Message, MessageService}
 import common.music.Tags
 import own.OwnAction
 import own.OwnAction.Own
@@ -35,37 +35,37 @@ trait OwnerService {
     * Change the ownership of flac files in the staging repository.
     * @param user The user to add or remove.
     * @param action Add or remove.
-    * @param stagedFlacFileLocations The location of the album's tracks.
+    * @param stagingFiles The location of the album's tracks.
     * @param messageService A message service used to report progress and errors.
     */
-  def changeStagedOwnership(
+  def changeStagingOwnership(
                              user: User,
                              action: OwnAction,
-                             stagedFlacFileLocations: NonEmptyList[StagedFlacFileLocation])
-                           (implicit messageService: MessageService): Future[Unit]
+                             stagingFiles: NonEmptyList[StagingFile])
+                            (implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]]
 
   /**
     * Change the ownership of flac files in the flac repository.
     * @param user The user to add or remove.
     * @param action Add or remove.
-    * @param flacFileLocations The location of the album's tracks.
+    * @param flacFiles The location of the album's tracks.
     * @param messageService A message service used to report progress and errors.
     */
   def changeFlacOwnership(
                            user: User,
                            action: OwnAction,
-                           flacFileLocations: NonEmptyList[FlacFileLocation])
-                         (implicit messageService: MessageService): Future[Unit]
+                           flacFiles: NonEmptyList[FlacFile])
+                         (implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]]
 
   /**
     * Add an owner to a device file.
     * @param user The user to add or remove.
-    * @param deviceFileLocation The device file to own.
+    * @param deviceFile The device file to own.
     * @param messageService A message service used to report progress and errors.
     */
   def ownDeviceFile(user: User,
-                    deviceFileLocation: DeviceFileLocation)
-                   (implicit messageService: MessageService): Future[Unit]
+                    deviceFile: DeviceFile)
+                   (implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]]
 
   /**
     * List all collections.

@@ -16,7 +16,7 @@
 
 package common.music
 
-import java.nio.file.Paths
+import java.nio.file.{FileSystem, FileSystems, Paths}
 
 import com.wix.accord._
 import common.files.Extension.FLAC
@@ -28,16 +28,18 @@ import org.specs2.mutable._
  */
 class TagsSpec extends Specification {
 
+  val fs: FileSystem = FileSystems.getDefault
+
   "A track on a single disc" should {
     "not print a disc number suffix" in {
-      SimpleTags("Mötörhead", "Good - Stuff ", 1, 1, 2, "The Ace of Spades").asPath(FLAC) must be equalTo
+      SimpleTags("Mötörhead", "Good - Stuff ", 1, 1, 2, "The Ace of Spades").asPath(fs, FLAC) must be equalTo
         Paths.get("M", "Motorhead", "Good Stuff", "02 The Ace of Spades.flac")
     }
   }
 
   "A track on a non-single disc" should {
     "print a disc number suffix" in {
-      SimpleTags("Mötörhead", "Good - Stuff ", 1, 2, 2, "The Ace of Spades").asPath(FLAC) must be equalTo
+      SimpleTags("Mötörhead", "Good - Stuff ", 1, 2, 2, "The Ace of Spades").asPath(fs, FLAC) must be equalTo
         Paths.get("M", "Motorhead", "Good Stuff 01", "02 The Ace of Spades.flac")
     }
   }
@@ -85,7 +87,7 @@ class TagsSpec extends Specification {
         "89ad4ac3-39f7-470e-963a-56509c546377",
         "6fe49afc-94b5-4214-8dd9-a5b7b1a1e77e",
         "ce7bba8b-026b-4aa6-bddb-f98ed6d595e4",
-        "5b0ef8e9-9b55-4a3e-aca6-d816d6bbc00f",
+        Some("5b0ef8e9-9b55-4a3e-aca6-d816d6bbc00f"),
         Some("B000Q66HUA"),
         3,
         CoverArt(new Array[Byte](0), "mime"))
@@ -95,7 +97,7 @@ class TagsSpec extends Specification {
   object SimpleTags {
     def apply(albumArtistSort: String, album: String, discNumber: Int, totalDiscs: Int, trackNumber: Int, title: String): Tags = Tags(
       albumArtistSort, "", album, "", "", title,
-      totalDiscs, 0, discNumber, "", "", "", "",
+      totalDiscs, 0, discNumber, "", "", "", Some(""),
       Some(""), trackNumber, null)
   }
 

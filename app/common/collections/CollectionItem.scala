@@ -15,12 +15,14 @@
  */
 package common.collections
 
+import common.configuration.User
+
 /**
  * A persistable unit that represents a change to a user's encoded repository.
  */
 case class CollectionItem(
                            id: Long,
-                           user: String,
+                           user: User,
                            releaseId: String,
                            artist: String,
                            album: String)

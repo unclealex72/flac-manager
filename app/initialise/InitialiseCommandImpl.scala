@@ -18,16 +18,18 @@ package initialise
 
 import javax.inject.Inject
 
+import cats.data.Validated.{Invalid, Valid}
+import cats.data.ValidatedNel
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
 import common.changes.{Change, ChangeDao}
 import common.configuration.{Directories, User, UserDao}
-import common.files.{DeviceFileLocation, DirectoryService, FileLocationExtensions}
+import common.files._
 import common.message.Messages._
-import common.message.{MessageService, Messaging}
-import common.music.TagsService
+import common.message.{Message, MessageService, Messaging}
+import common.music.{Tags, TagsService}
 import common.owners.OwnerService
-
+import cats.implicits._
 import scala.collection.SortedSet
 import scala.concurrent.Future
 
@@ -46,61 +48,60 @@ import scala.concurrent.Future
   */
 class InitialiseCommandImpl @Inject()(
                                        val userDao: UserDao,
-                                       val directoryService: DirectoryService,
-                                       val tagsService: TagsService,
-                                       val ownerService: OwnerService)
-                           (implicit val changeDao: ChangeDao,
-                            val directories: Directories,
-                            val fileLocationExtensions: FileLocationExtensions,
-                            val commandExecutionContext: CommandExecutionContext) extends InitialiseCommand with Messaging with StrictLogging {
+                                       val ownerService: OwnerService, val changeDao: ChangeDao,
+                                       val repositories: Repositories)
+                           (implicit val commandExecutionContext: CommandExecutionContext) extends InitialiseCommand with Messaging with StrictLogging {
 
-  case class InitialFile(deviceFileLocation: DeviceFileLocation, user: User)
+  case class InitialFile(deviceFile: DeviceFile, user: User)
 
-  implicit val initialFileOrdering: Ordering[InitialFile] = Ordering.by(i => (i.user, i.deviceFileLocation))
-  private val emptyFuture: Future[Unit] = Future.successful({})
+  implicit val initialFileOrdering: Ordering[InitialFile] = Ordering.by(i => (i.user, i.deviceFile))
+  private val emptyFuture: Future[ValidatedNel[Message, Unit]] = Future.successful(Valid({}))
 
 
   /**
     * @inheritdoc
     */
-  override def initialiseDb(implicit messageService: MessageService): Future[_] = {
+  override def initialiseDb(implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
     changeDao.countChanges().flatMap {
       case 0 =>
         log(INITIALISATION_STARTED)
-        val initialFiles: Seq[InitialFile] = for {
-          user <- userDao.allUsers().toSeq
-          deviceFileLocation <- listFiles(user)
-        } yield {
-          InitialFile(deviceFileLocation, user)
+        val empty: ValidatedNel[Message, Seq[InitialFile]] = Valid(Seq.empty)
+        val validatedInitialFiles: ValidatedNel[Message, Seq[InitialFile]] = userDao.allUsers().foldLeft(empty) { (acc, user) =>
+          val validatedInitialFilesForUser = listFiles(user).map(_.map(InitialFile(_, user)))
+          (acc |@| validatedInitialFilesForUser).map(_ ++ _)
         }
-        val releasesByUserAndDirectory =
-          initialFiles.groupBy(i => (i.user, i.deviceFileLocation.path.getParent)).mapValues(is => is.head.deviceFileLocation).toSeq.map {
-            case ((user, directory), deviceFileLocation) => (user, directory, deviceFileLocation)
-          }.sortBy(udd => (udd._1.name, udd._2))
-        releasesByUserAndDirectory.foldLeft(addDeviceFileChanges(initialFiles)) { (acc, userDirectoryAndFile) =>
-          val (user, _, deviceFileLocation) = userDirectoryAndFile
-          for {
-            _ <- acc
-            _ <- addRelease(user, deviceFileLocation)
-          } yield {}
+        validatedInitialFiles match {
+          case Valid(initialFiles) =>
+            val releasesByUserAndDirectory =
+              initialFiles.groupBy(i => (i.user, i.deviceFile.absolutePath.getParent)).mapValues(is => is.head.deviceFile).toSeq.map {
+                case ((user, directory), deviceFileLocation) => (user, directory, deviceFileLocation)
+              }.sortBy(udd => (udd._1.name, udd._2))
+            releasesByUserAndDirectory.foldLeft(addDeviceFileChanges(initialFiles)) { (acc, userDirectoryAndFile) =>
+              val (user, _, deviceFileLocation) = userDirectoryAndFile
+              for {
+                _ <- acc
+                _ <- addRelease(user, deviceFileLocation)
+              } yield Valid({})
+            }
+          case iv @ Invalid(_) => Future.successful(iv)
         }
-      case _ => Future.successful(log(DATABASE_NOT_EMPTY))
+      case _ => Future.successful(Invalid(DATABASE_NOT_EMPTY).toValidatedNel)
     }
   }
 
-  def addDeviceFileChanges(initialFiles: Seq[InitialFile])(implicit messageService: MessageService): Future[Unit] = {
+  def addDeviceFileChanges(initialFiles: Seq[InitialFile])(implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
     initialFiles.foldLeft(emptyFuture){ (acc, initialFile) =>
-      val deviceFileLocation = initialFile.deviceFileLocation
-      log(INITIALISING(deviceFileLocation))
+      val deviceFile = initialFile.deviceFile
+      log(INITIALISING(deviceFile))
       for {
         _ <- acc
-        _ <- changeDao.store(Change.added(deviceFileLocation))
-      } yield {}
+        _ <- changeDao.store(Change.added(deviceFile))
+      } yield Valid({})
     }
   }
 
-  def addRelease(user: User, deviceFileLocation: DeviceFileLocation)(implicit messageService: MessageService): Future[Unit] = {
-    ownerService.ownDeviceFile(user, deviceFileLocation)
+  def addRelease(user: User, deviceFile: DeviceFile)(implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
+    ownerService.ownDeviceFile(user, deviceFile)
   }
 
   /**
@@ -109,8 +110,7 @@ class InitialiseCommandImpl @Inject()(
     * @param messageService The [[MessageService]] used to report progress and log errors.
     * @return All the files in the user's device repository.
     */
-  def listFiles(user: User)(implicit messageService: MessageService): SortedSet[DeviceFileLocation] = {
-    val root = DeviceFileLocation(user)
-    directoryService.listFiles(Some(root))
+  def listFiles(user: User)(implicit messageService: MessageService): ValidatedNel[Message, SortedSet[DeviceFile]] = {
+    repositories.device(user).root.map(_.list)
   }
 }

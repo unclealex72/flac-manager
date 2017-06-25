@@ -17,7 +17,7 @@
 package controllers
 
 import cats.data.ValidatedNel
-import common.message.MessageService
+import common.message.{Message, MessageService}
 import play.api.libs.json.JsValue
 
 import scala.concurrent.Future
@@ -33,5 +33,5 @@ trait CommandBuilder {
     * @return Either a list of errors or a function that will create a [[Future]] when a
     *         [[MessageService]] is supplied.
     */
-  def apply(jsValue: JsValue): ValidatedNel[String, MessageService => Future[_]]
+  def apply(jsValue: JsValue)(implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]]
 }

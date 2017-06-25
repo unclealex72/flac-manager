@@ -16,6 +16,7 @@
 
 package common.changes
 
+import java.nio.file.Path
 import java.time.Instant
 
 /**
@@ -25,4 +26,4 @@ import java.time.Instant
   * @param at The date and time of the change.
   * @param relativePath The path of the album that changed.
  */
-case class ChangelogItem(parentRelativePath: String, at: Instant, relativePath: String)
+case class ChangelogItem(parentRelativePath: Path, at: Instant, relativePath: Path)

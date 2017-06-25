@@ -17,16 +17,15 @@
 package checkin
 import javax.inject.Inject
 
-import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.implicits._
 import common.async.CommandExecutionContext
 import common.configuration.User
-import common.files.{FileLocationExtensions, FlacFileChecker, FlacFileLocation, StagedFlacFileLocation}
-import common.message.Message
+import common.files.{FlacFile, StagingFile}
 import common.message.Messages._
+import common.message.{Message, MessageService}
 import common.multi.AllowMultiService
-import common.music.{Tags, TagsService}
+import common.music.Tags
 import common.owners.OwnerService
 import common.validation.SequentialValidation
 
@@ -38,23 +37,20 @@ import scala.concurrent.Future
 class CheckinActionGeneratorImpl @Inject()(
                                             val ownerService: OwnerService,
                                             val allowMultiService: AllowMultiService)
-                                          (implicit val flacFileChecker: FlacFileChecker,
-                                            val commandExecutionContext: CommandExecutionContext,
-                                     val tagsService: TagsService,
-                                     val fileLocationExtensions: FileLocationExtensions)
+                                          (implicit val commandExecutionContext: CommandExecutionContext)
   extends CheckinActionGenerator with SequentialValidation {
 
   /**
     * @inheritdoc
     */
-  override def generate(stagedFlacFileLocations: Seq[StagedFlacFileLocation],
-                        allowUnowned: Boolean): Future[ValidatedNel[Message, Seq[Action]]] = {
+  override def generate(stagedFlacFiles: Seq[StagingFile],
+                        allowUnowned: Boolean)(implicit messageService: MessageService): Future[ValidatedNel[Message, Seq[Action]]] = {
     val eventualUsersByAlbumId = ownerService.listOwners()
     eventualUsersByAlbumId.map { usersByAlbumId =>
-      val (flacFileLocations, nonFlacFileLocations) = partitionFlacAndNonFlacFiles(stagedFlacFileLocations)
+      val (flacFiles, nonFlacFiles) = partitionFlacAndNonFlacFiles(stagedFlacFiles)
       // Validate the flac files only as non flac files just get deleted.
-      validate(flacFileLocations, allowUnowned, usersByAlbumId).map(_.map(_.toAction)).map { actions =>
-        actions ++ nonFlacFileLocations.map(Delete)
+      validate(flacFiles, allowUnowned, usersByAlbumId).map(_.map(_.toAction)).map { actions =>
+        actions ++ nonFlacFiles.map(Delete)
       }
     }
   }
@@ -62,16 +58,16 @@ class CheckinActionGeneratorImpl @Inject()(
   /**
     * Validate a sequence of staged flac files.
     *
-    * @param fileLocations The staged flac files to check.
+    * @param files The staged flac files to check.
     * @param allowUnowned True if unowned files are allowed to be checked in, false otherwise.
     * @param usersByAlbumId A list of users for each album.
     * @return A [[ValidatedNel]] that contains either a sequence of [[OwnedFlacFile]]s or a non-empty list
     *         of [[Message]]s to log in the case of failure.
     */
-  def validate(fileLocations: Seq[StagedFlacFileLocation],
-               allowUnowned: Boolean, usersByAlbumId: Map[String, Set[User]]): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
+  def validate(files: Seq[StagingFile],
+               allowUnowned: Boolean, usersByAlbumId: Map[String, Set[User]])(implicit messageService: MessageService): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
     val validatedValidFlacFiles =
-      checkThereAreSomeFiles(fileLocations).andThen(checkFullyTaggedFlacFiles)
+      checkThereAreSomeFiles(files).andThen(checkFullyTaggedFlacFiles)
     validatedValidFlacFiles.andThen { validFlacFiles =>
       (checkDoesNotOverwriteExistingFlacFile(validFlacFiles) |@|
         checkTargetFlacFilesAreUnique(validFlacFiles) |@|
@@ -81,40 +77,37 @@ class CheckinActionGeneratorImpl @Inject()(
   }
 
   /**
-    * Partition a set of [[StagedFlacFileLocation]]s into those that start with a flac magic number and those that don't.
-    * @param fileLocations The file locations to partition.
+    * Partition a set of [[StagingFile]]s into those that start with a flac magic number and those that don't.
+    * @param files The file locations to partition.
     * @return A [[Tuple2]] that contains a sequence of flac files and a sequence of non-flac files.
     */
-  def partitionFlacAndNonFlacFiles(fileLocations: Seq[StagedFlacFileLocation]): (Seq[StagedFlacFileLocation], Seq[StagedFlacFileLocation]) = {
-    fileLocations.partition(_.isFlacFile)
+  def partitionFlacAndNonFlacFiles(files: Seq[StagingFile]): (Seq[StagingFile], Seq[StagingFile]) = {
+    files.partition(_.isFlacFile)
   }
 
   /**
     * Make sure that there is at least one flac file.
-    * @param fileLocations The file locations to check.
+    * @param files The file locations to check.
     * @return The file locations if it is not empty or [[NO_FILES]] otherwise.
     */
-  def checkThereAreSomeFiles(fileLocations: Seq[StagedFlacFileLocation]): ValidatedNel[Message, Seq[StagedFlacFileLocation]] = {
-    if (fileLocations.isEmpty) {
-      Validated.invalidNel(NO_FILES(fileLocations.toSet))
+  def checkThereAreSomeFiles(files: Seq[StagingFile]): ValidatedNel[Message, Seq[StagingFile]] = {
+    if (files.isEmpty) {
+      Validated.invalidNel(NO_FILES(files.toSet))
     }
     else {
-      Validated.valid(fileLocations)
+      Validated.valid(files)
     }
   }
 
   /**
     * Make sure that all flac files are fully tagged.
-    * @param fileLocations The file locations to check.
+    * @param files The file locations to check.
     * @return A [[ValidFlacFile]] for each fully tagged flac file and [[INVALID_FLAC]] for each non-fully tagged
     *         flac file.
     */
-  def checkFullyTaggedFlacFiles(fileLocations: Seq[StagedFlacFileLocation]): ValidatedNel[Message, Seq[ValidFlacFile]] = {
-    runValidation(fileLocations) { fileLocation =>
-      fileLocation.readTags match {
-        case Valid(tags) => Validated.valid(ValidFlacFile(fileLocation, fileLocation.toFlacFileLocation(tags), tags))
-        case Invalid(_) => Validated.invalid(INVALID_FLAC(fileLocation))
-      }
+  def checkFullyTaggedFlacFiles(files: Seq[StagingFile])(implicit messageService: MessageService): ValidatedNel[Message, Seq[ValidFlacFile]] = {
+    runValidationNel(files) { file =>
+      file.toFlacFileAndTags.map { case (flacFile, tags) => ValidFlacFile(file, flacFile, tags) }
     }
   }
 
@@ -126,11 +119,11 @@ class CheckinActionGeneratorImpl @Inject()(
     */
   def checkDoesNotOverwriteExistingFlacFile(validFlacFiles: Seq[ValidFlacFile]): ValidatedNel[Message, Seq[ValidFlacFile]] = {
     runValidation(validFlacFiles) { validFlacFile =>
-      if (!validFlacFile.flacFileLocation.exists) {
+      if (!validFlacFile.flacFile.exists) {
         Validated.valid(validFlacFile)
       }
       else {
-        Validated.invalid(OVERWRITE(validFlacFile.stagedFileLocation, validFlacFile.flacFileLocation))
+        Validated.invalid(OVERWRITE(validFlacFile.stagedFile, validFlacFile.flacFile))
       }
     }
   }
@@ -142,11 +135,11 @@ class CheckinActionGeneratorImpl @Inject()(
     */
   def checkTargetFlacFilesAreUnique(validFlacFiles: Seq[ValidFlacFile]): ValidatedNel[Message, Seq[ValidFlacFile]] = {
     val (uniqueMappings, nonUniqueMappings) =
-      validFlacFiles.groupBy(_.flacFileLocation).partition(kv => kv._2.size == 1)
+      validFlacFiles.groupBy(_.flacFile).partition(kv => kv._2.size == 1)
     val uniqueFlacFiles: ValidatedNel[Message, Seq[ValidFlacFile]] =  Validated.valid(uniqueMappings.values.flatten.toSeq)
     val nonUniqueFlacFiles = runValidation(nonUniqueMappings.toSeq) {
-      case (flacFileLocation, nonUniqueValidFlacFiles) =>
-        Validated.invalid(NON_UNIQUE(flacFileLocation, nonUniqueValidFlacFiles.map(_.stagedFileLocation).toSet))
+      case (flacFile, nonUniqueValidFlacFiles) =>
+        Validated.invalid(NON_UNIQUE(flacFile, nonUniqueValidFlacFiles.map(_.stagedFile)))
     }
     (uniqueFlacFiles |@| nonUniqueFlacFiles).map((uffs, _) => uffs)
   }
@@ -166,7 +159,7 @@ class CheckinActionGeneratorImpl @Inject()(
     }
     maybeMultiDiscFlacFiles match {
       case Some(multiDiscFlacFiles) =>
-        Validated.invalid(multiDiscFlacFiles.map(vff => MULTI_DISC(vff.stagedFileLocation)))
+        Validated.invalid(multiDiscFlacFiles.map(vff => MULTI_DISC(vff.stagedFile)))
       case None =>
         Validated.valid(validFlacFiles)
     }
@@ -186,7 +179,7 @@ class CheckinActionGeneratorImpl @Inject()(
       runValidation(validFlacFiles) { validFlacFile =>
         val owners = usersByAlbumId.getOrElse(validFlacFile.tags.albumId, Set.empty)
         if (owners.isEmpty) {
-          Validated.invalid(NOT_OWNED(validFlacFile.stagedFileLocation))
+          Validated.invalid(NOT_OWNED(validFlacFile.stagedFile))
         }
         else {
           Validated.valid(validFlacFile.ownedBy(owners))
@@ -197,11 +190,11 @@ class CheckinActionGeneratorImpl @Inject()(
 
   /**
     * A holder for all the information about a valid flac file.
-    * @param stagedFileLocation The location of the flac file in the staging repository.
-    * @param flacFileLocation The location of where the flac file will be in the flac repository.
+    * @param stagedFile The location of the flac file in the staging repository.
+    * @param flacFile The location of where the flac file will be in the flac repository.
     * @param tags The audio information stored in the flac file.
     */
-  case class ValidFlacFile(stagedFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags) {
+  case class ValidFlacFile(stagedFile: StagingFile, flacFile: FlacFile, tags: Tags) {
 
     /**
       * Promote this valid flac file in to an owned flac file.
@@ -209,19 +202,19 @@ class CheckinActionGeneratorImpl @Inject()(
       * @return An [[OwnedFlacFile]] that additionally contains this flac file's owners.
       */
     def ownedBy(owners: Set[User]): OwnedFlacFile =
-      OwnedFlacFile(stagedFileLocation, flacFileLocation, tags, owners)
+      OwnedFlacFile(stagedFile, flacFile, tags, owners)
   }
 
   /**
     * A holder for all the information about a valid flac file and who owns it.
-    * @param stagedFileLocation The location of the flac file in the staging repository.
-    * @param flacFileLocation The location of where the flac file will be in the flac repository.
+    * @param stagedFile The location of the flac file in the staging repository.
+    * @param flacFile The location of where the flac file will be in the flac repository.
     * @param tags The audio information stored in the flac file.
     * @param owners The owners of this flac file.
     */
   case class OwnedFlacFile(
-                            stagedFileLocation: StagedFlacFileLocation,
-                            flacFileLocation: FlacFileLocation,
+                            stagedFile: StagingFile,
+                            flacFile: FlacFile,
                             tags: Tags,
                             owners: Set[User]) {
 
@@ -230,7 +223,7 @@ class CheckinActionGeneratorImpl @Inject()(
       * @return An [[Encode]] action that can be used to encode this flac file.
       */
     def toAction: Action = {
-      Encode(stagedFileLocation, flacFileLocation, tags, owners)
+      Encode(stagedFile, flacFile, tags, owners)
     }
   }
 

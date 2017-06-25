@@ -20,7 +20,7 @@ import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 import javax.inject.{Inject, Named}
 
-import logging.ApplicationLogging
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.collection.JavaConverters._
 
@@ -28,38 +28,38 @@ import scala.collection.JavaConverters._
   * An implementation of [[FileSystem]] that decorates another [[FileSystem]] and is aware of whether [[FileSystem]]s
   * should be left in a read only or writable state.
   * @param delegate The file system to delegate to.
-  * @param fileLocationExtensions The typeclass used to give [[FileLocation]]s [[java.nio.file.Path]]-like functionality.
+  * @param fileExtensions The typeclass used to give [[File]]s [[java.nio.file.Path]]-like functionality.
   *
   */
 class ProtectionAwareFileSystem @Inject() (@Named("rawFileSystem") val delegate: FileSystem)
-                                          (override implicit val fileLocationExtensions: FileLocationExtensions)
-  extends DecoratingFileSystem with ApplicationLogging {
+  extends DecoratingFileSystem with StrictLogging {
 
   /**
     * Make all files that need to be writeable.
-    * @param fileLocations The file locations to send to the original invocation.
+    * @param files The file s to send to the original invocation.
     */
-  def before(fileLocations: Seq[FileLocation]): Unit = alterWritable(_ => true, fileLocations)
+  override def before(files: Seq[File]): Unit = alterWritable(_ => true, files)
 
   /**
     * Make all files that need to be unrwiteable.
-    * @param fileLocations The file locations to send to the original invocation.
+    * @param files The file s to send to the original invocation.
     */
-  def after(fileLocations: Seq[FileLocation]): Unit = alterWritable(!_.readOnly, fileLocations)
+  def after(files: Seq[File]): Unit = alterWritable(!_.readOnly, files)
 
   /**
     * Alter all files and their parents (up to the repository base) to be either writeable or unwriteable.
     * @param writable True if files should be made writeable, false otherwise.
-    * @param fileLocations The file locations to send to the original invocation.
+    * @param files The file s to send to the original invocation.
     */
-  def alterWritable(writable: FileLocation => Boolean, fileLocations: Seq[FileLocation]): Unit = {
-    fileLocations.foreach { fileLocation =>
-      var currentPath = fileLocation.toPath
-      val terminatingPath = fileLocation.basePath.getParent
+  def alterWritable(writable: File => Boolean, files: Seq[File]): Unit = {
+    files.foreach { file =>
+      var currentPath = file.absolutePath
+      val terminatingPath = file.basePath.getParent
       while (currentPath != null && !currentPath.equals(terminatingPath)) {
         if (Files.exists(currentPath)) {
           val posixFilePermissions = Files.getPosixFilePermissions(currentPath)
-          if (writable(fileLocation)) {
+          val isWritable = writable(file)
+          if (isWritable) {
             logger.debug("Setting " + currentPath + " to read and write.")
             posixFilePermissions.add(PosixFilePermission.OWNER_WRITE)
           }

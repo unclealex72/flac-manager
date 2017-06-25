@@ -17,7 +17,7 @@
 package checkin
 
 import common.configuration.User
-import common.files.{FlacFileLocation, StagedFlacFileLocation}
+import common.files.{FlacFile, StagingFile}
 import common.music.Tags
 
 /**
@@ -28,18 +28,18 @@ sealed trait Action
 
 /**
   * A file to be encoded
-  * @param stagedFileLocation The source file location.
-  * @param flacFileLocation The target file location.
+  * @param stagingFile The source file location.
+  * @param flacFile The target file location.
   * @param tags The file's music tags.
   * @param owners The file's owners.
   */
-case class Encode(stagedFileLocation: StagedFlacFileLocation, flacFileLocation: FlacFileLocation, tags: Tags, owners: Set[User]) extends Action
+case class Encode(stagingFile: StagingFile, flacFile: FlacFile, tags: Tags, owners: Set[User]) extends Action
 
 /**
   * A file to be deleted
-  * @param stagedFileLocation The source file location.
+  * @param stagingFile The source file location.
   */
-case class Delete(stagedFileLocation: StagedFlacFileLocation) extends Action
+case class Delete(stagingFile: StagingFile) extends Action
 
 /**
   * Used to declare an implicit ordering on actions.
@@ -49,14 +49,12 @@ object Action {
   /**
     * An ordering that always make sure deletions are first and encodes are sorted by track.
     */
-  implicit val actingOrdering: Ordering[Action] = new Ordering[Action]() {
-    override def compare(x: Action, y: Action): Int = (x, y) match {
-      case (Encode(_, _, _, _), Delete(_)) => -1
-      case (Delete(_), Encode(_, _, _, _)) => 1
-      case (Delete(l), Delete(r)) =>
-        Ordering.by((s: StagedFlacFileLocation) => s.relativePath.toString).compare(l, r)
-      case (Encode(_, _, l, _), Encode(_, _, r, _)) =>
-        Ordering.by((t: Tags) => (t.albumArtistSort, t.album, t.discNumber, t.trackNumber)).compare(l, r)
-    }
+  implicit val actingOrdering: Ordering[Action] = (x: Action, y: Action) => (x, y) match {
+    case (Encode(_, _, _, _), Delete(_)) => -1
+    case (Delete(_), Encode(_, _, _, _)) => 1
+    case (Delete(l), Delete(r)) =>
+      Ordering.by((s: StagingFile) => s.relativePath.toString).compare(l, r)
+    case (Encode(_, _, l, _), Encode(_, _, r, _)) =>
+      Ordering.by((t: Tags) => (t.albumArtistSort, t.album, t.discNumber, t.trackNumber)).compare(l, r)
   }
 }

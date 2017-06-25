@@ -16,7 +16,8 @@
 
 package initialise
 
-import common.message.MessageService
+import cats.data.ValidatedNel
+import common.message.{Message, MessageService}
 
 import scala.concurrent.Future
 
@@ -30,5 +31,5 @@ trait InitialiseCommand {
     * @param messageService The [[MessageService]] used to report progress and log errors.
     * @return A [[Future]] that will initialise the database.
     */
-  def initialiseDb(implicit messageService: MessageService): Future[_]
+  def initialiseDb(implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]]
 }

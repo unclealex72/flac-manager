@@ -18,12 +18,14 @@ package multidisc
 
 import javax.inject.Inject
 
+import cats.data.ValidatedNel
 import common.async.CommandExecutionContext
-import common.files.StagedFlacFileLocation
-import common.message.MessageService
+import common.files.Directory.StagingDirectory
+import common.message.{Message, MessageService}
 import json.MultiAction
 import json.MultiAction.{Join, Split}
 
+import scala.collection.SortedSet
 import scala.concurrent.Future
 
 /**
@@ -37,18 +39,18 @@ class MultiDiscCommandImpl @Inject()(val multiDiscService: MultiDiscService)
   /**
     * Either join or split a multi-album
     *
-    * @param stagedFlacFileLocations The directories containing the tracks to split or join.
+    * @param stagingFiles The directories containing the tracks to split or join.
     * @param multiAction             Either join or split.
     * @param messageService          The message service used to report progress and errors.
     * @return A command execution that will split or join a multi-disc album.
     */
-  override def mutateMultiDiscAlbum(stagedFlacFileLocations: Seq[StagedFlacFileLocation], multiAction: MultiAction)
-                                   (implicit messageService: MessageService): Future[_] = Future {
+  override def mutateMultiDiscAlbum(stagingDirectories: SortedSet[StagingDirectory], multiAction: MultiAction)
+                                   (implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = Future {
     multiAction match {
       case Split =>
-        multiDiscService.createAlbumWithExtras(stagedFlacFileLocations)
+        multiDiscService.createAlbumWithExtras(stagingDirectories.toSeq)
       case Join =>
-        multiDiscService.createSingleAlbum(stagedFlacFileLocations)
+        multiDiscService.createSingleAlbum(stagingDirectories.toSeq)
     }
   }
 }
