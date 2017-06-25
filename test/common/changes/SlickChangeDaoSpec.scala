@@ -173,6 +173,7 @@ object Dsl {
 
     case class SimpleDeviceFile(user: User, relativePath: Path, lastModified: Instant) extends DeviceFile {
       override val readOnly: Boolean = false
+      override val rootPath: Path = Paths.get("/")
       override val basePath: Path = Paths.get("/")
       override val absolutePath: Path = relativePath
       override val tags: TagsContainer = () => Validated.invalidNel(INVALID_TAGS("Nope"))

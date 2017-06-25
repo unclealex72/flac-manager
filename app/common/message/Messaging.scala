@@ -23,6 +23,7 @@ import cats.data.ValidatedNel
 import common.changes.{Change, ChangeType}
 import common.configuration.User
 import common.files._
+import common.message.Messages.EXCEPTION
 import io.circe.DecodingFailure
 
 /**
@@ -235,6 +236,10 @@ object Messages {
 trait Messaging {
 
   def log(template: Message)(implicit messageService: MessageService): Unit = messageService.printMessage(template)
+
+  def logException(e: Exception)(implicit messageService: MessageService): Unit = {
+    messageService.exception(e)
+  }
 
   implicit class TraversableLoggingImplicits[A](items: Set[A]) {
     def log(templateFactory: A => Message)(implicit messageService: MessageService): Set[A] = {

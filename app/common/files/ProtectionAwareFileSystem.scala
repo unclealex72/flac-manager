@@ -54,7 +54,7 @@ class ProtectionAwareFileSystem @Inject() (@Named("rawFileSystem") val delegate:
   def alterWritable(writable: File => Boolean, files: Seq[File]): Unit = {
     files.foreach { file =>
       var currentPath = file.absolutePath
-      val terminatingPath = file.basePath.getParent
+      val terminatingPath = file.rootPath.getParent
       while (currentPath != null && !currentPath.equals(terminatingPath)) {
         if (Files.exists(currentPath)) {
           val posixFilePermissions = Files.getPosixFilePermissions(currentPath)

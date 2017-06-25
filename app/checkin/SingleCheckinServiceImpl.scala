@@ -115,7 +115,7 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
 
   private def safely(block: => Future[Unit])(implicit messageService: MessageService): Future[Unit] = {
     block.recover {
-      case e: Exception => log(EXCEPTION(e))
+      case e: Exception => logException(e)
     }
   }
 }

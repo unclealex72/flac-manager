@@ -112,7 +112,7 @@ object RepositoryEntry {
         val track = trackEntryBuilder.track
         val filename = f"$trackNumber%02d $track.$extension"
         if (link) {
-          val target = s"../../../../../encoded/$initial/$artist/$albumDirectory/$filename"
+          val target = s"/encoded/$initial/$artist/$albumDirectory/$filename"
           FsLinkBuilder(filename, target)
         }
         else {

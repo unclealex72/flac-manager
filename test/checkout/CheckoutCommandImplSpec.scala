@@ -19,30 +19,31 @@ package checkout
 import java.nio.file.{FileSystem => JFS}
 import java.time.Clock
 
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, ValidatedNel}
 import cats.data.Validated.Valid
 import common.async.{BackgroundExecutionContext, CommandExecutionContext, GlobalExecutionContext}
 import common.changes.{Change, ChangeDao, ChangeMatchers}
 import common.configuration.{User, UserDao}
 import common.files.Directory.FlacDirectory
 import common.files._
-import common.message.MessageService
+import common.message.{Message, MessageService}
 import common.music.Tags
 import common.owners.OwnerService
 import org.specs2.matcher.Matcher
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import own.OwnAction
-import testfilesystem._
 
-import scala.collection.GenTraversableOnce
+import scala.collection.SortedSet
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import cats.implicits._
+import common.message.Messages.OVERWRITE
 
 /**
  * Created by alex on 18/11/14.
  */
-class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatchers with TestRepositories[Services] with RepositoryEntry.Dsl {
+class CheckoutCommandImplSpec extends Specification with Mockito with ChangeMatchers with TestRepositories[Services] with RepositoryEntry.Dsl {
 
   sequential
 
@@ -54,7 +55,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
   )
 
   val INNUENDO: Album = Album(
-    "Innuendo", Tracks("Innuendo", "I'm Going Slightly Mad", "Headlong")
+    "Innuendo", Tracks("Innuendo", "Im Going Slightly Mad", "Headlong")
   )
 
   val SOUTH_OF_HEAVEN: Album = Album(
@@ -80,12 +81,21 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
     )
   )
 
+  val conflictingEntries = Repos(
+    flac = Artists("Queen" -> Albums(A_KIND_OF_MAGIC, INNUENDO), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
+    staging = Artists("Queen" -> Albums(INNUENDO)),
+    encoded = Artists("Queen" -> Albums(A_KIND_OF_MAGIC, INNUENDO), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
+    devices = Users(
+      "Freddie" -> Artists("Queen" -> Albums(A_KIND_OF_MAGIC), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
+      "Brian" -> Artists("Queen" -> Albums(A_KIND_OF_MAGIC, INNUENDO))
+    )
+  )
   "Checking out but not unowning an album" should {
     "remove the album but keep it owned" in { services: Services =>
       val fs = services.fileSystem
       fs.add(entriesBeforeCheckout :_*)
       services.repositories.flac.directory(fs.getPath("Q/Queen/Innuendo")).toEither must beRight { flacDirectory: FlacDirectory =>
-        Await.result(services.checkoutService.checkout(flacDirectory.group, unown = false), 1.hour)
+        Await.result(services.checkoutCommand.checkout(SortedSet(flacDirectory), unown = false), 1.hour)
         val entries = fs.entries
         entries must containTheSameElementsAs(fs.expected(expectedEntriesAfterCheckout :_*))
         there were noCallsTo(services.ownerService)
@@ -101,7 +111,7 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
       val fs = services.fileSystem
       fs.add(entriesBeforeCheckout :_*)
       services.repositories.flac.directory(fs.getPath("Q/Queen/Innuendo")).toEither must beRight { flacDirectory: FlacDirectory =>
-        Await.result(services.checkoutService.checkout(flacDirectory.group, unown = true), 1.hour)
+        Await.result(services.checkoutCommand.checkout(SortedSet(flacDirectory), unown = true), 1.hour)
         val entries = fs.entries
         entries must containTheSameElementsAs(fs.expected(expectedEntriesAfterCheckout :_*))
         there was one(services.ownerService).unown(
@@ -109,6 +119,31 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
           argThat(hasOneElementThat(hasAlbumId("Innuendo"))))(any[MessageService])
         there were noCallsTo(services.ownerService)
       }
+    }
+  }
+
+  "Trying to checkout files that would overwrite files in the staging directory" should {
+    "fail and report which files would be overwritten" in { services: Services =>
+      val fs = services.fileSystem
+      fs.add(conflictingEntries :_*)
+      services.repositories.flac.directory(fs.getPath("Q/Queen/Innuendo")).toEither must beRight { flacDirectory: FlacDirectory =>
+        Await.result(services.checkoutCommand.checkout(SortedSet(flacDirectory), unown = true), 1.hour).toEither must beLeft { messages: NonEmptyList[Message] =>
+          val empty: ValidatedNel[Message, Seq[Message]] = Valid(Seq.empty[Message])
+          val vExpectedOverwrites = Seq("01 Innuendo.flac", "02 Im Going Slightly Mad.flac", "03 Headlong.flac").foldLeft(empty) { (acc, track) =>
+            val path = fs.getPath("Q", "Queen", "Innuendo", track)
+            val vFlacFile = services.repositories.flac.file(path)
+            val vStagingFile = services.repositories.staging.file(path)
+            (acc |@| vFlacFile |@| vStagingFile).map { (messages, flacFile, stagingFile) =>
+              messages :+ OVERWRITE(flacFile, stagingFile)
+            }
+          }
+          vExpectedOverwrites.toEither must beRight { expectedOverwrites: Seq[Message] =>
+            messages.toList must containTheSameElementsAs(expectedOverwrites)
+          }
+          fs.entries must containTheSameElementsAs(fs.expected(conflictingEntries :_*))
+        }
+      }
+
     }
   }
 
@@ -122,7 +157,8 @@ class CheckoutServiceImplSpec extends Specification with Mockito with ChangeMatc
     ownerService.unown(any[User], any[Set[Tags]])(any[MessageService]) returns Future.successful(Valid({}))
     val fileSystem = new ProtectionAwareFileSystem(new FileSystemImpl)
     val checkoutService = new CheckoutServiceImpl(fileSystem, userDao, ownerService, changeDao, Clock.systemDefaultZone())
-    Services(fs, repositories, ownerService, changeDao, checkoutService)
+    val checkoutCommand = new CheckoutCommandImpl(repositories, checkoutService)
+    Services(fs, repositories, ownerService, changeDao, checkoutCommand)
   }
 
 }
@@ -132,4 +168,4 @@ case class Services(
                      repositories: Repositories,
                      ownerService: OwnerService,
                      changeDao: ChangeDao,
-                     checkoutService: CheckoutService)
+                     checkoutCommand: CheckoutCommand)

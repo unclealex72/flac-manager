@@ -82,6 +82,8 @@ sealed trait File {
 
   val readOnly: Boolean
 
+  val rootPath: Path
+
   val basePath: Path
 
   val relativePath: Path

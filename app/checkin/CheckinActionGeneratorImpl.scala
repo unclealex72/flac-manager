@@ -172,18 +172,13 @@ class CheckinActionGeneratorImpl @Inject()(
     */
   def checkFlacFilesAreOwned(validFlacFiles: Seq[ValidFlacFile],
                              allowUnowned: Boolean, usersByAlbumId: Map[String, Set[User]]): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
-    if (allowUnowned) {
-      Validated.valid(validFlacFiles.map(_.ownedBy(Set.empty)))
-    }
-    else {
-      runValidation(validFlacFiles) { validFlacFile =>
-        val owners = usersByAlbumId.getOrElse(validFlacFile.tags.albumId, Set.empty)
-        if (owners.isEmpty) {
-          Validated.invalid(NOT_OWNED(validFlacFile.stagedFile))
-        }
-        else {
-          Validated.valid(validFlacFile.ownedBy(owners))
-        }
+    runValidation(validFlacFiles) { validFlacFile =>
+      val owners = usersByAlbumId.getOrElse(validFlacFile.tags.albumId, Set.empty)
+      if (owners.isEmpty && !allowUnowned) {
+        Validated.invalid(NOT_OWNED(validFlacFile.stagedFile))
+      }
+      else {
+        Validated.valid(validFlacFile.ownedBy(owners))
       }
     }
   }

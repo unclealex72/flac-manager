@@ -185,7 +185,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
             D("devices",
               D("freddie",
                 D("dir",
-                  L("linktome.txt", "../../../encoded/dir/linktome.txt")
+                  L("linktome.txt", "/encoded/dir/linktome.txt")
                 )
               )
             ),

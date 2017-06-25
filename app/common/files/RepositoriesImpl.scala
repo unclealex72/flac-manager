@@ -62,15 +62,21 @@ class RepositoriesImpl @Inject() (val directories: Directories, val tagsService:
   }
 
   class FileImpl(val readOnly: Boolean,
-                                 val basePath: Path,
-                                 val relativePath: Path,
-                                 tagsContainerProvider: Path => TagsContainer)(implicit val messageService: MessageService) {
+                 val rootPath : Path,
+                 val basePath: Path,
+                 val relativePath: Path,
+                 tagsContainerProvider: Path => TagsContainer)(implicit val messageService: MessageService) {
 
     lazy val absolutePath: Path = basePath.resolve(relativePath)
     lazy val exists: Boolean = Files.isSymbolicLink(absolutePath) || Files.exists(absolutePath)
     lazy val lastModified: Instant = Files.getLastModifiedTime(absolutePath).toInstant
     val tags: TagsContainer = tagsContainerProvider(absolutePath)
 
+    override def equals(other: Any): Boolean = other match {
+      case f: File => absolutePath.equals(f.absolutePath)
+      case _ => false
+    }
+    override def hashCode(): Int = absolutePath.hashCode()
     override def toString: String = absolutePath.toString
   }
 
@@ -132,7 +138,7 @@ class RepositoriesImpl @Inject() (val directories: Directories, val tagsService:
     }
   }
 
-  class FlacFileImpl(override val relativePath: Path, tagsContainerProvider: Path => TagsContainer)(implicit messageService: MessageService) extends FileImpl(true, directories.flacPath, relativePath, tagsContainerProvider)(messageService) with FlacFile {
+  class FlacFileImpl(override val relativePath: Path, tagsContainerProvider: Path => TagsContainer)(implicit messageService: MessageService) extends FileImpl(true, directories.flacPath, directories.flacPath, relativePath, tagsContainerProvider)(messageService) with FlacFile {
     override def toStagingFile: StagingFile = {
       new StagingFileImpl(relativePath, _ => tags)
     }
@@ -142,7 +148,7 @@ class RepositoriesImpl @Inject() (val directories: Directories, val tagsService:
     }
   }
 
-  class StagingFileImpl(override val relativePath: Path, tagsContainerProvider: Path => TagsContainer)(implicit messageService: MessageService) extends FileImpl(false, directories.stagingPath, relativePath, tagsContainerProvider)(messageService) with StagingFile {
+  class StagingFileImpl(override val relativePath: Path, tagsContainerProvider: Path => TagsContainer)(implicit messageService: MessageService) extends FileImpl(false, directories.stagingPath, directories.stagingPath, relativePath, tagsContainerProvider)(messageService) with StagingFile {
     override def isFlacFile: Boolean = flacFileChecker.isFlacFile(absolutePath)
 
     override def toFlacFileAndTags: ValidatedNel[Message, (FlacFile, Tags)] = {
@@ -158,7 +164,7 @@ class RepositoriesImpl @Inject() (val directories: Directories, val tagsService:
     }
   }
 
-  class EncodedFileImpl(override val relativePath: Path, tagsContainerProvider: Path => TagsContainer)(implicit messageService: MessageService) extends FileImpl(true, directories.encodedPath, relativePath, tagsContainerProvider)(messageService) with EncodedFile {
+  class EncodedFileImpl(override val relativePath: Path, tagsContainerProvider: Path => TagsContainer)(implicit messageService: MessageService) extends FileImpl(true, directories.encodedPath, directories.encodedPath, relativePath, tagsContainerProvider)(messageService) with EncodedFile {
     override def toTempFile: TempFile = {
       val baseDirectory = directories.temporaryPath
       val tempPath = Files.createTempFile(baseDirectory, "flacmanager-encoding-", MP3.extension)
@@ -168,10 +174,10 @@ class RepositoriesImpl @Inject() (val directories: Directories, val tagsService:
     override def toDeviceFile(user: User): DeviceFile = new DeviceFileImpl(user, relativePath, _ => tags)
   }
 
-  class DeviceFileImpl(val user: User, override val relativePath: Path, tagsContainerProvider: Path => TagsContainer)(implicit messageService: MessageService) extends FileImpl(true, directories.devicesPath.resolve(user.name), relativePath, tagsContainerProvider)(messageService) with DeviceFile {
+  class DeviceFileImpl(val user: User, override val relativePath: Path, tagsContainerProvider: Path => TagsContainer)(implicit messageService: MessageService) extends FileImpl(true, directories.devicesPath, directories.devicesPath.resolve(user.name), relativePath, tagsContainerProvider)(messageService) with DeviceFile {
   }
 
-  class TempFileImpl(override val basePath: Path, override val relativePath: Path, tagsContainerProvider: Path => TagsContainer)(implicit messageService: MessageService) extends FileImpl(false, basePath, relativePath, tagsContainerProvider)(messageService) with TempFile {
+  class TempFileImpl(override val basePath: Path, override val relativePath: Path, tagsContainerProvider: Path => TagsContainer)(implicit messageService: MessageService) extends FileImpl(false, basePath, basePath, relativePath, tagsContainerProvider)(messageService) with TempFile {
     override def writeTags(): TempFile = {
       tags.read().foreach { tags =>
         tagsService.write(absolutePath, tags)
