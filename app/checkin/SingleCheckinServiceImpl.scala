@@ -56,7 +56,7 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
                      (implicit messagingService: MessageService): Future[Unit] = safely {
     for {
       tempFile <- time(
-        duration => ENCODE_DURATION(flacFile, duration.getSeconds, duration.getNano * 1000)
+        duration => ENCODE_DURATION(flacFile, duration.getSeconds, duration.getNano / 1000000)
       )(encodeFile(stagingFile, flacFile))
       _ <- moveAndLink(
         tempFile,

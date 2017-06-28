@@ -132,7 +132,8 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     val target = file.absolutePath
     val lnk = link.absolutePath
     val parent = lnk.getParent
+    val relativeTarget = parent.relativize(target)
     Files.createDirectories(parent)
-    Files.createSymbolicLink(lnk, target)
+    Files.createSymbolicLink(lnk, relativeTarget)
   }
 }

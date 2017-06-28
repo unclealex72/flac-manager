@@ -36,10 +36,12 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
       val fileSystem = jfsRepositoriesAndFs.fileSystem
       val repositories = jfsRepositoriesAndFs.repositories
       fs.add(
-        D("flac",
-          D("dir",
-            F("moveme.txt"),
-            F("keepme.txt")
+        D("music",
+          D("flac",
+            D("dir",
+              F("moveme.txt"),
+              F("keepme.txt")
+            )
           )
         )
       )
@@ -49,14 +51,16 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
         fileSystem.move(source, target)
         fs.entries must containTheSameElementsAs {
           fs.expected(
-            D("flac",
-              D("dir",
-                F("keepme.txt")
-              )
-            ),
-            D("staging",
-              D("dir",
-                F("moveme.txt")
+            D("music",
+              D("flac",
+                D("dir",
+                  F("keepme.txt")
+                )
+              ),
+              D("staging",
+                D("dir",
+                  F("moveme.txt")
+                )
               )
             )
           )
@@ -72,9 +76,11 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
       val repositories = jfsRepositoriesAndFs.repositories
 
       fs.add(
-        D("flac",
-          D("dir",
-            F("moveme.txt")
+        D("music",
+          D("flac",
+            D("dir",
+              F("moveme.txt")
+            )
           )
         )
       )
@@ -84,10 +90,12 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
         fileSystem.move(source, target)
         fs.entries must containTheSameElementsAs {
           fs.expected(
-            D("flac"),
-            D("staging",
-              D("dir",
-                F("moveme.txt")
+            D("music",
+              D("flac"),
+              D("staging",
+                D("dir",
+                  F("moveme.txt")
+                )
               )
             )
           )
@@ -103,12 +111,14 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
       val repositories = jfsRepositoriesAndFs.repositories
 
       fs.add(
-        D("flac",
-          D("dira",
-            D("dirb",
-              F("deleteme.txt", None)
-            ),
-            F("keepme.txt", None)
+        D("music",
+          D("flac",
+            D("dira",
+              D("dirb",
+                F("deleteme.txt", None)
+              ),
+              F("keepme.txt", None)
+            )
           )
         )
       )
@@ -117,9 +127,11 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
         fileSystem.remove(source)
         fs.entries must containTheSameElementsAs {
           fs.expected(
-            D("flac",
-              D("dira",
-                F("keepme.txt")
+            D("music",
+              D("flac",
+                D("dira",
+                  F("keepme.txt")
+                )
               )
             )
           )
@@ -135,9 +147,11 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
       val repositories = jfsRepositoriesAndFs.repositories
 
       fs.add(
-        D("flac",
-          D("dir",
-            F("copyme.txt", None)
+        D("music",
+          D("flac",
+            D("dir",
+              F("copyme.txt", None)
+            )
           )
         )
       )
@@ -147,14 +161,16 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
         fileSystem.copy(source, target)
         fs.entries must containTheSameElementsAs {
           fs.expected(
-            D("flac",
-              D("dir",
-                F("copyme.txt")
-              )
-            ),
-            D("staging",
-              D("dir",
-                F("copyme.txt")
+            D("music",
+              D("flac",
+                D("dir",
+                  F("copyme.txt")
+                )
+              ),
+              D("staging",
+                D("dir",
+                  F("copyme.txt")
+                )
               )
             )
           )
@@ -170,9 +186,11 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
       val repositories = jfsRepositoriesAndFs.repositories
 
       fs.add(
-        D("encoded",
-          D("dir",
-            F("linktome.txt", None)
+        D("music",
+          D("encoded",
+            D("dir",
+              F("linktome.txt", None)
+            )
           )
         )
       )
@@ -182,16 +200,18 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
         fileSystem.link(source, target)
         fs.entries must containTheSameElementsAs {
           fs.expected(
-            D("devices",
-              D("freddie",
-                D("dir",
-                  L("linktome.txt", "/encoded/dir/linktome.txt")
+            D("music",
+              D("devices",
+                D("freddie",
+                  D("dir",
+                    L("linktome.txt", "../../../encoded/dir/linktome.txt")
+                  )
                 )
-              )
-            ),
-            D("encoded",
-              D("dir",
-                F("linktome.txt")
+              ),
+              D("encoded",
+                D("dir",
+                  F("linktome.txt")
+                )
               )
             )
           )

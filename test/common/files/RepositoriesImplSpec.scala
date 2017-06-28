@@ -64,12 +64,14 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
         val repositories = fsr.repositories
         val repository = testCase.repositoryFactory(repositories)
         fs.add(
-          D(testCase.rootDir,
-            D("dir")
+          D("music",
+            D(testCase.rootDir,
+              D("dir")
+            )
           )
         )
         repository.directory(fs.getPath("dir")).toEither must beRight { dir: Directory[_] =>
-          dir.absolutePath.toString must be_===(s"/${testCase.rootDir}/dir")
+          dir.absolutePath.toString must be_===(s"/music/${testCase.rootDir}/dir")
           dir.relativePath.toString must be_===(s"dir")
         }
         repository.file(fs.getPath("dir")).toEither must beLeft
@@ -79,11 +81,13 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
         val repositories = fsr.repositories
         val repository = testCase.repositoryFactory(repositories)
         fs.add(
-          D(testCase.rootDir,
-            F("file"))
+          D("music",
+            D(testCase.rootDir,
+              F("file"))
+          )
         )
         repository.file(fs.getPath("file")).toEither must beRight { f: File =>
-          f.absolutePath.toString must be_===(s"/${testCase.rootDir}/file")
+          f.absolutePath.toString must be_===(s"/music/${testCase.rootDir}/file")
           f.relativePath.toString must be_===(s"file")
           f.exists must beTrue
         }
@@ -94,19 +98,21 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
         val repositories = fsr.repositories
         val repository = testCase.repositoryFactory(repositories)
         fs.add(
-          D(testCase.rootDir,
-            D("numbers",
-              F("one"),
-              F("two"),
-              D("biggest",
-                F("three")
-              )
-            ),
-            D("letters",
-              F("a"),
-              F("b"),
-              D("biggest",
-                F("c")
+          D("music",
+            D(testCase.rootDir,
+              D("numbers",
+                F("one"),
+                F("two"),
+                D("biggest",
+                  F("three")
+                )
+              ),
+              D("letters",
+                F("a"),
+                F("b"),
+                D("biggest",
+                  F("c")
+                )
               )
             )
           )
@@ -128,8 +134,10 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
         val repositories = fsr.repositories
         val repository = testCase.repositoryFactory(repositories)
         fs.add(
-          D(testCase.rootDir,
-            F("file", defaultTags))
+          D("music",
+            D(testCase.rootDir,
+              F("file", defaultTags))
+          )
         )
         repository.file(fs.getPath("file")).toEither.flatMap(_.tags.read().toEither) must beRight { t: Tags =>
           t must be_===(defaultTags)
@@ -152,8 +160,8 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
           "Queen" -> Albums(Album("A Night at the Opera",Tracks("Death on Two Legs"))))
       )
       repositories.flac.file(fs.getPath("Q/Queen/A Night at the Opera/01 Death on Two Legs.flac")).toEither must beRight { flacFile: FlacFile =>
-        flacFile.toStagingFile.absolutePath.toString must be_===("/staging/Q/Queen/A Night at the Opera/01 Death on Two Legs.flac")
-        flacFile.toEncodedFile.absolutePath.toString must be_===("/encoded/Q/Queen/A Night at the Opera/01 Death on Two Legs.mp3")
+        flacFile.toStagingFile.absolutePath.toString must be_===("/music/staging/Q/Queen/A Night at the Opera/01 Death on Two Legs.flac")
+        flacFile.toEncodedFile.absolutePath.toString must be_===("/music/encoded/Q/Queen/A Night at the Opera/01 Death on Two Legs.m4a")
       }
     }
   }
@@ -166,8 +174,8 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
         Artists(
           "Queen" -> Albums(Album("A Night at the Opera", Tracks("Death on Two Legs"))))
       )
-      repositories.encoded.file(fs.getPath("Q/Queen/A Night at the Opera/01 Death on Two Legs.mp3")).toEither must beRight { encodedFile: EncodedFile =>
-        encodedFile.toDeviceFile(User("brian")).absolutePath.toString must be_===("/devices/brian/Q/Queen/A Night at the Opera/01 Death on Two Legs.mp3")
+      repositories.encoded.file(fs.getPath("Q/Queen/A Night at the Opera/01 Death on Two Legs.m4a")).toEither must beRight { encodedFile: EncodedFile =>
+        encodedFile.toDeviceFile(User("brian")).absolutePath.toString must be_===("/music/devices/brian/Q/Queen/A Night at the Opera/01 Death on Two Legs.m4a")
       }
     }
     "create a temporary file on demand" in {
@@ -178,7 +186,7 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
           Artists(
             "Queen" -> Albums(Album("A Night at the Opera", Tracks("Death on Two Legs"))))
         )
-        repositories.encoded.file(fs.getPath("Q/Queen/A Night at the Opera/01 Death on Two Legs.mp3")).toEither must beRight { encodedFile: EncodedFile =>
+        repositories.encoded.file(fs.getPath("Q/Queen/A Night at the Opera/01 Death on Two Legs.m4a")).toEither must beRight { encodedFile: EncodedFile =>
           encodedFile.toTempFile.absolutePath must exist
         }
     }

@@ -34,7 +34,7 @@ trait TestRepositories[T] extends FS[T] with StrictLogging {
   implicit val messageService: MessageService = NoOpMessageService(this)
 
   final override def setup(fs: JFileSystem): T = {
-    val directories: Directories = TestDirectories(fs)
+    val directories: Directories = TestDirectories(fs, "/tmp", "/music/datum")
     Files.createDirectories(directories.temporaryPath)
     val tagsService: TagsService = new TagsService {
       override def readTags(path: Path): Tags = {
@@ -112,7 +112,7 @@ object RepositoryEntry {
         val track = trackEntryBuilder.track
         val filename = f"$trackNumber%02d $track.$extension"
         if (link) {
-          val target = s"/encoded/$initial/$artist/$albumDirectory/$filename"
+          val target = s"../../../../../encoded/$initial/$artist/$albumDirectory/$filename"
           FsLinkBuilder(filename, target)
         }
         else {
@@ -198,11 +198,12 @@ object RepositoryEntry {
                 encoded: Artists = Artists(),
                 staging: ArtistsOrEntries = ArtistsOrEntries_Entries(Seq.empty),
                 devices: Users = Users()): Seq[FsEntryBuilder] = {
-        Seq(
+        val repoDirectories = Seq(
           FsReadOnlyBuilder(FsDirectoryBuilder("flac", entryBuilder(flac, FLAC, link = false))),
           FsReadOnlyBuilder(FsDirectoryBuilder("encoded", entryBuilder(encoded, M4A, link = false))),
           FsReadWriteBuilder(FsDirectoryBuilder("staging", entryBuilder(staging, FLAC, link = false))),
           FsReadOnlyBuilder(FsDirectoryBuilder("devices", entryBuilder(devices, M4A, link = true))))
+        Seq(FsReadWriteBuilder(FsDirectoryBuilder("music", repoDirectories)))
       }
     }
 

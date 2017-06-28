@@ -15,7 +15,7 @@
  */
 
 package common.files
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, LinkOption, Path}
 import java.time.Instant
 import javax.inject.Inject
 
@@ -88,7 +88,7 @@ class RepositoriesImpl @Inject() (val directories: Directories, val tagsService:
 
     lazy val absolutePath: Path = basePath.resolve(relativePath)
     lazy val exists: Boolean = Files.isSymbolicLink(absolutePath) || Files.exists(absolutePath)
-    lazy val lastModified: Instant = Files.getLastModifiedTime(absolutePath).toInstant
+    lazy val lastModified: Instant = Files.getLastModifiedTime(absolutePath, LinkOption.NOFOLLOW_LINKS).toInstant
     val tags: TagsContainer = tagsContainerProvider(absolutePath)
 
     /**
