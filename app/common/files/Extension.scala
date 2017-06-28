@@ -49,14 +49,14 @@ sealed trait Extension extends EnumEntry {
 object Extension extends Enum[Extension] {
 
   /**
-    * The extension for MP3 files.
+    * The extension for M4A files.
     */
-  case object MP3 extends Extension {
+  case object M4A extends Extension {
 
     /**
       * @inheritdoc
       */
-    override def extension = "mp3"
+    override def extension = "m4a"
   }
 
   /**

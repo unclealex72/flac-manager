@@ -83,7 +83,9 @@ lazy val root = (project in file(".")).
         Cmd("RUN", "rm", "sqlite-autoconf-3180000.tar.gz"),
         Cmd("RUN", "chmod", "777", "/tmp")
       )
-      val installPackageCommands = Seq("flac", "lame").map { pkg =>
+      val installPackageCommands =
+        Cmd("RUN", "echo", "http://nl.alpinelinux.org/alpine/edge/testing", ">>", "/etc/apk/repositories") +:
+        Seq("flac", "fdk-aac").map { pkg =>
         Cmd("RUN", "apk", "add", "--update", "--no-cache", pkg)
       }
       val createUserCommands = Seq(Cmd("RUN", "adduser", "-D",  "-u", "1000", "music"))
@@ -105,7 +107,7 @@ lazy val client = (project in file("client")).
     packageDescription := "Flac Manager Client Debian Package",
     libraryDependencies ++= Seq(
       ws,
-      "com.beachape" %% "enumeratum" % "1.3.6",
+      "com.beachape" %% "enumeratum" % "1.5.12",
       "com.github.scopt" %% "scopt" % "3.5.0",
       "org.fourthline.cling" % "cling-core" % "2.1.1",
       "org.typelevel" %% "cats" % "0.9.0",

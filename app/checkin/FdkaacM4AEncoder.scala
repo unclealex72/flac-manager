@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Alex Jones
+ * Copyright 2017 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,16 +17,16 @@
 package checkin
 
 import java.nio.file.Path
+import javax.inject.Inject
+
+import scala.sys.process._
 
 /**
-  * Encode a flac file into an MP3 file.
+  * An implementation that uses [[http://lame.sourceforge.net/ Lame]] to encode flac files to MP3.
   */
-trait Mp3Encoder {
+class FdkaacM4AEncoder @Inject()() extends M4aEncoder {
 
-  /**
-   * Encode a flac file into an MP3 file.
-   * @param source The source flac file.
-   * @param target The target MP3 file.
-   */
-  def encode(source: Path, target: Path)
+  override def encode(source: Path, target: Path): Unit = {
+    Seq("flac", "-dcs", source.toString) #| Seq("fdkaac", "-S", "-G", "2", "-b", "320", "-", "-o", target.toString) !
+  }
 }

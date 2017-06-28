@@ -21,7 +21,7 @@ import java.nio.file.{Files, Path, FileSystem => JFileSystem}
 import cats.data.Validated.{Invalid, Valid}
 import com.typesafe.scalalogging.StrictLogging
 import common.configuration.{Directories, TestDirectories}
-import common.files.Extension.{FLAC, MP3}
+import common.files.Extension.{FLAC, M4A}
 import common.message.{MessageService, NoOpMessageService}
 import common.music.{Tags, TagsService}
 import play.api.libs.json.Json
@@ -200,9 +200,9 @@ object RepositoryEntry {
                 devices: Users = Users()): Seq[FsEntryBuilder] = {
         Seq(
           FsReadOnlyBuilder(FsDirectoryBuilder("flac", entryBuilder(flac, FLAC, link = false))),
-          FsReadOnlyBuilder(FsDirectoryBuilder("encoded", entryBuilder(encoded, MP3, link = false))),
+          FsReadOnlyBuilder(FsDirectoryBuilder("encoded", entryBuilder(encoded, M4A, link = false))),
           FsReadWriteBuilder(FsDirectoryBuilder("staging", entryBuilder(staging, FLAC, link = false))),
-          FsReadOnlyBuilder(FsDirectoryBuilder("devices", entryBuilder(devices, MP3, link = true))))
+          FsReadOnlyBuilder(FsDirectoryBuilder("devices", entryBuilder(devices, M4A, link = true))))
       }
     }
 

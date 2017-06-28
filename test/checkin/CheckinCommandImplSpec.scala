@@ -16,16 +16,18 @@
 
 package checkin
 
-import java.nio.file.{CopyOption, Files, Path, StandardCopyOption, FileSystem => JFS}
+import java.nio.file.{Files, Path, StandardCopyOption, FileSystem => JFS}
+import java.time.Clock
 
-import cats.data.{NonEmptyList, ValidatedNel}
 import cats.data.Validated.Valid
+import cats.data.{NonEmptyList, ValidatedNel}
+import cats.implicits._
 import common.async.{BackgroundExecutionContext, CommandExecutionContext, GlobalExecutionContext, ThreadPoolThrottler}
 import common.changes.{Change, ChangeDao, ChangeMatchers}
 import common.configuration.User
 import common.files.Directory.StagingDirectory
 import common.files._
-import common.message.Messages.{NOT_OWNED, OVERWRITE}
+import common.message.Messages.NOT_OWNED
 import common.message.{Message, MessageService}
 import common.multi.AllowMultiService
 import common.music.Tags
@@ -33,7 +35,6 @@ import common.owners.OwnerService
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import own.OwnAction
-import cats.implicits._
 
 import scala.collection.SortedSet
 import scala.concurrent.duration._
@@ -164,11 +165,12 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
     }
     val checkinActionGenerator = new CheckinActionGeneratorImpl(ownerService, allowMultiService)
     val throttler = new ThreadPoolThrottler(2)
-    val mp3Encoder = new Mp3Encoder {
+    val mp3Encoder = new M4aEncoder {
       override def encode(source: Path, target: Path): Unit = {
         Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING)
       }
     }
+    implicit val clock: Clock = Clock.systemDefaultZone()
     val singleCheckinService = new SingleCheckinServiceImpl(throttler, fileSystem, changeDao, mp3Encoder, repositories)
     val checkinService = new CheckinServiceImpl(singleCheckinService)
     val checkinCommand = new CheckinCommandImpl(checkinActionGenerator, checkinService)

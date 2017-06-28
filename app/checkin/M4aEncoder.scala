@@ -17,16 +17,16 @@
 package checkin
 
 import java.nio.file.Path
-import javax.inject.Inject
-
-import scala.sys.process._
 
 /**
-  * An implementation that uses [[http://lame.sourceforge.net/ Lame]] to encode flac files to MP3.
+  * Encode a flac file into an MP3 file.
   */
-class LameMp3Encoder @Inject()() extends Mp3Encoder {
+trait M4aEncoder {
 
-  override def encode(source: Path, target: Path): Unit = {
-    Seq("flac", "-dcs", source.toString) #| Seq("lame", "--silent", "--resample", "44100", "-h", "-b", "320", "-", target.toString) !
-  }
+  /**
+   * Encode a flac file into an MP3 file.
+   * @param source The source flac file.
+   * @param target The target MP3 file.
+   */
+  def encode(source: Path, target: Path)
 }

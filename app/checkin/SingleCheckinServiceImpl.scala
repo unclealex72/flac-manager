@@ -16,18 +16,17 @@
 
 package checkin
 
+import java.time.Clock
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
 import common.changes.{Change, ChangeDao}
-import common.configuration.{Directories, User}
-import common.files.Extension.MP3
+import common.configuration.User
 import common.files._
-import common.message.Messages.{ENCODE, EXCEPTION}
+import common.message.Messages.{ENCODE, ENCODE_DURATION}
 import common.message.{MessageService, Messaging}
-import common.music.{Tags, TagsService}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
@@ -39,16 +38,16 @@ import scala.concurrent.{Await, Future}
   * @param changeDao The DAO used to store changes.
   * @param fileLocationExtensions Give [[FileLocation]]s path-like functionality.
   * @param directories The locations of the different repositories.
-  * @param mp3Encoder The encoder used to generate MP3 files.
+  * @param m4aEncoder The encoder used to generate MP3 files.
   * @param tagsService The service used to write tags to audio files.
   * @param ec The execution context used to move between actions.
   */
 class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
                                           val fileSystem: FileSystem,
                                           val changeDao: ChangeDao,
-                                          val mp3Encoder: Mp3Encoder,
+                                          val m4aEncoder: M4aEncoder,
                                           val repositories: Repositories)
-                                         (implicit val commandExecutionContext: CommandExecutionContext) extends SingleCheckinService
+                                         (implicit val commandExecutionContext: CommandExecutionContext, clock: Clock) extends SingleCheckinService
   with ThrottlerOps with StrictLogging with Messaging {
 
   override def encode(stagingFile: StagingFile,
@@ -56,7 +55,9 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
                       owners: Set[User])
                      (implicit messagingService: MessageService): Future[Unit] = safely {
     for {
-      tempFile <- encodeFile(stagingFile, flacFile)
+      tempFile <- time(
+        duration => ENCODE_DURATION(flacFile, duration.getSeconds, duration.getNano * 1000)
+      )(encodeFile(stagingFile, flacFile))
       _ <- moveAndLink(
         tempFile,
         stagingFile,
@@ -77,7 +78,7 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
     val encodedFile = flacFile.toEncodedFile
     val tempFile = encodedFile.toTempFile
     log(ENCODE(stagingFile, encodedFile))
-    mp3Encoder.encode(stagingFile.absolutePath, tempFile.absolutePath)
+    m4aEncoder.encode(stagingFile.absolutePath, tempFile.absolutePath)
     tempFile.writeTags()
   }
 

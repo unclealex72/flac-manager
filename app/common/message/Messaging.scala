@@ -18,13 +18,15 @@ package common.message
 
 import java.io.{PrintWriter, StringWriter}
 import java.nio.file.Path
+import java.time.{Clock, Duration}
 
 import cats.data.ValidatedNel
 import common.changes.{Change, ChangeType}
 import common.configuration.User
 import common.files._
-import common.message.Messages.EXCEPTION
 import io.circe.DecodingFailure
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * An interface for classes that can print internationalised messages to users.
@@ -185,6 +187,8 @@ object Messages {
     */
   case object NO_USERS extends Message("noUsers")
 
+  case class ENCODE_DURATION(flacFile: FlacFile, seconds: Long, millis: Long) extends Message("encodeDuration", flacFile, seconds, millis)
+
   case class NO_DIRECTORIES(repositoryType: String) extends Message("noDirectories")
 
   case class NOT_A_DIRECTORY(path: Path, repositoryType: String) extends Message("notADirectory", path, repositoryType)
@@ -226,6 +230,8 @@ object Messages {
 
     implicit def userToString(user: User): String = user.name
 
+    implicit def longToString(l: Long): String = l.toString
+
     implicit def changeTypeToString(changeType: ChangeType): String = changeType.action
 
     implicit def pathToString(path: Path): String = path.toString
@@ -236,6 +242,16 @@ object Messages {
 trait Messaging {
 
   def log(template: Message)(implicit messageService: MessageService): Unit = messageService.printMessage(template)
+
+  def time[T](template: Duration => Message)(block: => Future[T])(implicit messageService: MessageService, clock: Clock, executionContext: ExecutionContext): Future[T] = {
+    val startTime = clock.instant()
+    block.map { result =>
+      val endTime = clock.instant()
+      val duration = Duration.between(startTime, endTime)
+      log(template(duration))
+      result
+    }
+  }
 
   def logException(e: Exception)(implicit messageService: MessageService): Unit = {
     messageService.exception(e)

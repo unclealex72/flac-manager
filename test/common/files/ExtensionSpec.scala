@@ -18,7 +18,7 @@ package common.files
 
 import java.nio.file.Paths
 
-import common.files.Extension.MP3
+import common.files.Extension.M4A
 import common.files.Extension._
 import org.specs2.mutable._
 
@@ -29,31 +29,31 @@ class ExtensionSpec extends Specification {
 
   "changing a filename with no dots anywhere except to denote the extension" should {
     "replace the old extension with the new" in {
-      Paths.get("a", "b", "cde.flac") withExtension MP3 must beEqualTo(Paths.get("a", "b", "cde.mp3"))
+      Paths.get("a", "b", "cde.flac") withExtension M4A must beEqualTo(Paths.get("a", "b", "cde.m4a"))
     }
   }
 
   "changing a filename with no dots anywhere at all" should {
     "return a path equal to the original" in {
-      Paths.get("a", "b", "cde") withExtension MP3 must beEqualTo(Paths.get("a", "b", "cde"))
+      Paths.get("a", "b", "cde") withExtension M4A must beEqualTo(Paths.get("a", "b", "cde"))
     }
   }
 
   "changing a filename with two dots" should {
     "replace the old extension with the new" in {
-      Paths.get("a", "b", "cde.doit.flac") withExtension MP3 must beEqualTo(Paths.get("a", "b", "cde.doit.mp3"))
+      Paths.get("a", "b", "cde.doit.flac") withExtension M4A must beEqualTo(Paths.get("a", "b", "cde.doit.m4a"))
     }
   }
 
   "changing a filename with a dot within a directory and an extension" should {
     "replace the old extension with the new" in {
-      Paths.get("a", "b.z", "cde.doit.flac") withExtension MP3 must beEqualTo(Paths.get("a", "b.z", "cde.doit.mp3"))
+      Paths.get("a", "b.z", "cde.doit.flac") withExtension M4A must beEqualTo(Paths.get("a", "b.z", "cde.doit.m4a"))
     }
   }
 
   "changing a filename with a dot within a directory and no extension" should {
     "return a path equal to the original" in {
-      Paths.get("a", "b.z", "cde") withExtension MP3 must beEqualTo(Paths.get("a", "b.z", "cde"))
+      Paths.get("a", "b.z", "cde") withExtension M4A must beEqualTo(Paths.get("a", "b.z", "cde"))
     }
   }
 }

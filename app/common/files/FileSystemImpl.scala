@@ -17,14 +17,16 @@
 package common.files
 
 
-import java.nio.file.{AtomicMoveNotSupportedException, Files, Path, StandardCopyOption}
+import java.io.IOException
+import java.nio.file._
+import java.nio.file.attribute.BasicFileAttributes
 import javax.inject.Inject
 
 import common.message.Messages._
 import common.message._
 
 import scala.util.Try
-
+import scala.compat.java8.StreamConverters._
 
 /**
  * The default implementation of[[FileSystem]].
@@ -97,10 +99,10 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
       // Do nothing
     }
     else if (Files.isDirectory(path)) {
-      val dir = Files.newDirectoryStream(path)
-      val directoryIsEmpty = !dir.iterator().hasNext
+      val dir = Files.list(path)
+      val directoryIsEmpty = dir.toScala[Seq].forall(Files.isHidden)
       if (directoryIsEmpty) {
-        Files.delete(path)
+        recursivelyDelete(path)
         remove(basePath, path.getParent)
       }
       dir.close()
@@ -111,6 +113,16 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     }
   }
 
+  def recursivelyDelete(path: Path): Unit = {
+    def deleteAndContinue(path: Path): FileVisitResult = {
+      Files.delete(path)
+      FileVisitResult.CONTINUE
+    }
+    Files.walkFileTree(path, new SimpleFileVisitor[Path] {
+      override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = deleteAndContinue(dir)
+      override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = deleteAndContinue(file)
+    })
+  }
   /**
     * @inheritdoc
     *

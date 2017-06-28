@@ -1,5 +1,6 @@
 noFiles = Could not find any valid files in {0}
 encode = Encoding {0} to {1}
+encodeDuration = Encoding {0} took {1}.{2}s
 delete = Removing {0}
 checkin = Checking in {0}
 checkout = Checking out {0}
