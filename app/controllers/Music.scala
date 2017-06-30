@@ -61,7 +61,7 @@ class Music @Inject()(val userDao: UserDao,
     * @return An MP3 stream of music from a user's device repository.
     */
   def music(username: String, path: String): Action[AnyContent] = musicFile("music", username, path, deviceFileAt) {
-    deviceFileLocation => Ok.sendPath(deviceFileLocation.absolutePath).as("audio/mpeg")
+    deviceFileLocation => Ok.sendPath(deviceFileLocation.absolutePath).as("audio/m4a")
   }
 
   /**
