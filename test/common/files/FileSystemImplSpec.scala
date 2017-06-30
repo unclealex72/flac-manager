@@ -140,6 +140,45 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
     }
   }
 
+  "Removing a file with hidden siblings" should {
+    "remove the file, the hidden siblings empty directories" in { jfsRepositoriesAndFs : JFSRepositoriesAndFileSystem =>
+      val fs = jfsRepositoriesAndFs.fs
+      val fileSystem = jfsRepositoriesAndFs.fileSystem
+      val repositories = jfsRepositoriesAndFs.repositories
+
+      fs.add(
+        D("music",
+          D("flac",
+            D("dira",
+              D("dirb",
+                F("deleteme.txt", None),
+                D(".hidden",
+                  F("lookatme.txt")
+                )
+              ),
+              F("keepme.txt", None)
+            )
+          )
+        )
+      )
+      val validatedSource = repositories.flac.file(fs.getPath("dira", "dirb", "deleteme.txt"))
+      validatedSource.toEither must beRight { source : FlacFile =>
+        fileSystem.remove(source)
+        fs.entries must containTheSameElementsAs {
+          fs.expected(
+            D("music",
+              D("flac",
+                D("dira",
+                  F("keepme.txt")
+                )
+              )
+            )
+          )
+        }
+      }
+    }
+  }
+
   "Copying a file" should {
     "create all required directories" in { jfsRepositoriesAndFs : JFSRepositoriesAndFileSystem =>
       val fs = jfsRepositoriesAndFs.fs
