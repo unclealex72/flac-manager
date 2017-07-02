@@ -16,7 +16,7 @@ class CheckinModule extends AbstractModule with ScalaModule with AkkaGuiceSuppor
     */
   override def configure(): Unit = {
     bind[CheckinService].to[CheckinServiceImpl].asEagerSingleton()
-    bind[M4aEncoder].to[FdkaacM4AEncoder].asEagerSingleton()
+    bind[Seq[LossyEncoder]].toInstance(Seq(new FdkaacM4AEncoder, new LameMp3Encoder))
     bind[CheckinActionGenerator].to[CheckinActionGeneratorImpl].asEagerSingleton()
     bind[SingleCheckinService].to[SingleCheckinServiceImpl].asEagerSingleton()
   }

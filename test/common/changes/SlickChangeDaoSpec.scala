@@ -24,7 +24,8 @@ import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
 import common.async.{CommandExecutionContext, GlobalExecutionContext}
 import common.configuration.User
-import common.files.{DeviceFile, TagsContainer}
+import common.files.Extension.MP3
+import common.files.{DeviceFile, Extension, TagsContainer}
 import common.message.Messages.INVALID_TAGS
 import common.message.{MessageService, NoOpMessageService}
 import org.specs2.concurrent.ExecutionEnv
@@ -53,7 +54,7 @@ class SlickChangeDaoSpec extends Specification with ForEach[Db] with StrictLoggi
     "retrieve only changes for a user since a specific time" in { db: Db =>
       implicit val (changeDao, ee): (ChangeDao, ExecutionEnv) = (db.changeDao, db.ee)
 
-      changeDao.getAllChangesSince(freddie, "05/09/1972 09:13:00").map(_.map(c => c.copy(id = 0))) must contain(
+      changeDao.getAllChangesSince(freddie, MP3, "05/09/1972 09:13:00").map(_.map(c => c.copy(id = 0))) must contain(
         exactly(weAreTheChampionsRemoved, funnyHowLoveIsAdded, myFairyKingAdded, theNightComesDownAdded).inOrder).await
     }
   }
@@ -62,7 +63,7 @@ class SlickChangeDaoSpec extends Specification with ForEach[Db] with StrictLoggi
     "retrieve at most the number of changes requested in change time order" in { db: Db =>
       implicit val (changeDao, ee): (ChangeDao, ExecutionEnv) = (db.changeDao, db.ee)
 
-      val changeLogs = changeDao.changelog(freddie, "05/09/1972 09:13:00")
+      val changeLogs = changeDao.changelog(freddie, MP3, "05/09/1972 09:13:00")
       changeLogs must contain(exactly(
         ChangelogItem("News of the World", "05/09/1972 09:14:00", "News of the World/We Are The Champions.mp3"),
         ChangelogItem("Queen II", "05/09/1972 09:13:20", "Queen II/Funny How Love Is.mp3"),
@@ -171,7 +172,7 @@ object Dsl {
 
   implicit class ChangeBuilderB(relativePathAndUser: (String, User)) {
 
-    case class SimpleDeviceFile(user: User, relativePath: Path, lastModified: Instant) extends DeviceFile {
+    case class SimpleDeviceFile(user: User, extension: Extension, relativePath: Path, lastModified: Instant) extends DeviceFile {
       override val readOnly: Boolean = false
       override val rootPath: Path = Paths.get("/")
       override val basePath: Path = Paths.get("/")
@@ -180,11 +181,11 @@ object Dsl {
       override val exists: Boolean = false
     }
     def addedAt(instant: Instant): Change = {
-      Change.added(SimpleDeviceFile(relativePathAndUser._2, Paths.get(relativePathAndUser._1), instant))
+      Change.added(SimpleDeviceFile(relativePathAndUser._2, MP3, Paths.get(relativePathAndUser._1), instant))
     }
 
     def removedAt(instant: Instant): Change = {
-      Change.removed(SimpleDeviceFile(relativePathAndUser._2, Paths.get(relativePathAndUser._1), instant), instant)
+      Change.removed(SimpleDeviceFile(relativePathAndUser._2, MP3, Paths.get(relativePathAndUser._1), instant), instant)
     }
   }
 }

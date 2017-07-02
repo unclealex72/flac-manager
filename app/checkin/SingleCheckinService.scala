@@ -16,6 +16,7 @@
 
 package checkin
 
+import akka.io.IO.Extension
 import common.configuration.User
 import common.files.{FlacFile, StagingFile}
 import common.message.MessageService

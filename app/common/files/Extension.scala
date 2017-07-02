@@ -37,10 +37,22 @@ sealed trait Extension extends EnumEntry {
   def extension: String
 
   /**
+    * True if this format is lossy, false otherwise.
+    * @return
+    */
+
+  def lossy: Boolean
+  /**
     * The extension itself.
     * @return The extension itself.
     */
   override def toString: String = extension
+
+  /**
+    * The mime type associated with this extension.
+    * @return The extension itself.
+    */
+  def mimeType: String = extension
 }
 
 /**
@@ -49,25 +61,31 @@ sealed trait Extension extends EnumEntry {
 object Extension extends Enum[Extension] {
 
   /**
+    * The base for all extensions.
+    * @param extension The extension string.
+    * @param mimeType The mime type of the extension.
+    * @param lossy True if this encoding is lossy, false otherwise.
+    */
+  sealed case class ExtensionImpl(
+                                   override val extension: String,
+                                   override val mimeType: String,
+                                   override val lossy: Boolean) extends Extension
+
+  /**
     * The extension for M4A files.
     */
-  case object M4A extends Extension {
+  object M4A extends ExtensionImpl("m4a", "audio/m4a", true)
 
-    /**
-      * @inheritdoc
-      */
-    override def extension = "m4a"
-  }
+  /**
+    * The extension for MP3 files.
+    */
 
+  object MP3 extends ExtensionImpl("mp3", "audio/mpeg", true)
   /**
     * The extension for flac files.
     */
-  case object FLAC extends Extension {
+  object FLAC extends ExtensionImpl("flac", "audio/flac", false) {
 
-    /**
-      * @inheritdoc
-      */
-    override def extension = "flac"
   }
 
   /**
@@ -105,6 +123,14 @@ object Extension extends Enum[Extension] {
       */
     def hasExtension(extension: Extension): Boolean = {
       path.getFileName.toString.endsWith(s".$extension")
+    }
+
+    /**
+      * Get the extension of this file.
+      * @return The extension of this file if it has a known extension, none otherwise.
+      */
+    def extension: Option[Extension] = {
+      Extension.values.find(hasExtension)
     }
   }
 }

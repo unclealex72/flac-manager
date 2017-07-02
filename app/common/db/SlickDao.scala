@@ -21,6 +21,7 @@ import java.sql.Timestamp
 import java.time.Instant
 
 import common.configuration.User
+import common.files.Extension
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
@@ -37,6 +38,9 @@ trait SlickDao extends HasDatabaseConfigProvider[JdbcProfile] {
   )
 
   implicit val userColumnIsomorphism: Isomorphism[User, String] = new Isomorphism(_.name, User(_))
+
+  implicit val extensionColumnIsomorphism: Isomorphism[Extension, String] =
+    new Isomorphism(_.extension, ext => Extension.values.find(extension => extension.extension == ext).get)
 
   implicit val pathColumnIsomorphism: Isomorphism[Path, String] = new Isomorphism(_.toString, Paths.get(_))
 }

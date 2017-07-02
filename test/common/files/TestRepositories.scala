@@ -21,7 +21,7 @@ import java.nio.file.{Files, Path, FileSystem => JFileSystem}
 import cats.data.Validated.{Invalid, Valid}
 import com.typesafe.scalalogging.StrictLogging
 import common.configuration.{Directories, TestDirectories}
-import common.files.Extension.{FLAC, M4A}
+import common.files.Extension.{FLAC, M4A, MP3}
 import common.message.{MessageService, NoOpMessageService}
 import common.music.{Tags, TagsService}
 import play.api.libs.json.Json
@@ -68,14 +68,23 @@ object RepositoryEntry {
   object Builder extends Builder
   trait Builder extends FS.Builder {
 
-    def toFsEntryBuilder(userEntryBuilder: UserEntryBuilder, extension: Extension, link: Boolean): FsEntryBuilder = {
-      FsDirectoryBuilder(userEntryBuilder.user, toFsEntryBuilders(userEntryBuilder.artistsEntryBuilder, extension, link))
+    def toFsEntryBuilder(userEntryBuilder: UserEntryBuilder, extensions: Seq[Extension], link: Boolean): FsEntryBuilder = {
+      FsDirectoryBuilder(userEntryBuilder.user, toFsEntryBuilders(userEntryBuilder.artistsEntryBuilder, extensions, link))
     }
 
-    def toFsEntryBuilders(artistsEntry: ArtistsEntryBuilder, extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
+    def toFsEntryBuilders(artistsEntry: ArtistsEntryBuilder, extensions: Seq[Extension], link: Boolean): Seq[FsEntryBuilder] = {
       val artistEntriesByInitial = artistsEntry.artistEntryBuilders.groupBy(_.artist.substring(0, 1))
-      artistEntriesByInitial.toSeq.map { case (initial, artistEntries) =>
+      def extensionChildren(extension: Extension): Seq[FsDirectoryBuilder] = artistEntriesByInitial.toSeq.map { case (initial, artistEntries) =>
         FsDirectoryBuilder(initial, convertArtistEntries(initial, artistEntries, extension, link))
+      }
+      // Don't prepend FLAC as a directory.
+      if (extensions.forall(_.lossy)) {
+        extensions.map { extension =>
+          FsDirectoryBuilder(extension.extension, extensionChildren(extension))
+        }
+      }
+      else {
+        extensions.flatMap(extensionChildren)
       }
     }
 
@@ -110,9 +119,9 @@ object RepositoryEntry {
       trackEntryBuilders.zipWithIndex.map { case (trackEntryBuilder, idx) =>
         val trackNumber = idx + 1
         val track = trackEntryBuilder.track
-        val filename = f"$trackNumber%02d $track.$extension"
+        val filename = f"$trackNumber%02d $track.${extension.extension}"
         if (link) {
-          val target = s"../../../../../encoded/$initial/$artist/$albumDirectory/$filename"
+          val target = s"../../../../../../encoded/${extension.extension}/$initial/$artist/$albumDirectory/$filename"
           FsLinkBuilder(filename, target)
         }
         else {
@@ -176,21 +185,21 @@ object RepositoryEntry {
         ArtistsEntryBuilder(artistEntries)
       }
 
-      private def entryBuilder(artists: Artists, extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
-        toFsEntryBuilders(artistsToArtistsEntry(artists), extension, link)
+      private def entryBuilder(artists: Artists, link: Boolean, extensions: Extension*): Seq[FsEntryBuilder] = {
+        toFsEntryBuilders(artistsToArtistsEntry(artists), extensions, link)
       }
 
-      private def entryBuilder(artistsOrEntries: ArtistsOrEntries, extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
+      private def entryBuilder(artistsOrEntries: ArtistsOrEntries, link: Boolean, extensions: Extension*): Seq[FsEntryBuilder] = {
         artistsOrEntries match {
           case ArtistsOrEntries_Entries(entries) => entries
-          case ArtistsOrEntries_Artists(artists) => entryBuilder(artists, extension, link)
+          case ArtistsOrEntries_Artists(artists) => entryBuilder(artists, link, extensions :_*)
         }
       }
 
-      private def entryBuilder(users: Users, extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
+      private def entryBuilder(users: Users, link: Boolean, extensions: Extension*): Seq[FsEntryBuilder] = {
         users.artistsByUser.map { case (user, artists) =>
           val userEntry = UserEntryBuilder(user, artistsToArtistsEntry(artists))
-          toFsEntryBuilder(userEntry, extension, link)
+          toFsEntryBuilder(userEntry, extensions, link)
         }
       }
 
@@ -199,10 +208,10 @@ object RepositoryEntry {
                 staging: ArtistsOrEntries = ArtistsOrEntries_Entries(Seq.empty),
                 devices: Users = Users()): Seq[FsEntryBuilder] = {
         val repoDirectories = Seq(
-          FsReadOnlyBuilder(FsDirectoryBuilder("flac", entryBuilder(flac, FLAC, link = false))),
-          FsReadOnlyBuilder(FsDirectoryBuilder("encoded", entryBuilder(encoded, M4A, link = false))),
-          FsReadWriteBuilder(FsDirectoryBuilder("staging", entryBuilder(staging, FLAC, link = false))),
-          FsReadOnlyBuilder(FsDirectoryBuilder("devices", entryBuilder(devices, M4A, link = true))))
+          FsReadOnlyBuilder(FsDirectoryBuilder("flac", entryBuilder(flac, link = false, FLAC))),
+          FsReadOnlyBuilder(FsDirectoryBuilder("encoded", entryBuilder(encoded, link = false, M4A, MP3))),
+          FsReadWriteBuilder(FsDirectoryBuilder("staging", entryBuilder(staging, link = false, FLAC))),
+          FsReadOnlyBuilder(FsDirectoryBuilder("devices", entryBuilder(devices, link = true, M4A, MP3))))
         Seq(FsReadWriteBuilder(FsDirectoryBuilder("music", repoDirectories)))
       }
     }

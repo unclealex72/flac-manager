@@ -18,7 +18,9 @@ package common.files
 
 import java.time.{Clock, Instant}
 import java.nio.file.{FileSystem => JFS}
+
 import common.configuration.User
+import common.files.Extension.M4A
 import org.specs2.mutable._
 import testfilesystem._
 
@@ -227,13 +229,15 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
       fs.add(
         D("music",
           D("encoded",
-            D("dir",
-              F("linktome.txt", None)
+            D("m4a",
+              D("dir",
+                F("linktome.txt", None)
+              )
             )
           )
         )
       )
-      val validatedSource = repositories.encoded.file(fs.getPath("dir", "linktome.txt"))
+      val validatedSource = repositories.encoded(M4A).file(fs.getPath("dir", "linktome.txt"))
       validatedSource.toEither must beRight { source : EncodedFile =>
         val target = source.toDeviceFile(User("freddie"))
         fileSystem.link(source, target)
@@ -242,14 +246,18 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
             D("music",
               D("devices",
                 D("freddie",
-                  D("dir",
-                    L("linktome.txt", "../../../encoded/dir/linktome.txt")
+                  D("m4a",
+                    D("dir",
+                      L("linktome.txt", "../../../../encoded/m4a/dir/linktome.txt")
+                    )
                   )
                 )
               ),
               D("encoded",
-                D("dir",
-                  F("linktome.txt")
+                D("m4a",
+                  D("dir",
+                    F("linktome.txt")
+                  )
                 )
               )
             )

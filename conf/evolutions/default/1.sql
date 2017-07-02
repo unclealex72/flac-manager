@@ -6,6 +6,7 @@ create table `CHANGE` (
   at timestamp not null,
   id integer primary key,
   action varchar(128) not null,
+  extension varchar(128) not null,
   user varchar(128) not null
 );
 create index CHANGE_RELATIVE_PATH on `CHANGE`(relativePath);

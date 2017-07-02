@@ -18,15 +18,23 @@ package checkin
 
 import java.nio.file.Path
 
+import common.files.Extension
+
 /**
-  * Encode a flac file into an MP3 file.
+  * Encode a flac file into a lossy file.
   */
-trait M4aEncoder {
+trait LossyEncoder {
 
   /**
-   * Encode a flac file into an MP3 file.
+   * Encode a flac file into a lossy file.
    * @param source The source flac file.
-   * @param target The target MP3 file.
+   * @param target The target lossy file.
    */
   def encode(source: Path, target: Path)
+
+  /**
+    * The lossy format that this encoder generates.
+    * @return The lossy format that this encoder generates.
+    */
+  def encodesTo: Extension
 }

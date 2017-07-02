@@ -23,6 +23,7 @@ import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
 import common.configuration.User
 import common.db.SlickDao
+import common.files.Extension
 import common.message.Messages.ADD_CHANGE
 import common.message.{MessageService, Messaging}
 import play.api.db.slick.DatabaseConfigProvider
@@ -55,6 +56,7 @@ class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigPr
       relativePath,
       at,
       user,
+      extension,
       action) <> ((Change.apply _).tupled, Change.unapply)
 
     val id: Rep[Long] = column[Long]("ID", O.PrimaryKey, O.AutoInc)
@@ -63,6 +65,7 @@ class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     val relativePath: Rep[Path] = column[Path]("RELATIVEPATH", O.Length(512,varying=true))
     val at: Rep[Instant] = column[Instant]("AT")
     val user: Rep[User] = column[User]("USER", O.Length(128, varying = true))
+    val extension: Rep[Extension] = column[Extension]("EXTENSION", O.Length(128, varying = true))
     val action: Rep[ChangeType] = column[ChangeType]("ACTION", O.Length(128, varying = true))
   }
 
@@ -82,9 +85,9 @@ class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     countChangesQuery.result
   }
 
-  private val getAllChangesSinceQuery = Compiled { (user: Rep[User], since: Rep[Instant]) =>
+  private val getAllChangesSinceQuery = Compiled { (user: Rep[User], extension: Rep[Extension], since: Rep[Instant]) =>
     val latest =
-      changes.filter(c => c.at >= since && c.user === user).groupBy(_.relativePath).map {
+      changes.filter(c => c.at >= since && c.user === user && c.extension === extension).groupBy(_.relativePath).map {
         case (relativePath, change) => (relativePath, change.map(_.at).max)
       }
     val changesSince = for {
@@ -94,13 +97,13 @@ class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     changesSince.sortBy(c => (c.action.desc, c.relativePath.asc))
   }
 
-  override def getAllChangesSince(user: User, since: Instant): Future[Seq[Change]] = dbConfig.db.run {
-    getAllChangesSinceQuery(user, since).result
+  override def getAllChangesSince(user: User, extension: Extension, since: Instant): Future[Seq[Change]] = dbConfig.db.run {
+    getAllChangesSinceQuery(user, extension, since).result
   }
 
-  private val changelogQuery = Compiled { (user: Rep[User], since: Rep[Instant]) =>
+  private val changelogQuery = Compiled { (user: Rep[User], extension: Rep[Extension], since: Rep[Instant]) =>
     changes.filter {
-      c => c.action === LiteralColumn[ChangeType](AddedChange) && c.user === user && c.parentRelativePath.isDefined && c.at >= since
+      c => c.action === LiteralColumn[ChangeType](AddedChange) && c.user === user && c.extension === extension && c.parentRelativePath.isDefined && c.at >= since
     }.
       groupBy(_.parentRelativePath).
       map {
@@ -119,8 +122,8 @@ class SlickChangeDao @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     * @param since The earliest time to search for changes.
     * @return A list of changelog items.
     */
-  override def changelog(user: User, since: Instant): Future[Seq[ChangelogItem]] = dbConfig.db.run {
-    changelogQuery(user, since).result
+  override def changelog(user: User, extension: Extension, since: Instant): Future[Seq[ChangelogItem]] = dbConfig.db.run {
+    changelogQuery(user, extension, since).result
   }.map { results =>
     results.flatMap {
       case (Some(parentRelativePath), (Some(at), Some(relativePath))) =>

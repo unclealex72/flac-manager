@@ -30,6 +30,8 @@ import common.message.{Message, MessageService, Messaging}
 import common.music.{Tags, TagsService}
 import common.owners.OwnerService
 import cats.implicits._
+import checkin.LossyEncoder
+
 import scala.collection.SortedSet
 import scala.concurrent.Future
 
@@ -49,10 +51,11 @@ import scala.concurrent.Future
 class InitialiseCommandImpl @Inject()(
                                        val userDao: UserDao,
                                        val ownerService: OwnerService, val changeDao: ChangeDao,
+                                       val lossyEncoders: Seq[LossyEncoder],
                                        val repositories: Repositories)
                            (implicit val commandExecutionContext: CommandExecutionContext) extends InitialiseCommand with Messaging with StrictLogging {
 
-  case class InitialFile(deviceFile: DeviceFile, user: User)
+  case class InitialFile(deviceFile: DeviceFile, user: User, extension: Extension)
 
   implicit val initialFileOrdering: Ordering[InitialFile] = Ordering.by(i => (i.user, i.deviceFile))
   private val emptyFuture: Future[ValidatedNel[Message, Unit]] = Future.successful(Valid({}))
@@ -66,9 +69,17 @@ class InitialiseCommandImpl @Inject()(
       case 0 =>
         log(INITIALISATION_STARTED)
         val empty: ValidatedNel[Message, Seq[InitialFile]] = Valid(Seq.empty)
-        val validatedInitialFiles: ValidatedNel[Message, Seq[InitialFile]] = userDao.allUsers().foldLeft(empty) { (acc, user) =>
-          val validatedInitialFilesForUser = listFiles(user).map(_.map(InitialFile(_, user)))
-          (acc |@| validatedInitialFilesForUser).map(_ ++ _)
+        val userAndExtensions = for {
+          user <- userDao.allUsers()
+          lossyEncoder <- lossyEncoders
+        } yield {
+          (user, lossyEncoder.encodesTo)
+        }
+        val validatedInitialFiles: ValidatedNel[Message, Seq[InitialFile]] =
+          userAndExtensions.foldLeft(empty) { (acc, userAndExtension) =>
+            val (user, extension) = userAndExtension
+            val validatedInitialFilesForUser = listFiles(user, extension).map(_.map(InitialFile(_, user, extension)))
+            (acc |@| validatedInitialFilesForUser).map(_ ++ _)
         }
         validatedInitialFiles match {
           case Valid(initialFiles) =>
@@ -110,7 +121,7 @@ class InitialiseCommandImpl @Inject()(
     * @param messageService The [[MessageService]] used to report progress and log errors.
     * @return All the files in the user's device repository.
     */
-  def listFiles(user: User)(implicit messageService: MessageService): ValidatedNel[Message, SortedSet[DeviceFile]] = {
-    repositories.device(user).root.map(_.list)
+  def listFiles(user: User, extension: Extension)(implicit messageService: MessageService): ValidatedNel[Message, SortedSet[DeviceFile]] = {
+    repositories.device(user, extension).root.map(_.list)
   }
 }

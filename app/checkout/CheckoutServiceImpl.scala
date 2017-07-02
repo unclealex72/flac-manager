@@ -22,6 +22,7 @@ import javax.inject.Inject
 
 import cats.data.Validated.Valid
 import cats.data.ValidatedNel
+import checkin.LossyEncoder
 import common.async.CommandExecutionContext
 import common.changes.{Change, ChangeDao}
 import common.configuration.{User, UserDao}
@@ -52,10 +53,12 @@ class CheckoutServiceImpl @Inject()(
                                      val userDao: UserDao,
                                      val ownerService: OwnerService,
                                      val changeDao: ChangeDao,
+                                     val lossyEncoders: Seq[LossyEncoder],
                                      val clock: Clock)
                          (implicit val commandExecutionContext: CommandExecutionContext)
   extends CheckoutService {
 
+  val extensions: Seq[Extension] = lossyEncoders.map(_.encodesTo)
   /**
     * @inheritdoc
     */
@@ -110,14 +113,16 @@ class CheckoutServiceImpl @Inject()(
                               firstFlacFile: FlacFile, flacFiles: SortedSet[FlacFile])(implicit messageService: MessageService): Map[User, Set[Tags]] = {
     val owners = quickOwners(firstFlacFile)
     val tags = firstFlacFile.tags.read().toOption
-    flacFiles.foreach { flacFile =>
-      val encodedFile = flacFile.toEncodedFile
-      val deviceFiles: Set[DeviceFile] = owners.map { user => encodedFile.toDeviceFile(user)}
-      deviceFiles.foreach { deviceFile =>
-        Await.result(changeDao.store(Change.removed(deviceFile, Instant.now(clock))), Duration.apply(1, TimeUnit.HOURS))
-        fileSystem.remove(deviceFile)
+    for (flacFile <- flacFiles) {
+      for (extension <- extensions) {
+        val encodedFile = flacFile.toEncodedFile(extension)
+        val deviceFiles: Set[DeviceFile] = owners.map { user => encodedFile.toDeviceFile(user) }
+        deviceFiles.foreach { deviceFile =>
+          Await.result(changeDao.store(Change.removed(deviceFile, Instant.now(clock))), Duration.apply(1, TimeUnit.HOURS))
+          fileSystem.remove(deviceFile)
+        }
+        fileSystem.remove(encodedFile)
       }
-      fileSystem.remove(encodedFile)
       fileSystem.move(flacFile, flacFile.toStagingFile)
     }
     owners.foldLeft(tagsForUsers) { (tagsForUsers, owner) =>
@@ -135,7 +140,6 @@ class CheckoutServiceImpl @Inject()(
    * @return A list of users who own the album.
    */
   def quickOwners(flacFile: FlacFile): Set[User] = userDao.allUsers().filter { user =>
-    val deviceFile = flacFile.toEncodedFile.toDeviceFile(user)
-    deviceFile.exists
+    extensions.map(extension => flacFile.toEncodedFile(extension).toDeviceFile(user)).exists(_.exists)
   }
 }

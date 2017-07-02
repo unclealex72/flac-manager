@@ -19,8 +19,13 @@ package common.files
 import java.nio.file.{Files, FileSystem => JFS}
 import java.time.{Clock, Instant}
 
+import cats.data.{NonEmptyList, ValidatedNel}
+import cats.data.Validated.Valid
+import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import common.configuration.User
+import common.files.Extension.{M4A, MP3}
+import common.message.Message
 import common.music.{CoverArt, Tags}
 import org.specs2.mutable.Specification
 import org.specs2.specification.core.Fragment
@@ -53,25 +58,34 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
 
 
   "Reading files in a repository" should {
-    case class FilesTestCase[F <: File, R <: Repository[F]](name: String, rootDir: String, repositoryFactory: Repositories => R)
-    val stagingTestCase = FilesTestCase[StagingFile, StagingRepository]("staging", "staging", _.staging)
-    val flacTestCase = FilesTestCase[FlacFile, FlacRepository]("flac", "flac", _.flac)
-    val encodedTestCase = FilesTestCase[EncodedFile, EncodedRepository]("encoded", "encoded", _.encoded)
-    val devicesTestCase = FilesTestCase[DeviceFile, DeviceRepository]("devices", "devices/freddie", _.device(User("freddie")))
+    case class FilesTestCase[F <: File, R <: Repository[F]](name: String, repositoryFactory: Repositories => R, rootDirs: String*)
+    val stagingTestCase = FilesTestCase[StagingFile, StagingRepository]("staging", _.staging, "staging")
+    val flacTestCase = FilesTestCase[FlacFile, FlacRepository]("flac", _.flac, "flac")
+    val encodedTestCase = FilesTestCase[EncodedFile, EncodedRepository]("encoded", _.encoded(MP3), "encoded", "mp3")
+    val devicesTestCase = FilesTestCase[DeviceFile, DeviceRepository]("devices", _.device(User("freddie"), MP3), "devices", "freddie", "mp3")
     def runTests[F <: File, R <: Repository[F]](testCase: FilesTestCase[F, R]): Fragment = {
+      val rootPaths = "music" +: testCase.rootDirs
+      val rootPath = "/" + rootPaths.mkString("/")
+      def R(child: FsEntryBuilder, children: FsEntryBuilder*): FsEntryBuilder = {
+        def rootDir(directories: List[String]): NonEmptyList[FsEntryBuilder] = {
+          directories match {
+            case Nil => NonEmptyList.of(child, children :_*)
+            case d :: ds => NonEmptyList.of(D(d, rootDir(ds).toList :_*))
+          }
+        }
+        rootDir(rootPaths.toList).head
+      }
       s"be able to identify a directory in the ${testCase.name} repository" in { fsr: FileSystemAndRepositories =>
         val fs = fsr.fs
         val repositories = fsr.repositories
         val repository = testCase.repositoryFactory(repositories)
         fs.add(
-          D("music",
-            D(testCase.rootDir,
-              D("dir")
-            )
+          R(
+            D("dir")
           )
         )
         repository.directory(fs.getPath("dir")).toEither must beRight { dir: Directory[_] =>
-          dir.absolutePath.toString must be_===(s"/music/${testCase.rootDir}/dir")
+          dir.absolutePath.toString must be_===(s"$rootPath/dir")
           dir.relativePath.toString must be_===(s"dir")
         }
         repository.file(fs.getPath("dir")).toEither must beLeft
@@ -81,13 +95,12 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
         val repositories = fsr.repositories
         val repository = testCase.repositoryFactory(repositories)
         fs.add(
-          D("music",
-            D(testCase.rootDir,
-              F("file"))
+          R(
+            F("file")
           )
         )
         repository.file(fs.getPath("file")).toEither must beRight { f: File =>
-          f.absolutePath.toString must be_===(s"/music/${testCase.rootDir}/file")
+          f.absolutePath.toString must be_===(s"$rootPath/file")
           f.relativePath.toString must be_===(s"file")
           f.exists must beTrue
         }
@@ -98,21 +111,19 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
         val repositories = fsr.repositories
         val repository = testCase.repositoryFactory(repositories)
         fs.add(
-          D("music",
-            D(testCase.rootDir,
-              D("numbers",
-                F("one"),
-                F("two"),
-                D("biggest",
-                  F("three")
-                )
-              ),
-              D("letters",
-                F("a"),
-                F("b"),
-                D("biggest",
-                  F("c")
-                )
+          R(
+            D("numbers",
+              F("one"),
+              F("two"),
+              D("biggest",
+                F("three")
+              )
+            ),
+            D("letters",
+              F("a"),
+              F("b"),
+              D("biggest",
+                F("c")
               )
             )
           )
@@ -134,15 +145,45 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
         val repositories = fsr.repositories
         val repository = testCase.repositoryFactory(repositories)
         fs.add(
-          D("music",
-            D(testCase.rootDir,
-              F("file", defaultTags))
+          R(
+            F("file", defaultTags)
           )
         )
         repository.file(fs.getPath("file")).toEither.flatMap(_.tags.read().toEither) must beRight { t: Tags =>
           t must be_===(defaultTags)
         }
         repository.directory(fs.getPath("file")).toEither must beLeft
+      }
+
+      s"ignore hidden files and directories in the ${testCase.name} repository" in { fsr: FileSystemAndRepositories =>
+        val fs = fsr.fs
+        val repositories = fsr.repositories
+        val repository = testCase.repositoryFactory(repositories)
+        fs.add(
+          R(
+            D("visible",
+              F("F1"),
+              F("F2"),
+              F(".hidden.invisible")
+            ),
+            D(".hidden",
+              F("thumb.1"),
+              F("thumb.2")
+            )
+          )
+        )
+        repository.root.toEither must beRight { root: Directory[F] =>
+          val validatedExpectedFiles = {
+            val empty: ValidatedNel[Message, Seq[F]] = Valid(Seq.empty)
+            Seq("F1", "F2").foldLeft(empty) { (acc, filename) =>
+              val validatedFile = repository.file(fs.getPath("visible", filename))
+              (acc |@| validatedFile).map(_ :+ _)
+            }
+          }
+          validatedExpectedFiles.toEither must beRight { files: Seq[F] =>
+            root.list must containTheSameElementsAs(files)
+          }
+        }
       }
     }
     runTests(stagingTestCase)
@@ -161,7 +202,7 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
       )
       repositories.flac.file(fs.getPath("Q/Queen/A Night at the Opera/01 Death on Two Legs.flac")).toEither must beRight { flacFile: FlacFile =>
         flacFile.toStagingFile.absolutePath.toString must be_===("/music/staging/Q/Queen/A Night at the Opera/01 Death on Two Legs.flac")
-        flacFile.toEncodedFile.absolutePath.toString must be_===("/music/encoded/Q/Queen/A Night at the Opera/01 Death on Two Legs.m4a")
+        flacFile.toEncodedFile(M4A).absolutePath.toString must be_===("/music/encoded/m4a/Q/Queen/A Night at the Opera/01 Death on Two Legs.m4a")
       }
     }
   }
@@ -174,8 +215,8 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
         Artists(
           "Queen" -> Albums(Album("A Night at the Opera", Tracks("Death on Two Legs"))))
       )
-      repositories.encoded.file(fs.getPath("Q/Queen/A Night at the Opera/01 Death on Two Legs.m4a")).toEither must beRight { encodedFile: EncodedFile =>
-        encodedFile.toDeviceFile(User("brian")).absolutePath.toString must be_===("/music/devices/brian/Q/Queen/A Night at the Opera/01 Death on Two Legs.m4a")
+      repositories.encoded(M4A).file(fs.getPath("Q/Queen/A Night at the Opera/01 Death on Two Legs.m4a")).toEither must beRight { encodedFile: EncodedFile =>
+        encodedFile.toDeviceFile(User("brian")).absolutePath.toString must be_===("/music/devices/brian/m4a/Q/Queen/A Night at the Opera/01 Death on Two Legs.m4a")
       }
     }
     "create a temporary file on demand" in {
@@ -186,7 +227,7 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
           Artists(
             "Queen" -> Albums(Album("A Night at the Opera", Tracks("Death on Two Legs"))))
         )
-        repositories.encoded.file(fs.getPath("Q/Queen/A Night at the Opera/01 Death on Two Legs.m4a")).toEither must beRight { encodedFile: EncodedFile =>
+        repositories.encoded(M4A).file(fs.getPath("Q/Queen/A Night at the Opera/01 Death on Two Legs.m4a")).toEither must beRight { encodedFile: EncodedFile =>
           encodedFile.toTempFile.absolutePath must exist
         }
     }

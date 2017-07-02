@@ -21,6 +21,7 @@ import javax.inject.Inject
 
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, ValidatedNel}
+import checkin.LossyEncoder
 import common.async.CommandExecutionContext
 import common.changes.{Change, ChangeDao}
 import common.collections.CollectionDao
@@ -46,8 +47,11 @@ class OwnerServiceImpl @Inject()(
                                   val collectionDao: CollectionDao,
                                   val fileSystem: FileSystem,
                                   val clock: Clock,
+                                  val lossyEncoders: Seq[LossyEncoder],
                                   val userDao: UserDao, val changeDao: ChangeDao)
                                 (implicit val commandExecutionContext: CommandExecutionContext) extends OwnerService with Messaging {
+
+  val extensions: Seq[Extension] = lossyEncoders.map(_.encodesTo)
 
   /**
     * @inheritdoc
@@ -75,11 +79,17 @@ class OwnerServiceImpl @Inject()(
                                     action: OwnAction,
                                     flacFiles: NonEmptyList[FlacFile])
                                   (implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
+    val encodedFiles = for {
+      flacFile <- flacFiles.toList
+      extension <- extensions
+    } yield {
+      flacFile.toEncodedFile(extension)
+    }
     changeOwnership(
       user,
       action,
       flacFiles,
-      flacFiles.toList.map(_.toEncodedFile))
+      encodedFiles)
   }
 
   /**
@@ -97,7 +107,7 @@ class OwnerServiceImpl @Inject()(
                                    files: NonEmptyList[FL],
                                    encodedFiles: Seq[EncodedFile])
                      (implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
-    files.head.tags.read match {
+    files.head.tags.read() match {
       case Valid(tags) =>
         action match {
           case Own =>

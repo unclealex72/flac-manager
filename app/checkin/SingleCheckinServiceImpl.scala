@@ -45,7 +45,7 @@ import scala.concurrent.{Await, Future}
 class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
                                           val fileSystem: FileSystem,
                                           val changeDao: ChangeDao,
-                                          val m4aEncoder: M4aEncoder,
+                                          val lossyEncoders: Seq[LossyEncoder],
                                           val repositories: Repositories)
                                          (implicit val commandExecutionContext: CommandExecutionContext, clock: Clock) extends SingleCheckinService
   with ThrottlerOps with StrictLogging with Messaging {
@@ -54,15 +54,22 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
                       flacFile: FlacFile,
                       owners: Set[User])
                      (implicit messagingService: MessageService): Future[Unit] = safely {
+    val eventualTempFilesByExtension = {
+      val empty: Future[Map[Extension, TempFile]] = Future.successful(Map.empty)
+      lossyEncoders.foldLeft(empty) { (eventualMap, lossyEncoder) =>
+        for {
+          map <- eventualMap
+          tempFile <- time(
+            duration => ENCODE_DURATION(flacFile, duration.getSeconds, duration.getNano / 1000000)
+          )(encodeFile(stagingFile, flacFile, lossyEncoder))
+        } yield {
+          map + (lossyEncoder.encodesTo -> tempFile)
+        }
+      }
+    }
     for {
-      tempFile <- time(
-        duration => ENCODE_DURATION(flacFile, duration.getSeconds, duration.getNano / 1000000)
-      )(encodeFile(stagingFile, flacFile))
-      _ <- moveAndLink(
-        tempFile,
-        stagingFile,
-        flacFile,
-        owners)
+      tempFilesByExtension <- eventualTempFilesByExtension
+      _ <- moveAndLink(tempFilesByExtension, stagingFile, flacFile, owners)
     } yield {}
   }
 
@@ -73,19 +80,19 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
     * @param messageService The service used to report progress and errors.
     * @return The location of the encoded mp3 file.
     */
-  def encodeFile(stagingFile: StagingFile, flacFile: FlacFile)
+  def encodeFile(stagingFile: StagingFile, flacFile: FlacFile, lossyEncoder: LossyEncoder)
                 (implicit messageService: MessageService): Future[TempFile] = parallel {
-    val encodedFile = flacFile.toEncodedFile
+    val encodedFile = flacFile.toEncodedFile(lossyEncoder.encodesTo)
     val tempFile = encodedFile.toTempFile
     log(ENCODE(stagingFile, encodedFile))
-    m4aEncoder.encode(stagingFile.absolutePath, tempFile.absolutePath)
+    lossyEncoder.encode(stagingFile.absolutePath, tempFile.absolutePath)
     tempFile.writeTags()
   }
 
   /**
     * Move the staged flac file to the flac repository and the encoded mp3 file to the encoded repository as well
     * as linking to it from within the devices repository.
-    * @param tempFile The location of the mp3 file.
+    * @param tempFilesByExtension The location of the temporary files.
     * @param stagingFile The source flac file.
     * @param flacFile The target location for the flac file.
     * @param owners The owners of the flac file.
@@ -93,16 +100,19 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
     * @return Eventually nothing.
     */
   def moveAndLink(
-                   tempFile: TempFile,
+                   tempFilesByExtension: Map[Extension, TempFile],
                    stagingFile: StagingFile,
                    flacFile: FlacFile,
                    owners: Set[User])(implicit messageService: MessageService): Future[_] = sequential {
-    val encodedFile = flacFile.toEncodedFile
-    fileSystem.move(tempFile, encodedFile)
-    owners.foreach { user =>
-      val deviceFile = encodedFile.toDeviceFile(user)
-      fileSystem.link(encodedFile, deviceFile)
-      Await.result(changeDao.store(Change.added(deviceFile)), Duration.apply(1, TimeUnit.HOURS))
+    tempFilesByExtension.toSeq.foreach {
+      case (extension, tempFile) =>
+        val encodedFile = flacFile.toEncodedFile(extension)
+        fileSystem.move(tempFile, encodedFile)
+        owners.foreach { user =>
+          val deviceFile = encodedFile.toDeviceFile(user)
+          fileSystem.link(encodedFile, deviceFile)
+          Await.result(changeDao.store(Change.added(deviceFile)), Duration.apply(1, TimeUnit.HOURS))
+        }
     }
     fileSystem.move(stagingFile, flacFile)
   }

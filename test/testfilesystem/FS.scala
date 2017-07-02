@@ -82,9 +82,9 @@ object FS {
 
     def construct(fs: JFS, fsEntryBuilders: Seq[FsEntryBuilder]): Unit = {
       val fsEntries = fsEntryBuilders.flatMap(fsEntryBuilder => toEntries(fs, fsEntryBuilder)).sortBy {
-        case _: FsFile => 0
-        case _: FsLink => 1
-        case _: FsDirectory => 2
+        case _: FsFile => (0, 0)
+        case _: FsLink => (1, 0)
+        case d: FsDirectory => (2, -d.path.getNameCount)
       }
       fsEntries.foreach { fsEntry =>
         fsEntry match {

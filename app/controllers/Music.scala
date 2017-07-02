@@ -17,7 +17,7 @@
 package controllers
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.{FileSystem, Path, Paths}
+import java.nio.file.{FileSystem, Path}
 import java.time.{Instant, ZoneId, ZonedDateTime}
 import javax.inject.{Inject, Singleton}
 
@@ -25,7 +25,7 @@ import cats.data.Validated.{Invalid, Valid}
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
 import common.configuration.{Directories, User, UserDao}
-import common.files.{DeviceFile, Repositories}
+import common.files.{DeviceFile, Extension, Repositories}
 import common.message.{MessageService, MessageServiceBuilder}
 import common.music.{Tags, TagsService}
 import play.api.mvc._
@@ -60,8 +60,9 @@ class Music @Inject()(val userDao: UserDao,
     * @param path The relative path of the track.
     * @return An MP3 stream of music from a user's device repository.
     */
-  def music(username: String, path: String): Action[AnyContent] = musicFile("music", username, path, deviceFileAt) {
-    deviceFileLocation => Ok.sendPath(deviceFileLocation.absolutePath).as("audio/m4a")
+  def music(username: String, extension: String, path: String): Action[AnyContent] =
+    musicFile("music", username, extension, path, deviceFileAt) {
+      deviceFile => Ok.sendPath(deviceFile.absolutePath).as(deviceFile.extension.mimeType)
   }
 
   /**
@@ -70,8 +71,8 @@ class Music @Inject()(val userDao: UserDao,
     * @param path The relative path of the track.
     * @return An MP3 stream of music from a user's device repository.
     */
-  def tags(username: String, path: String): Action[AnyContent] =
-    serveTags("tags", username, path, deviceFileAt)(tags => Ok(tags.toJson(false)))
+  def tags(username: String, extension: String, path: String): Action[AnyContent] =
+    serveTags("tags", username, extension, path, deviceFileAt)(tags => Ok(tags.toJson(false)))
 
   /**
     * Serve a response based on an audio file's tags.
@@ -83,10 +84,11 @@ class Music @Inject()(val userDao: UserDao,
     */
   def serveTags(requestType: String,
                 username: String,
+                extension: String,
                 path: String,
-                deviceFileLocator: (User, Path) => Option[DeviceFile])
+                deviceFileLocator: (User, Extension, Path) => Option[DeviceFile])
                (responseBuilder: Tags => Result): Action[AnyContent] =
-    musicFile(requestType, username, path, deviceFileLocator) { deviceFile =>
+    musicFile(requestType, username, extension, path, deviceFileLocator) { deviceFile =>
     deviceFile.tags.read() match {
       case Invalid(_) =>
         NotFound("")
@@ -106,16 +108,18 @@ class Music @Inject()(val userDao: UserDao,
   def musicFile(
                 requestType: String,
                 username: String,
+                ext: String,
                 path: String,
-                deviceFileLocator: (User, Path) => Option[DeviceFile])
+                deviceFileLocator: (User, Extension, Path) => Option[DeviceFile])
                (resultBuilder: DeviceFile  => Result) = Action { implicit request: Request[AnyContent] =>
     logger.info(s"Received a request for $requestType for $username at $path")
     val decodedPath = UriEncoding.decodePath(path, StandardCharsets.UTF_8.toString).replace('+', ' ')
-    val musicFile = for {
-      user <- userDao.allUsers().find(_.name == username)
-      musicFile <- deviceFileLocator(user, fs.getPath(decodedPath))
+    val musicFiles = for {
+      user <- userDao.allUsers() if user.name == username
+      extension <- Extension.values if extension.lossy && extension.extension == ext
+      musicFile <- deviceFileLocator(user, extension, fs.getPath(decodedPath))
     } yield musicFile
-    musicFile match {
+    musicFiles.headOption match {
       case Some(deviceFile) =>
         val lastModified: Instant = deviceFile.lastModified
         val maybeNotModified = for {
@@ -137,8 +141,8 @@ class Music @Inject()(val userDao: UserDao,
     * @param path The path of the track relative to the user's device repository.
     * @return The album artwork or 404 if the track or user could not be found.
     */
-  def artwork(username: String, path: String): Action[AnyContent] =
-    serveTags("artwork", username, path, firstDeviceFileIn) { tags =>
+  def artwork(username: String, extension: String, path: String): Action[AnyContent] =
+    serveTags("artwork", username, path, extension, firstDeviceFileIn) { tags =>
     val coverArt = tags.coverArt
     Ok(coverArt.imageData).as(coverArt.mimeType)
   }
@@ -146,11 +150,12 @@ class Music @Inject()(val userDao: UserDao,
   /**
     * A method that can be used to find a file by directly looking a file in a user's device repository.
     * @param user The user who owns the property.
+    * @param extension The type of lossy file.
     * @param path The path of the file relative to the user's device repository.
-    * @return A [[DeviceFileLocation]] if one exists, none otherwise.
+    * @return A [[DeviceFile]] if one exists, none otherwise.
     */
-  def deviceFileAt(user: User, path: Path): Option[DeviceFile] = {
-    repositories.device(user).file(path).toOption.filter(_.exists)
+  def deviceFileAt(user: User, extension: Extension, path: Path): Option[DeviceFile] = {
+    repositories.device(user, extension).file(path).toOption.filter(_.exists)
   }
 
   /**
@@ -158,10 +163,10 @@ class Music @Inject()(val userDao: UserDao,
     * This is to allow album artwork to be correctly cached by clients.
     * @param user The user who owns the property.
     * @param parentPath The path of the album relative to the user's device repository.
-    * @return A [[DeviceFileLocation]] if one exists, none otherwise.
+    * @return A [[DeviceFile]] if one exists, none otherwise.
     */
-  def firstDeviceFileIn(user: User, parentPath: Path): Option[DeviceFile] = {
-    repositories.device(user).directory(parentPath).toOption.flatMap(_.list(0).headOption)
+  def firstDeviceFileIn(user: User, extension: Extension, parentPath: Path): Option[DeviceFile] = {
+    repositories.device(user, extension).directory(parentPath).toOption.flatMap(_.list(0).headOption)
   }
 
 }

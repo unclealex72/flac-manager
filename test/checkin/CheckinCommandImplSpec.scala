@@ -26,6 +26,7 @@ import common.async.{BackgroundExecutionContext, CommandExecutionContext, Global
 import common.changes.{Change, ChangeDao, ChangeMatchers}
 import common.configuration.User
 import common.files.Directory.StagingDirectory
+import common.files.Extension.{M4A, MP3}
 import common.files._
 import common.message.Messages.NOT_OWNED
 import common.message.{Message, MessageService}
@@ -165,13 +166,15 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
     }
     val checkinActionGenerator = new CheckinActionGeneratorImpl(ownerService, allowMultiService)
     val throttler = new ThreadPoolThrottler(2)
-    val mp3Encoder = new M4aEncoder {
+    class SimpleLossyEncoder(extension: Extension) extends LossyEncoder {
       override def encode(source: Path, target: Path): Unit = {
         Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING)
       }
+      override def encodesTo: Extension = extension
     }
     implicit val clock: Clock = Clock.systemDefaultZone()
-    val singleCheckinService = new SingleCheckinServiceImpl(throttler, fileSystem, changeDao, mp3Encoder, repositories)
+    val lossyEncoders = Seq(new SimpleLossyEncoder(MP3), new SimpleLossyEncoder(M4A))
+    val singleCheckinService = new SingleCheckinServiceImpl(throttler, fileSystem, changeDao, lossyEncoders, repositories)
     val checkinService = new CheckinServiceImpl(singleCheckinService)
     val checkinCommand = new CheckinCommandImpl(checkinActionGenerator, checkinService)
     Services(fs, repositories, ownerService, changeDao, checkinCommand)

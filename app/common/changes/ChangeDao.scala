@@ -18,6 +18,7 @@ package common.changes
 import java.time.Instant
 
 import common.configuration.User
+import common.files.Extension
 import common.message.MessageService
 
 import scala.concurrent.Future
@@ -46,17 +47,19 @@ trait ChangeDao {
     * Get all the changes for a given user since a given time. Changes are ordered by deletions first and
     * then by artist, album and track number.
     * @param user The user making the request.
+    * @param extension The type of files to limit changes.
     * @param since The earliest time to search for changes.
     * @return A list of all changes.
     */
-  def getAllChangesSince(user: User, since: Instant): Future[Seq[Change]]
+  def getAllChangesSince(user: User, extension: Extension, since: Instant): Future[Seq[Change]]
 
   /**
     * Get a list of changelog items for a given user since a given amount of time. A changelog item
     * indicates that an album has been added or removed.
     * @param user The user making the request.
+    * @param extension The type of files to limit changes.
     * @param since The earliest time to search for changes.
     * @return A list of changelog items.
     */
-  def changelog(user: User, since: Instant): Future[Seq[ChangelogItem]]
+  def changelog(user: User, extension: Extension, since: Instant): Future[Seq[ChangelogItem]]
 }

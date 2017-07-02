@@ -6,15 +6,15 @@ This project can be used to manage a repository of [FLAC](http://flac.sourceforg
 It can do the following:
 
 * ensure FLAC files are named consistently,
-* encode FLAC files into M4A files, making sure album artwork is copied over and
-* synchronise external M4A devices for one or more users.
+* encode FLAC files into M4A and MP3 files, making sure album artwork is copied over and
+* synchronise external M4A and MP3 devices for one or more users.
 
 ## Basic Usage
 
 The FLAC manager requires that all FLAC files are stored under one directory that is made read-only. 
 FLAC files can be _checked out_ into a staging directory where they can be changed and 
 then _checked in_. New FLAC files can be added to the repository by ripping them into the 
-staging directory. Each FLAC file is encoded into an M4A file when it is checked in to an encoded
+staging directory. Each FLAC file is encoded into an M4A file and an MP3 file when it is checked in to an encoded
 directory and is also symbolically linked from the devices directory for each user who owns the
 file.
 
@@ -50,7 +50,7 @@ The client can be installed as a Debian `dpkg` file.
 After installation, the following commands are available:
 
 + `flacman-checkout [directories]` Checkout all the FLAC files into the staging area so they can be retagged.
-+ `flacman-checkin [directories]` Checkin all the FLAC files into the music library and also convert them to M4A.
++ `flacman-checkin [directories]` Checkin all the FLAC files into the music library and also convert them to M4A and MP3.
 + `flacman-own --users users [directories]` Add all the FLAC files in the supplied directories (either staged or not) 
                                             to users' collections. 
   `users` is a comma separated list of user names.

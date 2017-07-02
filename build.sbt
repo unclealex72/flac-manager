@@ -85,7 +85,7 @@ lazy val root = (project in file(".")).
       )
       val installPackageCommands =
         Cmd("RUN", "echo", "http://nl.alpinelinux.org/alpine/edge/testing", ">>", "/etc/apk/repositories") +:
-        Seq("flac", "fdk-aac").map { pkg =>
+        Seq("flac", "lame", "fdk-aac").map { pkg =>
         Cmd("RUN", "apk", "add", "--update", "--no-cache", pkg)
       }
       val createUserCommands = Seq(Cmd("RUN", "adduser", "-D",  "-u", "1000", "music"))

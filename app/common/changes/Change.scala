@@ -19,7 +19,7 @@ import java.nio.file.Path
 import java.time.Instant
 
 import common.configuration.User
-import common.files.DeviceFile
+import common.files.{DeviceFile, Extension}
 import enumeratum._
 
 import scala.collection.immutable
@@ -38,6 +38,7 @@ case class Change(
                    relativePath: Path,
                    at: Instant,
                    user: User,
+                   extension: Extension,
                    action: ChangeType)
 
 /**
@@ -93,6 +94,6 @@ object Change {
   private def create(action: ChangeType, deviceFile: DeviceFile, storeParent: Boolean, at: Instant): Change = {
     val relativePath = deviceFile.relativePath
     val parentPath = if (storeParent) Some(relativePath.getParent) else None
-    Change(0, parentPath, relativePath, at, deviceFile.user, action)
+    Change(0, parentPath, relativePath, at, deviceFile.user, deviceFile.extension, action)
   }
 }

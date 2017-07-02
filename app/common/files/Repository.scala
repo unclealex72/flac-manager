@@ -102,18 +102,20 @@ trait Repositories {
 
   /**
     * Get the encoded repository.
+    * @param extension The type of lossy file.
     * @param messageService The message service used for reporting progress and errors.
     * @return The encoded repository.
     */
-  def encoded(implicit messageService: MessageService): EncodedRepository
+  def encoded(extension: Extension)(implicit messageService: MessageService): EncodedRepository
 
   /**
     * Get the device repository for a user.
     * @param user The user who owns the device.
+    * @param extension The type of lossy file.
     * @param messageService The message service used for reporting progress and errors.
     * @return The user's device repository.
     */
-  def device(user: User)(implicit messageService: MessageService): DeviceRepository
+  def device(user: User, extension: Extension)(implicit messageService: MessageService): DeviceRepository
 
 }
 
@@ -202,9 +204,10 @@ trait FlacFile extends File {
 
   /**
     * The location of where the encoded version of this file resides.
+    * @param extension The type of lossy encoded used to encode the file.
     * @return The location of where the encoded version of this file resides.
     */
-  def toEncodedFile: EncodedFile
+  def toEncodedFile(extension: Extension): EncodedFile
 }
 
 /**
@@ -238,6 +241,11 @@ trait StagingFile extends File {
 trait EncodedFile extends File {
 
   /**
+    * The extension of the file.
+    */
+  val extension: Extension
+
+  /**
     * Create a temporary file that can be used to create this file.
     * @return A new temporary file.
     */
@@ -255,6 +263,11 @@ trait EncodedFile extends File {
   * A file in a user's device repository.
   */
 trait DeviceFile extends File {
+
+  /**
+    * The extension of the file.
+    */
+  val extension: Extension
 
   /**
     * The user who owns the device.

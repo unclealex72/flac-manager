@@ -28,6 +28,8 @@ import common.async.CommandExecutionContext
 import common.changes.{AddedChange, ChangeDao}
 import common.configuration.{User, UserDao}
 import java.nio.file.FileSystem
+
+import common.files.Extension
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc._
 
@@ -54,21 +56,24 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
     *         found or the date not parsed.
     */
   def since[V](
-             username: String, 
-             sinceStr: String,
-             requestType: String,
-             dataFactory: (User, Instant) => Future[V])
-              (jsonBuilder: RequestHeader => V => JsValue) = {
+                username: String,
+                sinceStr: String,
+                ext: String,
+                requestType: String,
+                dataFactory: (User, Extension, Instant) => Future[V])
+              (jsonBuilder: RequestHeader => V => JsValue): Action[AnyContent] = {
     logger.info(s"Received a request for $username's $requestType since $sinceStr")
     val validatedUser =
       userDao.allUsers().find(_.name == username).toValidNel(s"$username is not a valid user")
+    val validatedExtension =
+      Extension.values.filter(_.lossy).find(_.extension == ext).toValidNel(s"$ext is not a valid extension")
     val validatedSince =
       Try(ZonedDateTime.parse(sinceStr, formatter).toInstant).
         toEither.leftMap(_.getMessage).toValidatedNel
 
-    (validatedUser |@| validatedSince).map((_, _)) match {
-      case Valid((user, since)) => Action.async { implicit request: RequestHeader =>
-        dataFactory(user, since).map { result =>
+    (validatedUser |@| validatedExtension |@| validatedSince).map((_, _, _)) match {
+      case Valid((user, extension, since)) => Action.async { implicit request: RequestHeader =>
+        dataFactory(user, extension, since).map { result =>
           Ok(jsonBuilder(request)(result))
         }
       }
@@ -82,7 +87,7 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
     * @param sinceStr The since string in ISO8601 format.
     * @return A list of all the changes for the user since the given date or 404 if either is not valid.
     */
-  def changes(username: String, sinceStr: String): Action[AnyContent] = since(username, sinceStr, "changes", changeDao.getAllChangesSince) { implicit request => {
+  def changes(username: String, extension: String, sinceStr: String): Action[AnyContent] = since(username, extension, sinceStr, "changes", changeDao.getAllChangesSince) { implicit request => {
     changes =>
       val jsonChanges = changes.map { change =>
         val changeObj = Json.obj(
@@ -91,7 +96,7 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
           "at" -> formatter.format(change.at)
         )
         change.action match {
-          case AddedChange => changeObj ++ links(username, change.relativePath.toString)
+          case AddedChange => changeObj ++ links(username, extension, change.relativePath.toString)
           case _ => changeObj
         }
       }.distinct
@@ -106,9 +111,9 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
     * @param request The request from the server.
     * @return A JSON object containing the music, tags and artwork links.
     */
-  def links(user: String, relativePath: String)(implicit request: RequestHeader): JsObject = {
-    def url(callBuilder: (String, String) => Call, path: Path): String =
-      callBuilder(user, path.toString).absoluteURL().replace(' ', '+')
+  def links(user: String, extension: String, relativePath: String)(implicit request: RequestHeader): JsObject = {
+    def url(callBuilder: (String, String, String) => Call, path: Path): String =
+      callBuilder(user, extension, path.toString).absoluteURL().replace(' ', '+')
 
     val path = fs.getPath(relativePath)
     Json.obj(
@@ -126,7 +131,7 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
     * @param sinceStr The since string in ISO8601 format.
     * @return A list of all the changes for the user since the given date or 404 if either is not valid.
     */
-  def changelog(username: String, sinceStr: String): Action[AnyContent] = since(username, sinceStr, "changelog", changeDao.changelog) { implicit request => {
+  def changelog(username: String, extension: String, sinceStr: String): Action[AnyContent] = since(username, extension, sinceStr, "changelog", changeDao.changelog) { implicit request => {
     changelog =>
       Json.obj(
         "total" -> changelog.size,
@@ -135,7 +140,7 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
             "parentRelativePath" -> changelogItem.parentRelativePath.toString,
             "at" -> formatter.format(changelogItem.at),
             "relativePath" -> changelogItem.relativePath.toString
-          ) ++ links(username, changelogItem.relativePath.toString)
+          ) ++ links(username, extension, changelogItem.relativePath.toString)
         }
       )
     }

@@ -16,7 +16,7 @@
 
 package checkout
 
-import java.nio.file.{FileSystem => JFS}
+import java.nio.file.{Path, FileSystem => JFS}
 import java.time.Clock
 
 import cats.data.{NonEmptyList, ValidatedNel}
@@ -38,6 +38,8 @@ import scala.collection.SortedSet
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import cats.implicits._
+import checkin.LossyEncoder
+import common.files.Extension.{M4A, MP3}
 import common.message.Messages.OVERWRITE
 
 /**
@@ -155,8 +157,13 @@ class CheckoutCommandImplSpec extends Specification with Mockito with ChangeMatc
     ownerService.changeFlacOwnership(any[User], any[OwnAction], any[NonEmptyList[FlacFile]])(any[MessageService]) returns Future.successful(Valid({}))
     ownerService.changeStagingOwnership(any[User], any[OwnAction], any[NonEmptyList[StagingFile]])(any[MessageService]) returns Future.successful(Valid({}))
     ownerService.unown(any[User], any[Set[Tags]])(any[MessageService]) returns Future.successful(Valid({}))
+    class NoOpLossyEncoder(extension: Extension) extends LossyEncoder {
+      override def encode(source: Path, target: Path): Unit = {}
+      override def encodesTo: Extension = extension
+    }
+    val lossyEncoders = Seq(new NoOpLossyEncoder(M4A), new NoOpLossyEncoder(MP3))
     val fileSystem = new ProtectionAwareFileSystem(new FileSystemImpl)
-    val checkoutService = new CheckoutServiceImpl(fileSystem, userDao, ownerService, changeDao, Clock.systemDefaultZone())
+    val checkoutService = new CheckoutServiceImpl(fileSystem, userDao, ownerService, changeDao, lossyEncoders, Clock.systemDefaultZone())
     val checkoutCommand = new CheckoutCommandImpl(repositories, checkoutService)
     Services(fs, repositories, ownerService, changeDao, checkoutCommand)
   }

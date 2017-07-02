@@ -26,6 +26,7 @@ import scala.concurrent.Future
 /**
   * The [[CheckinService]] that delegates to a [[SingleCheckinService]]
   * @param singleCheckinService The service that will encode or remove files.
+  * @param lossyEncoders The list of available lossy encoders.
   * @param ec An execution context used to fire off checkin actions.
   */
 class CheckinServiceImpl @Inject()(singleCheckinService: SingleCheckinService)
