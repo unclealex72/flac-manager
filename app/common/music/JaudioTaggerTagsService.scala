@@ -185,7 +185,9 @@ private object JaudioTaggerTagsService {
     private val FRONT_COVER_ART: Int = 3
 
     def get(tag: Tag): CoverArt = {
-      val artwork = tag.getArtworkList.asScala.find(a => FRONT_COVER_ART == a.getPictureType)
+      val artworkList = tag.getArtworkList.asScala
+      // Try and find any artwork type if the front cover art cannot be found.
+      val artwork = artworkList.find(a => FRONT_COVER_ART == a.getPictureType).orElse(artworkList.headOption)
       artwork.map { artwork =>
         CoverArt(artwork.getBinaryData, artwork.getMimeType)
       }.getOrElse(null.asInstanceOf[CoverArt])
