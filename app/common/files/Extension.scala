@@ -18,7 +18,9 @@ package common.files
 
 import java.nio.file.Path
 
+import common.configuration.User
 import enumeratum.{Enum, EnumEntry}
+import play.api.mvc.PathBindable
 
 import scala.collection.immutable
 import scala.util.matching.Regex
@@ -94,6 +96,8 @@ object Extension extends Enum[Extension] {
     */
   override def values: immutable.IndexedSeq[Extension] = findValues
 
+  val lossyValues: Seq[Extension] = values.filter(_.lossy)
+
   /**
     * Implicits for [[Path]]s that supply functionality to check the extension of a path or to change it.
     * @param path The path to extend.
@@ -133,4 +137,16 @@ object Extension extends Enum[Extension] {
       Extension.values.find(hasExtension)
     }
   }
+
+  /**
+    * Allow extensions to be referenced in URLs.
+    * @return A path binder allowing extensions to be referenced in URLs.
+    */
+  implicit val pathBinder = new PathBindable[Extension] {
+    override def bind(key: String, value: String): Either[String, Extension] = {
+      Extension.lossyValues.find(_.extension == value).toRight(s"$value is not a valid extension.")
+    }
+    override def unbind(key: String, value: Extension): String = value.extension
+  }
+
 }

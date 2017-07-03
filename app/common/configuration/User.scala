@@ -16,8 +16,11 @@
 
 package common.configuration
 
+import play.api.mvc.PathBindable
+
 /**
   * A user who has entries in the devices repository.
+  *
   * @param name the user's name that is to be used to identify their devices and to
   *         be used when changing ownership
   */
@@ -32,4 +35,13 @@ object User {
     * Order users by their name.
     */
   implicit val ordering: Ordering[User] = Ordering.by(_.name)
+
+  /**
+    * Allow users to be referenced in URLs.
+    * @return A path binder allowing users to be referenced in URLs.
+    */
+  implicit val pathBinder = new PathBindable[User] {
+    override def bind(key: String, value: String): Either[String, User] = Right(User(value))
+    override def unbind(key: String, value: User): String = value.name
+  }
 }

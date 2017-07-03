@@ -56,39 +56,42 @@ class Music @Inject()(val userDao: UserDao,
 
   /**
     * Stream an audio file
-    * @param username The name of the user who owns the track.
+    * @param user The user who owns the track.
+    * @param extension The type of track.
     * @param path The relative path of the track.
     * @return An MP3 stream of music from a user's device repository.
     */
-  def music(username: String, extension: String, path: String): Action[AnyContent] =
-    musicFile("music", username, extension, path, deviceFileAt) {
+  def music(user: User, extension: Extension, path: String): Action[AnyContent] =
+    musicFile("music", user, extension, path, deviceFileAt) {
       deviceFile => Ok.sendPath(deviceFile.absolutePath).as(deviceFile.extension.mimeType)
   }
 
   /**
-    * Stream an audio file
-    * @param username The name of the user who owns the track.
+    * Return an audio file's tags.
+    * @param user The user who owns the track.
+    * @param extension The type of track.
     * @param path The relative path of the track.
-    * @return An MP3 stream of music from a user's device repository.
+    * @return The tags for the audio file.
     */
-  def tags(username: String, extension: String, path: String): Action[AnyContent] =
-    serveTags("tags", username, extension, path, deviceFileAt)(tags => Ok(tags.toJson(false)))
+  def tags(user: User, extension: Extension, path: String): Action[AnyContent] =
+    serveTags("tags", user, extension, path, deviceFileAt)(tags => Ok(tags.toJson(false)))
 
   /**
     * Serve a response based on an audio file's tags.
-    * @param username The name of the user who owns the file.
-    * @param path The path at which the file is located.
+    * @param user The user who owns the track.
+    * @param extension The type of track.
+    * @param path The relative path of the track.
     * @param deviceFileLocator A function that gets the device file given a user and path.
     * @param responseBuilder A function to build the response given the calculated tags.
     * @return The result of the `responseBuilder` or 404 if the file or user could not be found
     */
   def serveTags(requestType: String,
-                username: String,
-                extension: String,
+                user: User,
+                extension: Extension,
                 path: String,
                 deviceFileLocator: (User, Extension, Path) => Option[DeviceFile])
                (responseBuilder: Tags => Result): Action[AnyContent] =
-    musicFile(requestType, username, extension, path, deviceFileLocator) { deviceFile =>
+    musicFile(requestType, user, extension, path, deviceFileLocator) { deviceFile =>
     deviceFile.tags.read() match {
       case Invalid(_) =>
         NotFound("")
@@ -98,25 +101,26 @@ class Music @Inject()(val userDao: UserDao,
   }
 
   /**
-    * Serve a response based on a [[common.files.FileLocation]].
-    * @param username The name of the user who owns the file.
-    * @param path The path at which the file is located.
+    * Serve a response based on a [[common.files.File]].
+    * @param user The user who owns the track.
+    * @param extension The type of track.
+    * @param path The relative path of the track.
     * @param deviceFileLocator A function that gets the device file given a user and path.
     * @param resultBuilder A function to build the response from the file calculated file location.
     * @return The result of the `responseBuilder` or 404 if the file or user could not be found
     */
   def musicFile(
                 requestType: String,
-                username: String,
-                ext: String,
+                user: User,
+                extension: Extension,
                 path: String,
                 deviceFileLocator: (User, Extension, Path) => Option[DeviceFile])
                (resultBuilder: DeviceFile  => Result) = Action { implicit request: Request[AnyContent] =>
+    val username = user.name
     logger.info(s"Received a request for $requestType for $username at $path")
     val decodedPath = UriEncoding.decodePath(path, StandardCharsets.UTF_8.toString).replace('+', ' ')
     val musicFiles = for {
       user <- userDao.allUsers() if user.name == username
-      extension <- Extension.values if extension.lossy && extension.extension == ext
       musicFile <- deviceFileLocator(user, extension, fs.getPath(decodedPath))
     } yield musicFile
     musicFiles.headOption match {
@@ -137,12 +141,13 @@ class Music @Inject()(val userDao: UserDao,
 
   /**
     * Get the album artwork for a track.
-    * @param username The name of the user who owns the track.
-    * @param path The path of the track relative to the user's device repository.
+    * @param user The user who owns the track.
+    * @param extension The type of track.
+    * @param path The relative path of the track.
     * @return The album artwork or 404 if the track or user could not be found.
     */
-  def artwork(username: String, extension: String, path: String): Action[AnyContent] =
-    serveTags("artwork", username, path, extension, firstDeviceFileIn) { tags =>
+  def artwork(user: User, extension: Extension, path: String): Action[AnyContent] =
+    serveTags("artwork", user, extension, path, firstDeviceFileIn) { tags =>
     val coverArt = tags.coverArt
     Ok(coverArt.imageData).as(coverArt.mimeType)
   }
@@ -166,7 +171,7 @@ class Music @Inject()(val userDao: UserDao,
     * @return A [[DeviceFile]] if one exists, none otherwise.
     */
   def firstDeviceFileIn(user: User, extension: Extension, parentPath: Path): Option[DeviceFile] = {
-    repositories.device(user, extension).directory(parentPath).toOption.flatMap(_.list(0).headOption)
+    repositories.device(user, extension).directory(parentPath).toOption.flatMap(_.list(1).headOption)
   }
 
 }

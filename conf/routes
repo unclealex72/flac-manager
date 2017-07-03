@@ -10,13 +10,13 @@ POST        /commands                            controllers.Commands.commands()
 GET         /conf                                controllers.Conf.configuration()
 
 # Music files
-GET         /music/:user/:extension/*file                   controllers.Music.music(user, extension, file)
-GET         /tags/:user/:extension/*file                    controllers.Music.tags(user, extension, file)
-GET         /artwork/:user/:extension/*file                 controllers.Music.artwork(user, extension, file)
+GET         /music/:user/:extension/*file                   controllers.Music.music(user: common.configuration.User, extension: common.files.Extension, file)
+GET         /tags/:user/:extension/*file                    controllers.Music.tags(user: common.configuration.User, extension: common.files.Extension, file)
+GET         /artwork/:user/:extension/*file                 controllers.Music.artwork(user: common.configuration.User, extension: common.files.Extension, file)
 
 # changes
-GET         /changes/:user/:extension/:since                controllers.Changes.changes(user, extension, since)
-GET         /changelog/:user/:extension/:since              controllers.Changes.changelog(user, extension, since)
+GET         /changes/:user/:extension/:since                controllers.Changes.changes(user: common.configuration.User, extension: common.files.Extension, since: common.dates.DateTime)
+GET         /changelog/:user/:extension/:since              controllers.Changes.changelog(user: common.configuration.User, extension: common.files.Extension, since: common.dates.DateTime)
 
 # pretty!
 
