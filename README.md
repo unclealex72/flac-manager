@@ -21,7 +21,7 @@ file.
 ## Server Setup
 
 The server is distributed as a a [Docker](https://www.docker.com/) image at 
-https://hub.docker.com/r/unclealex72/flac-manager. An [H2](http://www.h2database.com) database is used
+https://hub.docker.com/r/unclealex72/flac-manager. An [SQLite](http://www.sqlite.org/) database is used
 to store which user owns which albums.
 
 Your music files need to be attached as a volume at `/music` and must be writeable by a user with UID 1000. Your
@@ -29,11 +29,11 @@ music directory must have the following subdirectories:
 
 | Subdirectory      | Contents| 
 | ----------------- | ---------------------------- |
-| `flac/`           | A repository of FLAC files.  |
-| `staging/`        | A directory where new FLAC files are stored before checking in.|
-| `encoded/`        | Files that are encoded versions of FLAC files. |
-| `devices/<user>/` | Symbolic links to the encoded files owned by a user. |
-| `db/`             | A directory that contains the H2 database. |
+| `flac/`                       | A repository of FLAC files.  |
+| `staging/`                    | A directory where new FLAC files are stored before checking in.|
+| `encoded/<extension>`         | Files that are encoded versions of FLAC files. |
+| `devices/<user>/<extension>/` | Symbolic links to the encoded files owned by a user. |
+| `db/`                         | A directory that contains the SQLite database. |
 
 Additionally, if you have a `tmp/` subdirectory this will be used as a temporary directory where newly encoded files
 will be held. If the `tmp/` subdirectory does not exist then the system temporary directory will be used. This allows
