@@ -23,10 +23,4 @@ import common.files.Extension.MP3
 /**
   * An implementation that uses [[http://lame.sourceforge.net/ Lame]] to encode flac files to MP3.
   */
-class LameMp3Encoder @Inject()() extends NativeProcessLossyEncoder(MP3) {
-
-  override def createEncodingCommand(targetPath: String): Seq[String] = {
-    Seq("lame", "--silent", "--resample", "44100", "-h", "-b", "320", "-", targetPath)
-  }
-
-}
+class LameMp3Encoder @Inject()() extends FfmpegEncoder(MP3, true, "libmp3lame")

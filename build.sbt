@@ -73,24 +73,11 @@ lazy val root = (project in file(".")).
         }
         firstRunCommand + 1
       }
-      val sqliteCommands = Seq(
-        Cmd("RUN", "wget", "http://www.sqlite.org/2017/sqlite-autoconf-3180000.tar.gz"),
-        Cmd("RUN", "tar", "xvfz", "sqlite-autoconf-3180000.tar.gz"),
-        Cmd("RUN", "apk", "add", "--update alpine-sdk"),
-        Cmd("RUN", "./sqlite-autoconf-3180000/configure", "--prefix=/usr"),
-        Cmd("RUN", "make"),
-        Cmd("RUN", "make", "install"),
-        Cmd("RUN", "rm", "sqlite-autoconf-3180000.tar.gz"),
-        Cmd("RUN", "chmod", "777", "/tmp")
-      )
-      val installPackageCommands =
-        Cmd("RUN", "echo", "http://nl.alpinelinux.org/alpine/edge/testing", ">>", "/etc/apk/repositories") +:
-        Seq("flac", "lame", "fdk-aac").map { pkg =>
-        Cmd("RUN", "apk", "add", "--update", "--no-cache", pkg)
-      }
+      val sqliteCommands = DockerParser("sqlite.txt")
+      val ffmpegCommands = DockerParser("ffmpeg.txt")
       val createUserCommands = Seq(Cmd("RUN", "adduser", "-D",  "-u", "1000", "music"))
       val mkDirCommands = Seq(Cmd("RUN", "mkdir", "-p", "/music"), Cmd("VOLUME", "/music"))
-      prefixCommands ++ sqliteCommands ++ installPackageCommands ++ createUserCommands ++ mkDirCommands ++ suffixCommands
+      prefixCommands ++ sqliteCommands ++ ffmpegCommands ++ createUserCommands ++ mkDirCommands ++ suffixCommands
     },
     javaOptions in Docker ++= Seq("-DapplyEvolutions.default=true")
   ).

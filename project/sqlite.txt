@@ -1,0 +1,8 @@
+RUN wget http://www.sqlite.org/2017/sqlite-autoconf-3180000.tar.gz
+RUN tar xvfz sqlite-autoconf-3180000.tar.gz
+RUN apk add --update alpine-sdk
+RUN ./sqlite-autoconf-3180000/configure --prefix=/usr
+RUN make
+RUN make install
+RUN rm -rf sqlite-autoconf-3180000 sqlite-autoconf-3180000.tar.gz
+RUN chmod 777 /tmp

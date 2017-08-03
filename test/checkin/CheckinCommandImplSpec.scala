@@ -167,10 +167,12 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
     val checkinActionGenerator = new CheckinActionGeneratorImpl(ownerService, allowMultiService)
     val throttler = new ThreadPoolThrottler(2)
     class SimpleLossyEncoder(extension: Extension) extends LossyEncoder {
-      override def encode(source: Path, target: Path): Unit = {
+      override def encode(source: Path, target: Path): Int = {
         Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING)
+        0
       }
-      override def encodesTo: Extension = extension
+      override val encodesTo: Extension = extension
+      override val copiesTags: Boolean = false
     }
     implicit val clock: Clock = Clock.systemDefaultZone()
     val lossyEncoders = Seq(new SimpleLossyEncoder(MP3), new SimpleLossyEncoder(M4A))

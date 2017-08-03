@@ -19,14 +19,9 @@ package checkin
 import javax.inject.Inject
 
 import common.files.Extension.M4A
-
+import FfmpegEncoder._
 /**
   * An implementation that uses [[http://lame.sourceforge.net/ Lame]] to encode flac files to MP3.
   */
-class FdkaacM4AEncoder @Inject()() extends NativeProcessLossyEncoder(M4A) {
-
-  override def createEncodingCommand(targetPath: String): Seq[String] = {
-    Seq("fdkaac", "-S", "-G", "2", "-b", "320", "-", "-o", targetPath)
-  }
-
-}
+class FdkaacM4AEncoder @Inject()() extends FfmpegEncoder(
+  M4A, false, "libfdk_aac", "acodec" ~> "aac", "strict" ~> "experimental")

@@ -187,7 +187,7 @@ object Messages {
     */
   case object NO_USERS extends Message("noUsers")
 
-  case class ENCODE_DURATION(flacFile: FlacFile, seconds: Long, millis: Long) extends Message("encodeDuration", flacFile, seconds, millis)
+  case class ENCODE_DURATION(flacFile: FlacFile, seconds: Double) extends Message("encodeDuration", flacFile, seconds)
 
   case class NO_DIRECTORIES(repositoryType: String) extends Message("noDirectories")
 
@@ -235,6 +235,8 @@ object Messages {
     implicit def changeTypeToString(changeType: ChangeType): String = changeType.action
 
     implicit def pathToString(path: Path): String = path.toString
+
+    implicit def doubleToString(d: Double): String = d.toString
   }
 
 }
@@ -243,14 +245,13 @@ trait Messaging {
 
   def log(template: Message)(implicit messageService: MessageService): Unit = messageService.printMessage(template)
 
-  def time[T](template: Duration => Message)(block: => Future[T])(implicit messageService: MessageService, clock: Clock, executionContext: ExecutionContext): Future[T] = {
+  def time[T](template: Duration => Message)(block: => T)(implicit messageService: MessageService, clock: Clock): T = {
     val startTime = clock.instant()
-    block.map { result =>
-      val endTime = clock.instant()
-      val duration = Duration.between(startTime, endTime)
-      log(template(duration))
-      result
-    }
+    val result = block
+    val endTime = clock.instant()
+    val duration = Duration.between(startTime, endTime)
+    log(template(duration))
+    result
   }
 
   def logException(e: Exception)(implicit messageService: MessageService): Unit = {

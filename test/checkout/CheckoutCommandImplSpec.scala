@@ -158,8 +158,9 @@ class CheckoutCommandImplSpec extends Specification with Mockito with ChangeMatc
     ownerService.changeStagingOwnership(any[User], any[OwnAction], any[NonEmptyList[StagingFile]])(any[MessageService]) returns Future.successful(Valid({}))
     ownerService.unown(any[User], any[Set[Tags]])(any[MessageService]) returns Future.successful(Valid({}))
     class NoOpLossyEncoder(extension: Extension) extends LossyEncoder {
-      override def encode(source: Path, target: Path): Unit = {}
-      override def encodesTo: Extension = extension
+      override def encode(source: Path, target: Path): Int = 0
+      override val encodesTo: Extension = extension
+      override val copiesTags: Boolean = false
     }
     val lossyEncoders = Seq(new NoOpLossyEncoder(M4A), new NoOpLossyEncoder(MP3))
     val fileSystem = new ProtectionAwareFileSystem(new FileSystemImpl)

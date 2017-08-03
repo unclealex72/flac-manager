@@ -30,11 +30,17 @@ trait LossyEncoder {
    * @param source The source flac file.
    * @param target The target lossy file.
    */
-  def encode(source: Path, target: Path)
+  def encode(source: Path, target: Path): Int
 
   /**
     * The lossy format that this encoder generates.
     * @return The lossy format that this encoder generates.
     */
-  def encodesTo: Extension
+  val encodesTo: Extension
+
+  /**
+    * True if this encoder copies tags from the source flac file, false otherwise.
+    * @return
+    */
+  val copiesTags: Boolean
 }

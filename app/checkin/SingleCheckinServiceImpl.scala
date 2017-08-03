@@ -59,9 +59,7 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
       lossyEncoders.foldLeft(empty) { (eventualMap, lossyEncoder) =>
         for {
           map <- eventualMap
-          tempFile <- time(
-            duration => ENCODE_DURATION(flacFile, duration.getSeconds, duration.getNano / 1000000)
-          )(encodeFile(stagingFile, flacFile, lossyEncoder))
+          tempFile <- encodeFile(stagingFile, flacFile, lossyEncoder)
         } yield {
           map + (lossyEncoder.encodesTo -> tempFile)
         }
@@ -82,11 +80,21 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
     */
   def encodeFile(stagingFile: StagingFile, flacFile: FlacFile, lossyEncoder: LossyEncoder)
                 (implicit messageService: MessageService): Future[TempFile] = parallel {
-    val encodedFile = flacFile.toEncodedFile(lossyEncoder.encodesTo)
-    val tempFile = encodedFile.toTempFile
-    log(ENCODE(stagingFile, encodedFile))
-    lossyEncoder.encode(stagingFile.absolutePath, tempFile.absolutePath)
-    tempFile.writeTags()
+    time { duration =>
+      val seconds: Double = duration.toMillis.toDouble / 1000d
+      ENCODE_DURATION(flacFile, seconds)
+    } {
+      val encodedFile = flacFile.toEncodedFile(lossyEncoder.encodesTo)
+      val tempFile = encodedFile.toTempFile
+      log(ENCODE(stagingFile, encodedFile))
+      lossyEncoder.encode(stagingFile.absolutePath, tempFile.absolutePath)
+      if (!lossyEncoder.copiesTags) {
+        tempFile.writeTags()
+      }
+      else {
+        tempFile
+      }
+    }
   }
 
   /**
