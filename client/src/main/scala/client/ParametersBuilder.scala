@@ -29,14 +29,6 @@ import json._
 trait ParametersBuilder[P <: Parameters] {
 
   /**
-    * Check whether the multi action that may be within some parameters is valid.
-    * @param parameters The parameters to check.
-    * @return True if the multi action is valid, false otherwise.
-    */
-  def multiActionIsValid(parameters: P): Boolean
-
-
-  /**
     * Add an extra directory specified in the command line to the parameters object.
     *
     * @param parameters The current parameters object
@@ -83,6 +75,22 @@ trait ParametersBuilder[P <: Parameters] {
     * @return either a new parameters object with the new multi action or a list of errors.
     */
   def withMultiAction(parameters: P, multiAction: MultiAction): Either[NonEmptyList[String], P]
+
+  /**
+    * Add a number of threads to the parameters object.
+    * @param parameters The current parameters object.
+    * @param numberOfThreads The number of threads to add.
+    * @return either a new parameters object with the number of threads or a list of errors.
+    */
+  def withNumberOfThreads(parameters: P, numberOfThreads: Int): Either[NonEmptyList[String], P]
+
+  /**
+    * Run a final check on the supplied parameters.
+    * @param parameters The parameters to check.
+    * @return either the parameters or a list of errors.
+    */
+  def checkValid(parameters: P): Either[NonEmptyList[String], P]
+
 }
 
 /**
@@ -174,7 +182,19 @@ class FailingParametersBuilder[P <: Parameters](val commandName: String) extends
     fail("a multi action")
   }
 
-  override def multiActionIsValid(parameters: P): Boolean = true
+  /**
+    * Fail to add a number of threads.
+    * @param parameters The current parameters object.
+    * @param numberOfThreads The number of threads to add.
+    * @return either a new parameters object with the number of threads or a list of errors.
+    */
+  override def withNumberOfThreads(parameters: P, numberOfThreads: Int): Either[NonEmptyList[String], P] = {
+    fail("a number of threads")
+  }
+
+  override def checkValid(parameters: P): Either[NonEmptyList[String], P] = {
+    Right(parameters)
+  }
 }
 
 /**
@@ -258,8 +278,12 @@ object MultiParametersBuilder extends FailingParametersBuilder[MultiDiscParamete
     Right(parameters.copy(maybeMultiAction = Some(multiAction)))
   }
 
-  override def multiActionIsValid(parameters: MultiDiscParameters): Boolean = parameters.maybeMultiAction.isDefined
-
+  override def checkValid(parameters: MultiDiscParameters): Either[NonEmptyList[String], MultiDiscParameters] = {
+    parameters.maybeMultiAction match {
+      case Some(_) => Right(parameters)
+      case None => Left(NonEmptyList.of("You must supply a multi action"))
+    }
+  }
 }
 
 /**
@@ -315,5 +339,22 @@ object UnownParametersBuilder extends FailingParametersBuilder[UnownParameters](
     extraDirectory(parameters.relativeDirectories, datumFilename, repositoryTypes, directory).map { paths =>
       parameters.copy(relativeDirectories = paths)
     }
+  }
+}
+
+/**
+  * Build parameters for the `checkout` command.
+  */
+object CalibrateParametersBuilder extends FailingParametersBuilder[CalibrateParameters]("calibrate") {
+  /**
+    * Add a number of threads.
+    *
+    * @param parameters      The current parameters object.
+    * @param numberOfThreads The number of threads to add.
+    * @return either a new parameters object with the number of threads or a list of errors.
+    */
+  override def withNumberOfThreads(parameters: CalibrateParameters,
+                                   numberOfThreads: Int): Either[NonEmptyList[String], CalibrateParameters] = {
+    Right(parameters.copy(maybeMaximumNumberOfThreads = Some(numberOfThreads)))
   }
 }

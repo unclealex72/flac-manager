@@ -19,6 +19,7 @@ package common.controllers
 import java.nio.file.FileSystem
 import java.util.concurrent.TimeUnit
 
+import calibrate.CalibrateCommand
 import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
@@ -42,7 +43,6 @@ import play.api.libs.json._
 import scala.collection.SortedSet
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-
 import common.files.RepositoryEntry
 
 /**
@@ -352,7 +352,13 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
     commands.multiDiscCommand.mutateMultiDiscAlbum(any[SortedSet[StagingDirectory]], any[MultiAction])(any[MessageService]) returns result
 
     val commandBuilder = new CommandBuilderImpl(
-      commands.checkinCommand, commands.checkoutCommand, commands.ownCommand, commands.initialiseCommand, commands.multiDiscCommand, userDao, repositories)
+      commands.checkinCommand,
+      commands.checkoutCommand,
+      commands.ownCommand,
+      commands.initialiseCommand,
+      commands.multiDiscCommand,
+      commands.calibrateCommand,
+      userDao, repositories)
     Await.result(commandBuilder(jsValue), Duration(1, TimeUnit.SECONDS)).toEither.map(_ => commands)
   }
 
@@ -370,6 +376,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
                        checkoutCommand: CheckoutCommand = mock[CheckoutCommand],
                        initialiseCommand: InitialiseCommand = mock[InitialiseCommand],
                        multiDiscCommand: MultiDiscCommand = mock[MultiDiscCommand],
+                       calibrateCommand: CalibrateCommand = mock[CalibrateCommand],
                        ownCommand: OwnCommand = mock[OwnCommand]) {
     def noMore(): MatchResult[Unit] = {
       there were noMoreCallsTo(checkinCommand)
@@ -377,6 +384,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
       there were noMoreCallsTo(initialiseCommand)
       there were noMoreCallsTo(multiDiscCommand)
       there were noMoreCallsTo(ownCommand)
+      there were noMoreCallsTo(calibrateCommand)
     }
   }
 }

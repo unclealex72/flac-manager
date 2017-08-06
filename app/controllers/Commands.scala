@@ -17,6 +17,7 @@
 package controllers
 
 import java.io.{PrintWriter, StringWriter}
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 import javax.inject.{Inject, Singleton}
 
 import akka.stream.OverflowStrategy
@@ -24,6 +25,7 @@ import akka.stream.scaladsl.{Source, SourceQueue}
 import cats.data.Validated.{Invalid, Valid}
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
+import common.configuration.HttpStreams
 import common.message.{MessageService, MessageServiceBuilder, Messaging}
 import play.api.libs.json._
 import play.api.mvc._
@@ -54,11 +56,20 @@ class Commands @Inject()(
     val (queueSource, eventualQueue) = peekMatValue(Source.queue[String](128, OverflowStrategy.backpressure))
     eventualQueue.map { queue =>
       def offer(message: Any) = queue.offer(s"$message\n")
+      def keepAlive() = queue.offer(HttpStreams.KEEP_ALIVE)
       def printer(message: String): Unit = offer(message)
       def exceptionHandler(t: Throwable): Unit = {
         val sw = new StringWriter()
         t.printStackTrace(new PrintWriter(sw))
         offer(sw)
+      }
+      // Create a keep alive message for slower machines that may take a while to encode files.
+      val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
+      val scheduledFuture = scheduler.scheduleAtFixedRate(() => keepAlive(), 10, 10, TimeUnit.SECONDS)
+      def complete(): Unit = {
+        scheduledFuture.cancel(true)
+        scheduler.shutdownNow()
+        queue.complete()
       }
       implicit val messageService =
         messageServiceBuilder.
@@ -66,14 +77,14 @@ class Commands @Inject()(
           withExceptionHandler(exceptionHandler).build
       commandBuilder(request.body).andThen {
         case Success(Valid(_)) =>
-          queue.offer("Success").map(_ => queue.complete())
+          queue.offer("Success").map(_ => complete())
         case Success(Invalid(messages)) =>
           messages.foldLeft(Future.successful({})) { (acc, message) =>
             acc.map(_ => log(message))
-          }.map(_ => queue.complete())
+          }.map(_ => complete())
         case Failure(e) =>
           messageService.exception(e)
-          queue.complete()
+          complete()
       }
     }
     Ok.chunked(queueSource).as(TEXT)

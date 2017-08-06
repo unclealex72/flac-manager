@@ -16,12 +16,13 @@
 
 package client
 
-import java.io.OutputStream
+import java.io.{PrintStream, Writer}
 import java.net.URI
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.util.ByteString
+import common.configuration.HttpStreams
 import io.circe.Json
 import play.api.libs.ws.{BodyWritable, InMemoryBody, StandaloneWSResponse, WSClient}
 
@@ -41,14 +42,17 @@ object RemoteCommandRunner {
              ws: WSClient,
              body: Json,
              serverUri: URI,
-             out: OutputStream)
+             out: PrintStream)
            (implicit materializer: Materializer, executionContext: ExecutionContext): Future[Unit] = {
     val commandUri = serverUri.resolve(new URI(s"/commands"))
     val futureResponse: Future[StandaloneWSResponse] =
       ws.url(commandUri.toString).withRequestTimeout(Duration.Inf).withMethod("POST").withBody(body).stream()
     futureResponse.flatMap { res =>
       val sink = Sink.foreach[ByteString] { bytes =>
-        out.write(bytes.toArray)
+        val message = new String(bytes.toArray, HttpStreams.DEFAULT_CHARSET)
+        if (HttpStreams.KEEP_ALIVE != message) {
+          out.print(message)
+        }
       }
       res.bodyAsSource.runWith(sink).andThen {
         case result =>

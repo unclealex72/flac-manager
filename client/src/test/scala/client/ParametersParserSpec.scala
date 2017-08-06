@@ -106,6 +106,24 @@ class ParametersParserSpec extends Specification {
     }
   }
 
+  "Calibrating" should {
+    "allow an optional number of threads" in {
+      parse(datumFilename, "calibrate", "7") must beRight(
+        Json.obj(
+          "command" -> Json.fromString("calibrate"),
+          "maximumNumberOfThreads" -> Json.fromInt(7)
+        )
+      )
+    }
+    "not require the optional number of threads" in {
+      parse(datumFilename, "calibrate") must beRight(
+        Json.obj(
+          "command" -> Json.fromString("calibrate"),
+          "maximumNumberOfThreads" -> Json.Null
+        )
+      )
+    }
+  }
   private def failWith(message: String) = {
     beLeft(NonEmptyList.of(message))
   }

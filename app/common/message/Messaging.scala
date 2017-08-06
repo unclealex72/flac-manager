@@ -187,6 +187,8 @@ object Messages {
     */
   case object NO_USERS extends Message("noUsers")
 
+  case object NOT_ENOUGH_THREADS extends Message("notEnoughThreads")
+
   case class ENCODE_DURATION(flacFile: FlacFile, seconds: Double) extends Message("encodeDuration", flacFile, seconds)
 
   case class NO_DIRECTORIES(repositoryType: String) extends Message("noDirectories")
@@ -194,6 +196,16 @@ object Messages {
   case class NOT_A_DIRECTORY(path: Path, repositoryType: String) extends Message("notADirectory", path, repositoryType)
 
   case class NOT_A_FILE(path: Path, repositoryType: String) extends Message("notAFile", path, repositoryType)
+
+  case class CALIBRATION_RUN_STARTING(
+                                       numberOfEncodingJobs: Int,
+                                       concurrencyLevel: Int) extends Message("calibrationRunStarting", numberOfEncodingJobs, concurrencyLevel)
+  case class CALIBRATION_RUN_FINISHED(
+                                       numberOfEncodingJobs: Int,
+                                       concurrencyLevel: Int,
+                                       totalDuration: Double,
+                                       averageDuration: Double) extends Message("calibrationRunFinished", numberOfEncodingJobs, concurrencyLevel, totalDuration, averageDuration)
+  case class CALIBRATION_RESULT(concurrencyLevel: Int, averageDuration: Double) extends Message("calibrationResult", concurrencyLevel, averageDuration)
 
   object MULTI_ACTION_REQUIRED extends Message("multiActionRequired")
   /**
@@ -231,6 +243,8 @@ object Messages {
     implicit def userToString(user: User): String = user.name
 
     implicit def longToString(l: Long): String = l.toString
+
+    implicit def intToString(i: Int): String = i.toString
 
     implicit def changeTypeToString(changeType: ChangeType): String = changeType.action
 

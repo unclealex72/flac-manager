@@ -19,6 +19,7 @@ package controllers
 import java.nio.file.Path
 import javax.inject.Inject
 
+import calibrate.CalibrateCommand
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{Validated, ValidatedNel}
 import cats.implicits._
@@ -56,6 +57,7 @@ class CommandBuilderImpl @Inject()(
                                     ownCommand: OwnCommand,
                                     initialiseCommand: InitialiseCommand,
                                     multiDiscCommand: MultiDiscCommand,
+                                    calibrateCommand: CalibrateCommand,
                                     userDao: UserDao,
                                     repositories: Repositories
                                   )(implicit val fs: java.nio.file.FileSystem) extends CommandBuilder with StrictLogging {
@@ -103,6 +105,18 @@ class CommandBuilderImpl @Inject()(
     }
   }
 
+  def validateMaximumNumberOfThreads(maybeMaximumNumberOfThreads: Option[Int]): ValidatedNel[Message, Option[Int]] = {
+    maybeMaximumNumberOfThreads match {
+      case Some(maximumNumberOfThreads) =>
+        if (maximumNumberOfThreads < 1) {
+          Invalid(NOT_ENOUGH_THREADS).toValidatedNel
+        }
+        else {
+          Valid(maybeMaximumNumberOfThreads)
+        }
+      case None => Valid(None)
+    }
+  }
   /**
     * Make sure that all staging directories are valid.
     * @param pathAndRepositories A list of relative paths to check.
@@ -199,6 +213,10 @@ class CommandBuilderImpl @Inject()(
       case MultiDiscParameters(relativeDirectories, maybeMultiAction) =>
         (validateStagingDirectories(relativeDirectories) |@| requireMultiAction(maybeMultiAction)).map { (fls, multiAction) =>
           multiDiscCommand.mutateMultiDiscAlbum(fls, multiAction)(messageService)
+        }
+      case CalibrateParameters(maybeMaximumNumberOfThreads) =>
+        validateMaximumNumberOfThreads(maybeMaximumNumberOfThreads).map { threads =>
+          calibrateCommand.calibrate(threads)
         }
     }
     validatedParameters match {

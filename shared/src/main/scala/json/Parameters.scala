@@ -67,6 +67,13 @@ case class UnownParameters(relativeDirectories: Seq[PathAndRepository] = Seq.emp
 case class MultiDiscParameters(relativeDirectories: Seq[PathAndRepository] = Seq.empty,
                                maybeMultiAction: Option[MultiAction] = None) extends Parameters
 
+
+/**
+  * The `calibrate` command.
+  * @param maybeMaximumNumberOfThreads The maximum number of threads to use during calibration.
+  */
+case class CalibrateParameters(maybeMaximumNumberOfThreads: Option[Int] = None) extends Parameters
+
 /**
   * A class to hold a relative path an the repository it is relative to.
   * @param path The relative path.
@@ -129,6 +136,8 @@ object Parameters {
       Decoder.forProduct2("relativeDirectories", "users")(UnownParameters.apply)
     val multiParametersDecoder =
       Decoder.forProduct2("relativeDirectories", "action")(MultiDiscParameters.apply)
+    val calibrateParametersDecoder =
+      Decoder.forProduct1("maximumNumberOfThreads")(CalibrateParameters.apply)
     val initialiseParametersDecoder = Decoder.instance { hcursor =>
       if (hcursor.value.isObject) {
         Right(InitialiseParameters())
@@ -149,6 +158,7 @@ object Parameters {
                 case "checkout" => Some(checkoutParametersDecoder.map[Parameters](identity))
                 case "initialise" => Some(initialiseParametersDecoder.map[Parameters](identity))
                 case "multidisc" => Some(multiParametersDecoder.map[Parameters](identity))
+                case "calibrate" => Some(calibrateParametersDecoder.map[Parameters](identity))
                 case _ => None
               }
               maybeDecoder match {
@@ -187,6 +197,8 @@ object Parameters {
       Encoder.forProduct2("relativeDirectories", "action")(mp => (mp.relativeDirectories, mp.maybeMultiAction))
     val initialiseParametersEncoder: Encoder[InitialiseParameters] =
       Encoder.encodeJsonObject.contramap(_ => JsonObject.empty)
+    val calibrateParametersEncoder: Encoder[CalibrateParameters] =
+      Encoder.forProduct1("maximumNumberOfThreads")(mp => mp.maybeMaximumNumberOfThreads)
     Encoder.instance { parameters =>
       val (commandName, json) = parameters match {
         case cp : CheckinParameters => ("checkin", checkinParametersEncoder(cp))
@@ -195,6 +207,7 @@ object Parameters {
         case up : UnownParameters => ("unown", unownParametersEncoder(up))
         case ip : InitialiseParameters => ("initialise", initialiseParametersEncoder(ip))
         case mp : MultiDiscParameters => ("multidisc", multiParametersEncoder(mp))
+        case cp : CalibrateParameters => ("calibrate", calibrateParametersEncoder(cp))
       }
       val obj = json.asObject.
         map(obj => obj.+:("command" -> Json.fromString(commandName))).

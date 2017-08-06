@@ -64,6 +64,11 @@ sealed trait Command extends EnumEntry {
   val maybeAllowUnownedText: Option[String]
 
   /**
+    * The text to describe the number of threads for calibration, or none if not applicable.
+    */
+  val maybeNumberOfThreadsText: Option[String]
+
+  /**
     * The text for multi action flags.
     */
   val multiActionTexts: Map[MultiAction, String]
@@ -126,17 +131,6 @@ object Command extends Enum[Command] {
             }.text(text)
         }
 
-        checkConfig { eParameters =>
-            eParameters.flatMap { parameters =>
-              if (parametersBuilder.multiActionIsValid(parameters)) {
-                Right(())
-              }
-              else {
-                Left(NonEmptyList.of("You must supply an action for multiple disc albums."))
-              }
-            }.leftMap(_.toList.mkString("\n"))
-        }
-
         help("help").text("Prints this usage text.")
 
         maybeDirectoriesDescriptionText.foreach { directoriesDescriptionText =>
@@ -154,12 +148,23 @@ object Command extends Enum[Command] {
             }
           }.text(directoriesDescriptionText)
         }
-      }
-      parser.parse(arguments, Right(emptyParameters)) match {
-        case Some(eParameters) => eParameters.map { parameters =>
-          Parameters.parametersEncoder.apply(parameters)
+
+        maybeNumberOfThreadsText.foreach { numberOfThreadsText =>
+          arg[Int]("<numberOfThreads>").maxOccurs(1).optional().action { (threads, eParameters) =>
+            eParameters.flatMap { parameters =>
+              parametersBuilder.withNumberOfThreads(parameters, threads)
+            }
+          }.text(numberOfThreadsText)
         }
-        case None => Left(NonEmptyList.of(""))
+      }
+
+      parser.parse(arguments, Right(emptyParameters)) match {
+        case Some(eParameters) => eParameters.flatMap { parameters =>
+          parametersBuilder.checkValid(parameters).map { validParameters =>
+            Parameters.parametersEncoder.apply(validParameters)
+          }
+        }
+        case None => Left(NonEmptyList.of("Arguments could not be parsed."))
       }
     }
   }
@@ -176,6 +181,7 @@ object Command extends Enum[Command] {
     val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be owned.")
     val maybeUnownText: Option[String] = None
     val maybeAllowUnownedText: Option[String] = None
+    val maybeNumberOfThreadsText: Option[String] = None
     val multiActionTexts: Map[MultiAction, String] = Map.empty
   }
 
@@ -191,6 +197,7 @@ object Command extends Enum[Command] {
     val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be unowned.")
     val maybeUnownText: Option[String] = None
     val maybeAllowUnownedText: Option[String] = None
+    val maybeNumberOfThreadsText: Option[String] = None
     val multiActionTexts: Map[MultiAction, String] = Map.empty
   }
 
@@ -206,6 +213,7 @@ object Command extends Enum[Command] {
     val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be checked in.")
     val maybeUnownText: Option[String] = None
     val maybeAllowUnownedText: Option[String] = Some("Allow files without owners to be checked in.")
+    val maybeNumberOfThreadsText: Option[String] = None
     val multiActionTexts: Map[MultiAction, String] = Map.empty
   }
 
@@ -221,6 +229,7 @@ object Command extends Enum[Command] {
     val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be checked out.")
     val maybeUnownText: Option[String] = Some("Also unown any checked out files.")
     val maybeAllowUnownedText: Option[String] = None
+    val maybeNumberOfThreadsText: Option[String] = None
     val multiActionTexts: Map[MultiAction, String] = Map.empty
   }
 
@@ -236,10 +245,27 @@ object Command extends Enum[Command] {
     val maybeDirectoriesDescriptionText: Option[String] = Some("The files to be split or joined")
     val maybeUnownText: Option[String] = None
     val maybeAllowUnownedText: Option[String] = None
+    val maybeNumberOfThreadsText: Option[String] = None
     val multiActionTexts: Map[MultiAction, String] = Map(
       MultiAction.Join -> "Join albums into one long album",
       MultiAction.Split -> "Keep albums split but with (Extra) as a prefix for any discs but the first."
     )
+  }
+
+  /**
+    * The `calibrate` command
+    */
+  object CalibrateCommand extends ParametersParser[CalibrateParameters](
+    CalibrateParameters(),
+    CalibrateParametersBuilder) with Command {
+    val name = "calibrate"
+    val usageText = "Test to find the optimal number of threads for encoding."
+    val maybeUsersDescriptionText: Option[String] = None
+    val maybeDirectoriesDescriptionText: Option[String] = None
+    val maybeUnownText: Option[String] = None
+    val maybeAllowUnownedText: Option[String] = None
+    val maybeNumberOfThreadsText: Option[String] = Some("The maximum number of threads to test.")
+    val multiActionTexts: Map[MultiAction, String] = Map.empty
   }
 
   val values: immutable.IndexedSeq[Command] = findValues

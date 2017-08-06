@@ -15,6 +15,7 @@
  */
 
 package client
+import java.io.OutputStreamWriter
 import java.nio.file.{FileSystem, FileSystems}
 import java.util.logging.LogManager
 
@@ -23,7 +24,6 @@ import akka.stream.ActorMaterializer
 import cats.data.{EitherT, NonEmptyList}
 import cats.instances.future._
 import io.circe.Json
-import json.Parameters
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
