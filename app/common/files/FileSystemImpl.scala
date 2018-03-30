@@ -19,19 +19,47 @@ package common.files
 
 import java.io.IOException
 import java.nio.file._
-import java.nio.file.attribute.BasicFileAttributes
-import javax.inject.Inject
+import java.nio.file.attribute.{BasicFileAttributes, FileAttribute, PosixFilePermission, PosixFilePermissions}
+import java.nio.file.attribute.PosixFilePermission._
+import java.util
 
+import scala.collection.JavaConverters._
+import javax.inject.Inject
 import common.message.Messages._
 import common.message._
 
 import scala.util.Try
 import scala.compat.java8.StreamConverters._
-
+import java.util.{Set => JSet}
 /**
  * The default implementation of[[FileSystem]].
  */
 class FileSystemImpl @Inject() extends FileSystem with Messaging {
+
+  case class Permissions(posixFilePermission: Set[PosixFilePermission]) {
+    val posixPermissions: JSet[PosixFilePermission] = posixFilePermission.asJava
+    val fileAttribute: FileAttribute[_] = PosixFilePermissions.asFileAttribute(posixPermissions)
+  }
+  object Permissions {
+    def apply(posixFilePermissions: PosixFilePermission*): Permissions = {
+      Permissions(posixFilePermissions.toSet)
+    }
+  }
+
+  val filePermissions: Permissions = Permissions(
+    PosixFilePermission.OWNER_WRITE,
+    PosixFilePermission.OWNER_READ,
+    PosixFilePermission.GROUP_READ,
+    PosixFilePermission.OTHERS_READ)
+
+  val directoryPermissions: Permissions = Permissions(
+    PosixFilePermission.OWNER_WRITE,
+    PosixFilePermission.OWNER_EXECUTE,
+    PosixFilePermission.OWNER_READ,
+    PosixFilePermission.GROUP_EXECUTE,
+    PosixFilePermission.GROUP_READ,
+    PosixFilePermission.OTHERS_EXECUTE,
+    PosixFilePermission.OTHERS_READ)
 
   /**
     * @inheritdoc
@@ -41,7 +69,7 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     log(MOVE(sourceFile, targetFile))
     val sourcePath = sourceFile.absolutePath
     val targetPath = targetFile.absolutePath
-    Files.createDirectories(targetPath.getParent)
+    createDirectories(targetPath.getParent)
     tryAtomicMove(sourcePath, targetPath)
     val currentDirectory = sourcePath.getParent
     remove(sourceFile.basePath, currentDirectory)
@@ -55,7 +83,7 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     val sourcePath = sourceFile.absolutePath
     val targetPath = targetFile.absolutePath
     val parentTargetPath = targetPath.getParent
-    Files.createDirectories(parentTargetPath)
+    createDirectories(parentTargetPath)
     val tempPath = Files.createTempFile(parentTargetPath, "device-file-", ".tmp")
     Files.copy(sourcePath, tempPath, StandardCopyOption.REPLACE_EXISTING)
     tryAtomicMove(tempPath, targetPath, StandardCopyOption.REPLACE_EXISTING)
@@ -63,8 +91,30 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     remove(sourceFile.basePath, currentDirectory)
   }
 
+
+  private def createDirectories(path: Path): Path = {
+    val missingDirectories: Stream[Path] = Stream.iterate(path)(_.getParent).takeWhile(path => !Files.exists(path)).reverse
+    missingDirectories.foreach { dir =>
+      Files.createDirectories(dir)
+      Files.setPosixFilePermissions(dir, directoryPermissions.posixPermissions)
+    }
+    path
+  }
+
+  /**
+    * @inheritdoc
+    */
+  override def makeWorldReadable(file: File)(implicit messageService: MessageService): Unit = {
+    val path: Path = file.absolutePath
+    val currentPermissions: Set[PosixFilePermission] =
+      Files.getPosixFilePermissions(path, LinkOption.NOFOLLOW_LINKS).asScala.toSet
+    val newPositions: Set[PosixFilePermission] = currentPermissions ++ Seq(OWNER_READ, GROUP_READ, OTHERS_READ)
+    Files.setPosixFilePermissions(path, newPositions.asJava)
+  }
+
   /**
     * Try and move a file using an atomic move operation. If this fails, move it non-atomically.
+ *
     * @param sourcePath The source path.
     * @param targetPath The target path.
     * @param options The [[StandardCopyOption]] passed to the file system.
@@ -78,6 +128,7 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
       case _: AtomicMoveNotSupportedException =>
         Files.move(sourcePath, targetPath, options: _*)
     }
+    Files.setPosixFilePermissions(targetPath, filePermissions.posixPermissions)
   }
 
   /**
@@ -133,7 +184,7 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     val lnk = link.absolutePath
     val parent = lnk.getParent
     val relativeTarget = parent.relativize(target)
-    Files.createDirectories(parent)
+    createDirectories(parent)
     Files.deleteIfExists(lnk)
     Files.createSymbolicLink(lnk, relativeTarget)
   }

@@ -16,19 +16,20 @@
 
 package common.files
 
-import java.time.{Clock, Instant}
 import java.nio.file.{FileSystem => JFS}
+import java.time.{Clock, Instant}
 
 import common.configuration.User
 import common.files.Extension.M4A
 import org.specs2.mutable._
-import testfilesystem._
+import testfilesystem.FS.Permissions
+import testfilesystem.FsEntryMatchers
 
 /**
  * @author alex
  *
  */
-class FileSystemImplSpec extends Specification with PathMatchers with TestRepositories[JFSRepositoriesAndFileSystem] with RepositoryEntry.Dsl {
+class FileSystemImplSpec extends Specification with PathMatchers with FsEntryMatchers with TestRepositories[JFSRepositoriesAndFileSystem] with RepositoryEntry.Dsl {
 
   val now: Instant = Clock.systemDefaultZone().instant()
 
@@ -51,7 +52,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
       validatedSource.toEither must beRight { source : FlacFile =>
         val target = source.toStagingFile
         fileSystem.move(source, target)
-        fs.entries must containTheSameElementsAs {
+        fs.entries must haveTheSameEntriesAsIgnoringPermissions {
           fs.expected(
             D("music",
               D("flac",
@@ -59,9 +60,9 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
                   F("keepme.txt")
                 )
               ),
-              D("staging",
-                D("dir",
-                  F("moveme.txt")
+              D("staging", Permissions.OwnerReadAndWrite,
+                D("dir", Permissions.OwnerReadAndWrite,
+                  F("moveme.txt", Permissions.OwnerWriteAllRead)
                 )
               )
             )
@@ -90,13 +91,13 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
       validatedSource.toEither must beRight { source : FlacFile =>
         val target = source.toStagingFile
         fileSystem.move(source, target)
-        fs.entries must containTheSameElementsAs {
+        fs.entries must haveTheSameEntriesAsIgnoringPermissions {
           fs.expected(
             D("music",
               D("flac"),
-              D("staging",
-                D("dir",
-                  F("moveme.txt")
+              D("staging", Permissions.OwnerReadAndWrite,
+                D("dir", Permissions.OwnerReadAndWrite,
+                  F("moveme.txt", Permissions.OwnerWriteAllRead)
                 )
               )
             )
@@ -127,7 +128,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
       val validatedSource = repositories.flac.file(fs.getPath("dira", "dirb", "deleteme.txt"))
       validatedSource.toEither must beRight { source : FlacFile =>
         fileSystem.remove(source)
-        fs.entries must containTheSameElementsAs {
+        fs.entries must haveTheSameEntriesAsIgnoringPermissions {
           fs.expected(
             D("music",
               D("flac",
@@ -166,7 +167,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
       val validatedSource = repositories.flac.file(fs.getPath("dira", "dirb", "deleteme.txt"))
       validatedSource.toEither must beRight { source : FlacFile =>
         fileSystem.remove(source)
-        fs.entries must containTheSameElementsAs {
+        fs.entries must haveTheSameEntriesAsIgnoringPermissions {
           fs.expected(
             D("music",
               D("flac",
@@ -200,7 +201,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
       validatedSource.toEither must beRight { source : FlacFile =>
         val target = source.toStagingFile
         fileSystem.copy(source, target)
-        fs.entries must containTheSameElementsAs {
+        fs.entries must haveTheSameEntriesAsIgnoringPermissions {
           fs.expected(
             D("music",
               D("flac",
@@ -241,7 +242,7 @@ class FileSystemImplSpec extends Specification with PathMatchers with TestReposi
       validatedSource.toEither must beRight { source : EncodedFile =>
         val target = source.toDeviceFile(User("freddie"))
         fileSystem.link(source, target)
-        fs.entries must containTheSameElementsAs {
+        fs.entries must haveTheSameEntriesAsIgnoringPermissions {
           fs.expected(
             D("music",
               D("devices",

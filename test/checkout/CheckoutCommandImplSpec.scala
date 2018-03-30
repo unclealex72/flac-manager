@@ -41,11 +41,13 @@ import cats.implicits._
 import checkin.LossyEncoder
 import common.files.Extension.{M4A, MP3}
 import common.message.Messages.OVERWRITE
+import testfilesystem.FS.Permissions
+import testfilesystem.FsEntryMatchers
 
 /**
  * Created by alex on 18/11/14.
  */
-class CheckoutCommandImplSpec extends Specification with Mockito with ChangeMatchers with TestRepositories[Services] with RepositoryEntry.Dsl {
+class CheckoutCommandImplSpec extends Specification with Mockito with ChangeMatchers with FsEntryMatchers with TestRepositories[Services] with RepositoryEntry.Dsl {
 
   sequential
 
@@ -75,7 +77,7 @@ class CheckoutCommandImplSpec extends Specification with Mockito with ChangeMatc
 
   val expectedEntriesAfterCheckout = Repos(
     flac = Artists("Queen" -> Seq(A_KIND_OF_MAGIC), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
-    staging = Artists("Queen" -> Albums(INNUENDO)),
+    staging = Map(Permissions.OwnerWriteAllRead -> Artists("Queen" -> Albums(INNUENDO))),
     encoded = Artists("Queen" -> Albums(A_KIND_OF_MAGIC), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
     devices = Users(
       "Freddie" -> Artists("Queen" -> Albums(A_KIND_OF_MAGIC), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
@@ -85,7 +87,7 @@ class CheckoutCommandImplSpec extends Specification with Mockito with ChangeMatc
 
   val conflictingEntries = Repos(
     flac = Artists("Queen" -> Albums(A_KIND_OF_MAGIC, INNUENDO), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
-    staging = Artists("Queen" -> Albums(INNUENDO)),
+    staging = Map(Permissions.OwnerWriteAllRead -> Artists("Queen" -> Albums(INNUENDO))),
     encoded = Artists("Queen" -> Albums(A_KIND_OF_MAGIC, INNUENDO), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
     devices = Users(
       "Freddie" -> Artists("Queen" -> Albums(A_KIND_OF_MAGIC), "Slayer" -> Albums(SOUTH_OF_HEAVEN)),
@@ -99,7 +101,7 @@ class CheckoutCommandImplSpec extends Specification with Mockito with ChangeMatc
       services.repositories.flac.directory(fs.getPath("Q/Queen/Innuendo")).toEither must beRight { flacDirectory: FlacDirectory =>
         Await.result(services.checkoutCommand.checkout(SortedSet(flacDirectory), unown = false), 1.hour)
         val entries = fs.entries
-        entries must containTheSameElementsAs(fs.expected(expectedEntriesAfterCheckout :_*))
+        entries must haveTheSameEntriesAs(fs.expected(expectedEntriesAfterCheckout :_*))
         there were noCallsTo(services.ownerService)
       }
     }
@@ -115,7 +117,7 @@ class CheckoutCommandImplSpec extends Specification with Mockito with ChangeMatc
       services.repositories.flac.directory(fs.getPath("Q/Queen/Innuendo")).toEither must beRight { flacDirectory: FlacDirectory =>
         Await.result(services.checkoutCommand.checkout(SortedSet(flacDirectory), unown = true), 1.hour)
         val entries = fs.entries
-        entries must containTheSameElementsAs(fs.expected(expectedEntriesAfterCheckout :_*))
+        entries must haveTheSameEntriesAs(fs.expected(expectedEntriesAfterCheckout :_*))
         there was one(services.ownerService).unown(
           be_===(User("Brian")),
           argThat(hasOneElementThat(hasAlbumId("Innuendo"))))(any[MessageService])
@@ -142,7 +144,7 @@ class CheckoutCommandImplSpec extends Specification with Mockito with ChangeMatc
           vExpectedOverwrites.toEither must beRight { expectedOverwrites: Seq[Message] =>
             messages.toList must containTheSameElementsAs(expectedOverwrites)
           }
-          fs.entries must containTheSameElementsAs(fs.expected(conflictingEntries :_*))
+          fs.entries must haveTheSameEntriesAs(fs.expected(conflictingEntries :_*))
         }
       }
 

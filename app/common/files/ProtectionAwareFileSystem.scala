@@ -16,10 +16,11 @@
 
 package common.files
 
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 import java.nio.file.attribute.PosixFilePermission
-import javax.inject.{Inject, Named}
+import java.util
 
+import javax.inject.{Inject, Named}
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.collection.JavaConverters._
@@ -53,11 +54,10 @@ class ProtectionAwareFileSystem @Inject() (@Named("rawFileSystem") val delegate:
     */
   def alterWritable(writable: File => Boolean, files: Seq[File]): Unit = {
     files.foreach { file =>
-      var currentPath = file.absolutePath
-      val terminatingPath = file.rootPath.getParent
-      while (currentPath != null && !currentPath.equals(terminatingPath)) {
+      val terminatingPath: Path = file.rootPath.getParent
+      Stream.iterate(file.absolutePath)(_.getParent).takeWhile(path => path != null && path != terminatingPath).foreach { currentPath =>
         if (Files.exists(currentPath)) {
-          val posixFilePermissions = Files.getPosixFilePermissions(currentPath)
+          val posixFilePermissions: util.Set[PosixFilePermission] = Files.getPosixFilePermissions(currentPath)
           val isWritable = writable(file)
           if (isWritable) {
             logger.debug("Setting " + currentPath + " to read and write.")
@@ -72,9 +72,7 @@ class ProtectionAwareFileSystem @Inject() (@Named("rawFileSystem") val delegate:
           }
           Files.setPosixFilePermissions(currentPath, posixFilePermissions)
         }
-        currentPath = currentPath.getParent
       }
-
     }
   }
 }

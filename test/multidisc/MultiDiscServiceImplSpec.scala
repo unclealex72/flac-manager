@@ -25,6 +25,7 @@ import common.message.Message
 import common.music.Tags
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
+import testfilesystem.FS.Permissions
 import testfilesystem._
 /**
   * Created by alex on 24/05/17
@@ -34,6 +35,7 @@ class MultiDiscServiceImplSpec extends Specification with StrictLogging with
 
   def populateFileSystem(fs: FileSystem): Unit = {
     fs.staging(
+      Permissions.OwnerReadAndWrite,
       Artists("Queen" ->
         Albums(
           Album("A Night at the Opera",
@@ -88,15 +90,16 @@ class MultiDiscServiceImplSpec extends Specification with StrictLogging with
 
   def executeTest(validatedResults: Either[NonEmptyList[Message], Seq[FsEntry]], expectedTags: ExpectedTags, tagExtractor: ExpectedTags => Tags): MatchResult[Option[Tags]] = {
     validatedResults must beRight
-    val entries = validatedResults.right.get
-    val maybeTags = (for {
-      entry <- entries
-      tags <- entry match {
-        case FsFile(path, _, Some(fileTags)) if path.getFileName.toString == expectedTags.path => Some(fileTags)
-        case _ => None
+    def taggedEntries(entries: Seq[FsEntry]): Seq[Tags] = {
+      entries.flatMap {
+        case FsFile(path, _, Some(fileTags)) if path.getFileName.toString == expectedTags.path => Seq(fileTags)
+        case FsDirectory(_, _, children) => taggedEntries(children)
+        case _ => Seq.empty
       }
-    } yield tags).headOption
-    maybeTags must beSome { tags: Tags =>
+    }
+    val entries: Seq[FsEntry] = validatedResults.right.get
+    val tags: Seq[Tags] = taggedEntries(entries)
+    tags.headOption must beSome { tags: Tags =>
       tags must be_===(tagExtractor(expectedTags))
     }
   }

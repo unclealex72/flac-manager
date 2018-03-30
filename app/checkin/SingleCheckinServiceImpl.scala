@@ -116,6 +116,7 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
       case (extension, tempFile) =>
         val encodedFile = flacFile.toEncodedFile(extension)
         fileSystem.move(tempFile, encodedFile)
+        fileSystem.makeWorldReadable(encodedFile)
         owners.foreach { user =>
           val deviceFile = encodedFile.toDeviceFile(user)
           fileSystem.link(encodedFile, deviceFile)
@@ -123,6 +124,7 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
         }
     }
     fileSystem.move(stagingFile, flacFile)
+    fileSystem.makeWorldReadable(flacFile)
   }
 
   override def remove(stagingFile: StagingFile)

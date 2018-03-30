@@ -16,8 +16,9 @@
 
 package testfilesystem
 
-import java.nio.file.attribute.PosixFilePermissions
-import java.nio.file.{FileSystem, Files, LinkOption, Path}
+import java.nio.file.attribute.PosixFilePermission._
+import java.nio.file.attribute.{PosixFilePermission, PosixFilePermissions}
+import java.nio.file.{FileSystem, Files, Path}
 import java.time.Instant
 import java.util.UUID
 
@@ -25,6 +26,7 @@ import com.github.marschall.memoryfilesystem.MemoryFileSystemBuilder
 import com.typesafe.scalalogging.StrictLogging
 import common.music.{CoverArt, Tags}
 import org.specs2.execute.{AsResult, Result}
+import org.specs2.matcher.{Matcher, Matchers}
 import org.specs2.specification.ForEach
 import play.api.libs.json._
 
@@ -40,7 +42,9 @@ trait FS[T] extends ForEach[T] {
   def setup(fs: FileSystem): T
 
   override def foreach[R: AsResult](f: T => R): Result = {
-    val fs: FileSystem = MemoryFileSystemBuilder.newLinux().build(s"test-${UUID.randomUUID().toString}")
+    val fs: FileSystem = MemoryFileSystemBuilder.newLinux().setUmask(
+      Set(GROUP_READ, GROUP_WRITE, GROUP_EXECUTE, OTHERS_READ, OTHERS_WRITE, OTHERS_EXECUTE).asJava).
+      build(s"test-${UUID.randomUUID().toString}")
     try AsResult(f(setup(fs)))
     finally fs.close()
   }
@@ -49,94 +53,68 @@ trait FS[T] extends ForEach[T] {
 object FS {
   private val COVER_ART = CoverArt(Array[Byte](0), "image/jpeg")
 
+  sealed trait Permissions {
+    val filePosixPermissions: Set[PosixFilePermission]
+    lazy val directoryPosixPermissions: Set[PosixFilePermission] = filePosixPermissions.flatMap { permission =>
+      val maybeExtraPermission: Option[PosixFilePermission] = permission match {
+        case PosixFilePermission.OWNER_READ => Some(PosixFilePermission.OWNER_EXECUTE)
+        case PosixFilePermission.GROUP_READ => Some(PosixFilePermission.GROUP_EXECUTE)
+        case PosixFilePermission.OTHERS_READ => Some(PosixFilePermission.OTHERS_EXECUTE)
+        case _ => None
+      }
+      maybeExtraPermission.toSeq :+ permission
+    }
+  }
+
+  object Permissions {
+    object OwnerReadOnly extends Permissions {
+      override val filePosixPermissions = Set(PosixFilePermission.OWNER_READ)
+    }
+    object AllReadOnly extends Permissions {
+      override val filePosixPermissions = Set(PosixFilePermission.OWNER_READ, PosixFilePermission.GROUP_READ, PosixFilePermission.OTHERS_READ)
+    }
+    object OwnerReadAndWrite extends Permissions {
+      override val filePosixPermissions: Set[PosixFilePermission] = Set(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE)
+    }
+    object OwnerWriteAllRead extends Permissions {
+      override val filePosixPermissions: Set[PosixFilePermission] = Set(AllReadOnly, OwnerReadAndWrite).flatMap(_.filePosixPermissions)
+    }
+  }
+
   object Builder extends Builder
   trait Builder extends StrictLogging {
     type JFS = FileSystem
-    sealed trait FsEntryBuilder
-    case class FsReadOnlyBuilder(child: FsEntryBuilder) extends FsEntryBuilder
-    case class FsReadWriteBuilder(child: FsEntryBuilder) extends FsEntryBuilder
-    case class FsDirectoryBuilder(name: String, children: Seq[FsEntryBuilder]) extends FsEntryBuilder
-    case class FsFileBuilder(name: String, maybeTags: Option[Tags]) extends FsEntryBuilder
+    sealed trait FsEntryBuilder {
+      val name: String
+    }
+    case class FsDirectoryBuilder(name: String, permissions: Permissions, children: Seq[FsEntryBuilder]) extends FsEntryBuilder
+    case class FsFileBuilder(name: String, permissions: Permissions, maybeTags: Option[Tags]) extends FsEntryBuilder
     case class FsLinkBuilder(name: String, target: String) extends FsEntryBuilder
 
-    def toEntries(fs: JFS, fsEntryBuilder: FsEntryBuilder): Seq[FsEntry] = {
-      def _toEntries(path: Path, readOnly: Boolean)(fsEntryBuilder: FsEntryBuilder): Seq[FsEntry] = {
-        fsEntryBuilder match {
-          case FsReadOnlyBuilder(child) =>
-            _toEntries(path, readOnly = true)(child)
-          case FsReadWriteBuilder(child) =>
-            _toEntries(path, readOnly = false)(child)
-          case FsFileBuilder(name, maybeTags) =>
-            val childPath = path.resolve(name)
-            Seq(FsFile(childPath, readOnly, maybeTags))
-          case FsLinkBuilder(name, target) =>
-            val childPath = path.resolve(name)
-            Seq(FsLink(childPath, path.getFileSystem.getPath(target)))
-          case FsDirectoryBuilder(name, children) =>
-            val childPath = path.resolve(name)
-            FsDirectory(childPath, readOnly) +: children.flatMap(_toEntries(childPath, readOnly))
-        }
-      }
-      _toEntries(fs.getPath("/"), readOnly = false)(fsEntryBuilder)
-    }
-
     def construct(fs: JFS, fsEntryBuilders: Seq[FsEntryBuilder]): Unit = {
-      val fsEntries = fsEntryBuilders.flatMap(fsEntryBuilder => toEntries(fs, fsEntryBuilder)).sortBy {
-        case _: FsFile => (0, 0)
-        case _: FsLink => (1, 0)
-        case d: FsDirectory => (2, -d.path.getNameCount)
-      }
-      fsEntries.foreach { fsEntry =>
-        fsEntry match {
-          case FsFile(path, _, maybeTags) =>
+      def _construct(root: Path, fsEntryBuilders: Seq[FsEntryBuilder]): Unit = {
+        fsEntryBuilders.foreach {
+          case FsFileBuilder(name, permissions, maybeTags) =>
+            val path: Path = root.resolve(name)
             logger.info(s"Creating file $path")
-            Files.createDirectories(path.getParent)
             Files.createFile(path)
             maybeTags.foreach { tags =>
               Files.write(path, Json.prettyPrint(tags.toJson(true)).split('\n').toSeq.asJava)
             }
-          case FsLink(path, target) =>
+            Files.setPosixFilePermissions(path, permissions.filePosixPermissions.asJava)
+          case FsLinkBuilder(name, target) =>
+            val path: Path = root.resolve(name)
             logger.info(s"Creating link $path to $target")
-            Files.createDirectories(path.getParent)
-            Files.createSymbolicLink(path, target)
-          case FsDirectory(path, _) =>
-            if (!Files.isDirectory(path)) {
-              logger.info(s"Creating directory $path")
-              Files.createDirectories(path)
-            }
-        }
-        if (fsEntry.readOnly) {
-          val path = fsEntry.path
-          logger.info(s"Setting $path to read-only")
-          val ps = if (Files.isDirectory(path)) "r-x" else "r--"
-          Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(s"$ps$ps$ps"))
-          logger.info(s"Path $path now has permissions ${PosixFilePermissions.toString(Files.getPosixFilePermissions(path))}")
+            Files.createSymbolicLink(path, fs.getPath(target))
+          case FsDirectoryBuilder(name, permissions, children) =>
+            val path: Path = root.resolve(name)
+            logger.info(s"Creating directory $path")
+            Files.createDirectory(path)
+            _construct(path, children)
+            Files.setPosixFilePermissions(path, permissions.directoryPosixPermissions.asJava)
         }
       }
-    }
-
-    def deconstruct(fs: JFS): Seq[FsEntry] = {
-      def _deconstruct(path: Path): Seq[FsEntry] = {
-        if (Files.isSymbolicLink(path)) {
-          Seq(FsLink(path, Files.readSymbolicLink(path)))
-        }
-        else if (Files.isRegularFile(path)) {
-          val content = Files.readAllLines(path).asScala.mkString("\n").trim
-          val maybeTags = Try(Json.parse(content)) match {
-            case Success(json) => Tags.fromJson(json).toOption
-            case Failure(_) => None
-          }
-          Seq(FsFile(path, !Files.isWritable(path), maybeTags))
-        }
-        else if (Files.isDirectory(path)) {
-          FsDirectory(path, !Files.isWritable(path)) +: Files.list(path).toScala[Seq].flatMap(_deconstruct)
-        }
-        else {
-          Seq.empty
-        }
-      }
-
-      _deconstruct(fs.getPath("/")).sorted
+      _construct(fs.getPath("/"), fsEntryBuilders)
     }
 
     def tags(artist: String, album: String, albumId: String, totalDiscs: Int, discNumber: Int, totalTracks: Int, trackNumber: Int, track: String): Tags = {
@@ -148,33 +126,68 @@ object FS {
   object Dsl extends Dsl
   trait Dsl extends Builder {
     object D {
-      def apply(name: String, childBuilders: FsEntryBuilder*): FsDirectoryBuilder = FsDirectoryBuilder(name, childBuilders)
+      def apply(name: String, childBuilders: FsEntryBuilder*): FsDirectoryBuilder = FsDirectoryBuilder(name, Permissions.OwnerWriteAllRead, childBuilders)
+      def apply(name: String, permissions: Permissions, childBuilders: FsEntryBuilder*): FsDirectoryBuilder = FsDirectoryBuilder(name, permissions, childBuilders)
     }
     object F {
-      def apply(name: String, maybeTags: Option[Tags]): FsFileBuilder = FsFileBuilder(name, maybeTags)
+      def apply(name: String, maybeTags: Option[Tags]): FsFileBuilder = FsFileBuilder(name, Permissions.OwnerWriteAllRead, maybeTags)
       def apply(name: String): FsFileBuilder = apply(name, None)
       def apply(name: String, tags: Tags): FsFileBuilder = apply(name, Some(tags))
+      def apply(name: String, permissions: Permissions, maybeTags: Option[Tags]): FsFileBuilder = FsFileBuilder(name, permissions, maybeTags)
+      def apply(name: String, permissions: Permissions): FsFileBuilder = apply(name, permissions, None)
+      def apply(name: String, permissions: Permissions, tags: Tags): FsFileBuilder = apply(name, permissions, Some(tags))
     }
     object L {
       def apply(name: String, target: String): FsLinkBuilder = FsLinkBuilder(name, target)
     }
-    object RO {
-      def apply(child: FsEntryBuilder): FsEntryBuilder = FsReadOnlyBuilder(child)
-    }
-    object RW {
-      def apply(child: FsEntryBuilder): FsEntryBuilder = FsReadWriteBuilder(child)
-    }
 
     implicit class FileSystemExtensions(fs: JFS) {
-      def entries: Seq[FsEntry] = deconstruct(fs).filterNot { e =>
-        val path = e.path
-        path.startsWith("/home") || path.startsWith("/tmp") || path.equals(fs.getPath("/"))
+      val blacklist: Seq[String] = Seq("tmp", "home")
+      def entries: Seq[FsEntry] = {
+        def list(path: Path): Seq[Path] = Files.list(path).toScala[Seq]
+        def deconstruct(path: Path): Seq[FsEntry] = {
+          if (Files.isSymbolicLink(path)) {
+            Seq(FsLink(path, Files.readSymbolicLink(path)))
+          }
+          else {
+            val permissions: Set[PosixFilePermission] = Files.getPosixFilePermissions(path).asScala.toSet
+            if (Files.isRegularFile(path)) {
+              val content: String = Files.readAllLines(path).asScala.mkString("\n").trim
+              val maybeTags: Option[Tags] = Try(Json.parse(content)) match {
+                case Success(json) => Tags.fromJson(json).toOption
+                case Failure(_) => None
+              }
+              Seq(FsFile(path, permissions, maybeTags))
+            }
+            else if (Files.isDirectory(path)) {
+              val children: Seq[FsEntry] = list(path).flatMap(deconstruct).sorted
+              Seq(FsDirectory(path, permissions, children))
+            }
+            else {
+              Seq.empty
+            }
+          }
+        }
+        list(fs.getPath("/")).flatMap(deconstruct).filterNot(entry => blacklist.contains(entry.path.getFileName.toString))
       }
+
       def add(fsEntryBuilders: FsEntryBuilder*): Unit = {
         construct(fs, fsEntryBuilders)
       }
       def expected(fsEntryBuilders: FsEntryBuilder*): Seq[FsEntry] = {
-        fsEntryBuilders.flatMap(fsEntryBuilder => toEntries(fs, fsEntryBuilder))
+        def toEntries(root: Path, fsEntryBuilders: Seq[FsEntryBuilder]): Seq[FsEntry] = {
+          fsEntryBuilders.flatMap {
+            case FsFileBuilder(name, permissions, maybeTags) =>
+              Seq(FsFile(root.resolve(name), permissions.filePosixPermissions, maybeTags))
+            case FsLinkBuilder(name, target) =>
+              Seq(FsLink(root.resolve(name), fs.getPath(target)))
+            case FsDirectoryBuilder(name, permissions, children) =>
+              val path: Path = root.resolve(name)
+              val childEntries: Seq[FsEntry] = toEntries(path, children)
+              Seq(FsDirectory(path, permissions.directoryPosixPermissions, childEntries.sorted))
+          }
+        }
+        fsEntryBuilders.flatMap(fsEntryBuilder => toEntries(fs.getPath("/"), Seq(fsEntryBuilder))).sorted
       }
     }
   }
@@ -182,17 +195,39 @@ object FS {
 
 sealed trait FsEntry {
   val path: Path
-  val readOnly: Boolean
+  def toJson(includePermissions: Boolean): JsValue
+
+  protected def permissionsToEntries(posixFilePermissions: Set[PosixFilePermission], include: Boolean): Map[String, JsValue] =
+    if (include) {
+      Map("permissions" -> JsString(PosixFilePermissions.toString(posixFilePermissions.asJava)))
+    }
+    else {
+      Map.empty
+    }
+
+  protected def pathToEntries(path: Path): Map[String, JsValue] = Map("name" -> JsString(path.getFileName.toString))
+
 }
 
-case class FsDirectory(path: Path, readOnly: Boolean) extends FsEntry
-case class FsFile(path: Path, readOnly: Boolean, maybeTags: Option[Tags]) extends FsEntry
+case class FsDirectory(path: Path, posixFilePermissions: Set[PosixFilePermission], children: Seq[FsEntry]) extends FsEntry {
+  override def toJson(includePermissions: Boolean): JsValue = {
+    val childObjects: JsArray = JsArray(children.map(_.toJson(includePermissions)))
+    JsObject(pathToEntries(path) ++ permissionsToEntries(posixFilePermissions, includePermissions) + ("children" -> childObjects))
+  }
+}
+case class FsFile(path: Path, posixFilePermissions: Set[PosixFilePermission], maybeTags: Option[Tags]) extends FsEntry {
+  override def toJson(includePermissions: Boolean): JsValue = {
+    JsObject(pathToEntries(path) ++ permissionsToEntries(posixFilePermissions, includePermissions) ++ maybeTags.map(tags => "tags" -> tags.toJson(false)))
+  }
+}
 case class FsLink(path: Path, target: Path) extends FsEntry {
-  override val readOnly = false
+  override def toJson(includePermissions: Boolean): JsValue = {
+    JsObject(pathToEntries(path) + ("target" -> JsString(target.toString)))
+  }
 }
 
 object FsEntry {
-  implicit val ordering: Ordering[FsEntry] = Ordering.by(_.path.toAbsolutePath)
+  implicit val ordering: Ordering[FsEntry] = Ordering.by(_.path.getFileName.toString)
 }
 
 object LatestModified {
@@ -204,4 +239,18 @@ object LatestModified {
       times.max
     }
   }
+}
+
+trait FsEntryMatchers extends Matchers {
+
+  def haveTheSameEntriesAs(fsEntries: Seq[FsEntry]): Matcher[Seq[FsEntry]] = {
+    def toJson(entries: Seq[FsEntry]): String = Json.prettyPrint(Json.arr(entries.sorted.map(_.toJson(true))))
+    be_==(toJson(fsEntries)) ^^ { (entries: Seq[FsEntry]) => toJson(entries)}
+  }
+
+  def haveTheSameEntriesAsIgnoringPermissions(fsEntries: Seq[FsEntry]): Matcher[Seq[FsEntry]] = {
+    def toJson(entries: Seq[FsEntry]): String = Json.prettyPrint(Json.arr(entries.sorted.map(_.toJson(false))))
+    be_==(toJson(fsEntries)) ^^ { (entries: Seq[FsEntry]) => toJson(entries)}
+  }
+
 }

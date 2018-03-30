@@ -30,6 +30,7 @@ import common.music.{CoverArt, Tags}
 import org.specs2.mutable.Specification
 import org.specs2.specification.core.Fragment
 import play.api.libs.json.Json
+import testfilesystem.FS.Permissions
 
 import scala.collection.SortedSet
 /**
@@ -270,7 +271,7 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
       val fs = fsr.fs
       val repositories = fsr.repositories
       fs.staging(
-        F("Lazing on a Sunday Afternoon.flac", originalTags)
+        Permissions.OwnerReadAndWrite -> F("Lazing on a Sunday Afternoon.flac", originalTags)
       )
       repositories.staging.file(fs.getPath("Lazing on a Sunday Afternoon.flac")).toEither.flatMap(_.toFlacFileAndTags.toEither) must beRight { flacFileAndTags: (FlacFile, Tags) =>
         val (flacFile, tags) = flacFileAndTags
@@ -282,7 +283,7 @@ class RepositoriesImplSpec extends Specification with TestRepositories[FileSyste
       val fs = fsr.fs
       val repositories = fsr.repositories
       fs.staging(
-        F("Lazing on a Sunday Afternoon.flac", originalTags)
+        Permissions.OwnerReadAndWrite -> F("Lazing on a Sunday Afternoon.flac", originalTags)
       )
       val path = fs.getPath("Lazing on a Sunday Afternoon.flac")
       repositories.staging.file(path).toEither.map(_.writeTags(newTags)) must beRight { stagingFile: StagingFile =>

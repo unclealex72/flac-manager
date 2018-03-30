@@ -44,6 +44,7 @@ import scala.collection.SortedSet
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import common.files.RepositoryEntry
+import testfilesystem.FS.Permissions
 
 /**
   * Created by alex on 23/04/17
@@ -51,7 +52,7 @@ import common.files.RepositoryEntry
 class CommandBuilderImplSpec extends Specification with StrictLogging with TestRepositories[(FileSystem, Repositories)] with Mockito with RepositoryEntry.Dsl {
 
   val entries: Seq[FsEntryBuilder] = Repos(
-    staging = Seq(D("A"), D("B")),
+    staging = Map(Permissions.OwnerReadAndWrite -> Seq(D("A"), D("B"))),
     flac = Artists(
       "Queen" -> Albums(Album("A Night at the Opera", Tracks("Death on Two Legs"))),
       "Slayer" -> Albums(Album("Reign in Blood", Tracks("Angel of Death")))

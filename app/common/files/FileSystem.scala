@@ -39,6 +39,12 @@ trait FileSystem {
   def move(sourceFile: File, targetFile: File)(implicit messageService: MessageService): Unit
 
   /**
+    * Make a file readable by anybody.
+    * @param file The file to make readable.
+    * @param messageService The [[MessageService]] used to log progress or report errors.
+    */
+  def makeWorldReadable(file: File)(implicit messageService: MessageService): Unit
+  /**
     * Copy a path from a source directory to a target directory using an atomic
     * file system copy, creating any required directories.
     *

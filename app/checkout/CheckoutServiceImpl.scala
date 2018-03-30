@@ -123,7 +123,9 @@ class CheckoutServiceImpl @Inject()(
         }
         fileSystem.remove(encodedFile)
       }
-      fileSystem.move(flacFile, flacFile.toStagingFile)
+      val stagingFile: StagingFile = flacFile.toStagingFile
+      fileSystem.move(flacFile, stagingFile)
+      fileSystem.makeWorldReadable(stagingFile)
     }
     owners.foldLeft(tagsForUsers) { (tagsForUsers, owner) =>
       tagsForUsers.get(owner) match {

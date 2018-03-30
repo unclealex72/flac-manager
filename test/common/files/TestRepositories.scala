@@ -25,6 +25,7 @@ import common.files.Extension.{FLAC, M4A, MP3}
 import common.message.{MessageService, NoOpMessageService}
 import common.music.{Tags, TagsService}
 import play.api.libs.json.Json
+import testfilesystem.FS.Permissions
 import testfilesystem._
 /**
   * Created by alex on 17/06/17
@@ -68,19 +69,19 @@ object RepositoryEntry {
   object Builder extends Builder
   trait Builder extends FS.Builder {
 
-    def toFsEntryBuilder(userEntryBuilder: UserEntryBuilder, extensions: Seq[Extension], link: Boolean): FsEntryBuilder = {
-      FsDirectoryBuilder(userEntryBuilder.user, toFsEntryBuilders(userEntryBuilder.artistsEntryBuilder, extensions, link))
+    def toFsEntryBuilder(userEntryBuilder: UserEntryBuilder, permissions: Permissions, extensions: Seq[Extension], link: Boolean): FsEntryBuilder = {
+      FsDirectoryBuilder(userEntryBuilder.user, permissions, toFsEntryBuilders(userEntryBuilder.artistsEntryBuilder, permissions, extensions, link))
     }
 
-    def toFsEntryBuilders(artistsEntry: ArtistsEntryBuilder, extensions: Seq[Extension], link: Boolean): Seq[FsEntryBuilder] = {
+    def toFsEntryBuilders(artistsEntry: ArtistsEntryBuilder, permissions: Permissions, extensions: Seq[Extension], link: Boolean): Seq[FsEntryBuilder] = {
       val artistEntriesByInitial = artistsEntry.artistEntryBuilders.groupBy(_.artist.substring(0, 1))
       def extensionChildren(extension: Extension): Seq[FsDirectoryBuilder] = artistEntriesByInitial.toSeq.map { case (initial, artistEntries) =>
-        FsDirectoryBuilder(initial, convertArtistEntries(initial, artistEntries, extension, link))
+        FsDirectoryBuilder(initial, permissions, convertArtistEntries(initial, artistEntries, permissions, extension, link))
       }
       // Don't prepend FLAC as a directory.
       if (extensions.forall(_.lossy)) {
         extensions.map { extension =>
-          FsDirectoryBuilder(extension.extension, extensionChildren(extension))
+          FsDirectoryBuilder(extension.extension, permissions, extensionChildren(extension))
         }
       }
       else {
@@ -88,33 +89,33 @@ object RepositoryEntry {
       }
     }
 
-    private def convertArtistEntries(initial: String, artistEntryBuilders: Seq[ArtistEntryBuilder], extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
+    private def convertArtistEntries(initial: String, artistEntryBuilders: Seq[ArtistEntryBuilder], permissions: Permissions, extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
       artistEntryBuilders.map { artistEntryBuilder =>
         val artist = artistEntryBuilder.artist
-        FsDirectoryBuilder(artist, convertAlbumEntries(initial, artist, artistEntryBuilder.albumEntryBuilders, extension, link))
+        FsDirectoryBuilder(artist, permissions, convertAlbumEntries(initial, artist, artistEntryBuilder.albumEntryBuilders, permissions, extension, link))
       }
     }
 
-    private def convertAlbumEntries(initial: String, artist: String, albumEntryBuilders: Seq[AlbumEntryBuilder], extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
+    private def convertAlbumEntries(initial: String, artist: String, albumEntryBuilders: Seq[AlbumEntryBuilder], permissions: Permissions, extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
       albumEntryBuilders.flatMap { albumEntryBuilder =>
         val album = albumEntryBuilder.album
-        convertDiscEntries(initial, artist, album, albumEntryBuilder.discEntryBuilders, extension, link)
+        convertDiscEntries(initial, artist, album, albumEntryBuilder.discEntryBuilders, permissions, extension, link)
       }
     }
 
-    private def convertDiscEntries(initial: String, artist: String, album: String, discEntryBuilders: Seq[DiscEntryBuilder], extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
+    private def convertDiscEntries(initial: String, artist: String, album: String, discEntryBuilders: Seq[DiscEntryBuilder], permissions: Permissions, extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
       val totalDiscs = discEntryBuilders.size
       discEntryBuilders.zipWithIndex.map { case (discEntryBuilder, idx) =>
-        convertDiscEntry(initial, artist, album, discEntryBuilder.albumId, totalDiscs, idx + 1, discEntryBuilder, extension, link)
+        convertDiscEntry(initial, artist, album, discEntryBuilder.albumId, totalDiscs, idx + 1, discEntryBuilder, permissions, extension, link)
       }
     }
 
-    private def convertDiscEntry(initial: String, artist: String, album: String, albumId: String, totalDiscs: Int, discNumber: Int, discEntryBuilder: DiscEntryBuilder, extension: Extension, link: Boolean): FsEntryBuilder = {
+    private def convertDiscEntry(initial: String, artist: String, album: String, albumId: String, totalDiscs: Int, discNumber: Int, discEntryBuilder: DiscEntryBuilder, permissions: Permissions, extension: Extension, link: Boolean): FsEntryBuilder = {
       val albumDirectory = if (totalDiscs == 1) album else f"$album $discNumber%02d"
-      FsDirectoryBuilder(albumDirectory, convertTrackEntries(initial, artist, albumDirectory, album, albumId, totalDiscs, discNumber, discEntryBuilder.trackEntryBuilders, extension, link))
+      FsDirectoryBuilder(albumDirectory, permissions, convertTrackEntries(initial, artist, albumDirectory, album, albumId, totalDiscs, discNumber, discEntryBuilder.trackEntryBuilders, permissions, extension, link))
     }
 
-    def convertTrackEntries(initial: String, artist: String, albumDirectory: String, albumTitle: String, albumId: String, totalDiscs: Int, discNumber: Int, trackEntryBuilders: Seq[TrackEntryBuilder], extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
+    def convertTrackEntries(initial: String, artist: String, albumDirectory: String, albumTitle: String, albumId: String, totalDiscs: Int, discNumber: Int, trackEntryBuilders: Seq[TrackEntryBuilder], permissions: Permissions, extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
       val totalTracks = trackEntryBuilders.size
       trackEntryBuilders.zipWithIndex.map { case (trackEntryBuilder, idx) =>
         val trackNumber = idx + 1
@@ -128,7 +129,7 @@ object RepositoryEntry {
           val trackTags = tags(
             artist = artist, album = albumTitle, albumId = albumId, totalDiscs = totalDiscs,
             discNumber = discNumber, totalTracks = totalTracks, trackNumber = trackNumber, track = track)
-          FsFileBuilder(filename, Some(trackTags))
+          FsFileBuilder(filename, permissions, Some(trackTags))
         }
       }
     }
@@ -185,43 +186,47 @@ object RepositoryEntry {
         ArtistsEntryBuilder(artistEntries)
       }
 
-      private def entryBuilder(artists: Artists, link: Boolean, extensions: Extension*): Seq[FsEntryBuilder] = {
-        toFsEntryBuilders(artistsToArtistsEntry(artists), extensions, link)
+      private def entryBuilder(artists: Artists, link: Boolean, permissions: Permissions, extensions: Extension*): Seq[FsEntryBuilder] = {
+        toFsEntryBuilders(artistsToArtistsEntry(artists), permissions, extensions, link)
       }
 
-      private def entryBuilder(artistsOrEntries: ArtistsOrEntries, link: Boolean, extensions: Extension*): Seq[FsEntryBuilder] = {
+      private def entryBuilder(artistsOrEntries: ArtistsOrEntries, link: Boolean, permissions: Permissions, extensions: Extension*): Seq[FsEntryBuilder] = {
         artistsOrEntries match {
           case ArtistsOrEntries_Entries(entries) => entries
-          case ArtistsOrEntries_Artists(artists) => entryBuilder(artists, link, extensions :_*)
+          case ArtistsOrEntries_Artists(artists) => entryBuilder(artists, link, permissions, extensions :_*)
         }
       }
 
-      private def entryBuilder(users: Users, link: Boolean, extensions: Extension*): Seq[FsEntryBuilder] = {
+      private def entryBuilder(users: Users, link: Boolean, permissions: Permissions, extensions: Extension*): Seq[FsEntryBuilder] = {
         users.artistsByUser.map { case (user, artists) =>
           val userEntry = UserEntryBuilder(user, artistsToArtistsEntry(artists))
-          toFsEntryBuilder(userEntry, extensions, link)
+          toFsEntryBuilder(userEntry, permissions, extensions, link)
         }
       }
 
       def apply(flac: Artists = Artists(),
                 encoded: Artists = Artists(),
-                staging: ArtistsOrEntries = ArtistsOrEntries_Entries(Seq.empty),
+                staging: Map[Permissions, ArtistsOrEntries] = Map.empty,
                 devices: Users = Users()): Seq[FsEntryBuilder] = {
+        val stagingEntries: Seq[FsEntryBuilder] = staging.toSeq.flatMap { case (permissions, artistsOrEntries) =>
+          entryBuilder(artistsOrEntries, link = false, permissions, FLAC)
+        }
         val repoDirectories = Seq(
-          FsReadOnlyBuilder(FsDirectoryBuilder("flac", entryBuilder(flac, link = false, FLAC))),
-          FsReadOnlyBuilder(FsDirectoryBuilder("encoded", entryBuilder(encoded, link = false, M4A, MP3))),
-          FsReadWriteBuilder(FsDirectoryBuilder("staging", entryBuilder(staging, link = false, FLAC))),
-          FsReadOnlyBuilder(FsDirectoryBuilder("devices", entryBuilder(devices, link = true, M4A, MP3))))
-        Seq(FsReadWriteBuilder(FsDirectoryBuilder("music", repoDirectories)))
+          FsDirectoryBuilder("flac", Permissions.AllReadOnly, entryBuilder(flac, link = false, Permissions.AllReadOnly, FLAC)),
+          FsDirectoryBuilder("encoded", Permissions.AllReadOnly, entryBuilder(encoded, link = false, Permissions.AllReadOnly, M4A, MP3)),
+          FsDirectoryBuilder("staging", Permissions.OwnerReadAndWrite, stagingEntries),
+          FsDirectoryBuilder("devices", Permissions.AllReadOnly, entryBuilder(devices, link = true, Permissions.AllReadOnly, M4A, MP3)))
+        Seq(FsDirectoryBuilder("music", Permissions.AllReadOnly, repoDirectories))
       }
     }
 
     implicit class RepositoryFileSystemExtensions(fs: JFS) {
-      def staging(fsEntryBuilders: FsEntryBuilder*): Unit = {
-        fs.add(Repos(staging = ArtistsOrEntries_Entries(fsEntryBuilders)) :_*)
+      def staging(fsEntryBuilders: (Permissions, FsEntryBuilder)*): Unit = {
+        val staging: Map[Permissions, ArtistsOrEntries] = fsEntryBuilders.toMap.mapValues { entry => ArtistsOrEntries_Entries(Seq(entry))}
+        fs.add(Repos(staging = staging) :_*)
       }
-      def staging(artists: Artists): Unit = {
-        fs.add(Repos(staging = artists) :_*)
+      def staging(permissions: Permissions, artists: Artists): Unit = {
+        fs.add(Repos(staging = Map(permissions -> artists)) :_*)
       }
       def flac(artists: Artists): Unit = {
         fs.add(Repos(flac = artists) :_*)

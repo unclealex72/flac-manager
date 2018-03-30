@@ -67,6 +67,13 @@ abstract class DecoratingFileSystem extends FileSystem with StrictLogging {
   /**
     * @inheritdoc
     */
+  override def makeWorldReadable(file: File)(implicit messageService: MessageService): Unit = {
+    wrap(_.makeWorldReadable(file))(file)
+  }
+
+  /**
+    * @inheritdoc
+    */
   override def link(file: File, link: File)(implicit messageService: MessageService): Unit =
     wrap(_.link(file, link))(file, link)
 

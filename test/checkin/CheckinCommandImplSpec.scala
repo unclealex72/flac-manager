@@ -36,6 +36,8 @@ import common.owners.OwnerService
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import own.OwnAction
+import testfilesystem.FS.Permissions
+import testfilesystem.FsEntryMatchers
 
 import scala.collection.SortedSet
 import scala.concurrent.duration._
@@ -44,7 +46,7 @@ import scala.concurrent.{Await, Future}
 /**
  * Created by alex on 18/11/14.
  */
-class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatchers with TestRepositories[Services] with RepositoryEntry.Dsl {
+class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatchers with FsEntryMatchers with TestRepositories[Services] with RepositoryEntry.Dsl {
 
   sequential
 
@@ -64,7 +66,7 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
   )
 
   val entriesBeforeCheckin = Repos(
-    staging = Artists("Queen" -> Albums(A_KIND_OF_MAGIC, INNUENDO), "Slayer" -> Albums(SOUTH_OF_HEAVEN))
+    staging = Map(Permissions.OwnerReadAndWrite -> Artists("Queen" -> Albums(A_KIND_OF_MAGIC, INNUENDO), "Slayer" -> Albums(SOUTH_OF_HEAVEN)))
   )
 
   val expectedEntriesAfterCheckin = Repos(
@@ -99,7 +101,7 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
       services.repositories.staging.directory(fs.getPath("")).toEither must beRight { stagingDirectory: StagingDirectory =>
         Await.result(services.checkinCommand.checkin(SortedSet(stagingDirectory), allowUnowned = false), 1.hour)
         val entries = fs.entries
-        entries must containTheSameElementsAs(fs.expected(expectedEntriesAfterCheckin :_*))
+        entries must haveTheSameEntriesAs(fs.expected(expectedEntriesAfterCheckin :_*))
       }
     }
   }
@@ -117,7 +119,7 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
       services.repositories.staging.directory(fs.getPath("")).toEither must beRight { stagingDirectory: StagingDirectory =>
         Await.result(services.checkinCommand.checkin(SortedSet(stagingDirectory), allowUnowned = true), 1.hour)
         val entries = fs.entries
-        entries must containTheSameElementsAs(fs.expected(expectedEntriesAfterUnownedCheckin :_*))
+        entries must haveTheSameEntriesAs(fs.expected(expectedEntriesAfterUnownedCheckin :_*))
       }
     }
   }
@@ -147,7 +149,7 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
             messages.toList must containTheSameElementsAs(expectedNotOwneds)
           }
 
-          entries must containTheSameElementsAs(fs.expected(entriesBeforeCheckin :_*))
+          entries must haveTheSameEntriesAs(fs.expected(entriesBeforeCheckin :_*))
         }
       }
     }
