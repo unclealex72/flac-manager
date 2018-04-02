@@ -17,8 +17,8 @@
 package client
 
 import akka.stream.Materializer
-import play.api.libs.ws.{WSClient, WSClientConfig}
 import play.api.libs.ws.ahc.{AhcWSClient, AhcWSClientConfig}
+import play.api.libs.ws.{WSClient, WSClientConfig}
 
 import scala.concurrent.duration.Duration
 

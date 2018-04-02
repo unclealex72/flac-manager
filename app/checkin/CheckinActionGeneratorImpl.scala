@@ -15,8 +15,6 @@
  */
 
 package checkin
-import javax.inject.Inject
-
 import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.implicits._
 import common.async.CommandExecutionContext
@@ -28,6 +26,7 @@ import common.multi.AllowMultiService
 import common.music.Tags
 import common.owners.OwnerService
 import common.validation.SequentialValidation
+import javax.inject.Inject
 
 import scala.concurrent.Future
 
@@ -45,7 +44,7 @@ class CheckinActionGeneratorImpl @Inject()(
     */
   override def generate(stagedFlacFiles: Seq[StagingFile],
                         allowUnowned: Boolean)(implicit messageService: MessageService): Future[ValidatedNel[Message, Seq[Action]]] = {
-    val eventualUsersByAlbumId = ownerService.listOwners()
+    val eventualUsersByAlbumId: Future[Map[String, Set[User]]] = ownerService.listOwners()
     eventualUsersByAlbumId.map { usersByAlbumId =>
       val (flacFiles, nonFlacFiles) = partitionFlacAndNonFlacFiles(stagedFlacFiles)
       // Validate the flac files only as non flac files just get deleted.
@@ -66,7 +65,7 @@ class CheckinActionGeneratorImpl @Inject()(
     */
   def validate(files: Seq[StagingFile],
                allowUnowned: Boolean, usersByAlbumId: Map[String, Set[User]])(implicit messageService: MessageService): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
-    val validatedValidFlacFiles =
+    val validatedValidFlacFiles: Validated[NonEmptyList[Message], Seq[ValidFlacFile]] =
       checkThereAreSomeFiles(files).andThen(checkFullyTaggedFlacFiles)
     validatedValidFlacFiles.andThen { validFlacFiles =>
       (checkDoesNotOverwriteExistingFlacFile(validFlacFiles) |@|
@@ -137,7 +136,7 @@ class CheckinActionGeneratorImpl @Inject()(
     val (uniqueMappings, nonUniqueMappings) =
       validFlacFiles.groupBy(_.flacFile).partition(kv => kv._2.size == 1)
     val uniqueFlacFiles: ValidatedNel[Message, Seq[ValidFlacFile]] =  Validated.valid(uniqueMappings.values.flatten.toSeq)
-    val nonUniqueFlacFiles = runValidation(nonUniqueMappings.toSeq) {
+    val nonUniqueFlacFiles: ValidatedNel[Message, Seq[Nothing]] = runValidation(nonUniqueMappings.toSeq) {
       case (flacFile, nonUniqueValidFlacFiles) =>
         Validated.invalid(NON_UNIQUE(flacFile, nonUniqueValidFlacFiles.map(_.stagedFile)))
     }
@@ -173,7 +172,7 @@ class CheckinActionGeneratorImpl @Inject()(
   def checkFlacFilesAreOwned(validFlacFiles: Seq[ValidFlacFile],
                              allowUnowned: Boolean, usersByAlbumId: Map[String, Set[User]]): ValidatedNel[Message, Seq[OwnedFlacFile]] = {
     runValidation(validFlacFiles) { validFlacFile =>
-      val owners = usersByAlbumId.getOrElse(validFlacFile.tags.albumId, Set.empty)
+      val owners: Set[User] = usersByAlbumId.getOrElse(validFlacFile.tags.albumId, Set.empty)
       if (owners.isEmpty && !allowUnowned) {
         Validated.invalid(NOT_OWNED(validFlacFile.stagedFile))
       }

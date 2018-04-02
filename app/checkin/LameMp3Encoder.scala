@@ -16,9 +16,8 @@
 
 package checkin
 
-import javax.inject.Inject
-
 import common.files.Extension.MP3
+import javax.inject.Inject
 
 /**
   * An implementation that uses [[http://lame.sourceforge.net/ Lame]] to encode flac files to MP3.

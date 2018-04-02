@@ -18,8 +18,8 @@ package json
 import java.nio.file.{FileSystem, Path}
 
 import io.circe._
-import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
 import json.PathCodec._
+import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
 
 /**
   * A marker trait for server command parameters. Each command parameter object is an RPC style JSON payload that

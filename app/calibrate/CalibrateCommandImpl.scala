@@ -15,10 +15,9 @@
  */
 
 package calibrate
-import javax.inject.Inject
-
 import cats.data.ValidatedNel
 import common.message.{Message, MessageService}
+import javax.inject.Inject
 
 import scala.concurrent.Future
 

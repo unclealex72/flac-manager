@@ -16,21 +16,21 @@
 
 package initialise
 
-import javax.inject.Inject
+import java.nio.file.Path
 
 import cats.data.Validated.{Invalid, Valid}
-import cats.data.ValidatedNel
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
+import cats.implicits._
+import checkin.LossyEncoder
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
 import common.changes.{Change, ChangeDao}
-import common.configuration.{Directories, User, UserDao}
+import common.configuration.{User, UserDao}
 import common.files._
 import common.message.Messages._
 import common.message.{Message, MessageService, Messaging}
-import common.music.{Tags, TagsService}
 import common.owners.OwnerService
-import cats.implicits._
-import checkin.LossyEncoder
+import javax.inject.Inject
 
 import scala.collection.SortedSet
 import scala.concurrent.Future
@@ -40,13 +40,10 @@ import scala.concurrent.Future
   * adds each file found as an addition at the time the file was last modified.
   *
   * @param userDao The [[UserDao]] used to list users.
-  * @param directoryService The [[DirectoryService]] used to read directories.
-  * @param tagsService The [[TagsService]] used to read audio tags.
+  * @param ownerService The [[OwnerService]] used to read ownership.
+  * @param lossyEncoders The encoders used for lossy encoding.
   * @param changeDao The [[ChangeDao]] used to update the changes in the database.
-  * @param directories The [[Directories]] pointing to all the repositories.
-  * @param fileLocationExtensions The typeclass used to give [[java.nio.file.Path]]-like functionality to
-  *                               [[common.files.FileLocation]]s.
-  * @param ec The execution context used to execute the command.
+  * @param repositories The [[Repositories]] pointing to all the repositories.
   */
 class InitialiseCommandImpl @Inject()(
                                        val userDao: UserDao,
@@ -69,7 +66,7 @@ class InitialiseCommandImpl @Inject()(
       case 0 =>
         log(INITIALISATION_STARTED)
         val empty: ValidatedNel[Message, Seq[InitialFile]] = Valid(Seq.empty)
-        val userAndExtensions = for {
+        val userAndExtensions: Set[(User, Extension)] = for {
           user <- userDao.allUsers()
           lossyEncoder <- lossyEncoders
         } yield {
@@ -78,12 +75,12 @@ class InitialiseCommandImpl @Inject()(
         val validatedInitialFiles: ValidatedNel[Message, Seq[InitialFile]] =
           userAndExtensions.foldLeft(empty) { (acc, userAndExtension) =>
             val (user, extension) = userAndExtension
-            val validatedInitialFilesForUser = listFiles(user, extension).map(_.map(InitialFile(_, user, extension)))
+            val validatedInitialFilesForUser: Validated[NonEmptyList[Message], SortedSet[InitialFile]] = listFiles(user, extension).map(_.map(InitialFile(_, user, extension)))
             (acc |@| validatedInitialFilesForUser).map(_ ++ _)
         }
         validatedInitialFiles match {
           case Valid(initialFiles) =>
-            val releasesByUserAndDirectory =
+            val releasesByUserAndDirectory: Seq[(User, Path, DeviceFile)] =
               initialFiles.groupBy(i => (i.user, i.deviceFile.absolutePath.getParent)).mapValues(is => is.head.deviceFile).toSeq.map {
                 case ((user, directory), deviceFileLocation) => (user, directory, deviceFileLocation)
               }.sortBy(udd => (udd._1.name, udd._2))
@@ -102,7 +99,7 @@ class InitialiseCommandImpl @Inject()(
 
   def addDeviceFileChanges(initialFiles: Seq[InitialFile])(implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
     initialFiles.foldLeft(emptyFuture){ (acc, initialFile) =>
-      val deviceFile = initialFile.deviceFile
+      val deviceFile: DeviceFile = initialFile.deviceFile
       log(INITIALISING(deviceFile))
       for {
         _ <- acc

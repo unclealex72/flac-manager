@@ -24,7 +24,7 @@ import scala.collection.{SortedMap, SortedSet}
 import scala.concurrent.Future
 
 /**
-  * Checkout a sequence of [[FlacFileLocation]]s.
+  * Checkout a sequence of [[FlacFile]]s.
   */
 trait CheckoutService {
 

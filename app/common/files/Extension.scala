@@ -18,7 +18,6 @@ package common.files
 
 import java.nio.file.Path
 
-import common.configuration.User
 import enumeratum.{Enum, EnumEntry}
 import play.api.mvc.PathBindable
 
@@ -112,9 +111,9 @@ object Extension extends Enum[Extension] {
       * @return A path with the given extension, replacing any other extension.
       */
     def withExtension(extension: Extension): Path = {
-      val parent = path.getParent
-      val originalFilename = path.getFileName.toString
-      val filename = FILENAME.findFirstMatchIn(originalFilename).map { m =>
+      val parent: Path = path.getParent
+      val originalFilename: String = path.getFileName.toString
+      val filename: String = FILENAME.findFirstMatchIn(originalFilename).map { m =>
         s"${m.group(1)}.${extension.extension}"
       }.getOrElse(originalFilename)
       parent.resolve(filename)
@@ -142,7 +141,7 @@ object Extension extends Enum[Extension] {
     * Allow extensions to be referenced in URLs.
     * @return A path binder allowing extensions to be referenced in URLs.
     */
-  implicit val pathBinder = new PathBindable[Extension] {
+  implicit val pathBinder: PathBindable[Extension] = new PathBindable[Extension] {
     override def bind(key: String, value: String): Either[String, Extension] = {
       Extension.lossyValues.find(_.extension == value).toRight(s"$value is not a valid extension.")
     }

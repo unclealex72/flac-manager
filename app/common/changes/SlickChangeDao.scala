@@ -17,7 +17,6 @@ package common.changes
 
 import java.nio.file.Path
 import java.time.Instant
-import javax.inject.Inject
 
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
@@ -26,6 +25,7 @@ import common.db.SlickDao
 import common.files.Extension
 import common.message.Messages.ADD_CHANGE
 import common.message.{MessageService, Messaging}
+import javax.inject.Inject
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future

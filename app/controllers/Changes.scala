@@ -18,9 +18,10 @@ package controllers
 
 import java.nio.file.{FileSystem, Path}
 import java.time.{Instant, ZonedDateTime}
-import javax.inject.{Inject, Singleton}
 
+import javax.inject.{Inject, Singleton}
 import cats.data.Validated.{Invalid, Valid}
+import cats.data.ValidatedNel
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
@@ -58,9 +59,9 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
                 requestType: String,
                 dataFactory: (User, Extension, Instant) => Future[V])
               (jsonBuilder: RequestHeader => V => JsValue): Action[AnyContent] = {
-    val username = user.name
+    val username: String = user.name
     logger.info(s"Received a request for $username's $requestType since $since")
-    val validatedUser =
+    val validatedUser: ValidatedNel[String, User] =
       userDao.allUsers().find(_.name == username).toValidNel(s"$username is not a valid user")
     validatedUser match {
       case Valid(validUser) => Action.async { implicit request: RequestHeader =>
@@ -81,8 +82,8 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
     */
   def changes(user: User, extension: Extension, since: DateTime): Action[AnyContent] = action(user, extension, since, "changes", changeDao.getAllChangesSince) { implicit request => {
     changes =>
-      val jsonChanges = changes.map { change =>
-        val changeObj = Json.obj(
+      val jsonChanges: Seq[JsObject] = changes.map { change =>
+        val changeObj: JsObject = Json.obj(
           "action" -> change.action.action,
           "relativePath" -> change.relativePath.toString,
           "at" -> DateTime.formatter.format(change.at)
@@ -107,7 +108,7 @@ class Changes @Inject()(val userDao: UserDao, val changeDao: ChangeDao, val cont
     def url(callBuilder: (User, Extension, String) => Call, path: Path): String =
       callBuilder(user, extension, path.toString).absoluteURL().replace(' ', '+')
 
-    val path = fs.getPath(relativePath)
+    val path: Path = fs.getPath(relativePath)
     Json.obj(
       "_links" -> Json.obj(
         "music" -> url(routes.Music.music, path),

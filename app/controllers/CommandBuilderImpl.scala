@@ -17,11 +17,10 @@
 package controllers
 
 import java.nio.file.Path
-import javax.inject.Inject
 
 import calibrate.CalibrateCommand
 import cats.data.Validated.{Invalid, Valid}
-import cats.data.{Validated, ValidatedNel}
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.implicits._
 import checkin.CheckinCommand
 import checkout.CheckoutCommand
@@ -33,6 +32,7 @@ import common.message.Messages._
 import common.message.{Message, MessageService}
 import initialise.InitialiseCommand
 import io.circe.Json
+import javax.inject.Inject
 import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
 import json._
 import multidisc.MultiDiscCommand
@@ -90,13 +90,13 @@ class CommandBuilderImpl @Inject()(
     */
   def validateUsers(usernames: Seq[String]): ValidatedNel[Message, SortedSet[User]] = {
     val empty: ValidatedNel[Message, SortedSet[User]] = Valid(SortedSet.empty)
-    val allUsers = userDao.allUsers()
+    val allUsers: Set[User] = userDao.allUsers()
     if (usernames.isEmpty) {
       Validated.invalidNel(NO_USERS)
     }
     else {
       usernames.foldLeft(empty) { (validatedUsers, username) =>
-        val validatedUser = allUsers.find(_.name == username) match {
+        val validatedUser: Validated[NonEmptyList[INVALID_USER], User] = allUsers.find(_.name == username) match {
           case Some(user) => Valid(user)
           case None => Invalid(INVALID_USER(username)).toValidatedNel
         }
@@ -120,7 +120,7 @@ class CommandBuilderImpl @Inject()(
   /**
     * Make sure that all staging directories are valid.
     * @param pathAndRepositories A list of relative paths to check.
-    * @return A list of [[StagedFlacFileLocation]]s or a list of errors.
+    * @return A list of [[StagingDirectory]]s or a list of errors.
     */
   def validateStagingDirectories(pathAndRepositories: Seq[PathAndRepository])(implicit messageService: MessageService): ValidatedNel[Message, SortedSet[StagingDirectory]] =
     validateDirectories("staging", pathAndRepositories) {
@@ -139,7 +139,7 @@ class CommandBuilderImpl @Inject()(
   /**
     * Make sure that all flac directories are valid.
     * @param pathAndRepositories A list of relative paths to check.
-    * @return A list of [[FlacFileLocation]]s or a list of errors.
+    * @return A list of [[FlacDirectory]]s or a list of errors.
     */
   def validateFlacDirectories(pathAndRepositories: Seq[PathAndRepository])(implicit messageService: MessageService): ValidatedNel[Message, SortedSet[FlacDirectory]] =
     validateDirectories("flac", pathAndRepositories) {
@@ -149,7 +149,7 @@ class CommandBuilderImpl @Inject()(
   /**
     * Make sure that all flac or staging directories are valid.
     * @param pathAndRepositories A list of relative paths to check.
-    * @return A list of [[FlacFileLocation]]s and [[StagedFlacFileLocation]]s or a list of errors.
+    * @return A list of [[FlacDirectory]]s and [[StagingDirectory]]s or a list of errors.
     */
   def validateStagingOrFlacDirectories(pathAndRepositories: Seq[PathAndRepository])(implicit messageService: MessageService): ValidatedNel[Message, SortedSet[Either[StagingDirectory, FlacDirectory]]] =
     validateDirectories("staging or flac", pathAndRepositories) {
@@ -162,9 +162,9 @@ class CommandBuilderImpl @Inject()(
     * Make sure that all staging directories are valid. At this point all that is checked is that
     * the supplied list is not empty and each directory is of a specified type.
     * @param repositoryType The directory type name that will be reported in errors.
-    * @param builder A function that converts a path containing object into a [[FileLocation]]
+    * @param builder A function that converts a path containing object into an [[F]]
     * @param pathAndRepositories A list of relative paths to check.
-    * @tparam R The result type.
+    * @tparam F The result type.
     * @return A list of results or a list of errors.
     */
   def validateDirectories[F](repositoryType: String, pathAndRepositories: Seq[PathAndRepository])
@@ -176,7 +176,7 @@ class CommandBuilderImpl @Inject()(
       Validated.valid(SortedSet.empty[F])
     }
     pathAndRepositories.foldLeft(empty) { (validatedLocations, pathAndRepository) =>
-      val validatedLocationFunction =
+      val validatedLocationFunction: Path => ValidatedNel[Message, F] =
         builder.lift(pathAndRepository.repositoryType).
           getOrElse((path: Path) => Validated.invalidNel(NOT_A_DIRECTORY(path, repositoryType)))
       val validatedLocation = validatedLocationFunction(pathAndRepository.path)
@@ -189,7 +189,7 @@ class CommandBuilderImpl @Inject()(
     */
   override def apply(jsValue: JsValue)(implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
     logger.info(s"Received body $jsValue")
-    val validatedParameters = jsonToParameters(jsValue)
+    val validatedParameters: ValidatedNel[Message, Parameters] = jsonToParameters(jsValue)
     def execute(parameters: Parameters): ValidatedNel[Message, Future[ValidatedNel[Message, Unit]]] = parameters match {
       case CheckinParameters(relativeDirectories, allowUnowned) =>
         validateStagingDirectories(relativeDirectories).map { fls =>

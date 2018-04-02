@@ -16,14 +16,15 @@
 
 package common.configuration
 
-import java.nio.file.attribute.PosixFilePermissions
+import java.nio.file.attribute.{FileAttribute, PosixFilePermission, PosixFilePermissions}
 import java.nio.file.{Files, Path, Paths}
-import javax.inject.Inject
+import java.util
 
 import cats.data.Validated._
 import cats.data.{NonEmptyList, ValidatedNel}
 import cats.implicits._
 import common.async.CommandExecutionContext
+import javax.inject.Inject
 import logging.ApplicationLogging
 import org.apache.commons.io.FileUtils
 import play.api.Configuration
@@ -36,7 +37,7 @@ import scala.util.Try
   * Find repositories using the Play Framework's configuration.
   * @param configuration The underlying [[Configuration]] object.
   * @param lifecycle Play's [[ApplicationLifecycle]], used to remove temporary files on shutdown.
-  * @param ec The execution context used to remove temporary files on shutdown.
+  * @param commandExecutionContext The execution context used to remove temporary files on shutdown.
   */
 case class PlayConfigurationDirectories @Inject()(
                                                    configuration: Configuration,
@@ -50,9 +51,9 @@ case class PlayConfigurationDirectories @Inject()(
     configuration.getOptional[String]("directories.music").map(Paths.get(_)).getOrElse(Paths.get("/music"))
 
   val temporaryPath: Path = {
-    val fileAttributes = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxr--r--"))
-    val rootTmpDir = musicDirectory.resolve("tmp")
-    val tmp = if (Files.isDirectory(rootTmpDir)) {
+    val fileAttributes: FileAttribute[util.Set[PosixFilePermission]] = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxr--r--"))
+    val rootTmpDir: Path = musicDirectory.resolve("tmp")
+    val tmp: Path = if (Files.isDirectory(rootTmpDir)) {
       Files.createTempDirectory(rootTmpDir, "flac-manager-", fileAttributes).toAbsolutePath
     }
     else {
@@ -76,11 +77,11 @@ case class PlayConfigurationDirectories @Inject()(
         Invalid(NonEmptyList.of(failureMessage(path)))
       }
     }
-    val exists = validateProperty(Files.exists(_), path => s"$path does not exist")
-    val isDirectory = validateProperty(Files.isDirectory(_), path => s"$path is not a directory")
-    val isWriteable = validateProperty(Files.isWritable, path => s"$path is not writeable")
+    val exists: Path => ValidatedNel[String, Unit] = validateProperty(Files.exists(_), path => s"$path does not exist")
+    val isDirectory: Path => ValidatedNel[String, Unit] = validateProperty(Files.isDirectory(_), path => s"$path is not a directory")
+    val isWriteable: Path => ValidatedNel[String, Unit] = validateProperty(Files.isWritable, path => s"$path is not writeable")
 
-    val allValidations = (for {
+    val allValidations: Seq[ValidatedNel[String, Unit]] = (for {
       path <- Seq(flacPath, stagingPath, encodedPath, devicesPath)
       validationFunction <- Seq(exists, isDirectory)
     } yield {

@@ -17,10 +17,8 @@
 package calibrate
 
 import cats.data.ValidatedNel
-import common.files.Directory.StagingDirectory
 import common.message.{Message, MessageService}
 
-import scala.collection.SortedSet
 import scala.concurrent.Future
 
 /**

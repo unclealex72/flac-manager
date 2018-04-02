@@ -17,12 +17,11 @@
 package checkin
 import java.nio.file.{Files, Path}
 
-import checkin.FfmpegEncoder.{EncoderOption, EncoderOptions}
+import checkin.FfmpegEncoder.{EncoderOption, EncoderOptions, _}
 import com.typesafe.scalalogging.StrictLogging
 import common.files.Extension
 
 import scala.sys.process._
-import FfmpegEncoder._
 
 /**
   * A base class that use UNIX ffmpeg processes to encode lossy files.
@@ -52,9 +51,9 @@ class FfmpegEncoder(extension: Extension, override val copiesTags: Boolean, libr
         "b:a" ~> "320k" +
         target.v
     val cmd: Seq[String] = "ffmpeg" +: allOpts.toOptions
-    val fullCommand = cmd.mkString(" ")
+    val fullCommand: String = cmd.mkString(" ")
     logger.debug(fullCommand)
-    val result = cmd.!(processLogger)
+    val result: Int = cmd.!(processLogger)
     if (result != 0) {
       logger.error(s"Command '$fullCommand' exited with error code $result")
     }

@@ -22,7 +22,6 @@ import common.files._
 import common.message.{Message, MessageService}
 import common.music.Tags
 import own.OwnAction
-import own.OwnAction.Own
 
 import scala.concurrent.Future
 

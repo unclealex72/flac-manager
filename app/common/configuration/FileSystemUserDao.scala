@@ -17,9 +17,9 @@
 package common.configuration
 
 import java.nio.file.Files
-import javax.inject.Inject
 
 import common.configuration.User._
+import javax.inject.Inject
 import logging.ApplicationLogging
 
 import scala.collection.JavaConverters._

@@ -17,7 +17,6 @@
 package common.owners
 
 import java.time.{Clock, Instant}
-import javax.inject.Inject
 
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, ValidatedNel}
@@ -30,6 +29,7 @@ import common.files._
 import common.message.Messages.{ADD_OWNER, REMOVE_OWNER}
 import common.message.{Message, MessageService, Messaging}
 import common.music.Tags
+import javax.inject.Inject
 import own.OwnAction
 import own.OwnAction._
 
@@ -79,7 +79,7 @@ class OwnerServiceImpl @Inject()(
                                     action: OwnAction,
                                     flacFiles: NonEmptyList[FlacFile])
                                   (implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
-    val encodedFiles = for {
+    val encodedFiles: List[EncodedFile] = for {
       flacFile <- flacFiles.toList
       extension <- extensions
     } yield {
@@ -112,13 +112,13 @@ class OwnerServiceImpl @Inject()(
         action match {
           case Own =>
             encodedFiles.foldLeft(addRelease(user, tags).map(_ => Valid({}))) { (acc, encodedFile) =>
-              val deviceFile = encodedFile.toDeviceFile(user)
+              val deviceFile: DeviceFile = encodedFile.toDeviceFile(user)
               fileSystem.link(encodedFile, deviceFile)
               acc.flatMap(_ => changeDao.store(Change.added(deviceFile, Instant.now(clock)))).map(_ => Valid({}))
             }
           case Unown =>
             encodedFiles.foldLeft(removeRelease(user, tags).map(_ => Valid({}))) { (acc, encodedFile) =>
-              val deviceFile = encodedFile.toDeviceFile(user)
+              val deviceFile: DeviceFile = encodedFile.toDeviceFile(user)
               fileSystem.remove(deviceFile)
               acc.flatMap(_ => changeDao.store(Change.removed(deviceFile, Instant.now(clock)))).map(_ => Valid({}))
             }

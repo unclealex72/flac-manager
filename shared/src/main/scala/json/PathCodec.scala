@@ -16,7 +16,7 @@
 
 package json
 
-import java.nio.file.{FileSystem, Path, Paths}
+import java.nio.file.{FileSystem, Path}
 
 import io.circe.{Decoder, Encoder}
 

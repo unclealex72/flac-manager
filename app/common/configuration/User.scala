@@ -40,7 +40,7 @@ object User {
     * Allow users to be referenced in URLs.
     * @return A path binder allowing users to be referenced in URLs.
     */
-  implicit val pathBinder = new PathBindable[User] {
+  implicit val pathBinder: PathBindable[User] = new PathBindable[User] {
     override def bind(key: String, value: String): Either[String, User] = Right(User(value))
     override def unbind(key: String, value: User): String = value.name
   }

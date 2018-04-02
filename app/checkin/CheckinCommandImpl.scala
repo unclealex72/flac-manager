@@ -16,25 +16,23 @@
 
 package checkin
 
-import javax.inject.Inject
-
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.ValidatedNel
 import checkin.Action._
 import common.async.CommandExecutionContext
 import common.files.Directory.StagingDirectory
-import common.files._
+import common.files.StagingFile
 import common.message._
+import javax.inject.Inject
 
 import scala.collection.SortedSet
 import scala.concurrent.Future
 
 /**
   * The default implementation of [[CheckinCommand]]
-  * @param directoryService The service used to list flac files.
   * @param actionGenerator The class that will generate actions from flac files.
   * @param checkinService The checkin service used to check in the flac files.
-  * @param ec The execution context used to execute the command.
+  * @param commandExecutionContext The execution context used to execute the command.
   */
 class CheckinCommandImpl @Inject()(
                                     val actionGenerator: CheckinActionGenerator,
@@ -46,7 +44,7 @@ class CheckinCommandImpl @Inject()(
     */
   override def checkin(directories: SortedSet[StagingDirectory],
                        allowUnowned: Boolean)(implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
-    val fileLocations = directories.flatMap(_.list)
+    val fileLocations: SortedSet[StagingFile] = directories.flatMap(_.list)
     actionGenerator.generate(fileLocations.toSeq, allowUnowned).flatMap {
       case Valid(actions) =>
         checkinService.checkin(actions.sorted).map(_ => Valid({}))

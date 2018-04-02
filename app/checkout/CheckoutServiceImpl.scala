@@ -18,19 +18,18 @@ package checkout
 
 import java.time.{Clock, Instant}
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
 import cats.data.Validated.Valid
-import cats.data.ValidatedNel
 import checkin.LossyEncoder
 import common.async.CommandExecutionContext
 import common.changes.{Change, ChangeDao}
 import common.configuration.{User, UserDao}
 import common.files.Directory.FlacDirectory
 import common.files._
-import common.message.{Message, MessageService}
+import common.message.MessageService
 import common.music.Tags
 import common.owners.OwnerService
+import javax.inject.Inject
 
 import scala.collection.{SortedMap, SortedSet}
 import scala.concurrent.duration.Duration
@@ -43,10 +42,8 @@ import scala.concurrent.{Await, Future}
   * @param ownerService The service used to find who owns which flac files.
   * @param clock The clock used to get the current time.
   * @param changeDao The dao used to store repository changes.
-  * @param directories The locations of the repositories.
-  * @param fileLocationExtensions A typeclass to give [[java.nio.file.Path]] like functionality to [[FileLocation]]s.
-  * @param tagsService The service used to read tags from audio files.
-  * @param executionContext The execution context used to allocate threads to jobs.
+  * @param lossyEncoders A list of lossy encoders that can be used.
+  * @param commandExecutionContext The execution context used to allocate threads to jobs.
   */
 class CheckoutServiceImpl @Inject()(
                                      val fileSystem: FileSystem,
@@ -91,8 +88,7 @@ class CheckoutServiceImpl @Inject()(
                               tagsForUsers: Map[User, Set[Tags]],
                               fls: (FlacDirectory, SortedSet[FlacFile]))
                             (implicit messageService: MessageService): Map[User, Set[Tags]] = {
-    val directory = fls._1
-    val flacFileLocations = fls._2
+    val (directory, flacFileLocations) = fls
     flacFileLocations.headOption match {
       case Some(firstFlacFileLocation) => findTagsAndDeleteFiles(tagsForUsers, directory, firstFlacFileLocation, flacFileLocations)
       case None => tagsForUsers
@@ -111,11 +107,11 @@ class CheckoutServiceImpl @Inject()(
   def findTagsAndDeleteFiles(
                               tagsForUsers: Map[User, Set[Tags]], directory: FlacDirectory,
                               firstFlacFile: FlacFile, flacFiles: SortedSet[FlacFile])(implicit messageService: MessageService): Map[User, Set[Tags]] = {
-    val owners = quickOwners(firstFlacFile)
-    val tags = firstFlacFile.tags.read().toOption
+    val owners: Set[User] = quickOwners(firstFlacFile)
+    val tags: Option[Tags] = firstFlacFile.tags.read().toOption
     for (flacFile <- flacFiles) {
       for (extension <- extensions) {
-        val encodedFile = flacFile.toEncodedFile(extension)
+        val encodedFile: EncodedFile = flacFile.toEncodedFile(extension)
         val deviceFiles: Set[DeviceFile] = owners.map { user => encodedFile.toDeviceFile(user) }
         deviceFiles.foreach { deviceFile =>
           Await.result(changeDao.store(Change.removed(deviceFile, Instant.now(clock))), Duration.apply(1, TimeUnit.HOURS))

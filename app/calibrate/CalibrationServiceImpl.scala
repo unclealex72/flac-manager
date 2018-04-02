@@ -16,19 +16,20 @@
 
 package calibrate
 
-import java.io.FileNotFoundException
-import java.nio.file.{CopyOption, Files, Path, StandardCopyOption}
-import java.time.{Clock, Duration}
+import java.io.{FileNotFoundException, InputStream}
+import java.net.URL
+import java.nio.file.{Files, Path, StandardCopyOption}
+import java.time.{Clock, Duration, Instant}
 import java.util.concurrent.Executors
-import javax.inject.Inject
 
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, ValidatedNel}
 import checkin.LossyEncoder
 import common.message.Messages._
 import common.message.{Message, MessageService, Messaging}
+import javax.inject.Inject
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 
 /**
   * Created by alex on 05/08/17
@@ -44,11 +45,11 @@ class CalibrationServiceImpl @Inject() (
     * @return A [[Future]].
     */
   override def calibrate(highestConcurrencyLevel: Int)(implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
-    val eFlacUri = Option(getClass.getResource("calibration.flac")).toRight(new FileNotFoundException("Cannot find the calibration resource"))
+    val eFlacUri: Either[FileNotFoundException, URL] = Option(getClass.getResource("calibration.flac")).toRight(new FileNotFoundException("Cannot find the calibration resource"))
     eFlacUri match {
       case Right(flacUrl) =>
-        val flacPath = Files.createTempFile("flac-manager-calibrator-", ".flac")
-        val in = flacUrl.openStream()
+        val flacPath: Path = Files.createTempFile("flac-manager-calibrator-", ".flac")
+        val in: InputStream = flacUrl.openStream()
         Files.copy(in, flacPath, StandardCopyOption.REPLACE_EXISTING)
         in.close()
         calibrate(highestConcurrencyLevel, flacPath).map(Valid(_)).andThen {
@@ -61,22 +62,22 @@ class CalibrationServiceImpl @Inject() (
   }
 
   def calibrate(highestConcurrencyLevel: Int, flacPath: Path)(implicit messageService: MessageService): Future[Unit] = {
-    val lossyEncoderCount = lossyEncoders.size
-    val concurrencyEncoderMismatch = highestConcurrencyLevel % lossyEncoderCount
-    val requiredNumberOfEncodingJobs = highestConcurrencyLevel + lossyEncoderCount - concurrencyEncoderMismatch
+    val lossyEncoderCount: Int = lossyEncoders.size
+    val concurrencyEncoderMismatch: Int = highestConcurrencyLevel % lossyEncoderCount
+    val requiredNumberOfEncodingJobs: Int = highestConcurrencyLevel + lossyEncoderCount - concurrencyEncoderMismatch
     val encodingJobs: Seq[EncodingJob] =
       Stream.continually({}).flatMap(_ => lossyEncoders).map(lossyEncoder => EncodingJob(flacPath, lossyEncoder)).take(requiredNumberOfEncodingJobs)
     val empty: Future[Seq[CalibrationResult]] = Future.successful(Seq.empty)
-    val eventualCalibrationResults = Range.inclusive(highestConcurrencyLevel, 1, -1).foldLeft(empty) { (acc, concurrencyLevel) =>
+    val eventualCalibrationResults: Future[Seq[CalibrationResult]] = Range.inclusive(highestConcurrencyLevel, 1, -1).foldLeft(empty) { (acc, concurrencyLevel) =>
       acc.flatMap { previousCalibrationResults =>
-        val eventualNewEncodingTime = measureEncodingTime(encodingJobs, concurrencyLevel)
+        val eventualNewEncodingTime: Future[Duration] = measureEncodingTime(encodingJobs, concurrencyLevel)
         eventualNewEncodingTime.map {
           newEncodingTime => previousCalibrationResults :+ CalibrationResult(concurrencyLevel, toSeconds(newEncodingTime))
         }
       }
     }
     eventualCalibrationResults.map { calibrationResults =>
-      val bestResult = calibrationResults.minBy(_.averageDuration)
+      val bestResult: CalibrationResult = calibrationResults.minBy(_.averageDuration)
       log(CALIBRATION_RESULT(bestResult.threads, bestResult.averageDuration))
     }
   }
@@ -84,13 +85,13 @@ class CalibrationServiceImpl @Inject() (
   def measureEncodingTime(encodingJobs: Seq[EncodingJob], concurrencyLevel: Int)
                          (implicit messageService: MessageService): Future[Duration] = {
     log(CALIBRATION_RUN_STARTING(encodingJobs.length, concurrencyLevel))
-    val start = clock.instant()
-    val encodingExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(concurrencyLevel))
+    val start: Instant = clock.instant()
+    val encodingExecutionContext: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(concurrencyLevel))
     val eventuallyEncodedJobs: Future[Seq[Unit]] = Future.sequence(encodingJobs.map(_.encode(encodingExecutionContext)))
     eventuallyEncodedJobs.map { _ =>
-      val finish = clock.instant()
-      val totalDuration = Duration.between(start, finish)
-      val averageDuration = totalDuration.dividedBy(encodingJobs.length)
+      val finish: Instant = clock.instant()
+      val totalDuration: Duration = Duration.between(start, finish)
+      val averageDuration: Duration = totalDuration.dividedBy(encodingJobs.length)
       log(CALIBRATION_RUN_FINISHED(encodingJobs.length, concurrencyLevel, toSeconds(totalDuration), toSeconds(averageDuration)))
       averageDuration
     }
@@ -103,7 +104,7 @@ class CalibrationServiceImpl @Inject() (
   case class EncodingJob(flacPath: Path, lossyEncoder: LossyEncoder) {
 
     def encode(encodingExecutionContext: ExecutionContext): Future[Unit] = Future {
-      val targetPath = Files.createTempFile("flac-manager-calibration-", s".${lossyEncoder.encodesTo.extension}")
+      val targetPath: Path = Files.createTempFile("flac-manager-calibration-", s".${lossyEncoder.encodesTo.extension}")
       Files.delete(targetPath)
       lossyEncoder.encode(flacPath, targetPath)
       ()

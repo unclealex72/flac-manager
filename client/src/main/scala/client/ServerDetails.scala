@@ -53,7 +53,7 @@ object ServerDetails {
     val uriPromise: Promise[URI]  = Promise()
     val datumFilenamePromise: Promise[String]  = Promise()
     val upnpService = new UpnpServiceImpl()
-    val identifier = "FlacManagerService" + (if (dev) "Dev" else "")
+    val identifier: String = "FlacManagerService" + (if (dev) "Dev" else "")
     val udaType = new UDADeviceType(identifier)
     val serviceId = new UDAServiceId(identifier)
     upnpService.getRegistry.addListener(new DefaultRegistryListener {

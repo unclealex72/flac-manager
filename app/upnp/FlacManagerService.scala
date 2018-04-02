@@ -20,7 +20,7 @@ import org.fourthline.cling.binding.annotations
 import org.fourthline.cling.binding.annotations._
 import org.fourthline.cling.model.action.ActionException
 import org.fourthline.cling.model.profile.RemoteClientInfo
-import org.fourthline.cling.model.types.{Datatype, ErrorCode}
+import org.fourthline.cling.model.types.ErrorCode
 
 /**
   * A Upnp service that advertises the URL where this server can be contacted and the name of the datum filename

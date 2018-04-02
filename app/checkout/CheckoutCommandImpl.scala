@@ -16,8 +16,6 @@
 
 package checkout
 
-import javax.inject.Inject
-
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{Validated, ValidatedNel}
 import common.async.CommandExecutionContext
@@ -26,18 +24,16 @@ import common.files._
 import common.message.Messages._
 import common.message.{Message, MessageService, Messaging}
 import common.validation.SequentialValidation
+import javax.inject.Inject
 
 import scala.collection.{SortedMap, SortedSet}
 import scala.concurrent.Future
 
 /**
   * The default implementation of [[CheckoutCommand]]
-  * @param fileSystem The [[FileSystem]] used to manipulate files.
-  * @param directoryService The [[DirectoryService]] used to list flac files.
+  * @param repositories The location of all repositories.
   * @param checkoutService The [[CheckoutService]] used to actually check out flac files.
-  * @param directories The location of all repositories.
-  * @param fileLocationExtensions A typeclass used to add [[java.nio.file.Path]] like functionality to [[FlacFileLocation]]s.
-  * @param ec The execution context used to execute the command.
+  * @param commandExecutionContext The execution context used to execute the command.
   */
 class CheckoutCommandImpl @Inject()(
                                      val repositories: Repositories,
@@ -51,8 +47,8 @@ class CheckoutCommandImpl @Inject()(
   override def checkout(directories: SortedSet[FlacDirectory], unown: Boolean)
                        (implicit messageService: MessageService): Future[ValidatedNel[Message, Unit]] = {
     val empty: SortedMap[FlacDirectory, SortedSet[FlacFile]] = SortedMap.empty[FlacDirectory, SortedSet[FlacFile]]
-    val groupedFlacFiles = directories.foldLeft(empty)(_ ++ _.group)
-    val validatedFlacFiles = checkFlacFilesDoNotOverwrite(groupedFlacFiles.values.flatten.toSeq)
+    val groupedFlacFiles: SortedMap[FlacDirectory, SortedSet[FlacFile]] = directories.foldLeft(empty)(_ ++ _.group)
+    val validatedFlacFiles: ValidatedNel[Message, Seq[FlacFile]] = checkFlacFilesDoNotOverwrite(groupedFlacFiles.values.flatten.toSeq)
     validatedFlacFiles match {
       case Valid(_) => checkoutService.checkout(groupedFlacFiles, unown).map(_ => Valid({}))
       case iv @ Invalid(_) => Future.successful(iv)
@@ -67,7 +63,7 @@ class CheckoutCommandImpl @Inject()(
     */
   def checkFlacFilesDoNotOverwrite(fileLocations: Seq[FlacFile]): ValidatedNel[Message, Seq[FlacFile]] = {
     runValidation(fileLocations) { flacFile =>
-      val stagingFile = flacFile.toStagingFile
+      val stagingFile: StagingFile = flacFile.toStagingFile
       if (stagingFile.exists) {
         Validated.invalid(OVERWRITE(flacFile, stagingFile))
       }

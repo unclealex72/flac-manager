@@ -16,7 +16,7 @@
 
 package json
 
-import enumeratum.{Enum, EnumEntry}
+import enumeratum.Enum
 
 import scala.collection.immutable.IndexedSeq
 

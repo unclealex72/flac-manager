@@ -23,7 +23,7 @@ import common.message.{Message, MessageService}
 import scala.concurrent.Future
 
 /**
-  * Given a list of [[StagedFlacFileLocation]]s, generate a list of [[Action]]s to check them in if they obey the
+  * Given a list of [[StagingFile]]s, generate a list of [[Action]]s to check them in if they obey the
   * following rules:
   *
   *  - Non-flac files are deleted.

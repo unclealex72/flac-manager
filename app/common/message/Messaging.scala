@@ -18,15 +18,13 @@ package common.message
 
 import java.io.{PrintWriter, StringWriter}
 import java.nio.file.Path
-import java.time.{Clock, Duration}
+import java.time.{Clock, Duration, Instant}
 
 import cats.data.ValidatedNel
 import common.changes.{Change, ChangeType}
 import common.configuration.User
 import common.files._
 import io.circe.DecodingFailure
-
-import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * An interface for classes that can print internationalised messages to users.
@@ -260,10 +258,10 @@ trait Messaging {
   def log(template: Message)(implicit messageService: MessageService): Unit = messageService.printMessage(template)
 
   def time[T](template: Duration => Message)(block: => T)(implicit messageService: MessageService, clock: Clock): T = {
-    val startTime = clock.instant()
-    val result = block
-    val endTime = clock.instant()
-    val duration = Duration.between(startTime, endTime)
+    val startTime: Instant = clock.instant()
+    val result: T = block
+    val endTime: Instant = clock.instant()
+    val duration: Duration = Duration.between(startTime, endTime)
     log(template(duration))
     result
   }

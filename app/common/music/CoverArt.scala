@@ -17,11 +17,11 @@
 package common.music
 
 import cats.data.{Validated, ValidatedNel}
-import org.apache.commons.codec.binary.Base64
-import play.api.libs.json.{JsObject, JsValue, Json}
 import cats.implicits._
 import common.message.Message
 import common.message.Messages.INVALID_TAGS
+import org.apache.commons.codec.binary.Base64
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 /**
  *

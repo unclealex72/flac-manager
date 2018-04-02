@@ -18,8 +18,8 @@ package controllers
 
 import java.lang.{Boolean => JB, Integer => JI}
 import java.util
-import javax.inject.{Inject, Singleton}
 
+import com.vladsch.flexmark.ast.Node
 import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension
 import com.vladsch.flexmark.ext.autolink.AutolinkExtension
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension
@@ -29,6 +29,7 @@ import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.{Parser, ParserEmulationProfile}
 import com.vladsch.flexmark.util.KeepType
 import com.vladsch.flexmark.util.options.MutableDataSet
+import javax.inject.{Inject, Singleton}
 import play.api.mvc.{BaseController, ControllerComponents}
 
 import scala.io.Source
@@ -71,11 +72,11 @@ class Index @Inject() (val controllerComponents: ControllerComponents) extends B
     // Setup List Options for GitHub profile which is kramdown for documents
     options.setFrom(ParserEmulationProfile.GITHUB_DOC)
 
-    val parser = Parser.builder(options).build
-    val renderer = HtmlRenderer.builder(options).build
+    val parser: Parser = Parser.builder(options).build
+    val renderer: HtmlRenderer = HtmlRenderer.builder(options).build
 
-    val markdown = Source.fromInputStream(classOf[Index].getClassLoader.getResourceAsStream("markdown/README.md")).mkString
-    val document = parser.parse(markdown)
+    val markdown: String = Source.fromInputStream(classOf[Index].getClassLoader.getResourceAsStream("markdown/README.md")).mkString
+    val document: Node = parser.parse(markdown)
     s"<html><head><title>Flac Manager</title></head><body>${renderer.render(document)}</body></html>"
   }
 

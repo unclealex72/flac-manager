@@ -17,16 +17,16 @@
 package controllers
 
 import java.io.{PrintWriter, StringWriter}
-import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
-import javax.inject.{Inject, Singleton}
+import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
-import akka.stream.OverflowStrategy
-import akka.stream.scaladsl.{Source, SourceQueue}
+import akka.stream.scaladsl.Source
+import akka.stream.{OverflowStrategy, QueueOfferResult}
 import cats.data.Validated.{Invalid, Valid}
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
 import common.configuration.HttpStreams
 import common.message.{MessageService, MessageServiceBuilder, Messaging}
+import javax.inject.{Inject, Singleton}
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -37,7 +37,7 @@ import scala.util.{Failure, Success}
   * The controller that executes commands that alter repositories.
   * @param messageServiceBuilder The [[MessageServiceBuilder]] used to build a feedback mechanism.
   * @param commandBuilder A [[CommandBuilder]] used to build a command from a JSON RPC payload.
-  * @param ec The execution context used to execute the command.
+  * @param commandExecutionContext The execution context used to execute the command.
   */
 @Singleton
 class Commands @Inject()(
@@ -55,8 +55,8 @@ class Commands @Inject()(
   def commands: Action[JsValue] = Action(parse.json) { implicit request: Request[JsValue] =>
     val (queueSource, eventualQueue) = peekMatValue(Source.queue[String](128, OverflowStrategy.backpressure))
     eventualQueue.map { queue =>
-      def offer(message: Any) = queue.offer(s"$message\n")
-      def keepAlive() = queue.offer(HttpStreams.KEEP_ALIVE)
+      def offer(message: Any): Future[QueueOfferResult] = queue.offer(s"$message\n")
+      def keepAlive(): Future[QueueOfferResult] = queue.offer(HttpStreams.KEEP_ALIVE)
       def printer(message: String): Unit = offer(message)
       def exceptionHandler(t: Throwable): Unit = {
         val sw = new StringWriter()
@@ -65,13 +65,13 @@ class Commands @Inject()(
       }
       // Create a keep alive message for slower machines that may take a while to encode files.
       val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
-      val scheduledFuture = scheduler.scheduleAtFixedRate(() => keepAlive(), 10, 10, TimeUnit.SECONDS)
+      val scheduledFuture: ScheduledFuture[_] = scheduler.scheduleAtFixedRate(() => keepAlive(), 10, 10, TimeUnit.SECONDS)
       def complete(): Unit = {
         scheduledFuture.cancel(true)
         scheduler.shutdownNow()
         queue.complete()
       }
-      implicit val messageService =
+      implicit val messageService: MessageService =
         messageServiceBuilder.
           withPrinter(printer).
           withExceptionHandler(exceptionHandler).build
@@ -91,8 +91,8 @@ class Commands @Inject()(
   }
 
   def peekMatValue[T, M](src: Source[T, M]): (Source[T, M], Future[M]) = {
-    val p = Promise[M]
-    val s = src.mapMaterializedValue { m =>
+    val p: Promise[M] = Promise[M]
+    val s: Source[T, M] = src.mapMaterializedValue { m =>
       p.trySuccess(m)
       m
     }

@@ -19,15 +19,15 @@ package controllers
 import java.nio.charset.StandardCharsets
 import java.nio.file.{FileSystem, Path}
 import java.time.{Instant, ZoneId, ZonedDateTime}
-import javax.inject.{Inject, Singleton}
 
 import cats.data.Validated.{Invalid, Valid}
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
-import common.configuration.{Directories, User, UserDao}
+import common.configuration.{User, UserDao}
 import common.files.{DeviceFile, Extension, Repositories}
 import common.message.{MessageService, MessageServiceBuilder}
-import common.music.{Tags, TagsService}
+import common.music.{CoverArt, Tags}
+import javax.inject.{Inject, Singleton}
 import play.api.mvc._
 import play.utils.UriEncoding
 
@@ -36,10 +36,9 @@ import scala.util.Try
 /**
   * A controller that streams music information, namely: tags, artwork and the music itself.
   * @param userDao The [[UserDao]] used to list users.
-  * @param directories The [[Directories]] containing the location of the repositories.
-  * @param fileLocationExtensions The typeclass used to give [[Path]]-like functionality to
-  *                               [[common.files.FileLocation]]s.
-  * @param tagsService The [[TagsService]] used to read an audio file's tags.
+  * @param messageServiceBuilder The builder used to create message services.
+  * @param repositories The locations of file repositories.
+  * @param fs The underlying [[FileSystem]].
   */
 @Singleton
 class Music @Inject()(val userDao: UserDao,
@@ -116,17 +115,17 @@ class Music @Inject()(val userDao: UserDao,
                 path: String,
                 deviceFileLocator: (User, Extension, Path) => Option[DeviceFile])
                (resultBuilder: DeviceFile  => Result) = Action { implicit request: Request[AnyContent] =>
-    val username = user.name
+    val username: String = user.name
     logger.info(s"Received a request for $requestType for $username at $path")
-    val decodedPath = UriEncoding.decodePath(path, StandardCharsets.UTF_8.toString).replace('+', ' ')
-    val musicFiles = for {
+    val decodedPath: String = UriEncoding.decodePath(path, StandardCharsets.UTF_8.toString).replace('+', ' ')
+    val musicFiles: Set[DeviceFile] = for {
       user <- userDao.allUsers() if user.name == username
       musicFile <- deviceFileLocator(user, extension, fs.getPath(decodedPath))
     } yield musicFile
     musicFiles.headOption match {
       case Some(deviceFile) =>
         val lastModified: Instant = deviceFile.lastModified
-        val maybeNotModified = for {
+        val maybeNotModified: Option[Result] = for {
           ifModifiedSinceValue <-
             request.headers.get("If-Modified-Since")
           ifModifiedSinceDate <-
@@ -148,7 +147,7 @@ class Music @Inject()(val userDao: UserDao,
     */
   def artwork(user: User, extension: Extension, path: String): Action[AnyContent] =
     serveTags("artwork", user, extension, path, firstDeviceFileIn) { tags =>
-    val coverArt = tags.coverArt
+    val coverArt: CoverArt = tags.coverArt
     Ok(coverArt.imageData).as(coverArt.mimeType)
   }
 

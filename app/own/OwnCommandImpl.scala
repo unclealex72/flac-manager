@@ -16,18 +16,16 @@
 
 package own
 
-import javax.inject.Inject
-
 import cats.data.Validated.{Invalid, Valid}
-import cats.data.{NonEmptyList, ValidatedNel}
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.implicits._
 import common.async.CommandExecutionContext
 import common.configuration.User
 import common.files.Directory.{FlacDirectory, StagingDirectory}
 import common.files._
 import common.message.{Message, MessageService}
-import common.music.TagsService
 import common.owners.OwnerService
+import javax.inject.Inject
 
 import scala.collection.{SortedMap, SortedSet}
 import scala.concurrent.Future
@@ -35,10 +33,8 @@ import scala.concurrent.Future
 /**
   * The default implementation of [[OwnCommand]]
   * @param ownerService The [[OwnerService]] used to change ownership.
-  * @param directoryService The [[DirectoryService]] used to list files.
-  * @param flacFileChecker The [[FlacFileChecker]] used to check all files are valid FLAC files.
-  * @param tagsService The [[TagsService]] used to read audio information from FLAC files.
-  * @param ec The execution context used to execute the command.
+  * @param repositories The [[Repositories]] used to list files.
+  * @param commandExecutionContext The execution context used to execute the command.
   */
 class OwnCommandImpl @Inject()(
                                 ownerService: OwnerService,
@@ -69,7 +65,7 @@ class OwnCommandImpl @Inject()(
     }
 
     def executeChanges[FL <: File](filesByAlbumId: SortedMap[String, Seq[FL]],
-                                           changer: (User, OwnAction, NonEmptyList[FL]) => Future[ValidatedNel[Message, Unit]]) = {
+                                           changer: (User, OwnAction, NonEmptyList[FL]) => Future[ValidatedNel[Message, Unit]]): Future[ValidatedNel[Message, Unit]] = {
       val empty: Future[ValidatedNel[Message, Unit]] = Future.successful(Valid({}))
       users.foldLeft(empty){(accA, user) =>
         accA.flatMap { _ =>
@@ -81,10 +77,10 @@ class OwnCommandImpl @Inject()(
       }
     }
 
-    val validatedStagingOrFlacFiles = {
+    val validatedStagingOrFlacFiles: ValidatedNel[Message, StagingOrFlacFiles] = {
       val empty: ValidatedNel[Message, StagingOrFlacFiles] = Valid(StagingOrFlacFiles())
       directories.foldLeft(empty){ (acc, directory) =>
-        val validatedNewStagingOrFlacFiles = directory match {
+        val validatedNewStagingOrFlacFiles: Validated[NonEmptyList[Message], StagingOrFlacFiles] = directory match {
           case Left(sfl) => childrenByAlbumId[StagingFile](sfl, _.isFlacFile).map(StagingOrFlacFiles.staging)
           case Right(fl) => childrenByAlbumId[FlacFile](fl, _ => true).map(StagingOrFlacFiles.flac)
         }
@@ -108,8 +104,8 @@ class OwnCommandImpl @Inject()(
     val empty: ValidatedNel[Message, SortedMap[String, Seq[FL]]] = Valid(SortedMap.empty)
     files.foldLeft(empty) { (acc, file) =>
       (acc |@| file.tags.read).map { (filesByAlbumId, tags) =>
-        val albumId = tags.albumId
-        val filesForAlbumId = filesByAlbumId.getOrElse(albumId, Seq.empty)
+        val albumId: String = tags.albumId
+        val filesForAlbumId: Seq[FL] = filesByAlbumId.getOrElse(albumId, Seq.empty)
         filesByAlbumId + (albumId -> (filesForAlbumId :+ file))
       }
     }

@@ -19,18 +19,17 @@ package common.files
 
 import java.io.IOException
 import java.nio.file._
-import java.nio.file.attribute.{BasicFileAttributes, FileAttribute, PosixFilePermission, PosixFilePermissions}
 import java.nio.file.attribute.PosixFilePermission._
-import java.util
+import java.nio.file.attribute.{BasicFileAttributes, FileAttribute, PosixFilePermission, PosixFilePermissions}
+import java.util.{stream, Set => JSet}
 
-import scala.collection.JavaConverters._
-import javax.inject.Inject
 import common.message.Messages._
 import common.message._
+import javax.inject.Inject
 
-import scala.util.Try
+import scala.collection.JavaConverters._
 import scala.compat.java8.StreamConverters._
-import java.util.{Set => JSet}
+import scala.util.Try
 /**
  * The default implementation of[[FileSystem]].
  */
@@ -67,11 +66,11 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
   override def move(sourceFile: File, targetFile: File)
                    (implicit messageService: MessageService): Unit = {
     log(MOVE(sourceFile, targetFile))
-    val sourcePath = sourceFile.absolutePath
-    val targetPath = targetFile.absolutePath
+    val sourcePath: Path = sourceFile.absolutePath
+    val targetPath: Path = targetFile.absolutePath
     createDirectories(targetPath.getParent)
     tryAtomicMove(sourcePath, targetPath)
-    val currentDirectory = sourcePath.getParent
+    val currentDirectory: Path = sourcePath.getParent
     remove(sourceFile.basePath, currentDirectory)
   }
 
@@ -80,14 +79,14 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     */
   override def copy(sourceFile: File, targetFile: File)
                    (implicit messageService: MessageService): Unit = {
-    val sourcePath = sourceFile.absolutePath
-    val targetPath = targetFile.absolutePath
-    val parentTargetPath = targetPath.getParent
+    val sourcePath: Path = sourceFile.absolutePath
+    val targetPath: Path = targetFile.absolutePath
+    val parentTargetPath: Path = targetPath.getParent
     createDirectories(parentTargetPath)
-    val tempPath = Files.createTempFile(parentTargetPath, "device-file-", ".tmp")
+    val tempPath: Path = Files.createTempFile(parentTargetPath, "device-file-", ".tmp")
     Files.copy(sourcePath, tempPath, StandardCopyOption.REPLACE_EXISTING)
     tryAtomicMove(tempPath, targetPath, StandardCopyOption.REPLACE_EXISTING)
-    val currentDirectory = sourcePath.getParent
+    val currentDirectory: Path = sourcePath.getParent
     remove(sourceFile.basePath, currentDirectory)
   }
 
@@ -121,7 +120,7 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     */
   def tryAtomicMove(sourcePath: Path, targetPath: Path, options: StandardCopyOption*): Unit = {
     try {
-      val optionsWithAtomicMove = options :+ StandardCopyOption.ATOMIC_MOVE
+      val optionsWithAtomicMove: Seq[StandardCopyOption] = options :+ StandardCopyOption.ATOMIC_MOVE
       Files.move(sourcePath, targetPath, optionsWithAtomicMove: _*)
     }
     catch {
@@ -150,8 +149,8 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
       // Do nothing
     }
     else if (Files.isDirectory(path)) {
-      val dir = Files.list(path)
-      val directoryIsEmpty = dir.toScala[Seq].forall(Files.isHidden)
+      val dir: stream.Stream[Path] = Files.list(path)
+      val directoryIsEmpty: Boolean = dir.toScala[Seq].forall(Files.isHidden)
       if (directoryIsEmpty) {
         recursivelyDelete(path)
         remove(basePath, path.getParent)
@@ -180,10 +179,10 @@ class FileSystemImpl @Inject() extends FileSystem with Messaging {
     */
   override def link(file: File, link: File)(implicit messageService: MessageService): Unit = {
     log(LINK(file, link))
-    val target = file.absolutePath
-    val lnk = link.absolutePath
-    val parent = lnk.getParent
-    val relativeTarget = parent.relativize(target)
+    val target: Path = file.absolutePath
+    val lnk: Path = link.absolutePath
+    val parent: Path = lnk.getParent
+    val relativeTarget: Path = parent.relativize(target)
     createDirectories(parent)
     Files.deleteIfExists(lnk)
     Files.createSymbolicLink(lnk, relativeTarget)

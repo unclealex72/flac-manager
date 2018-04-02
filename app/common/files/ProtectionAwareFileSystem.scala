@@ -16,12 +16,12 @@
 
 package common.files
 
-import java.nio.file.{Files, Path}
 import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.{Files, Path}
 import java.util
 
-import javax.inject.{Inject, Named}
 import com.typesafe.scalalogging.StrictLogging
+import javax.inject.{Inject, Named}
 
 import scala.collection.JavaConverters._
 
@@ -29,7 +29,6 @@ import scala.collection.JavaConverters._
   * An implementation of [[FileSystem]] that decorates another [[FileSystem]] and is aware of whether [[FileSystem]]s
   * should be left in a read only or writable state.
   * @param delegate The file system to delegate to.
-  * @param fileExtensions The typeclass used to give [[File]]s [[java.nio.file.Path]]-like functionality.
   *
   */
 class ProtectionAwareFileSystem @Inject() (@Named("rawFileSystem") val delegate: FileSystem)

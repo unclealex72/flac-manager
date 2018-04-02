@@ -46,7 +46,7 @@ object Client extends App {
   }
   val ws = WS()
   try {
-    val eventualAction = for {
+    val eventualAction: EitherT[Future, NonEmptyList[String], Unit] = for {
       serverDetails <- fetchServerDetails()
       body <- parseParameters(serverDetails)
       _ <- runCommand(body, serverDetails)

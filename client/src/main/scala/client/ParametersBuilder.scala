@@ -19,7 +19,6 @@ package client
 import java.nio.file.Path
 
 import cats.data.NonEmptyList
-import cats.syntax.either._
 import json._
 
 /**

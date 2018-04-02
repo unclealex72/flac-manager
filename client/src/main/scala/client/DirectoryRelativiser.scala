@@ -16,13 +16,13 @@
 
 package client
 
-import java.nio.file.{Files, LinkOption, Path}
+import java.nio.file.{Files, Path}
 
 import cats.data.NonEmptyList
 import cats.syntax.either._
 import common.configuration.FlacDirectories
-import json.{PathAndRepository, RepositoryType}
 import json.RepositoryType.{FlacRepositoryType, StagingRepositoryType}
+import json.{PathAndRepository, RepositoryType}
 
 /**
   * An object to work out whether a path is relative to a server's datum file.
@@ -43,10 +43,10 @@ object DirectoryRelativiser {
 
     case class DatumBasedFlacDirectories(override val datumPath: Path) extends FlacDirectories
 
-    val absoluteDirectoryPath = directory.toRealPath()
+    val absoluteDirectoryPath: Path = directory.toRealPath()
     if (Files.isDirectory(absoluteDirectoryPath)) {
       def maybeFlacDirectories(dir: Path): Either[String, FlacDirectories] = {
-        val datumPath = dir.resolve(datumFilename)
+        val datumPath: Path = dir.resolve(datumFilename)
         if (Files.exists(datumPath)) {
           Right(DatumBasedFlacDirectories(datumPath))
         }
@@ -59,8 +59,8 @@ object DirectoryRelativiser {
       }
 
       maybeFlacDirectories(absoluteDirectoryPath).flatMap { flacDirectories =>
-        val maybePathAndRepository = repositoryTypes.toStream.flatMap { repositoryType =>
-          val parentDirectory = repositoryType match {
+        val maybePathAndRepository: Option[PathAndRepository] = repositoryTypes.toStream.flatMap { repositoryType =>
+          val parentDirectory: Path = repositoryType match {
             case FlacRepositoryType => flacDirectories.flacPath
             case StagingRepositoryType => flacDirectories.stagingPath
           }

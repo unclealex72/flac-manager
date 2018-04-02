@@ -18,7 +18,6 @@ package checkin
 
 import java.time.Clock
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
 import com.typesafe.scalalogging.StrictLogging
 import common.async.CommandExecutionContext
@@ -27,6 +26,7 @@ import common.configuration.User
 import common.files._
 import common.message.Messages.{ENCODE, ENCODE_DURATION}
 import common.message.{MessageService, Messaging}
+import javax.inject.Inject
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
@@ -36,11 +36,10 @@ import scala.concurrent.{Await, Future}
   * @param throttler The throttler used to make sure file system actions are atomic.
   * @param fileSystem The underlying file system.
   * @param changeDao The DAO used to store changes.
-  * @param fileLocationExtensions Give [[FileLocation]]s path-like functionality.
-  * @param directories The locations of the different repositories.
-  * @param m4aEncoder The encoder used to generate MP3 files.
-  * @param tagsService The service used to write tags to audio files.
-  * @param ec The execution context used to move between actions.
+  * @param lossyEncoders The encoders used to generate lossy files.
+  * @param repositories The locations of the different repositories.
+  * @param commandExecutionContext The execution context used to move between actions.
+  * @param clock The clock used for timing.
   */
 class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
                                           val fileSystem: FileSystem,
@@ -54,7 +53,7 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
                       flacFile: FlacFile,
                       owners: Set[User])
                      (implicit messagingService: MessageService): Future[Unit] = safely {
-    val eventualTempFilesByExtension = {
+    val eventualTempFilesByExtension: Future[Map[Extension, TempFile]] = {
       val empty: Future[Map[Extension, TempFile]] = Future.successful(Map.empty)
       lossyEncoders.foldLeft(empty) { (eventualMap, lossyEncoder) =>
         for {
@@ -84,8 +83,8 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
       val seconds: Double = duration.toMillis.toDouble / 1000d
       ENCODE_DURATION(flacFile, seconds)
     } {
-      val encodedFile = flacFile.toEncodedFile(lossyEncoder.encodesTo)
-      val tempFile = encodedFile.toTempFile
+      val encodedFile: EncodedFile = flacFile.toEncodedFile(lossyEncoder.encodesTo)
+      val tempFile: TempFile = encodedFile.toTempFile
       log(ENCODE(stagingFile, encodedFile))
       lossyEncoder.encode(stagingFile.absolutePath, tempFile.absolutePath)
       if (!lossyEncoder.copiesTags) {
@@ -114,11 +113,11 @@ class SingleCheckinServiceImpl @Inject() (val throttler: Throttler,
                    owners: Set[User])(implicit messageService: MessageService): Future[_] = sequential {
     tempFilesByExtension.toSeq.foreach {
       case (extension, tempFile) =>
-        val encodedFile = flacFile.toEncodedFile(extension)
+        val encodedFile: EncodedFile = flacFile.toEncodedFile(extension)
         fileSystem.move(tempFile, encodedFile)
         fileSystem.makeWorldReadable(encodedFile)
         owners.foreach { user =>
-          val deviceFile = encodedFile.toDeviceFile(user)
+          val deviceFile: DeviceFile = encodedFile.toDeviceFile(user)
           fileSystem.link(encodedFile, deviceFile)
           Await.result(changeDao.store(Change.added(deviceFile)), Duration.apply(1, TimeUnit.HOURS))
         }

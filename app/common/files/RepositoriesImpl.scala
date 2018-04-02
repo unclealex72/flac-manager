@@ -20,21 +20,18 @@ import java.io.IOException
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.time.Instant
-import javax.inject.Inject
 
 import cats.data.Validated.Valid
 import cats.data.{Validated, ValidatedNel}
 import common.configuration.{Directories, User}
-import common.message.Messages.{FOUND_FILE, NOT_A_DIRECTORY, NOT_A_FILE}
+import common.files.Extension._
+import common.message.Messages.{NOT_A_DIRECTORY, NOT_A_FILE}
 import common.message.{Message, MessageService, Messaging}
 import common.music.{Tags, TagsService}
-
-import scala.compat.java8.StreamConverters._
-import scala.collection.{SortedMap, SortedSet, mutable}
-import common.files.Extension._
+import javax.inject.Inject
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.{Set => MutableSet}
+import scala.collection.{SortedMap, SortedSet, mutable}
 /**
   * The default implementation of [[Repositories]]
   **/
@@ -50,7 +47,7 @@ class RepositoriesImpl @Inject()(val directories: Directories, val tagsService: 
     new RepositoryImpl[EncodedFile]("encoded", directories.encodedPath.resolve(extension.extension), new EncodedFileImpl(extension, _, new PathTagsContainer(_))) with EncodedRepository
 
   override def device(user: User, extension: Extension)(implicit messageService: MessageService): DeviceRepository = {
-    val _user = user
+    val _user: User = user
     new RepositoryImpl[DeviceFile]("device", directories.devicesPath.resolve(user.name).resolve(extension.extension), new DeviceFileImpl(user, extension, _, new PathTagsContainer(_))) with DeviceRepository {
       val user: User = _user
     }
@@ -136,7 +133,7 @@ class RepositoriesImpl @Inject()(val directories: Directories, val tagsService: 
     override def list(maxDepth: Int): SortedSet[F] = {
       val empty: SortedSet[F] = SortedSet.empty
       walk(maxDepth).foldLeft(empty) { (files, directoryOrFile) =>
-        val maybeFile = directoryOrFile.fold(_ => None, Some(_))
+        val maybeFile: Option[F] = directoryOrFile.fold(_ => None, Some(_))
         files ++ maybeFile
       }
     }
@@ -149,7 +146,7 @@ class RepositoriesImpl @Inject()(val directories: Directories, val tagsService: 
       */
     def walk(maxDepth: Int): Seq[Either[Directory[F], F]] = {
       val paths: mutable.Buffer[Either[Directory[F], F]] = mutable.Buffer.empty
-      def relativise(path: Path) = basePath.relativize(path)
+      def relativise(path: Path): Path = basePath.relativize(path)
       val visitor: FileVisitor[Path] = new FileVisitor[Path] {
         override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = FileVisitResult.CONTINUE
 
@@ -184,13 +181,13 @@ class RepositoriesImpl @Inject()(val directories: Directories, val tagsService: 
         def +(file: F): State = {
           directories.get(file.relativePath.getParent) match {
             case Some(directory) =>
-              val files = groupedFiles.getOrElse(directory, SortedSet.empty[F]) + file
+              val files: SortedSet[F] = groupedFiles.getOrElse(directory, SortedSet.empty[F]) + file
               copy(groupedFiles = groupedFiles + (directory -> files))
             case None => this
           }
         }
       }
-      val state = walk(Int.MaxValue).foldLeft(State()) { (state, directoryOrFile) =>
+      val state: State = walk(Int.MaxValue).foldLeft(State()) { (state, directoryOrFile) =>
         directoryOrFile match {
           case Left(directory) => state.directory(directory)
           case Right(file) => state + file
@@ -249,8 +246,8 @@ class RepositoriesImpl @Inject()(val directories: Directories, val tagsService: 
     */
   class EncodedFileImpl(override val extension: Extension, override val relativePath: Path, tagsContainerProvider: Path => TagsContainer)(implicit messageService: MessageService) extends FileImpl(true, directories.encodedPath, directories.encodedPath.resolve(extension.extension), relativePath, tagsContainerProvider)(messageService) with EncodedFile {
     override def toTempFile: TempFile = {
-      val baseDirectory = directories.temporaryPath
-      val tempPath = Files.createTempFile(baseDirectory, "flacmanager-encoding-", s".${extension.extension}")
+      val baseDirectory: Path = directories.temporaryPath
+      val tempPath: Path = Files.createTempFile(baseDirectory, "flacmanager-encoding-", s".${extension.extension}")
       new TempFileImpl(baseDirectory, baseDirectory.resolve(tempPath), _ => tags)
     }
 

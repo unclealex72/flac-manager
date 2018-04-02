@@ -19,9 +19,8 @@ package modules
 import akka.actor.ActorSystem
 import checkin.Throttler
 import com.google.inject.{AbstractModule, Provides}
-import common.async.{BackgroundExecutionContext, CommandExecutionContext, AkkaExecutionContext, PlayAwareThreadPoolThrottler}
+import common.async.{AkkaExecutionContext, BackgroundExecutionContext, CommandExecutionContext, PlayAwareThreadPoolThrottler}
 import net.codingwell.scalaguice.ScalaModule
-import play.api.inject.ApplicationLifecycle
 
 /**
   * Dependency injection for thread pools.

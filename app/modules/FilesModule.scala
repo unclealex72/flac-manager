@@ -1,10 +1,11 @@
 package modules
 
+import java.nio.file.{FileSystems, FileSystem => JFileSystem}
+
 import com.google.inject.AbstractModule
 import common.files._
 import common.music.{JaudioTaggerTagsService, TagsService}
 import net.codingwell.scalaguice.ScalaModule
-import java.nio.file.{FileSystems, FileSystem => JFileSystem}
 /**
   * Dependency injection for file related classes.
   */

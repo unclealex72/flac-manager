@@ -92,8 +92,8 @@ object Change {
   def removed(deviceFile: DeviceFile, at: Instant): Change = create(RemovedChange, deviceFile, storeParent = false, at)
 
   private def create(action: ChangeType, deviceFile: DeviceFile, storeParent: Boolean, at: Instant): Change = {
-    val relativePath = deviceFile.relativePath
-    val parentPath = if (storeParent) Some(relativePath.getParent) else None
+    val relativePath: Path = deviceFile.relativePath
+    val parentPath: Option[Path] = if (storeParent) Some(relativePath.getParent) else None
     Change(0, parentPath, relativePath, at, deviceFile.user, deviceFile.extension, action)
   }
 }

@@ -19,11 +19,10 @@ package client
 import java.nio.file.{FileSystem, Path}
 
 import cats.data.NonEmptyList
-import cats.syntax.either._
 import enumeratum.{Enum, EnumEntry}
 import io.circe._
 import json._
-import scopt.Read
+import scopt.{OptionParser, Read}
 
 import scala.collection.immutable
 
@@ -102,7 +101,8 @@ object Command extends Enum[Command] {
 
       implicit val pathParameterReader: Read[Path] = Read.reads(fs.getPath(_))
 
-      val parser = new scopt.OptionParser[Either[NonEmptyList[String], P]](s"flacman-$name") {
+      val parser: OptionParser[Either[NonEmptyList[String], P]] =
+        new scopt.OptionParser[Either[NonEmptyList[String], P]](s"flacman-$name") {
         head(usageText)
 
         maybeUsersDescriptionText.foreach { usersDescriptionText =>
@@ -138,7 +138,7 @@ object Command extends Enum[Command] {
             eParameters.flatMap {
               //noinspection MatchToPartialFunction
               parameters =>
-                val repositoryTypes = Parameters.repositoryTypes(parameters)
+                val repositoryTypes: Seq[RepositoryType] = Parameters.repositoryTypes(parameters)
                 if (repositoryTypes.isEmpty) {
                   Left(NonEmptyList.of(s"Command $name does not take file parameters."))
                 }

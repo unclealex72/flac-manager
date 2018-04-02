@@ -16,12 +16,11 @@
 
 package common.dates
 
-import java.time.{Instant, ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
+import java.time.{ZoneId, ZonedDateTime}
 
-import common.configuration.User
-import play.api.mvc.PathBindable
 import cats.syntax.either._
+import play.api.mvc.PathBindable
 
 import scala.util.Try
 
@@ -45,7 +44,7 @@ object DateTime {
     * Allow dateTimes to be referenced in URLs.
     * @return A path binder allowing dateTimes to be referenced in URLs.
     */
-  implicit val pathBinder = new PathBindable[DateTime] {
+  implicit val pathBinder: PathBindable[DateTime] = new PathBindable[DateTime] {
 
     override def bind(key: String, value: String): Either[String, DateTime] = {
       Try(DateTime(ZonedDateTime.parse(value, formatter))).toEither.leftMap(_.getMessage)

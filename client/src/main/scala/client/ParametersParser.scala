@@ -19,7 +19,6 @@ package client
 import java.nio.file.FileSystem
 
 import cats.data.NonEmptyList
-import cats.syntax.either._
 import io.circe.Json
 
 /**

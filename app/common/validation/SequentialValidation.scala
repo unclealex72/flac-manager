@@ -18,8 +18,8 @@ package common.validation
 
 import cats.data.Validated.Valid
 import cats.data.{Validated, ValidatedNel}
-import common.message.Message
 import cats.implicits._
+import common.message.Message
 
 /**
   * Add support for validating elements in a sequence to a class.

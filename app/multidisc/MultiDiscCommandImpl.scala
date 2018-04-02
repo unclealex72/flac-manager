@@ -16,12 +16,11 @@
 
 package multidisc
 
-import javax.inject.Inject
-
 import cats.data.ValidatedNel
 import common.async.CommandExecutionContext
 import common.files.Directory.StagingDirectory
 import common.message.{Message, MessageService}
+import javax.inject.Inject
 import json.MultiAction
 import json.MultiAction.{Join, Split}
 
@@ -32,14 +31,14 @@ import scala.concurrent.Future
   * The default implementation of [[MultiDiscCommand]]
   *
   * @param multiDiscService The service used to mutate multi-disc albums.
-  * @param ec The execution context used to execute the command.
+  * @param commandExecutionContext The execution context used to execute the command.
   **/
 class MultiDiscCommandImpl @Inject()(val multiDiscService: MultiDiscService)
                                     (implicit val commandExecutionContext: CommandExecutionContext) extends MultiDiscCommand {
   /**
     * Either join or split a multi-album
     *
-    * @param stagingFiles The directories containing the tracks to split or join.
+    * @param stagingDirectories The directories containing the tracks to split or join.
     * @param multiAction             Either join or split.
     * @param messageService          The message service used to report progress and errors.
     * @return A command execution that will split or join a multi-disc album.

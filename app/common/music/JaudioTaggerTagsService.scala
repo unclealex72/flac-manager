@@ -17,9 +17,9 @@
 package common.music
 
 import java.nio.file.Path
-import javax.inject.Inject
 
 import com.typesafe.scalalogging.StrictLogging
+import javax.inject.Inject
 import org.jaudiotagger.audio.{AudioFile, AudioFileIO}
 import org.jaudiotagger.tag.FieldKey.{ALBUM => J_ALBUM, ALBUM_ARTIST => J_ALBUM_ARTIST, ALBUM_ARTIST_SORT => J_ALBUM_ARTIST_SORT, AMAZON_ID => J_AMAZON_ID, ARTIST => J_ARTIST, ARTIST_SORT => J_ARTIST_SORT, DISC_NO => J_DISC_NO, DISC_TOTAL => J_DISC_TOTAL, MUSICBRAINZ_ARTISTID => J_MUSICBRAINZ_ARTISTID, MUSICBRAINZ_RELEASEARTISTID => J_MUSICBRAINZ_RELEASEARTISTID, MUSICBRAINZ_RELEASEID => J_MUSICBRAINZ_RELEASEID, MUSICBRAINZ_TRACK_ID => J_MUSICBRAINZ_TRACK_ID, TITLE => J_TITLE, TRACK => J_TRACK, TRACK_TOTAL => J_TRACK_TOTAL}
 import org.jaudiotagger.tag.images.StandardArtwork
@@ -36,8 +36,8 @@ class JaudioTaggerTagsService @Inject() extends TagsService with StrictLogging {
     * @inheritdoc
     */
   override def readTags(path: Path): Tags = {
-    val audioFile = loadAudioFile(path)
-    val tag = audioFile.getTag
+    val audioFile: AudioFile = loadAudioFile(path)
+    val tag: Tag = audioFile.getTag
     implicit def get[V](singleTag: SingleTag[V]): V = singleTag.get(tag)
     Tags(
       ALBUM_ARTIST_SORT, ALBUM_ARTIST, ALBUM, ARTIST,
@@ -49,8 +49,9 @@ class JaudioTaggerTagsService @Inject() extends TagsService with StrictLogging {
     * @inheritdoc
     */
   override def write(path: Path, tags: Tags): Unit = {
-    val audioFile = loadAudioFile(path)
-    implicit val tag = audioFile.getTag
+    val audioFile: AudioFile = loadAudioFile(path)
+    //noinspection ScalaUnusedSymbol
+    val tag: Tag = audioFile.getTag
     ALBUM_ARTIST_SORT.set(tags.albumArtistSort)
     ALBUM_ARTIST.set(tags.albumArtist)
     ALBUM.set(tags.album)

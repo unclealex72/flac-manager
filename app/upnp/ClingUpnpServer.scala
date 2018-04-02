@@ -16,11 +16,10 @@
 
 package upnp
 
-import javax.inject.Inject
-
 import com.typesafe.scalalogging.StrictLogging
 import common.async.BackgroundExecutionContext
 import common.configuration.Directories
+import javax.inject.Inject
 import org.fourthline.cling.{UpnpService, UpnpServiceImpl}
 import play.api.inject.ApplicationLifecycle
 import play.api.{Application, Configuration, Mode}
@@ -33,7 +32,7 @@ import scala.concurrent.Future
   * @param app The Play application object.
   * @param configuration The Play configuration object.
   * @param lifecycle The Play lifecycle object.
-  * @param ec An execution context used to start and stop this service.
+  * @param executionContext An execution context used to start and stop this service.
   */
 class ClingUpnpServer @Inject()(
                             directories: Directories,

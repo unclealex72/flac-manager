@@ -16,9 +16,10 @@
 
 package client
 
-import java.io.{PrintStream, Writer}
+import java.io.PrintStream
 import java.net.URI
 
+import akka.Done
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import akka.util.ByteString
@@ -44,11 +45,11 @@ object RemoteCommandRunner {
              serverUri: URI,
              out: PrintStream)
            (implicit materializer: Materializer, executionContext: ExecutionContext): Future[Unit] = {
-    val commandUri = serverUri.resolve(new URI(s"/commands"))
+    val commandUri: URI = serverUri.resolve(new URI(s"/commands"))
     val futureResponse: Future[StandaloneWSResponse] =
       ws.url(commandUri.toString).withRequestTimeout(Duration.Inf).withMethod("POST").withBody(body).stream()
     futureResponse.flatMap { res =>
-      val sink = Sink.foreach[ByteString] { bytes =>
+      val sink: Sink[ByteString, Future[Done]] = Sink.foreach[ByteString] { bytes =>
         val message = new String(bytes.toArray, HttpStreams.DEFAULT_CHARSET)
         if (HttpStreams.KEEP_ALIVE != message) {
           out.print(message)

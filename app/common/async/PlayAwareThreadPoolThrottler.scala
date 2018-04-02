@@ -16,10 +16,9 @@
 
 package common.async
 
-import javax.inject.Inject
-
 import checkin.{Throttler, ThrottlerOps}
 import com.typesafe.scalalogging.StrictLogging
+import javax.inject.Inject
 import play.api.Configuration
 import play.api.inject.ApplicationLifecycle
 
@@ -34,7 +33,7 @@ class PlayAwareThreadPoolThrottler @Inject() (configuration: Configuration,
                                              (implicit val commandExecutionContext: CommandExecutionContext) extends ThrottlerOps with StrictLogging {
 
   val throttler: Throttler = {
-    val threads = configuration.getOptional[Int]("encoder.threads").getOrElse(Runtime.getRuntime.availableProcessors())
+    val threads: Int = configuration.getOptional[Int]("encoder.threads").getOrElse(Runtime.getRuntime.availableProcessors())
     logger.info(s"Using $threads threads for encoding.")
     val throttler = new ThreadPoolThrottler(threads)
     applicationLifecycle.addStopHook { () =>

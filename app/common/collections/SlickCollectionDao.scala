@@ -15,11 +15,10 @@
  */
 package common.collections
 
-import javax.inject.Inject
-
 import common.async.CommandExecutionContext
 import common.configuration.User
 import common.db.SlickDao
+import javax.inject.Inject
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.Future
