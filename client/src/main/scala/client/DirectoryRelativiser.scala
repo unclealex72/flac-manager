@@ -16,7 +16,7 @@
 
 package client
 
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, LinkOption, Path}
 
 import cats.data.NonEmptyList
 import cats.syntax.either._
@@ -43,7 +43,7 @@ object DirectoryRelativiser {
 
     case class DatumBasedFlacDirectories(override val datumPath: Path) extends FlacDirectories
 
-    val absoluteDirectoryPath = directory.toAbsolutePath
+    val absoluteDirectoryPath = directory.toRealPath()
     if (Files.isDirectory(absoluteDirectoryPath)) {
       def maybeFlacDirectories(dir: Path): Either[String, FlacDirectories] = {
         val datumPath = dir.resolve(datumFilename)

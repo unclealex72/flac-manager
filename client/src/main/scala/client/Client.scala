@@ -15,7 +15,6 @@
  */
 
 package client
-import java.io.OutputStreamWriter
 import java.nio.file.{FileSystem, FileSystems}
 import java.util.logging.LogManager
 
