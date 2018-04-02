@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Alex Jones
+ * Copyright 2018 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,14 +40,14 @@ class LossyEncoderSpec extends Specification {
 
   "encoding to an mp3 file" should {
     "produce a valid mp3 file" in {
-      val encodedFile = encodeFile(new LameMp3Encoder() {override val logLevel: String = "verbose"})
+      val encodedFile: Either[String, EncodedFile] = encodeFile(new LameMp3Encoder() {override val logLevel: String = "verbose"})
       encodedFile must beRight(haveTagsAndMagicNumber(tags, 0, 0x49, 0x44, 0x33))
     }
   }
 
   "encoding to an m4a file" should {
     "produce a valid m4a file" in {
-      val encodedFile = encodeFile(new FdkaacM4AEncoder() {override val logLevel: String = "verbose"})
+      val encodedFile: Either[String, EncodedFile] = encodeFile(new FdkaacM4AEncoder() {override val logLevel: String = "verbose"})
       encodedFile must beRight(haveTagsAndMagicNumber(tags, 4, 0x66, 0x74, 0x79, 0x70, 0x4D, 0x34, 0x41, 0x20))
     }
   }
@@ -64,19 +64,19 @@ class LossyEncoderSpec extends Specification {
   def haveTags(tags: Tags): Matcher[EncodedFile] = {
     def beTags(tags: Tags): Matcher[Tags] = {
       def haveTag[V](msg: String, extractor: Tags => V): Matcher[Tags] = be_===(extractor(tags)) ^^ { (tags: Tags) => extractor(tags) aka msg }
-      def haveArtist = haveTag("the album artist", _.albumArtist)
-      def haveAlbum = haveTag("the album", _.album)
-      def haveTrackNumber = haveTag("the track number", _.trackNumber)
-      def haveTitle = haveTag("the track title", _.title)
+      def haveArtist: Matcher[Tags] = haveTag("the album artist", _.albumArtist)
+      def haveAlbum: Matcher[Tags] = haveTag("the album", _.album)
+      def haveTrackNumber: Matcher[Tags] = haveTag("the track number", _.trackNumber)
+      def haveTitle: Matcher[Tags] = haveTag("the track title", _.title)
       haveArtist and haveAlbum and haveTrackNumber and haveTitle
     }
     beTags(tags) ^^ { (ef: EncodedFile) => ef.tags aka "tags" }
   }
 
   def encodeFile(lossyEncoder: LossyEncoder): Either[String, EncodedFile] = {
-    val out = Files.createTempFile("lossy-encoder-test", s".${lossyEncoder.encodesTo}")
+    val out: Path = Files.createTempFile("lossy-encoder-test", s".${lossyEncoder.encodesTo}")
     def encode(in: Path): Either[String, Unit] = {
-      val result = lossyEncoder.encode(in, out)
+      val result: Int = lossyEncoder.encode(in, out)
       if (result == 0) Right({}) else Left(s"The encoding command returned error code $result")
     }
     try {

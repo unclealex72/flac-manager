@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Alex Jones
+ * Copyright 2018 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,8 +22,10 @@ import com.typesafe.scalalogging.StrictLogging
 import javax.inject.Inject
 import org.jaudiotagger.audio.{AudioFile, AudioFileIO}
 import org.jaudiotagger.tag.FieldKey.{ALBUM => J_ALBUM, ALBUM_ARTIST => J_ALBUM_ARTIST, ALBUM_ARTIST_SORT => J_ALBUM_ARTIST_SORT, AMAZON_ID => J_AMAZON_ID, ARTIST => J_ARTIST, ARTIST_SORT => J_ARTIST_SORT, DISC_NO => J_DISC_NO, DISC_TOTAL => J_DISC_TOTAL, MUSICBRAINZ_ARTISTID => J_MUSICBRAINZ_ARTISTID, MUSICBRAINZ_RELEASEARTISTID => J_MUSICBRAINZ_RELEASEARTISTID, MUSICBRAINZ_RELEASEID => J_MUSICBRAINZ_RELEASEID, MUSICBRAINZ_TRACK_ID => J_MUSICBRAINZ_TRACK_ID, TITLE => J_TITLE, TRACK => J_TRACK, TRACK_TOTAL => J_TRACK_TOTAL}
-import org.jaudiotagger.tag.images.StandardArtwork
+import org.jaudiotagger.tag.images.{Artwork, StandardArtwork}
 import org.jaudiotagger.tag.{FieldKey, Tag}
+
+import scala.collection.mutable
 
 /**
  * A [[TagsService]] that uses JAudioTagger.
@@ -51,7 +53,7 @@ class JaudioTaggerTagsService @Inject() extends TagsService with StrictLogging {
   override def write(path: Path, tags: Tags): Unit = {
     val audioFile: AudioFile = loadAudioFile(path)
     //noinspection ScalaUnusedSymbol
-    val tag: Tag = audioFile.getTag
+    implicit val tag: Tag = audioFile.getTag
     ALBUM_ARTIST_SORT.set(tags.albumArtistSort)
     ALBUM_ARTIST.set(tags.albumArtist)
     ALBUM.set(tags.album)
@@ -78,7 +80,7 @@ class JaudioTaggerTagsService @Inject() extends TagsService with StrictLogging {
     */
   def loadAudioFile(path: Path): AudioFile = {
     logger.info(s"Loading tags for $path")
-    val audioFile = AudioFileIO.read(path.toFile)
+    val audioFile: AudioFile = AudioFileIO.read(path.toFile)
     var tag: Tag = audioFile.getTag
     if (tag == null) {
       tag = audioFile.createDefaultTag
@@ -186,9 +188,9 @@ private object JaudioTaggerTagsService {
     private val FRONT_COVER_ART: Int = 3
 
     def get(tag: Tag): CoverArt = {
-      val artworkList = tag.getArtworkList.asScala
+      val artworkList: mutable.Buffer[Artwork] = tag.getArtworkList.asScala
       // Try and find any artwork type if the front cover art cannot be found.
-      val artwork = artworkList.find(a => FRONT_COVER_ART == a.getPictureType).orElse(artworkList.headOption)
+      val artwork: Option[Artwork] = artworkList.find(a => FRONT_COVER_ART == a.getPictureType).orElse(artworkList.headOption)
       artwork.map { artwork =>
         CoverArt(artwork.getBinaryData, artwork.getMimeType)
       }.getOrElse(null.asInstanceOf[CoverArt])

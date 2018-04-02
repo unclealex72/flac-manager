@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Alex Jones
+ * Copyright 2018 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,11 +17,10 @@
 package common.music
 
 import java.io.{ByteArrayOutputStream, InputStream}
-import java.nio.file.{Files, StandardCopyOption}
+import java.nio.file.{Files, Path, StandardCopyOption}
 
 import com.google.common.io.ByteStreams
 import io.github.marklister.base64.Base64._
-import org.slf4j.bridge.SLF4JBridgeHandler
 import org.specs2.mutable._
 
 import scala.sys.process._
@@ -42,8 +41,8 @@ class JaudioTaggerTagsServiceSpec extends Specification {
 
   "Reading a tagged file" should {
     "correctly read all the tags" in {
-      val flacIn = getClass.getClassLoader.getResourceAsStream("tagged.flac")
-      val tempMusicFile = Files.createTempFile("tagged", ".flac")
+      val flacIn: InputStream = getClass.getClassLoader.getResourceAsStream("tagged.flac")
+      val tempMusicFile: Path = Files.createTempFile("tagged", ".flac")
       Files.copy(flacIn, tempMusicFile, StandardCopyOption.REPLACE_EXISTING)
       flacIn.close()
       val tags: Tags = tagsService.readTags(tempMusicFile)
@@ -87,12 +86,12 @@ class JaudioTaggerTagsServiceSpec extends Specification {
 
   "Writing a tagged mp3 file" should {
     "correctly write all the tags" in {
-      val flacIn = getClass.getClassLoader.getResourceAsStream("untagged.mp3")
-      val tempMusicFile = Files.createTempFile("tagged", ".mp3")
+      val flacIn: InputStream = getClass.getClassLoader.getResourceAsStream("untagged.mp3")
+      val tempMusicFile: Path = Files.createTempFile("tagged", ".mp3")
       Files.copy(flacIn, tempMusicFile, StandardCopyOption.REPLACE_EXISTING)
       flacIn.close()
       tagsService.write(tempMusicFile, tagsToWrite)
-      val lines = Seq("id3v2", "-l", tempMusicFile.toAbsolutePath.toString).lineStream.toList
+      val lines: List[String] = Seq("id3v2", "-l", tempMusicFile.toAbsolutePath.toString).lineStream.toList
       lines must contain(
         "UFID (Unique file identifier): http://musicbrainz.org, 36 bytes",
         "TIT2 (Title/songname/content description): Suffer The Children",
@@ -113,12 +112,12 @@ class JaudioTaggerTagsServiceSpec extends Specification {
 
   "Writing a tagged flac file" should {
     "correctly write all the tags" in {
-      val flacIn = getClass.getClassLoader.getResourceAsStream("untagged.flac")
-      val tempMusicFile = Files.createTempFile("tagged", ".flac")
+      val flacIn: InputStream = getClass.getClassLoader.getResourceAsStream("untagged.flac")
+      val tempMusicFile: Path = Files.createTempFile("tagged", ".flac")
       Files.copy(flacIn, tempMusicFile, StandardCopyOption.REPLACE_EXISTING)
       flacIn.close()
       tagsService.write(tempMusicFile, tagsToWrite)
-      val lines = Seq("metaflac", "--export-tags-to=-", tempMusicFile.toAbsolutePath.toString).lineStream.toList
+      val lines: List[String] = Seq("metaflac", "--export-tags-to=-", tempMusicFile.toAbsolutePath.toString).lineStream.toList
       lines must contain(
         "ALBUMARTISTSORT=Various Artists Sort",
         "ALBUMARTIST=Various Artists",

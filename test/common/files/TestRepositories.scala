@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Alex Jones
+ * Copyright 2018 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import common.configuration.{Directories, TestDirectories}
 import common.files.Extension.{FLAC, M4A, MP3}
 import common.message.{MessageService, NoOpMessageService}
 import common.music.{Tags, TagsService}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import testfilesystem.FS.Permissions
 import testfilesystem._
 /**
@@ -39,7 +39,7 @@ trait TestRepositories[T] extends FS[T] with StrictLogging {
     Files.createDirectories(directories.temporaryPath)
     val tagsService: TagsService = new TagsService {
       override def readTags(path: Path): Tags = {
-        val json = Json.parse(Files.readAllBytes(path))
+        val json: JsValue = Json.parse(Files.readAllBytes(path))
         Tags.fromJson(json) match {
           case Valid(_json) => _json
           case Invalid(messages) =>
@@ -74,7 +74,7 @@ object RepositoryEntry {
     }
 
     def toFsEntryBuilders(artistsEntry: ArtistsEntryBuilder, permissions: Permissions, extensions: Seq[Extension], link: Boolean): Seq[FsEntryBuilder] = {
-      val artistEntriesByInitial = artistsEntry.artistEntryBuilders.groupBy(_.artist.substring(0, 1))
+      val artistEntriesByInitial: Map[String, Seq[ArtistEntryBuilder]] = artistsEntry.artistEntryBuilders.groupBy(_.artist.substring(0, 1))
       def extensionChildren(extension: Extension): Seq[FsDirectoryBuilder] = artistEntriesByInitial.toSeq.map { case (initial, artistEntries) =>
         FsDirectoryBuilder(initial, permissions, convertArtistEntries(initial, artistEntries, permissions, extension, link))
       }
@@ -91,42 +91,42 @@ object RepositoryEntry {
 
     private def convertArtistEntries(initial: String, artistEntryBuilders: Seq[ArtistEntryBuilder], permissions: Permissions, extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
       artistEntryBuilders.map { artistEntryBuilder =>
-        val artist = artistEntryBuilder.artist
+        val artist: String = artistEntryBuilder.artist
         FsDirectoryBuilder(artist, permissions, convertAlbumEntries(initial, artist, artistEntryBuilder.albumEntryBuilders, permissions, extension, link))
       }
     }
 
     private def convertAlbumEntries(initial: String, artist: String, albumEntryBuilders: Seq[AlbumEntryBuilder], permissions: Permissions, extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
       albumEntryBuilders.flatMap { albumEntryBuilder =>
-        val album = albumEntryBuilder.album
+        val album: String = albumEntryBuilder.album
         convertDiscEntries(initial, artist, album, albumEntryBuilder.discEntryBuilders, permissions, extension, link)
       }
     }
 
     private def convertDiscEntries(initial: String, artist: String, album: String, discEntryBuilders: Seq[DiscEntryBuilder], permissions: Permissions, extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
-      val totalDiscs = discEntryBuilders.size
+      val totalDiscs: Int = discEntryBuilders.size
       discEntryBuilders.zipWithIndex.map { case (discEntryBuilder, idx) =>
         convertDiscEntry(initial, artist, album, discEntryBuilder.albumId, totalDiscs, idx + 1, discEntryBuilder, permissions, extension, link)
       }
     }
 
     private def convertDiscEntry(initial: String, artist: String, album: String, albumId: String, totalDiscs: Int, discNumber: Int, discEntryBuilder: DiscEntryBuilder, permissions: Permissions, extension: Extension, link: Boolean): FsEntryBuilder = {
-      val albumDirectory = if (totalDiscs == 1) album else f"$album $discNumber%02d"
+      val albumDirectory: String = if (totalDiscs == 1) album else f"$album $discNumber%02d"
       FsDirectoryBuilder(albumDirectory, permissions, convertTrackEntries(initial, artist, albumDirectory, album, albumId, totalDiscs, discNumber, discEntryBuilder.trackEntryBuilders, permissions, extension, link))
     }
 
     def convertTrackEntries(initial: String, artist: String, albumDirectory: String, albumTitle: String, albumId: String, totalDiscs: Int, discNumber: Int, trackEntryBuilders: Seq[TrackEntryBuilder], permissions: Permissions, extension: Extension, link: Boolean): Seq[FsEntryBuilder] = {
-      val totalTracks = trackEntryBuilders.size
+      val totalTracks: Int = trackEntryBuilders.size
       trackEntryBuilders.zipWithIndex.map { case (trackEntryBuilder, idx) =>
-        val trackNumber = idx + 1
-        val track = trackEntryBuilder.track
+        val trackNumber: Int = idx + 1
+        val track: String = trackEntryBuilder.track
         val filename = f"$trackNumber%02d $track.${extension.extension}"
         if (link) {
           val target = s"../../../../../../encoded/${extension.extension}/$initial/$artist/$albumDirectory/$filename"
           FsLinkBuilder(filename, target)
         }
         else {
-          val trackTags = tags(
+          val trackTags: Tags = tags(
             artist = artist, album = albumTitle, albumId = albumId, totalDiscs = totalDiscs,
             discNumber = discNumber, totalTracks = totalTracks, trackNumber = trackNumber, track = track)
           FsFileBuilder(filename, permissions, Some(trackTags))
@@ -170,13 +170,13 @@ object RepositoryEntry {
       private def artistsToArtistsEntry(artists: Artists): ArtistsEntryBuilder = {
         val artistEntries: Seq[ArtistEntryBuilder] = artists.albumsByArtist.map { case (artist, albums) =>
           val albumEntries: Seq[AlbumEntryBuilder] = albums.map { album =>
-            val discs = album.discs
-            val discTracks = discs.tracks
-            val keepSameId = discs.sameId || discTracks.size == 1
-            val albumTitle = album.title
+            val discs: Discs = album.discs
+            val discTracks: Seq[Tracks] = discs.tracks
+            val keepSameId: Boolean = discs.sameId || discTracks.size == 1
+            val albumTitle: String = album.title
             val discEntries: Seq[DiscEntryBuilder] = discTracks.zipWithIndex.map { case (tracks, idx) =>
-              val discNumber = idx + 1
-              val albumId = if (keepSameId) albumTitle else f"$albumTitle $discNumber%02d"
+              val discNumber: Int = idx + 1
+              val albumId: String = if (keepSameId) albumTitle else f"$albumTitle $discNumber%02d"
               DiscEntryBuilder(albumId, tracks.titles.map(TrackEntryBuilder))
             }
             AlbumEntryBuilder(albumTitle, discEntries)

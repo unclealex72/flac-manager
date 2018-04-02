@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Alex Jones
+ * Copyright 2018 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import own.OwnAction
 import testfilesystem.FS.Permissions
-import testfilesystem.FsEntryMatchers
+import testfilesystem.{FsEntry, FsEntryMatchers}
 
 import scala.collection.SortedSet
 import scala.concurrent.duration._
@@ -89,7 +89,7 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
 
   "Checking in albums from scratch" should {
     "encode the albums and create links in the devices repository" in { services: Services =>
-      val fs = services.fileSystem
+      val fs: JFS = services.fileSystem
       fs.add(entriesBeforeCheckin :_*)
       services.ownerService.listOwners() returns Future.successful(
         Map(
@@ -100,7 +100,7 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
       )
       services.repositories.staging.directory(fs.getPath("")).toEither must beRight { stagingDirectory: StagingDirectory =>
         Await.result(services.checkinCommand.checkin(SortedSet(stagingDirectory), allowUnowned = false), 1.hour)
-        val entries = fs.entries
+        val entries: Seq[FsEntry] = fs.entries
         entries must haveTheSameEntriesAs(fs.expected(expectedEntriesAfterCheckin :_*))
       }
     }
@@ -108,7 +108,7 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
 
   "Checking in albums from scratch" should {
     "allow unowned albums if so desired" in { services: Services =>
-      val fs = services.fileSystem
+      val fs: JFS = services.fileSystem
       fs.add(entriesBeforeCheckin :_*)
       services.ownerService.listOwners() returns Future.successful(
         Map(
@@ -118,7 +118,7 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
       )
       services.repositories.staging.directory(fs.getPath("")).toEither must beRight { stagingDirectory: StagingDirectory =>
         Await.result(services.checkinCommand.checkin(SortedSet(stagingDirectory), allowUnowned = true), 1.hour)
-        val entries = fs.entries
+        val entries: Seq[FsEntry] = fs.entries
         entries must haveTheSameEntriesAs(fs.expected(expectedEntriesAfterUnownedCheckin :_*))
       }
     }
@@ -126,7 +126,7 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
 
   "Checking in albums from scratch" should {
     "not allow unowned albums if so desired" in { services: Services =>
-      val fs = services.fileSystem
+      val fs: JFS = services.fileSystem
       fs.add(entriesBeforeCheckin :_*)
       services.ownerService.listOwners() returns Future.successful(
         Map(
@@ -136,11 +136,11 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
       )
       services.repositories.staging.directory(fs.getPath("")).toEither must beRight { stagingDirectory: StagingDirectory =>
         Await.result(services.checkinCommand.checkin(SortedSet(stagingDirectory), allowUnowned = false), 1.hour).toEither must beLeft { messages: NonEmptyList[Message] =>
-          val entries = fs.entries
+          val entries: Seq[FsEntry] = fs.entries
           val empty: ValidatedNel[Message, Seq[Message]] = Valid(Seq.empty[Message])
-          val vExpectedNotOwneds = Seq("01 Innuendo.flac", "02 Im Going Slightly Mad.flac", "03 Headlong.flac").foldLeft(empty) { (acc, track) =>
-            val path = fs.getPath("Q", "Queen", "Innuendo", track)
-            val vStagingFile = services.repositories.staging.file(path)
+          val vExpectedNotOwneds: ValidatedNel[Message, Seq[Message]] = Seq("01 Innuendo.flac", "02 Im Going Slightly Mad.flac", "03 Headlong.flac").foldLeft(empty) { (acc, track) =>
+            val path: Path = fs.getPath("Q", "Queen", "Innuendo", track)
+            val vStagingFile: ValidatedNel[Message, StagingFile] = services.repositories.staging.file(path)
             (acc |@| vStagingFile).map { (messages, stagingFile) =>
               messages :+ NOT_OWNED(stagingFile)
             }
@@ -156,14 +156,16 @@ class CheckinCommandImplSpec extends Specification with Mockito with ChangeMatch
   }
 
   override def generate(fs: JFS, repositories: Repositories): Services = {
-    val ownerService = mock[OwnerService]
-    val changeDao = mock[ChangeDao]
+    val ownerService: OwnerService = mock[OwnerService]
+    val changeDao: ChangeDao = mock[ChangeDao]
     changeDao.store(any[Change])(any[MessageService]) returns Future.successful({})
     ownerService.changeFlacOwnership(any[User], any[OwnAction], any[NonEmptyList[FlacFile]])(any[MessageService]) returns Future.successful(Valid({}))
     ownerService.changeStagingOwnership(any[User], any[OwnAction], any[NonEmptyList[StagingFile]])(any[MessageService]) returns Future.successful(Valid({}))
     ownerService.unown(any[User], any[Set[Tags]])(any[MessageService]) returns Future.successful(Valid({}))
     val fileSystem = new ProtectionAwareFileSystem(new FileSystemImpl)
-    val allowMultiService = new AllowMultiService {
+    val allowMultiService: AllowMultiService {
+      def allowMulti: Boolean
+    } = new AllowMultiService {
       override def allowMulti: Boolean = false
     }
     val checkinActionGenerator = new CheckinActionGeneratorImpl(ownerService, allowMultiService)

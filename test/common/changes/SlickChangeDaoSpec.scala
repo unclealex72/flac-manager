@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Alex Jones
+ * Copyright 2018 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,7 +63,7 @@ class SlickChangeDaoSpec extends Specification with ForEach[Db] with StrictLoggi
     "retrieve at most the number of changes requested in change time order" in { db: Db =>
       implicit val (changeDao, ee): (ChangeDao, ExecutionEnv) = (db.changeDao, db.ee)
 
-      val changeLogs = changeDao.changelog(freddie, MP3, "05/09/1972 09:13:00")
+      val changeLogs: Future[Seq[ChangelogItem]] = changeDao.changelog(freddie, MP3, "05/09/1972 09:13:00")
       changeLogs must contain(exactly(
         ChangelogItem("News of the World", "05/09/1972 09:14:00", "News of the World/We Are The Champions.mp3"),
         ChangelogItem("Queen II", "05/09/1972 09:13:20", "Queen II/Funny How Love Is.mp3"),
@@ -88,9 +88,9 @@ class SlickChangeDaoSpec extends Specification with ForEach[Db] with StrictLoggi
 
   def foreach[R: AsResult](f: Db => R): Result = {
     val ee: ExecutionEnv = ExecutionEnv.fromGlobalExecutionContext
-    implicit val ec = ee.ec
+    implicit val ec: ExecutionContext = ee.ec
 
-    val result = for {
+    val result: Future[Result] = for {
       changeDaoAndConfig <- openDatabaseTransaction
       changeDao = changeDaoAndConfig._1
       config = changeDaoAndConfig._2
@@ -109,7 +109,7 @@ class SlickChangeDaoSpec extends Specification with ForEach[Db] with StrictLoggi
 
   // create and close a transaction
   def openDatabaseTransaction(implicit ec: ExecutionContext): Future[(SlickChangeDao, DatabaseConfig[JdbcProfile])] = {
-    implicit val cec = new GlobalExecutionContext with CommandExecutionContext
+    implicit val cec: ExecutionContext with CommandExecutionContext = new GlobalExecutionContext with CommandExecutionContext
     val config: Config = ConfigFactory.parseString(
       """
         |play.slick.db.config="slick.dbs"
@@ -126,10 +126,14 @@ class SlickChangeDaoSpec extends Specification with ForEach[Db] with StrictLoggi
       Environment(Paths.get("/").toFile, getClass.getClassLoader, Mode.Dev),
       Configuration(config),
       new DefaultApplicationLifecycle())
-    val provider = new DatabaseConfigProvider {
+    val provider: DatabaseConfigProvider {
+      def get[P <: BasicProfile]: DatabaseConfig[P]
+    } = new DatabaseConfigProvider {
       def get[P <: BasicProfile]: DatabaseConfig[P] = slickApi.dbConfig[P](DbName("default"))
     }
-    val changeDao = new SlickChangeDao(provider) {
+    val changeDao: SlickChangeDao {
+      val dbConfigForTesting: DatabaseConfig[JdbcProfile]
+    } = new SlickChangeDao(provider) {
       val dbConfigForTesting: DatabaseConfig[JdbcProfile] = dbConfigProvider.get[JdbcProfile]
     }
     changeDao.dbConfigForTesting.db.run(changeDao.create).map(_ => (changeDao, changeDao.dbConfigForTesting))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Alex Jones
+ * Copyright 2018 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,10 +106,10 @@ class MultiDiscServiceImplSpec extends Specification with StrictLogging with
 
   "Joining multi-disc albums" should {
     "create one album with all the tracks on one disc" in { fsrmds: FileSystemRepositoriesAndMultiDiscService =>
-      val fs = fsrmds.fs
-      val repositories = fsrmds.repositories
-      val multiDiscService = fsrmds.multiDiscService
-      val validatedResults = for {
+      val fs: JFS = fsrmds.fs
+      val repositories: Repositories = fsrmds.repositories
+      val multiDiscService: MultiDiscService = fsrmds.multiDiscService
+      val validatedResults: Either[NonEmptyList[Message], Seq[FsEntry]] = for {
         root <- repositories.staging.root.toEither
         _ <- multiDiscService.createSingleAlbum(Seq(root)).toEither
       } yield {
@@ -126,10 +126,10 @@ class MultiDiscServiceImplSpec extends Specification with StrictLogging with
 
   "Splitting multi-disc albums" should {
     "Create two albums" in { fsrmds: FileSystemRepositoriesAndMultiDiscService =>
-      val fs = fsrmds.fs
-      val repositories = fsrmds.repositories
-      val multiDiscService = fsrmds.multiDiscService
-      val validatedResults = for {
+      val fs: JFS = fsrmds.fs
+      val repositories: Repositories = fsrmds.repositories
+      val multiDiscService: MultiDiscService = fsrmds.multiDiscService
+      val validatedResults: Either[NonEmptyList[Message], Seq[FsEntry]] = for {
         root <- repositories.staging.root.toEither
         _ <- multiDiscService.createAlbumWithExtras(Seq(root)).toEither
       } yield {

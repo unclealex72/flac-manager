@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Alex Jones
+ * Copyright 2018 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,13 +19,17 @@ package checkout
 import java.nio.file.{Path, FileSystem => JFS}
 import java.time.Clock
 
-import cats.data.{NonEmptyList, ValidatedNel}
 import cats.data.Validated.Valid
+import cats.data.{NonEmptyList, ValidatedNel}
+import cats.implicits._
+import checkin.LossyEncoder
 import common.async.{BackgroundExecutionContext, CommandExecutionContext, GlobalExecutionContext}
 import common.changes.{Change, ChangeDao, ChangeMatchers}
 import common.configuration.{User, UserDao}
 import common.files.Directory.FlacDirectory
+import common.files.Extension.{M4A, MP3}
 import common.files._
+import common.message.Messages.OVERWRITE
 import common.message.{Message, MessageService}
 import common.music.Tags
 import common.owners.OwnerService
@@ -33,16 +37,12 @@ import org.specs2.matcher.Matcher
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import own.OwnAction
+import testfilesystem.FS.Permissions
+import testfilesystem.FsEntryMatchers
 
 import scala.collection.SortedSet
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import cats.implicits._
-import checkin.LossyEncoder
-import common.files.Extension.{M4A, MP3}
-import common.message.Messages.OVERWRITE
-import testfilesystem.FS.Permissions
-import testfilesystem.FsEntryMatchers
 
 /**
  * Created by alex on 18/11/14.

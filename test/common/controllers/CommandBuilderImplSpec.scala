@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Alex Jones
+ * Copyright 2018 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,11 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import own.{OwnAction, OwnCommand}
 import play.api.libs.json._
+import testfilesystem.FS.Permissions
 
 import scala.collection.SortedSet
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import common.files.RepositoryEntry
-import testfilesystem.FS.Permissions
 
 /**
   * Created by alex on 23/04/17
@@ -62,7 +61,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
   "running the initialise command" should {
     "only require a command to call successfully" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(Seq("command" -> JsString("initialise")))
       }
       validatedResult must beRight { (c: Commands) =>
@@ -75,7 +74,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
   "running the checkin command" should {
     "require directories" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("checkin"),
@@ -88,7 +87,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
     }
     "not allow flac directories" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("checkin"),
@@ -101,7 +100,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
     }
     "pass on its parameters" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("checkin"),
@@ -122,7 +121,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
   "running the multi command" should {
     "require directories" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("multidisc"),
@@ -135,7 +134,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
     }
     "not allow flac directories" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("multidisc"),
@@ -148,7 +147,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
     }
     "require an action" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("multidisc"),
@@ -161,7 +160,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
 
     "pass on its parameters" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedJoinResult = execution {
+      val validatedJoinResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("multidisc"),
@@ -176,7 +175,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
           }
         }
       }
-      val validatedSplitResult = execution {
+      val validatedSplitResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("multidisc"),
@@ -197,7 +196,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
   "running the checkout command" should {
     "require directories" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("checkout"),
@@ -210,7 +209,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
     }
     "not allow staging directories" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("checkout"),
@@ -223,7 +222,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
     }
     "pass on its parameters" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("checkout"),
@@ -244,7 +243,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
   "running the own command" should {
     "require directories and users" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("own"),
@@ -257,7 +256,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
     }
     "require valid users" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("own"),
@@ -270,7 +269,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
     }
     "pass on its parameters" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("own"),
@@ -291,7 +290,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
   "running the unown command" should {
     "require directories and users" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("unown"),
@@ -304,7 +303,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
     }
     "require valid users" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("unown"),
@@ -317,7 +316,7 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
     }
     "pass on its parameters" in { fsr: (FileSystem, Repositories) =>
       implicit val (fs, repositories) = fsr
-      val validatedResult = execution {
+      val validatedResult: Either[NonEmptyList[Message], Commands] = execution {
         JsObject(
           Seq(
             "command" -> JsString("unown"),
@@ -341,7 +340,9 @@ class CommandBuilderImplSpec extends Specification with StrictLogging with TestR
   }
 
   def execution(jsValue: JsValue)(implicit repositories: Repositories, fs: FileSystem): Either[NonEmptyList[Message], Commands] = {
-    val userDao = new UserDao {
+    val userDao: UserDao {
+      def allUsers(): Set[User]
+    } = new UserDao {
       override def allUsers(): Set[User] = Set("Freddie", "Brian").map(User(_))
     }
     val commands = Commands()

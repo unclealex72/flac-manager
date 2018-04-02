@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Alex Jones
+ * Copyright 2018 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,14 @@
 package checkin
 
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.function.IntBinaryOperator
 
 import common.async.ThreadPoolThrottler
 import org.specs2.mutable.Specification
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
+
+import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 /**
   * Created by alex on 30/05/17
@@ -36,7 +37,7 @@ class ThreadPoolThrottlerSpec extends Specification {
     private val max = new AtomicInteger(0)
 
     def enter(): Unit = {
-      val newValue = concurrentCounter.incrementAndGet()
+      val newValue: Int = concurrentCounter.incrementAndGet()
       max.getAndAccumulate(newValue, (left: Int, right: Int) => Math.max(left, right))
       Thread.sleep(delay.toMillis)
       concurrentCounter.decrementAndGet()
@@ -51,7 +52,7 @@ class ThreadPoolThrottlerSpec extends Specification {
       try {
         val parallelCounter = Counter(10.milli)
         val sequentialCounter = Counter(20.milli)
-        val eventualResponse = Future.sequence(Range(1, 10).map { _ =>
+        val eventualResponse: Future[immutable.IndexedSeq[Unit]] = Future.sequence(Range(1, 10).map { _ =>
           for {
             _ <- throttler.parallel(parallelCounter.enter())
             _ <- throttler.sequential(sequentialCounter.enter())

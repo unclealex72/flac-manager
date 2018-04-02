@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Alex Jones
+ * Copyright 2018 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package common.files
 import java.nio.file.{Files, FileSystem => JFS}
 import java.time.{Clock, Instant}
 
-import cats.data.{NonEmptyList, ValidatedNel}
 import cats.data.Validated.Valid
+import cats.data.{NonEmptyList, ValidatedNel}
 import cats.implicits._
 import com.typesafe.scalalogging.StrictLogging
 import common.configuration.User

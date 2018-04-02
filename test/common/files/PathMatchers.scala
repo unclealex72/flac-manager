@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Alex Jones
+ * Copyright 2018 Alex Jones
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +26,7 @@ import org.specs2.matcher.{Expectable, MatchResult, Matcher}
  */
 trait PathMatchers {
 
-  val exist = new Matcher[Path] {
+  val exist: Matcher[Path] = new Matcher[Path] {
     def apply[S <: Path](s: Expectable[S]): MatchResult[S] = {
       result(Files.exists(s.value),
         s.description + " exists",
@@ -35,7 +35,7 @@ trait PathMatchers {
     }
   }
 
-  val beADirectory = new Matcher[Path] {
+  val beADirectory: Matcher[Path] = new Matcher[Path] {
     def apply[S <: Path](s: Expectable[S]): MatchResult[S] = {
       result(Files.isDirectory(s.value),
         s.description + " is a directory",
@@ -44,7 +44,7 @@ trait PathMatchers {
     }
   }
 
-  def beTheSameFileAs(otherPath: Path) = new Matcher[Path] {
+  def beTheSameFileAs(otherPath: Path): Matcher[Path] = new Matcher[Path] {
     def apply[S <: Path](s: Expectable[S]): MatchResult[S] = {
       result(Files.isSameFile(s.value, otherPath),
         s.description + " is a the same path as " + otherPath,
@@ -53,7 +53,7 @@ trait PathMatchers {
     }
   }
 
-  val beASymbolicLink = new Matcher[Path] {
+  val beASymbolicLink: Matcher[Path] = new Matcher[Path] {
     def apply[S <: Path](s: Expectable[S]): MatchResult[S] = {
       result(Files.isSymbolicLink(s.value),
         s.description + " is a symbolic link",
@@ -62,7 +62,7 @@ trait PathMatchers {
     }
   }
 
-  val beAbsolute = new Matcher[Path] {
+  val beAbsolute: Matcher[Path] = new Matcher[Path] {
     def apply[S <: Path](s: Expectable[S]): MatchResult[S] = {
       result(s.value.isAbsolute,
         s.description + " is absolute",
