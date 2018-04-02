@@ -18,8 +18,9 @@ package common.music
 
 import java.nio.file.{FileSystem, FileSystems, Paths}
 
-import com.wix.accord._
+import cats.data.NonEmptyList
 import common.files.Extension.FLAC
+import common.message.Message
 import org.specs2.mutable._
 
 /**
@@ -46,29 +47,23 @@ class TagsSpec extends Specification {
 
   "validating a totally empty tag" should {
     "report every single violation" in {
-      val result = validate(SimpleTags("", "", 0, 0, 0, ""))
-      result must beAnInstanceOf[Failure]
-      result match {
-        case Success =>
-        case Failure(violations: Set[Violation]) =>
-          val descriptions = violations.map(v => Descriptions.render(v.description))
-          descriptions must contain(exactly(
-            "totalTracks",
-            "album",
-            "albumArtistId",
-            "discNumber",
-            "artistSort",
-            "albumId",
-            "title",
-            "coverArt",
-            "albumArtist",
-            "artist",
-            "artistId",
-            "trackNumber",
-            "totalDiscs",
-            "albumArtistSort"))
+      Tags.validate(SimpleTags("", "", 0, 0, 0, "")).toEither must beLeft { (errors: NonEmptyList[String]) =>
+        errors.toList must contain(exactly(
+          "Album artist sort is required",
+          "Album artist is required",
+          "Album is required",
+          "Artist sort is required",
+          "Title is required",
+          "Total discs must be greater than zero",
+          "Total tracks must be greater than zero",
+          "Disc number must be greater than zero",
+          "Album artist ID is required",
+          "Artist ID is required",
+          "Album ID is required",
+          "Track number must be greater than zero",
+          "Cover art is required"
+        ))
       }
-      true must beTrue
     }
   }
 
@@ -91,9 +86,10 @@ class TagsSpec extends Specification {
         Some("B000Q66HUA"),
         3,
         CoverArt(new Array[Byte](0), "mime"))
-      validate(validTag) must not(beAnInstanceOf[Failure])
+      Tags.validate(validTag).toEither must beRight
     }
   }
+
   object SimpleTags {
     def apply(albumArtistSort: String, album: String, discNumber: Int, totalDiscs: Int, trackNumber: Int, title: String): Tags = Tags(
       albumArtistSort, "", album, "", "", title,

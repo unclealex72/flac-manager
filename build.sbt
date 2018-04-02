@@ -39,7 +39,6 @@ lazy val root = (project in file(".")).
       "com.typesafe.play" %% "play-slick" % "3.0.0-RC1",
       "com.typesafe.play" %% "play-slick-evolutions" % "3.0.0-RC1",
       "org.xerial" % "sqlite-jdbc" % "3.18.0",
-      "com.wix" %% "accord-core" % "0.6.1",
       "net.jthink" % "jaudiotagger" % "2.2.5",
       "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
       ws,

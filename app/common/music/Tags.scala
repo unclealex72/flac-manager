@@ -16,12 +16,11 @@
 
 package common.music
 
-import java.nio.file.{FileSystem, Path, Paths}
+import java.nio.file.{FileSystem, Path}
 import java.text.Normalizer
 
-import cats.data.{Validated, ValidatedNel}
+import cats.data._
 import cats.implicits._
-import com.wix.accord.transform.ValidationTransform
 import common.files.Extension
 import common.message.Message
 import common.message.Messages.INVALID_TAGS
@@ -171,7 +170,6 @@ object Tags {
     }
 
   }
-  import com.wix.accord.dsl._
 
   /**
     * A validator for tags. The following must be present:
@@ -190,20 +188,24 @@ object Tags {
     *   1. - track number,
     *   1. - cover art.
     */
-  implicit val musicFileValidator: ValidationTransform.TransformedValidator[Tags] = validator[Tags] { tags =>
-    tags.albumArtistSort is notEmpty
-    tags.albumArtist is notEmpty
-    tags.album is notEmpty
-    tags.artist is notEmpty
-    tags.artistSort is notEmpty
-    tags.title is notEmpty
-    tags.totalDiscs is >(0)
-    tags.totalTracks is >(0)
-    tags.discNumber is >(0)
-    tags.albumArtistId is notEmpty
-    tags.artistId is notEmpty
-    tags.albumId is notEmpty
-    tags.trackNumber is >(0)
-    tags.coverArt is notNull
+   def validate(tags: Tags): ValidatedNel[String, Tags] = {
+     def v[V](p: V => Boolean)(v: V, message: String): ValidatedNel[String, V] = Option(v).filter(p).toValidNel(message)
+     def notNull[V] = v[V](_ => true) _
+     def notEmpty = v[String](s => !s.isEmpty) _
+     def positive = v[Int](n => n > 0) _
+
+     (notEmpty(tags.albumArtistSort, "Album artist sort is required") |@|
+      notEmpty(tags.albumArtist, "Album artist is required") |@|
+      notEmpty(tags.album, "Album is required") |@|
+      notEmpty(tags.artistSort, "Artist sort is required") |@|
+      notEmpty(tags.title, "Title is required") |@|
+      positive(tags.totalDiscs, "Total discs must be greater than zero") |@|
+      positive(tags.totalTracks, "Total tracks must be greater than zero") |@|
+      positive(tags.discNumber, "Disc number must be greater than zero") |@|
+      notEmpty(tags.albumArtistId, "Album artist ID is required") |@|
+      notEmpty(tags.artistId, "Artist ID is required") |@|
+      notEmpty(tags.albumId, "Album ID is required") |@|
+      positive(tags.discNumber, "Track number must be greater than zero") |@|
+      notNull(tags.coverArt, "Cover art is required")).map((_, _, _, _, _, _, _, _, _, _, _, _, _) => tags)
   }
 }
